@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>    
+    <OutputType>WinExe</OutputType>
+  </PropertyGroup>
+        
+  <ItemGroup>
+    <PackageReference Include="ImGui.NET" Version="1.78.0" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="1.9.65" />
+    <PackageReference Include="Vortice.Direct3D11" Version="1.9.65" />
+  </ItemGroup>
+
+</Project>
