@@ -1,35 +1,50 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Vortice.Win32;
+using static Vortice.Win32.Kernel32;
+using static Vortice.Win32.User32;
 using System.Runtime.CompilerServices;
-using Mini.Engine.Win32;
-using Vortice.Direct3D;
 using Vortice.Direct3D11;
-using static Mini.Engine.Win32.Kernel32;
-using static Mini.Engine.Win32.User32;
-using static Vortice.Direct3D11.D3D11;
+using ImGuiNET;
+using Vortice.Direct3D;
 
-namespace Mini.Engine
+namespace VorticeImGui
 {
-    class Program : IDisposable
+    class MainWindow : AppWindow
     {
-        private const uint PM_REMOVE = 1;
+        public MainWindow(Win32Window win32window, ID3D11Device device, ID3D11DeviceContext deviceContext) : base(win32window, device, deviceContext)
+        {
+        }
+
+        public override void UpdateImGui()
+        {
+            base.UpdateImGui();
+            ImGui.ShowDemoWindow();
+        }
+    }
+
+    class Program
+    {
+        const uint PM_REMOVE = 1;
 
         [STAThread]
         static void Main()
         {
-            using var program = new Program();
-            program.Run();
+            new Program().Run();
         }
 
-        private readonly ID3D11Device Device;
-        private readonly ID3D11DeviceContext DeviceContext;
-        private readonly AppWindow window;
+        bool quitRequested;
 
-        private bool quitRequested;
+        ID3D11Device device;
+        ID3D11DeviceContext deviceContext;
 
-        private Program()
+        Dictionary<IntPtr, AppWindow> windows = new Dictionary<IntPtr, AppWindow>();
+
+        void Run()
         {
-            D3D11CreateDevice(IntPtr.Zero, DriverType.Hardware, DeviceCreationFlags.None, new[] { FeatureLevel.Level_11_1 },
-                out this.Device, out this.DeviceContext);
+            D3D11.D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None, null, out device, out deviceContext);
 
             var moduleHandle = GetModuleHandle(null);
 
@@ -46,10 +61,13 @@ namespace Mini.Engine
             };
 
             RegisterClassEx(ref wndClass);
-        }
 
-        private void Run()
-        {
+            var win32window = new Win32Window(wndClass.ClassName, "Vortice ImGui", 800, 600);
+            var mainWindow = new MainWindow(win32window, device, deviceContext);
+            windows.Add(mainWindow.Win32Window.Handle, mainWindow);
+
+            mainWindow.Show();
+
             while (!quitRequested)
             {
                 if (PeekMessage(out var msg, IntPtr.Zero, 0, 0, PM_REMOVE))
@@ -85,12 +103,6 @@ namespace Mini.Engine
             }
 
             return DefWindowProc(hWnd, msg, wParam, lParam);
-        }
-
-        public void Dispose()
-        {
-            this.DeviceContext.Dispose();
-            this.Device.Dispose();
         }
     }
 }
