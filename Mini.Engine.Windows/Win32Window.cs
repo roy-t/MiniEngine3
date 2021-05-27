@@ -1,12 +1,9 @@
-﻿// Copyright (c) Amer Koleci and contributors.
-// Distributed under the MIT license. See the LICENSE file in the project root for more information.
-
-using System;
+﻿using System;
 using Vortice;
 using Vortice.Win32;
 using static Vortice.Win32.User32;
 
-namespace VorticeImGui
+namespace Mini.Engine.Windows
 {
     public abstract class Win32Window : IDisposable
     {
@@ -39,10 +36,13 @@ namespace VorticeImGui
         }
 
         public string Title { get; }
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public int Width { get; private set; }
+        public int Height { get; private set; }
         public IntPtr Handle { get; private set; }
-        public bool IsMinimized { get; set; }
+        public bool IsMinimized { get; private set; }
+
+        public void Show()
+            => ShowWindow(this.Handle, ShowWindowCommand.Normal);
 
         public virtual bool ProcessMessage(uint msg, UIntPtr wParam, IntPtr lParam)
         {
@@ -75,7 +75,7 @@ namespace VorticeImGui
 
         protected abstract void Resize();
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             if (this.Handle != IntPtr.Zero)
             {

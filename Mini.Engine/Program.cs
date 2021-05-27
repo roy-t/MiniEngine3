@@ -1,8 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
 using ImGuiNET;
-using Vortice.Direct3D;
-using Vortice.Direct3D11;
 using Vortice.Win32;
 using static Vortice.Win32.Kernel32;
 using static Vortice.Win32.User32;
@@ -11,8 +9,8 @@ namespace VorticeImGui
 {
     class MainWindow : AppWindow
     {
-        public MainWindow(string title, int width, int height, ID3D11Device device, ID3D11DeviceContext deviceContext)
-            : base(title, width, height, device, deviceContext)
+        public MainWindow(string title, int width, int height)
+            : base(title, width, height)
         {
         }
 
@@ -33,14 +31,10 @@ namespace VorticeImGui
 
         bool quitRequested;
 
-        ID3D11Device device;
-        ID3D11DeviceContext deviceContext;
         MainWindow mainWindow;
 
         void Run()
         {
-            D3D11.D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None, null, out device, out deviceContext);
-
             var moduleHandle = GetModuleHandle(null);
 
             var wndClass = new WNDCLASSEX
@@ -57,7 +51,7 @@ namespace VorticeImGui
 
             RegisterClassEx(ref wndClass);
 
-            mainWindow = new MainWindow("Vortice ImGui", 800, 600, device, deviceContext);
+            mainWindow = new MainWindow("Vortice ImGui", 800, 600);
             mainWindow.Show();
 
             while (!quitRequested)
@@ -74,7 +68,7 @@ namespace VorticeImGui
                     }
                 }
 
-                mainWindow.UpdateAndDraw();
+                mainWindow.Frame();
             }
         }
 
