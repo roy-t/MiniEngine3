@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
+using Mini.Engine.DirectX;
 using Vortice;
 using Vortice.D3DCompiler;
 using Vortice.Direct3D;
@@ -34,6 +35,8 @@ namespace VorticeImGui
         ID3D11BlendState blendState;
         ID3D11DepthStencilState depthStencilState;
         int vertexBufferSize = 5000, indexBufferSize = 10000;
+
+        Shader shader;
 
         Dictionary<IntPtr, ID3D11ShaderResourceView> textureResources = new Dictionary<IntPtr, ID3D11ShaderResourceView>();
 
@@ -273,6 +276,8 @@ namespace VorticeImGui
 
         void CreateDeviceObjects()
         {
+            this.shader = new Shader(device, "../../../../Content/Shaders/Immediate.hlsl");
+
             var vertexShaderCode =
                 @"                    cbuffer vertexBuffer : register(b0)                     {
                         float4x4 ProjectionMatrix; 
