@@ -1,40 +1,19 @@
 using System;
 using System.Runtime.CompilerServices;
-using ImGuiNET;
 using Vortice.Win32;
 using static Vortice.Win32.Kernel32;
 using static Vortice.Win32.User32;
 
 namespace VorticeImGui
 {
-    class MainWindow : AppWindow
+    public class Program
     {
-        public MainWindow(string title, int width, int height)
-            : base(title, width, height)
-        {
-        }
+        private static AppWindow mainWindow;
 
-        public override void UpdateImGui()
-        {
-            base.UpdateImGui();
-            ImGui.ShowDemoWindow();
-        }
-    }
-
-    class Program
-    {
         [STAThread]
         static void Main()
         {
-            new Program().Run();
-        }
-
-        bool quitRequested;
-
-        MainWindow mainWindow;
-
-        void Run()
-        {
+            var quitRequested = false;
             var moduleHandle = GetModuleHandle(null);
 
             var wndClass = new WNDCLASSEX
@@ -51,7 +30,7 @@ namespace VorticeImGui
 
             RegisterClassEx(ref wndClass);
 
-            mainWindow = new MainWindow("Vortice ImGui", 800, 600);
+            mainWindow = new AppWindow("Vortice ImGui", 800, 600);
             mainWindow.Show();
 
             while (!quitRequested)
@@ -70,9 +49,11 @@ namespace VorticeImGui
 
                 mainWindow.Frame();
             }
+
+            mainWindow.Dispose();
         }
 
-        private IntPtr WndProc(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam)
+        private static IntPtr WndProc(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam)
         {
             if (mainWindow?.ProcessMessage(msg, wParam, lParam) ?? false)
                 return IntPtr.Zero;

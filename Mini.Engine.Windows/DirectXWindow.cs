@@ -47,7 +47,7 @@ namespace Mini.Engine.Windows
 
         protected override void Resize()
         {
-            if (this.renderView == null) //first show
+            if (this.renderView == null) // first show
             {
                 var dxgiFactory = this.Device.QueryInterface<IDXGIDevice>().GetParent<IDXGIAdapter>().GetParent<IDXGIFactory>();
 

@@ -7,32 +7,30 @@ using Vortice.Win32;
 
 namespace VorticeImGui
 {
-    class AppWindow : DirectXWindow
+    internal sealed class AppWindow : DirectXWindow
     {
-        ImGuiRenderer imGuiRenderer;
-        ImGuiInputHandler imguiInputHandler;
-        Stopwatch stopwatch = Stopwatch.StartNew();
-        TimeSpan lastFrameTime;
+        private readonly ImGuiRenderer ImGuiRenderer;
+        private readonly ImGuiInputHandler ImguiInputHandler;
+        private readonly Stopwatch StopWatch = Stopwatch.StartNew();
 
-        IntPtr imGuiContext;
+        private TimeSpan lastFrameTime;
 
         public AppWindow(string title, int width, int height)
             : base(title, width, height)
         {
-            imGuiContext = ImGui.CreateContext();
-            ImGui.SetCurrentContext(imGuiContext);
-
-            imGuiRenderer = new ImGuiRenderer(base.Device, base.DeviceContext);
-            imguiInputHandler = new ImGuiInputHandler(this.Handle);
+            ImGui.CreateContext();
+            this.ImGuiRenderer = new ImGuiRenderer(base.Device, base.DeviceContext);
+            this.ImguiInputHandler = new ImGuiInputHandler(this.Handle);
 
             ImGui.GetIO().DisplaySize = new Vector2(this.Width, this.Height);
         }
 
         public override bool ProcessMessage(uint msg, UIntPtr wParam, IntPtr lParam)
         {
-            ImGui.SetCurrentContext(imGuiContext);
-            if (imguiInputHandler.ProcessMessage((WindowMessage)msg, wParam, lParam))
+            if (this.ImguiInputHandler.ProcessMessage((WindowMessage)msg, wParam, lParam))
+            {
                 return true;
+            }
 
             return base.ProcessMessage(msg, wParam, lParam);
         }
@@ -43,28 +41,26 @@ namespace VorticeImGui
             base.Resize();
         }
 
-        public virtual void UpdateImGui()
-        {
-            ImGui.SetCurrentContext(imGuiContext);
-            var io = ImGui.GetIO();
-
-            var now = stopwatch.Elapsed;
-            var delta = now - lastFrameTime;
-            lastFrameTime = now;
-            io.DeltaTime = (float)delta.TotalSeconds;
-
-            imguiInputHandler.Update();
-
-            ImGui.NewFrame();
-        }
-
         protected override void Render()
         {
-            UpdateImGui();
+            this.UpdateImGui();
             ImGui.Render();
-            imGuiRenderer.Render(ImGui.GetDrawData());
+            this.ImGuiRenderer.Render(ImGui.GetDrawData());
         }
 
-        public virtual void DoRender() { }
+        private void UpdateImGui()
+        {
+            var io = ImGui.GetIO();
+
+            var now = this.StopWatch.Elapsed;
+            var delta = now - this.lastFrameTime;
+            this.lastFrameTime = now;
+            io.DeltaTime = (float)delta.TotalSeconds;
+
+            this.ImguiInputHandler.Update();
+
+            ImGui.NewFrame();
+            ImGui.ShowDemoWindow();
+        }
     }
 }
