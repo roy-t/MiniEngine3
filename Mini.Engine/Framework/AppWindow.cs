@@ -9,10 +9,8 @@ using Vortice.Win32;
 
 namespace VorticeImGui
 {
-    class AppWindow
+    class AppWindow : Win32Window
     {
-        public Win32Window Win32Window;
-
         ID3D11Device device;
         ID3D11DeviceContext deviceContext;
         IDXGISwapChain swapChain;
@@ -28,9 +26,9 @@ namespace VorticeImGui
 
         IntPtr imGuiContext;
 
-        public AppWindow(Win32Window win32window, ID3D11Device device, ID3D11DeviceContext deviceContext)
+        public AppWindow(string title, int width, int height, ID3D11Device device, ID3D11DeviceContext deviceContext)
+            : base(title, width, height)
         {
-            Win32Window = win32window;
             this.device = device;
             this.deviceContext = deviceContext;
 
@@ -38,47 +36,23 @@ namespace VorticeImGui
             ImGui.SetCurrentContext(imGuiContext);
 
             imGuiRenderer = new ImGuiRenderer(this.device, this.deviceContext);
-            imguiInputHandler = new ImGuiInputHandler(Win32Window.Handle);
+            imguiInputHandler = new ImGuiInputHandler(this.Handle);
 
-            ImGui.GetIO().DisplaySize = new Vector2(Win32Window.Width, Win32Window.Height);
+            ImGui.GetIO().DisplaySize = new Vector2(this.Width, this.Height);
         }
 
         public void Show()
         {
-            User32.ShowWindow(Win32Window.Handle, ShowWindowCommand.Normal);
+            User32.ShowWindow(this.Handle, ShowWindowCommand.Normal);
         }
 
-        public virtual bool ProcessMessage(uint msg, UIntPtr wParam, IntPtr lParam)
+        public override bool ProcessMessage(uint msg, UIntPtr wParam, IntPtr lParam)
         {
             ImGui.SetCurrentContext(imGuiContext);
             if (imguiInputHandler.ProcessMessage((WindowMessage)msg, wParam, lParam))
                 return true;
 
-            switch ((WindowMessage)msg)
-            {
-                case WindowMessage.Size:
-                    switch ((SizeMessage)wParam)
-                    {
-                        case SizeMessage.SIZE_RESTORED:
-                        case SizeMessage.SIZE_MAXIMIZED:
-                            Win32Window.IsMinimized = false;
-
-                            var lp = (int)lParam;
-                            Win32Window.Width = Utils.Loword(lp);
-                            Win32Window.Height = Utils.Hiword(lp);
-
-                            resize();
-                            break;
-                        case SizeMessage.SIZE_MINIMIZED:
-                            Win32Window.IsMinimized = true;
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-            }
-
-            return false;
+            return base.ProcessMessage(msg, wParam, lParam);
         }
 
         public void UpdateAndDraw()
@@ -87,7 +61,7 @@ namespace VorticeImGui
             render();
         }
 
-        void resize()
+        protected override void Resize()
         {
             if (renderView == null)//first show
             {
@@ -96,16 +70,16 @@ namespace VorticeImGui
                 var swapchainDesc = new SwapChainDescription()
                 {
                     BufferCount = 1,
-                    BufferDescription = new ModeDescription(Win32Window.Width, Win32Window.Height, format),
+                    BufferDescription = new ModeDescription(this.Width, this.Height, format),
                     IsWindowed = true,
-                    OutputWindow = Win32Window.Handle,
+                    OutputWindow = this.Handle,
                     SampleDescription = new SampleDescription(1, 0),
                     SwapEffect = SwapEffect.Discard,
                     Usage = Vortice.DXGI.Usage.RenderTargetOutput
                 };
 
                 swapChain = dxgiFactory.CreateSwapChain(device, swapchainDesc);
-                dxgiFactory.MakeWindowAssociation(Win32Window.Handle, WindowAssociationFlags.IgnoreAll);
+                dxgiFactory.MakeWindowAssociation(this.Handle, WindowAssociationFlags.IgnoreAll);
 
                 backBuffer = swapChain.GetBuffer<ID3D11Texture2D>(0);
                 renderView = device.CreateRenderTargetView(backBuffer);
@@ -115,11 +89,11 @@ namespace VorticeImGui
                 renderView.Dispose();
                 backBuffer.Dispose();
 
-                swapChain.ResizeBuffers(1, Win32Window.Width, Win32Window.Height, format, SwapChainFlags.None);
+                swapChain.ResizeBuffers(1, this.Width, this.Height, format, SwapChainFlags.None);
 
                 backBuffer = swapChain.GetBuffer<ID3D11Texture2D1>(0);
                 renderView = device.CreateRenderTargetView(backBuffer);
-                ImGui.GetIO().DisplaySize = new Vector2(Win32Window.Width, Win32Window.Height);
+                ImGui.GetIO().DisplaySize = new Vector2(this.Width, this.Height);
             }
         }
 
@@ -140,14 +114,12 @@ namespace VorticeImGui
 
         void render()
         {
-            resize(); // HACK HACK HACK
-
             ImGui.Render();
 
             var dc = deviceContext;
             dc.ClearRenderTargetView(renderView, new Color4(0, 0, 0));
             dc.OMSetRenderTargets(renderView);
-            dc.RSSetViewport(0, 0, Win32Window.Width, Win32Window.Height);
+            dc.RSSetViewport(0, 0, this.Width, this.Height);
 
             imGuiRenderer.Render(ImGui.GetDrawData());
             DoRender();

@@ -8,48 +8,79 @@ using static Vortice.Win32.User32;
 
 namespace VorticeImGui
 {
-    public class Win32Window
+    public abstract class Win32Window : IDisposable
     {
-        public string Title;
-        public int Width;
-        public int Height;
-        public IntPtr Handle;
-        public bool IsMinimized;
-
         public Win32Window(string title, int width, int height)
         {
-            Title = title;
-            Width = width;
-            Height = height;
+            this.Title = title;
+            this.Width = width;
+            this.Height = height;
 
             var screenWidth = GetSystemMetrics(SystemMetrics.SM_CXSCREEN);
             var screenHeight = GetSystemMetrics(SystemMetrics.SM_CYSCREEN);
-            var x = (screenWidth - Width) / 2;
-            var y = (screenHeight - Height) / 2;
+            var x = (screenWidth - this.Width) / 2;
+            var y = (screenHeight - this.Height) / 2;
 
             var style = WindowStyles.WS_OVERLAPPEDWINDOW;
             var styleEx = WindowExStyles.WS_EX_APPWINDOW | WindowExStyles.WS_EX_WINDOWEDGE;
 
-            var windowRect = new RawRect(0, 0, Width, Height);
+            var windowRect = new RawRect(0, 0, this.Width, this.Height);
             AdjustWindowRectEx(ref windowRect, style, false, styleEx);
 
             var windowWidth = windowRect.Right - windowRect.Left;
             var windowHeight = windowRect.Bottom - windowRect.Top;
 
             var hwnd = CreateWindowEx(
-                (int)styleEx, "WndClass", Title, (int)style,
+                (int)styleEx, "WndClass", this.Title, (int)style,
                 x, y, windowWidth, windowHeight,
                 IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
 
-            Handle = hwnd;
+            this.Handle = hwnd;
         }
 
-        public void Destroy()
+        public string Title { get; }
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public IntPtr Handle { get; private set; }
+        public bool IsMinimized { get; set; }
+
+        public virtual bool ProcessMessage(uint msg, UIntPtr wParam, IntPtr lParam)
         {
-            if (Handle != IntPtr.Zero)
+            switch ((WindowMessage)msg)
             {
-                DestroyWindow(Handle);
-                Handle = IntPtr.Zero;
+                case WindowMessage.Size:
+                    switch ((SizeMessage)wParam)
+                    {
+                        case SizeMessage.SIZE_RESTORED:
+                        case SizeMessage.SIZE_MAXIMIZED:
+                            this.IsMinimized = false;
+
+                            var lp = (int)lParam;
+                            this.Width = Utils.Loword(lp);
+                            this.Height = Utils.Hiword(lp);
+
+                            this.Resize();
+                            break;
+                        case SizeMessage.SIZE_MINIMIZED:
+                            this.IsMinimized = true;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+            }
+
+            return false;
+        }
+
+        protected abstract void Resize();
+
+        public void Dispose()
+        {
+            if (this.Handle != IntPtr.Zero)
+            {
+                DestroyWindow(this.Handle);
+                this.Handle = IntPtr.Zero;
             }
         }
     }

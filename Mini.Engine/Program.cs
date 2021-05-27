@@ -11,7 +11,8 @@ namespace VorticeImGui
 {
     class MainWindow : AppWindow
     {
-        public MainWindow(Win32Window win32window, ID3D11Device device, ID3D11DeviceContext deviceContext) : base(win32window, device, deviceContext)
+        public MainWindow(string title, int width, int height, ID3D11Device device, ID3D11DeviceContext deviceContext)
+            : base(title, width, height, device, deviceContext)
         {
         }
 
@@ -56,8 +57,7 @@ namespace VorticeImGui
 
             RegisterClassEx(ref wndClass);
 
-            var win32window = new Win32Window("Vortice ImGui", 800, 600);
-            mainWindow = new MainWindow(win32window, device, deviceContext);
+            mainWindow = new MainWindow("Vortice ImGui", 800, 600, device, deviceContext);
             mainWindow.Show();
 
             while (!quitRequested)
