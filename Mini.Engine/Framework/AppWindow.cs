@@ -1,14 +1,11 @@
-﻿using ImGuiNET;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 using System.Numerics;
-using System.Text;
+using ImGuiNET;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 using Vortice.Mathematics;
 using Vortice.Win32;
-using VorticeImGui;
 
 namespace VorticeImGui
 {
@@ -122,6 +119,7 @@ namespace VorticeImGui
 
                 backBuffer = swapChain.GetBuffer<ID3D11Texture2D1>(0);
                 renderView = device.CreateRenderTargetView(backBuffer);
+                ImGui.GetIO().DisplaySize = new Vector2(Win32Window.Width, Win32Window.Height);
             }
         }
 

@@ -396,7 +396,7 @@ namespace Vortice.Win32
     }
     #endregion Structures
 
-    internal static class User32
+    public static class User32
     {
         public const string LibraryName = "user32.dll";
 
@@ -557,7 +557,7 @@ namespace Vortice.Win32
         public static extern short GetKeyState(VK nVirtKey);
     }
 
-    struct POINT
+    public struct POINT
     {
         public int X, Y;
 
@@ -568,7 +568,7 @@ namespace Vortice.Win32
         }
     }
 
-    enum VK
+    public enum VK
     {
         ///<summary>
         ///Left mouse button

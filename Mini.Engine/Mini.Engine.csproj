@@ -17,5 +17,9 @@
     <PackageReference Include="Vortice.D3DCompiler" Version="1.9.65" />
     <PackageReference Include="Vortice.Direct3D11" Version="1.9.65" />
   </ItemGroup>
+        
+  <ItemGroup>
+    <ProjectReference Include="..\Mini.Engine.Windows\Mini.Engine.Windows.csproj" />
+  </ItemGroup>
 
 </Project>

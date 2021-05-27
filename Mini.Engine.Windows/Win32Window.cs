@@ -2,9 +2,7 @@
 // Distributed under the MIT license. See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using Vortice;
-using Vortice.Mathematics;
 using Vortice.Win32;
 using static Vortice.Win32.User32;
 

@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace Vortice.Win32
 {
-    internal static class Kernel32
+    public static class Kernel32
     {
         public const string Name = "kernel32";
 
