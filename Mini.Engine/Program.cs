@@ -1,14 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+using ImGuiNET;
+using Vortice.Direct3D;
+using Vortice.Direct3D11;
 using Vortice.Win32;
 using static Vortice.Win32.Kernel32;
 using static Vortice.Win32.User32;
-using System.Runtime.CompilerServices;
-using Vortice.Direct3D11;
-using ImGuiNET;
-using Vortice.Direct3D;
 
 namespace VorticeImGui
 {
@@ -27,8 +24,6 @@ namespace VorticeImGui
 
     class Program
     {
-        const uint PM_REMOVE = 1;
-
         [STAThread]
         static void Main()
         {
@@ -39,8 +34,7 @@ namespace VorticeImGui
 
         ID3D11Device device;
         ID3D11DeviceContext deviceContext;
-
-        Dictionary<IntPtr, AppWindow> windows = new Dictionary<IntPtr, AppWindow>();
+        MainWindow mainWindow;
 
         void Run()
         {
@@ -62,10 +56,8 @@ namespace VorticeImGui
 
             RegisterClassEx(ref wndClass);
 
-            var win32window = new Win32Window(wndClass.ClassName, "Vortice ImGui", 800, 600);
-            var mainWindow = new MainWindow(win32window, device, deviceContext);
-            windows.Add(mainWindow.Win32Window.Handle, mainWindow);
-
+            var win32window = new Win32Window("Vortice ImGui", 800, 600);
+            mainWindow = new MainWindow(win32window, device, deviceContext);
             mainWindow.Show();
 
             while (!quitRequested)
@@ -82,17 +74,13 @@ namespace VorticeImGui
                     }
                 }
 
-                foreach (var window in windows.Values)
-                    window.UpdateAndDraw();
+                mainWindow.UpdateAndDraw();
             }
         }
 
-        IntPtr WndProc(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam)
+        private IntPtr WndProc(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam)
         {
-            AppWindow window;
-            windows.TryGetValue(hWnd, out window);
-
-            if (window?.ProcessMessage(msg, wParam, lParam) ?? false)
+            if (mainWindow?.ProcessMessage(msg, wParam, lParam) ?? false)
                 return IntPtr.Zero;
 
             switch ((WindowMessage)msg)

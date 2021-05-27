@@ -140,6 +140,8 @@ namespace VorticeImGui
 
         void render()
         {
+            resize(); // HACK HACK HACK
+
             ImGui.Render();
 
             var dc = deviceContext;

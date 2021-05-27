@@ -398,6 +398,8 @@ namespace Vortice.Win32
 
     public static class User32
     {
+        public const uint PM_REMOVE = 1;
+
         public const string LibraryName = "user32.dll";
 
         [DllImport(LibraryName, CharSet = CharSet.Unicode)]

@@ -16,7 +16,7 @@ namespace VorticeImGui
         public IntPtr Handle;
         public bool IsMinimized;
 
-        public Win32Window(string wndClass, string title, int width, int height)
+        public Win32Window(string title, int width, int height)
         {
             Title = title;
             Width = width;
@@ -37,7 +37,7 @@ namespace VorticeImGui
             var windowHeight = windowRect.Bottom - windowRect.Top;
 
             var hwnd = CreateWindowEx(
-                (int)styleEx, wndClass, Title, (int)style,
+                (int)styleEx, "WndClass", Title, (int)style,
                 x, y, windowWidth, windowHeight,
                 IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
 
