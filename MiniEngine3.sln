@@ -15,12 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Windows", "Mini
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.DirectX", "Mini.Engine.DirectX\Mini.Engine.DirectX.csproj", "{C5A564B6-B69D-4C95-A034-48CD4EC8D715}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Content", "Content\Content.shproj", "{A27F9FD2-2012-453B-81F7-75AFB2AE2FFF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mini.Engine.Content", "Mini.Engine.Content\Mini.Engine.Content.csproj", "{F5DC5983-B29F-4864-8A63-468155F7EAC6}"
 EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Content\Content.projitems*{a27f9fd2-2012-453b-81f7-75afb2ae2fff}*SharedItemsImports = 13
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -38,6 +35,10 @@ Global
 		{C5A564B6-B69D-4C95-A034-48CD4EC8D715}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C5A564B6-B69D-4C95-A034-48CD4EC8D715}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5A564B6-B69D-4C95-A034-48CD4EC8D715}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5DC5983-B29F-4864-8A63-468155F7EAC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5DC5983-B29F-4864-8A63-468155F7EAC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5DC5983-B29F-4864-8A63-468155F7EAC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5DC5983-B29F-4864-8A63-468155F7EAC6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

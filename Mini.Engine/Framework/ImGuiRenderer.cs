@@ -6,7 +6,6 @@ using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.DirectX;
 using Vortice;
-using Vortice.D3DCompiler;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
@@ -23,12 +22,8 @@ namespace VorticeImGui
         ID3D11DeviceContext deviceContext;
         ID3D11Buffer vertexBuffer;
         ID3D11Buffer indexBuffer;
-        Blob vertexShaderBlob;
-        ID3D11VertexShader vertexShader;
         ID3D11InputLayout inputLayout;
         ID3D11Buffer constantBuffer;
-        Blob pixelShaderBlob;
-        ID3D11PixelShader pixelShader;
         ID3D11SamplerState fontSampler;
         ID3D11ShaderResourceView fontTextureView;
         ID3D11RasterizerState rasterizerState;
@@ -192,15 +187,15 @@ namespace VorticeImGui
             );
             ctx.RSSetViewports(new[] { viewport });
 
+            this.shader.Set(ctx);
+
             int stride = sizeof(ImDrawVert);
             int offset = 0;
             ctx.IASetInputLayout(inputLayout);
             ctx.IASetVertexBuffers(0, 1, new[] { vertexBuffer }, new[] { stride }, new[] { offset });
             ctx.IASetIndexBuffer(indexBuffer, sizeof(ImDrawIdx) == 2 ? Format.R16_UInt : Format.R32_UInt, 0);
             ctx.IASetPrimitiveTopology(PrimitiveTopology.TriangleList);
-            ctx.VSSetShader(vertexShader);
             ctx.VSSetConstantBuffers(0, new[] { constantBuffer });
-            ctx.PSSetShader(pixelShader);
             ctx.PSSetSamplers(0, new[] { fontSampler });
             ctx.GSSetShader(null);
             ctx.HSSetShader(null);
@@ -276,50 +271,13 @@ namespace VorticeImGui
 
         void CreateDeviceObjects()
         {
-            this.shader = new Shader(device, "../../../../Content/Shaders/Immediate.hlsl");
-
-            var vertexShaderCode =
-                @"                    cbuffer vertexBuffer : register(b0)                     {
-                        float4x4 ProjectionMatrix; 
-                    };
-
-                    struct VS_INPUT
-                    {
-                        float2 pos : POSITION;
-                        float4 col : COLOR0;
-                        float2 uv  : TEXCOORD0;
-                    };
-            
-                    struct PS_INPUT
-                    {
-                        float4 pos : SV_POSITION;
-                        float4 col : COLOR0;
-                        float2 uv  : TEXCOORD0;
-                    };
-            
-                    PS_INPUT main(VS_INPUT input)
-                    {
-                        PS_INPUT output;
-                        output.pos = mul(ProjectionMatrix, float4(input.pos.xy, 0.f, 1.f));
-                        output.col = input.col;
-                        output.uv  = input.uv;
-                        return output;
-                    }";
-
-            Compiler.Compile(vertexShaderCode, "main", "vs", "vs_4_0", out vertexShaderBlob, out var errorBlob);
-            if (vertexShaderBlob == null)
-                throw new Exception("error compiling vertex shader");
-
-            vertexShader = device.CreateVertexShader(vertexShaderBlob.GetBytes());
-
-            var inputElements = new[]
-            {
-                new InputElementDescription( "POSITION", 0, Format.R32G32_Float,   0, 0, InputClassification.PerVertexData, 0 ),
-                new InputElementDescription( "TEXCOORD", 0, Format.R32G32_Float,   8,  0, InputClassification.PerVertexData, 0 ),
-                new InputElementDescription( "COLOR",    0, Format.R8G8B8A8_UNorm, 16, 0, InputClassification.PerVertexData, 0 ),
-            };
-
-            inputLayout = device.CreateInputLayout(inputElements, vertexShaderBlob);
+            this.shader = new Shader(device, "../../../../Mini.Engine.Content/Shaders/Immediate.hlsl");
+            inputLayout = this.shader.CreateInputLayout
+            (
+                new InputElementDescription("POSITION", 0, Format.R32G32_Float, 0, 0, InputClassification.PerVertexData, 0),
+                new InputElementDescription("TEXCOORD", 0, Format.R32G32_Float, 8, 0, InputClassification.PerVertexData, 0),
+                new InputElementDescription("COLOR", 0, Format.R8G8B8A8_UNorm, 16, 0, InputClassification.PerVertexData, 0)
+            );
 
             var constBufferDesc = new BufferDescription
             {
@@ -329,29 +287,6 @@ namespace VorticeImGui
                 CpuAccessFlags = CpuAccessFlags.Write
             };
             constantBuffer = device.CreateBuffer(constBufferDesc);
-
-            var pixelShaderCode =
-                @"struct PS_INPUT
-                    {
-                        float4 pos : SV_POSITION;
-                        float4 col : COLOR0;
-                        float2 uv  : TEXCOORD0;
-                    };
-
-                    sampler sampler0;
-                    Texture2D texture0;
-            
-                    float4 main(PS_INPUT input) : SV_Target
-                    {
-                        float4 out_col = input.col * texture0.Sample(sampler0, input.uv); 
-                        return out_col; 
-                    }";
-
-            Compiler.Compile(pixelShaderCode, "main", "ps", "ps_4_0", out pixelShaderBlob, out errorBlob);
-            if (pixelShaderBlob == null)
-                throw new Exception("error compiling pixel shader");
-
-            pixelShader = device.CreatePixelShader(pixelShaderBlob.GetBytes());
 
             var blendDesc = new BlendDescription
             {
@@ -407,12 +342,10 @@ namespace VorticeImGui
             ReleaseAndNullify(ref blendState);
             ReleaseAndNullify(ref depthStencilState);
             ReleaseAndNullify(ref rasterizerState);
-            ReleaseAndNullify(ref pixelShader);
-            ReleaseAndNullify(ref pixelShaderBlob);
             ReleaseAndNullify(ref constantBuffer);
             ReleaseAndNullify(ref inputLayout);
-            ReleaseAndNullify(ref vertexShader);
-            ReleaseAndNullify(ref vertexShaderBlob);
+
+            this.shader?.Dispose();
         }
     }
 }
