@@ -20,7 +20,8 @@ namespace VorticeImGui
 
         ID3D11Device device;
         ID3D11DeviceContext deviceContext;
-        ID3D11Buffer vertexBuffer;
+        //ID3D11Buffer vertexBuffer;
+        VertexBuffer vertexBuffer;
         ID3D11Buffer indexBuffer;
         ID3D11InputLayout inputLayout;
         ID3D11Buffer constantBuffer;
@@ -46,29 +47,33 @@ namespace VorticeImGui
             var io = ImGui.GetIO();
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
 
+            this.vertexBuffer = new VertexBuffer(this.device, this.deviceContext);
+
             CreateDeviceObjects();
         }
 
         public void Render(ImDrawDataPtr data)
         {
             // Avoid rendering when minimized
-            if (data.DisplaySize.X <= 0.0f || data.DisplaySize.Y <= 0.0f)
+            if (data.DisplaySize.X <= 0.0f || data.DisplaySize.Y <= 0.0f || data.TotalVtxCount <= 0.0f)
                 return;
 
             ID3D11DeviceContext ctx = deviceContext;
 
-            if (vertexBuffer == null || vertexBufferSize < data.TotalVtxCount)
-            {
-                vertexBuffer?.Release();
 
-                vertexBufferSize = data.TotalVtxCount + 5000;
-                BufferDescription desc = new BufferDescription();
-                desc.Usage = Vortice.Direct3D11.Usage.Dynamic;
-                desc.SizeInBytes = vertexBufferSize * sizeof(ImDrawVert);
-                desc.BindFlags = BindFlags.VertexBuffer;
-                desc.CpuAccessFlags = CpuAccessFlags.Write;
-                vertexBuffer = device.CreateBuffer(desc);
-            }
+            this.vertexBuffer.Reserve(data.TotalVtxCount, sizeof(ImDrawVert));
+            //if (vertexBuffer == null || vertexBufferSize < data.TotalVtxCount)
+            //{
+            //    vertexBuffer?.Release();
+
+            //    vertexBufferSize = data.TotalVtxCount + 5000;
+            //    BufferDescription desc = new BufferDescription();
+            //    desc.Usage = Vortice.Direct3D11.Usage.Dynamic;
+            //    desc.SizeInBytes = vertexBufferSize * sizeof(ImDrawVert);
+            //    desc.BindFlags = BindFlags.VertexBuffer;
+            //    desc.CpuAccessFlags = CpuAccessFlags.Write;
+            //    vertexBuffer = device.CreateBuffer(desc);
+            //}
 
             if (indexBuffer == null || indexBufferSize < data.TotalIdxCount)
             {
@@ -85,25 +90,31 @@ namespace VorticeImGui
             }
 
             // Upload vertex/index data into a single contiguous GPU buffer
-            var vertexResource = ctx.Map(vertexBuffer, 0, MapMode.WriteDiscard, Vortice.Direct3D11.MapFlags.None);
+            //var vertexResource = ctx.Map(vertexBuffer, 0, MapMode.WriteDiscard, Vortice.Direct3D11.MapFlags.None);
             var indexResource = ctx.Map(indexBuffer, 0, MapMode.WriteDiscard, Vortice.Direct3D11.MapFlags.None);
-            var vertexResourcePointer = (ImDrawVert*)vertexResource.DataPointer;
+            //var vertexResourcePointer = (ImDrawVert*)vertexResource.DataPointer;
+            int vertexBufferOffset = 0;
             var indexResourcePointer = (ImDrawIdx*)indexResource.DataPointer;
             for (int n = 0; n < data.CmdListsCount; n++)
             {
                 var cmdlList = data.CmdListsRange[n];
-
+                // TODO figure out why adding a main menu bar and then opening it causes a triangle flash!
                 var vertBytes = cmdlList.VtxBuffer.Size * sizeof(ImDrawVert);
-                Buffer.MemoryCopy((void*)cmdlList.VtxBuffer.Data, vertexResourcePointer, vertBytes, vertBytes);
+                //Buffer.MemoryCopy((void*)cmdlList.VtxBuffer.Data, vertexResourcePointer, vertBytes, vertBytes);
+                this.vertexBuffer.MapData(cmdlList.VtxBuffer.Data, cmdlList.VtxBuffer.Size, sizeof(ImDrawVert), vertexBufferOffset);
 
                 var idxBytes = cmdlList.IdxBuffer.Size * sizeof(ImDrawIdx);
                 Buffer.MemoryCopy((void*)cmdlList.IdxBuffer.Data, indexResourcePointer, idxBytes, idxBytes);
 
-                vertexResourcePointer += cmdlList.VtxBuffer.Size;
+                //vertexResourcePointer += cmdlList.VtxBuffer.Size;
+                vertexBufferOffset += cmdlList.VtxBuffer.Size;
                 indexResourcePointer += cmdlList.IdxBuffer.Size;
             }
-            ctx.Unmap(vertexBuffer, 0);
+            //ctx.Unmap(vertexBuffer, 0);
             ctx.Unmap(indexBuffer, 0);
+
+
+
 
             // Setup orthographic projection matrix into our constant buffer
             // Our visible imgui space lies from draw_data.DisplayPos (top left) to draw_data.DisplayPos+data_data.DisplaySize (bottom right). DisplayPos is (0,0) for single viewport apps.
@@ -192,7 +203,7 @@ namespace VorticeImGui
             int stride = sizeof(ImDrawVert);
             int offset = 0;
             ctx.IASetInputLayout(inputLayout);
-            ctx.IASetVertexBuffers(0, 1, new[] { vertexBuffer }, new[] { stride }, new[] { offset });
+            ctx.IASetVertexBuffers(0, 1, new[] { vertexBuffer.Buffer }, new[] { stride }, new[] { offset });
             ctx.IASetIndexBuffer(indexBuffer, sizeof(ImDrawIdx) == 2 ? Format.R16_UInt : Format.R32_UInt, 0);
             ctx.IASetPrimitiveTopology(PrimitiveTopology.TriangleList);
             ctx.VSSetConstantBuffers(0, new[] { constantBuffer });
@@ -338,7 +349,6 @@ namespace VorticeImGui
             ReleaseAndNullify(ref fontSampler);
             ReleaseAndNullify(ref fontTextureView);
             ReleaseAndNullify(ref indexBuffer);
-            ReleaseAndNullify(ref vertexBuffer);
             ReleaseAndNullify(ref blendState);
             ReleaseAndNullify(ref depthStencilState);
             ReleaseAndNullify(ref rasterizerState);
@@ -346,6 +356,7 @@ namespace VorticeImGui
             ReleaseAndNullify(ref inputLayout);
 
             this.shader?.Dispose();
+            this.vertexBuffer?.Dispose();
         }
     }
 }

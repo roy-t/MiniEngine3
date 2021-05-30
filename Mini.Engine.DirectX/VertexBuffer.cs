@@ -9,62 +9,73 @@ namespace Mini.Engine.DirectX
     {
         private readonly ID3D11Device Device;
         private readonly ID3D11DeviceContext Context;
-        private ID3D11Buffer buffer;
 
-        public VertexBuffer(ID3D11Device device, ID3D11DeviceContext context, int size)
+        public VertexBuffer(ID3D11Device device, ID3D11DeviceContext context, float growthFactor = 1.1f)
         {
             this.Device = device;
             this.Context = context;
-            this.Length = size;
+            this.Length = 0;
+            this.GrowthFactor = growthFactor;
         }
 
         public int Length { get; private set; }
 
-        public void MapData<T>(T[] vertices, int reserve = 0)
+        public float GrowthFactor { get; }
+
+        public ID3D11Buffer Buffer { get; private set; }
+
+        public void MapData<T>(T[] vertices)
             where T : struct
-            => this.MapData(vertices, Unsafe.SizeOf<T>(), reserve);
+            => this.MapData(vertices, Unsafe.SizeOf<T>());
 
-        public void MapData<T>(T[] vertices, int vertexSize, int reserve = 0)
-            where T : struct
+        public void Reserve<T>(int vertexCount)
+            => this.Reserve(vertexCount, Unsafe.SizeOf<T>());
+
+        public void Reserve(int vertexCount, int vertexSize)
         {
-            this.EnsureBufferIsCreatedAndIsLargeEnough(vertices.Length, vertexSize, reserve);
-
-            var resource = this.Context.Map(this.buffer, 0, MapMode.WriteDiscard, MapFlags.None);
-            Marshal.StructureToPtr(vertices, resource.DataPointer, false);
-        }
-
-        public unsafe void MapData(IntPtr vertices, int vertexCount, int vertexSize, int destinationOffsetInBytes, int reserve = 0)
-        {
-            this.EnsureBufferIsCreatedAndIsLargeEnough(vertexCount, vertexSize, reserve);
-
-            var resource = this.Context.Map(this.buffer, 0, MapMode.WriteDiscard, MapFlags.None);
-
-            var destination = resource.DataPointer + destinationOffsetInBytes;
-            var destinationSize = (this.Length * vertexSize) - destinationOffsetInBytes;
-            var copySize = vertexSize * vertexCount;
-
-            Buffer.MemoryCopy((void*)vertices, (void*)destination, destinationSize, copySize);
-        }
-
-        private void EnsureBufferIsCreatedAndIsLargeEnough(int vertexCount, int vertexSize, int reserve = 0)
-        {
-            if (this.buffer == null || this.Length < vertexCount)
+            if (this.Buffer == null || this.Length < vertexCount)
             {
-                this.buffer?.Release();
+                this.Buffer?.Release();
 
-                this.Length = vertexCount + reserve;
+                this.Length = (int)(vertexCount * this.GrowthFactor);
                 var description = new BufferDescription()
                 {
                     Usage = Usage.Dynamic,
                     SizeInBytes = vertexSize * this.Length,
                     BindFlags = BindFlags.VertexBuffer,
                     CpuAccessFlags = CpuAccessFlags.Write,
-                    OptionFlags = ResourceOptionFlags.None,
-                    StructureByteStride = 0
                 };
 
-                this.buffer = this.Device.CreateBuffer(description);
+                this.Buffer = this.Device.CreateBuffer(description);
             }
+        }
+
+        public void MapData<T>(T[] vertices, int vertexSize)
+            where T : struct
+        {
+            this.Reserve(vertices.Length, vertexSize);
+
+            var resource = this.Context.Map(this.Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
+            Marshal.StructureToPtr(vertices, resource.DataPointer, false);
+
+            this.Context.Unmap(this.Buffer);
+        }
+
+        public unsafe void MapData(IntPtr vertices, int vertexCount, int vertexSize, int destinationOffset)
+        {
+            var totalVertexCount = vertexCount + destinationOffset;
+            this.Reserve(totalVertexCount, vertexSize);
+
+            var resource = this.Context.Map(this.Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
+
+            var destinationOffsetInBytes = destinationOffset * vertexSize;
+            var destination = resource.DataPointer + destinationOffsetInBytes;
+            var destinationSizeInBytes = (this.Length * vertexSize) - destinationOffsetInBytes;
+            var copySizeInBytes = vertexSize * vertexCount;
+
+            System.Buffer.MemoryCopy((void*)vertices, (void*)destination, destinationSizeInBytes, copySizeInBytes);
+
+            this.Context.Unmap(this.Buffer);
         }
 
         public void Dispose() => throw new NotImplementedException();
