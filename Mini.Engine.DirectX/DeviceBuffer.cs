@@ -5,15 +5,19 @@ namespace Mini.Engine.DirectX
 {
     public abstract class DeviceBuffer : IDisposable
     {
+        private static int Counter = 0;
+
         protected readonly ID3D11Device Device;
         protected readonly ID3D11DeviceContext Context;
         protected readonly int PrimitiveSizeInBytes;
+        private readonly int Id;
 
         internal DeviceBuffer(ID3D11Device device, ID3D11DeviceContext context, int primitiveSizeInBytes)
         {
             this.Device = device;
             this.Context = context;
             this.PrimitiveSizeInBytes = primitiveSizeInBytes;
+            this.Id = ++Counter;
         }
 
         public int Capacity { get; private set; }
@@ -27,6 +31,9 @@ namespace Mini.Engine.DirectX
                 this.Buffer?.Release();
                 this.Capacity = primitiveCount + reserveExtra;
                 this.Buffer = this.CreateBuffer(this.Capacity * this.PrimitiveSizeInBytes);
+#if DEBUG                                
+                this.Buffer.DebugName = $"{this.GetType().Name}[{this.Capacity}]_{this.Id}";
+#endif
             }
         }
 

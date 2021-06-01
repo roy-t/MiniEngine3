@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using Mini.Engine.Debugging;
 using Vortice.Win32;
 using static Vortice.Win32.Kernel32;
 using static Vortice.Win32.User32;
@@ -30,7 +31,9 @@ namespace VorticeImGui
 
             RegisterClassEx(ref wndClass);
 
-            mainWindow = new AppWindow("Vortice ImGui", 800, 600);
+            RenderDoc.Load(out var renderDoc);
+
+            mainWindow = new AppWindow("Vortice ImGui", renderDoc, 800, 600);
             mainWindow.Show();
 
             while (!quitRequested)

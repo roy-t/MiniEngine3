@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Numerics;
 using ImGuiNET;
+using Mini.Engine.Debugging;
 using Mini.Engine.Windows;
 using Vortice.Win32;
 
@@ -12,10 +13,12 @@ namespace VorticeImGui
         private readonly ImGuiRenderer ImGuiRenderer;
         private readonly ImGuiInputHandler ImguiInputHandler;
         private readonly Stopwatch StopWatch = Stopwatch.StartNew();
+        private readonly RenderDoc RenderDoc;
+        private readonly bool EnableRenderDoc;
 
         private TimeSpan lastFrameTime;
 
-        public AppWindow(string title, int width, int height)
+        public AppWindow(string title, RenderDoc renderDoc, int width, int height)
             : base(title, width, height)
         {
             ImGui.CreateContext();
@@ -23,6 +26,14 @@ namespace VorticeImGui
             this.ImguiInputHandler = new ImGuiInputHandler(this.Handle);
 
             ImGui.GetIO().DisplaySize = new Vector2(this.Width, this.Height);
+
+            if (renderDoc != null)
+            {
+                this.EnableRenderDoc = true;
+                this.RenderDoc = renderDoc;
+                renderDoc.OverlayEnabled = false;
+            }
+
         }
 
         public override bool ProcessMessage(uint msg, UIntPtr wParam, IntPtr lParam)
@@ -60,6 +71,32 @@ namespace VorticeImGui
             this.ImguiInputHandler.Update();
 
             ImGui.NewFrame();
+            if (ImGui.BeginMainMenuBar())
+            {
+                if (ImGui.BeginMenu("RenderDoc", this.EnableRenderDoc))
+                {
+
+                    if (ImGui.MenuItem("Launch Replay UI"))
+                    {
+                        this.RenderDoc.LaunchReplayUI();
+                    }
+
+                    if (ImGui.MenuItem("Capture"))
+                    {
+                        this.RenderDoc.TriggerCapture();
+                    }
+
+                    if (ImGui.MenuItem("Open Last Capture", this.RenderDoc.GetNumCaptures() > 0))
+                    {
+                        var path = this.RenderDoc.GetCapture(this.RenderDoc.GetNumCaptures() - 1);
+                        this.RenderDoc.LaunchReplayUI(path);
+                    }
+
+                    ImGui.EndMenu();
+                }
+
+                ImGui.EndMainMenuBar();
+            }
             ImGui.ShowDemoWindow();
         }
     }

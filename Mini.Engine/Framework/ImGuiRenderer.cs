@@ -21,7 +21,6 @@ namespace VorticeImGui
 
         ID3D11InputLayout inputLayout;
         ID3D11SamplerState fontSampler;
-        //ID3D11ShaderResourceView fontTextureView;
         ID3D11RasterizerState rasterizerState;
         ID3D11BlendState blendState;
         ID3D11DepthStencilState depthStencilState;

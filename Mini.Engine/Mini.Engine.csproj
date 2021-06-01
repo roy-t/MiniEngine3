@@ -2,15 +2,7 @@
 
   <PropertyGroup>    
     <OutputType>WinExe</OutputType>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+  </PropertyGroup>   
         
   <ItemGroup>
     <PackageReference Include="ImGui.NET" Version="1.78.0" />
@@ -19,6 +11,7 @@
   </ItemGroup>
         
   <ItemGroup>
+    <ProjectReference Include="..\Mini.Engine.Debugging\Mini.Engine.Debugging.csproj" />
     <ProjectReference Include="..\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
     <ProjectReference Include="..\Mini.Engine.Windows\Mini.Engine.Windows.csproj" />
   </ItemGroup>

@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Windows", "Mini
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.DirectX", "Mini.Engine.DirectX\Mini.Engine.DirectX.csproj", "{C5A564B6-B69D-4C95-A034-48CD4EC8D715}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mini.Engine.Content", "Mini.Engine.Content\Mini.Engine.Content.csproj", "{F5DC5983-B29F-4864-8A63-468155F7EAC6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Content", "Mini.Engine.Content\Mini.Engine.Content.csproj", "{F5DC5983-B29F-4864-8A63-468155F7EAC6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mini.Engine.Debugging", "Mini.Engine.Debugging\Mini.Engine.Debugging.csproj", "{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{F5DC5983-B29F-4864-8A63-468155F7EAC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5DC5983-B29F-4864-8A63-468155F7EAC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5DC5983-B29F-4864-8A63-468155F7EAC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
