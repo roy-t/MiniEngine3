@@ -2,10 +2,16 @@
 
 namespace Mini.Engine.DirectX
 {
-    public sealed class VertexBuffer : DeviceBuffer
+    public enum IndexSize
     {
-        public VertexBuffer(ID3D11Device device, ID3D11DeviceContext context, int vertexSizeInBytes)
-            : base(device, context, vertexSizeInBytes) { }
+        TwoByte = 2,
+        FourByte = 4
+    }
+
+    public sealed class IndexBuffer : DeviceBuffer
+    {
+        public IndexBuffer(ID3D11Device device, ID3D11DeviceContext context, IndexSize indexSize)
+            : base(device, context, (int)indexSize) { }
 
         protected override ID3D11Buffer CreateBuffer(int sizeInBytes)
         {
@@ -13,7 +19,7 @@ namespace Mini.Engine.DirectX
             {
                 Usage = Usage.Dynamic,
                 SizeInBytes = sizeInBytes,
-                BindFlags = BindFlags.VertexBuffer,
+                BindFlags = BindFlags.IndexBuffer,
                 CpuAccessFlags = CpuAccessFlags.Write,
             };
 
