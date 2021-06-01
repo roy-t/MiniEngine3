@@ -16,8 +16,6 @@ namespace VorticeImGui
 {
     unsafe public class ImGuiRenderer
     {
-        const int VertexConstantBufferSize = 16 * 4;
-
         ID3D11Device device;
         ID3D11DeviceContext deviceContext;
 
@@ -49,7 +47,7 @@ namespace VorticeImGui
 
             this.VertexBuffer = new VertexBuffer(device, deviceContext, sizeof(ImDrawVert));
             this.IndexBuffer = new IndexBuffer(device, deviceContext, sizeof(ImDrawIdx) == 2 ? IndexSize.TwoByte : IndexSize.FourByte);
-            this.ConstantBuffer = new ConstantBuffer(device, deviceContext, VertexConstantBufferSize);
+            this.ConstantBuffer = new ConstantBuffer(device, deviceContext, sizeof(Matrix4x4));
 
             this.Shader = new Shader(device, "../../../../Mini.Engine.Content/Shaders/Immediate.hlsl");
             inputLayout = this.Shader.CreateInputLayout
@@ -91,21 +89,8 @@ namespace VorticeImGui
             }
 
             // Setup orthographic projection matrix into our constant buffer
-            // Our visible imgui space lies from draw_data.DisplayPos (top left) to draw_data.DisplayPos+data_data.DisplaySize (bottom right). DisplayPos is (0,0) for single viewport apps.
-
-
-            float L = data.DisplayPos.X;
-            float R = data.DisplayPos.X + data.DisplaySize.X;
-            float T = data.DisplayPos.Y;
-            float B = data.DisplayPos.Y + data.DisplaySize.Y;
-            float[] mvp =
-            {
-                    2.0f/(R-L),   0.0f,           0.0f,       0.0f,
-                    0.0f,         2.0f/(T-B),     0.0f,       0.0f,
-                    0.0f,         0.0f,           0.5f,       0.0f,
-                    (R+L)/(L-R),  (T+B)/(B-T),    0.5f,       1.0f,
-            };
-            this.ConstantBuffer.MapData(mvp);
+            var mat = Matrix4x4.CreateOrthographicOffCenter(0, data.DisplaySize.X, data.DisplaySize.Y, 0, -1.0f, 1.0f);
+            this.ConstantBuffer.MapData(mat);
 
             SetupRenderState(data, ctx);
 
