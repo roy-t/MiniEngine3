@@ -21,7 +21,7 @@ namespace VorticeImGui
 
         ID3D11InputLayout inputLayout;
         ID3D11SamplerState fontSampler;
-        ID3D11ShaderResourceView fontTextureView;
+        //ID3D11ShaderResourceView fontTextureView;
         ID3D11RasterizerState rasterizerState;
         ID3D11BlendState blendState;
         ID3D11DepthStencilState depthStencilState;
@@ -30,6 +30,7 @@ namespace VorticeImGui
         private readonly VertexBuffer VertexBuffer;
         private readonly IndexBuffer IndexBuffer;
         private readonly ConstantBuffer ConstantBuffer;
+        private Texture2D fontTexture;
 
         Dictionary<IntPtr, ID3D11ShaderResourceView> textureResources = new Dictionary<IntPtr, ID3D11ShaderResourceView>();
 
@@ -38,12 +39,9 @@ namespace VorticeImGui
             this.device = device;
             this.deviceContext = deviceContext;
 
-            device.AddRef();
-            deviceContext.AddRef();
-
             var io = ImGui.GetIO();
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-            io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
+            io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
 
             this.VertexBuffer = new VertexBuffer(device, deviceContext, sizeof(ImDrawVert));
             this.IndexBuffer = new IndexBuffer(device, deviceContext, sizeof(ImDrawIdx) == 2 ? IndexSize.TwoByte : IndexSize.FourByte);
@@ -56,6 +54,7 @@ namespace VorticeImGui
                 new InputElementDescription("TEXCOORD", 0, Format.R32G32_Float, 8, 0, InputClassification.PerVertexData, 0),
                 new InputElementDescription("COLOR", 0, Format.R8G8B8A8_UNorm, 16, 0, InputClassification.PerVertexData, 0)
             );
+
             CreateDeviceObjects();
         }
 
@@ -182,38 +181,10 @@ namespace VorticeImGui
             int width, height;
             io.Fonts.GetTexDataAsRGBA32(out pixels, out width, out height);
 
-            var texDesc = new Texture2DDescription
-            {
-                Width = width,
-                Height = height,
-                MipLevels = 1,
-                ArraySize = 1,
-                Format = Format.R8G8B8A8_UNorm,
-                SampleDescription = new SampleDescription { Count = 1 },
-                Usage = Vortice.Direct3D11.Usage.Default,
-                BindFlags = BindFlags.ShaderResource,
-                CpuAccessFlags = CpuAccessFlags.None
-            };
-
-            var subResource = new SubresourceData
-            {
-                DataPointer = (IntPtr)pixels,
-                Pitch = texDesc.Width * 4,
-                SlicePitch = 0
-            };
-
-            var texture = device.CreateTexture2D(texDesc, new[] { subResource });
-
-            var resViewDesc = new ShaderResourceViewDescription
-            {
-                Format = Format.R8G8B8A8_UNorm,
-                ViewDimension = ShaderResourceViewDimension.Texture2D,
-                Texture2D = new Texture2DShaderResourceView { MipLevels = texDesc.MipLevels, MostDetailedMip = 0 }
-            };
-            fontTextureView = device.CreateShaderResourceView(texture, resViewDesc);
-            texture.Release();
-
-            io.Fonts.TexID = RegisterTexture(fontTextureView);
+            var format = Format.R8G8B8A8_UNorm;
+            var pixelSpan = new Span<byte>(pixels, width * height * format.SizeOfInBytes());
+            this.fontTexture = new Texture2D(device, deviceContext, pixelSpan, width, height, format, false, "ImGui_Font");
+            io.Fonts.TexID = RegisterTexture(fontTexture.ShaderResourceView);
 
             var samplerDesc = new SamplerDescription
             {
@@ -287,7 +258,7 @@ namespace VorticeImGui
         void InvalidateDeviceObjects()
         {
             ReleaseAndNullify(ref fontSampler);
-            ReleaseAndNullify(ref fontTextureView);
+            //ReleaseAndNullify(ref fontTextureView);
             //ReleaseAndNullify(ref indexBuffer);
             //ReleaseAndNullify(ref vertexBuffer);
             ReleaseAndNullify(ref blendState);
