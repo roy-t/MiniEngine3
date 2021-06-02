@@ -2,16 +2,11 @@
 
 namespace Mini.Engine.DirectX
 {
-    public enum IndexSize
+    public sealed class IndexBuffer<T> : DeviceBuffer<T>
+        where T : unmanaged
     {
-        TwoByte = 2,
-        FourByte = 4
-    }
-
-    public sealed class IndexBuffer : DeviceBuffer
-    {
-        public IndexBuffer(ID3D11Device device, ID3D11DeviceContext context, IndexSize indexSize)
-            : base(device, context, (int)indexSize) { }
+        public IndexBuffer(ID3D11Device device, ID3D11DeviceContext context)
+            : base(device, context) { }
 
         protected override ID3D11Buffer CreateBuffer(int sizeInBytes)
         {

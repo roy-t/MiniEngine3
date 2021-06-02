@@ -3,32 +3,25 @@ using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX
 {
-    public sealed class BufferWriter : IDisposable
+    public sealed class BufferWriter<T> : IDisposable
+        where T : unmanaged
     {
         private readonly ID3D11DeviceContext Context;
         private readonly ID3D11Buffer Buffer;
-        private readonly int Capacity;
-        private readonly int PrimitiveSizeInBytes;
         private readonly MappedSubresource Resource;
 
-        internal BufferWriter(ID3D11DeviceContext context, ID3D11Buffer buffer, int capacity, int primitiveSizeInBytes)
+        internal BufferWriter(ID3D11DeviceContext context, ID3D11Buffer buffer)
         {
             this.Context = context;
             this.Buffer = buffer;
-            this.Capacity = capacity;
-            this.PrimitiveSizeInBytes = primitiveSizeInBytes;
-
             this.Resource = context.Map(buffer, 0, MapMode.WriteDiscard, MapFlags.None);
         }
 
-        public unsafe void MapData(IntPtr vertices, int vertexCount, int offset)
+        public void MapData(Span<T> vertices, int offset)
         {
-            var destinationOffsetInBytes = offset * this.PrimitiveSizeInBytes;
-            var destination = this.Resource.DataPointer + destinationOffsetInBytes;
-            var destinationSizeInBytes = (this.Capacity * this.PrimitiveSizeInBytes) - destinationOffsetInBytes;
-            var copySizeInBytes = this.PrimitiveSizeInBytes * vertexCount;
-
-            System.Buffer.MemoryCopy((void*)vertices, (void*)destination, destinationSizeInBytes, copySizeInBytes);
+            var span = this.Resource.AsSpan<T>(this.Buffer);
+            var slice = span.Slice(offset, vertices.Length);
+            vertices.CopyTo(slice);
         }
 
         public void Dispose()

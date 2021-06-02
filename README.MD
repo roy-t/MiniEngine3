@@ -6,7 +6,9 @@ https://docs.microsoft.com/en-us/windows/win32/direct3d11/overviews-direct3d-11-
 Integrate renderdoc?
 https://github.com/mellinoe/veldrid/tree/master/src/Veldrid.RenderDoc
 
-
+Handle memory
+    https://docs.microsoft.com/en-us/dotnet/standard/memory-and-spans/memory-t-usage-guidelines
+    `IMemoryOwner<char> owner = MemoryPool<char>.Shared.Rent();` ?? 
 
 # Plans for architecture
 
@@ -21,3 +23,4 @@ Other than that it should be similar to what MiniEngine does.
 
 Is it worth it to get rid of all ID3D11 interfaces? What about device states and the device itself?
 Maybe they could be hidden (internal fields) from everything outside the Mini.Engine.DirectX library?
+

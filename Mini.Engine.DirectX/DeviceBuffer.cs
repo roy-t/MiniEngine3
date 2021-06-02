@@ -3,7 +3,8 @@ using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX
 {
-    public abstract class DeviceBuffer : IDisposable
+    public abstract class DeviceBuffer<T> : IDisposable
+        where T : unmanaged
     {
         private static int Counter = 0;
 
@@ -12,11 +13,15 @@ namespace Mini.Engine.DirectX
         protected readonly int PrimitiveSizeInBytes;
         private readonly int Id;
 
-        internal DeviceBuffer(ID3D11Device device, ID3D11DeviceContext context, int primitiveSizeInBytes)
+        internal DeviceBuffer(ID3D11Device device, ID3D11DeviceContext context)
         {
             this.Device = device;
             this.Context = context;
-            this.PrimitiveSizeInBytes = primitiveSizeInBytes;
+            unsafe
+            {
+                this.PrimitiveSizeInBytes = sizeof(T);
+            }
+
             this.Id = ++Counter;
         }
 
@@ -37,34 +42,32 @@ namespace Mini.Engine.DirectX
             }
         }
 
-        public void MapData<T>(params T[] primitives)
-            where T : unmanaged
+        public void MapData(params T[] primitives)
         {
-            var resource = this.Context.Map(this.Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
+            this.EnsureCapacity(primitives.Length);
 
-            var span = resource.AsSpan<T>(this.Capacity * this.PrimitiveSizeInBytes);
+            var resource = this.Context.Map(this.Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
+            var span = resource.AsSpan<T>(this.Buffer);
+
             primitives.CopyTo(span);
 
             this.Context.Unmap(this.Buffer);
         }
 
-        public unsafe void MapData(IntPtr primitives, int primitiveCount)
+        public void MapData(Span<T> primitives)
         {
-            this.EnsureCapacity(primitiveCount);
+            this.EnsureCapacity(primitives.Length);
 
             var resource = this.Context.Map(this.Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
+            var span = resource.AsSpan<T>(this.Buffer);
 
-            var destination = resource.DataPointer;
-            var destinationSizeInBytes = this.Capacity * this.PrimitiveSizeInBytes;
-            var copySizeInBytes = this.PrimitiveSizeInBytes * primitiveCount;
-
-            System.Buffer.MemoryCopy((void*)primitives, (void*)destination, destinationSizeInBytes, copySizeInBytes);
+            primitives.CopyTo(span);
 
             this.Context.Unmap(this.Buffer);
         }
 
-        public BufferWriter OpenWriter()
-         => new(this.Context, this.Buffer, this.Capacity, this.PrimitiveSizeInBytes);
+        public BufferWriter<T> OpenWriter()
+         => new(this.Context, this.Buffer);
 
         public void Dispose()
             => this.Buffer?.Release();

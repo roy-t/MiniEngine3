@@ -26,9 +26,9 @@ namespace VorticeImGui
         ID3D11DepthStencilState depthStencilState;
 
         private readonly Shader Shader;
-        private readonly VertexBuffer VertexBuffer;
-        private readonly IndexBuffer IndexBuffer;
-        private readonly ConstantBuffer ConstantBuffer;
+        private readonly VertexBuffer<ImDrawVert> VertexBuffer;
+        private readonly IndexBuffer<ImDrawIdx> IndexBuffer;
+        private readonly ConstantBuffer<Matrix4x4> ConstantBuffer;
         private Texture2D fontTexture;
 
         Dictionary<IntPtr, ID3D11ShaderResourceView> textureResources = new Dictionary<IntPtr, ID3D11ShaderResourceView>();
@@ -42,9 +42,9 @@ namespace VorticeImGui
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
 
-            this.VertexBuffer = new VertexBuffer(device, deviceContext, sizeof(ImDrawVert));
-            this.IndexBuffer = new IndexBuffer(device, deviceContext, sizeof(ImDrawIdx) == 2 ? IndexSize.TwoByte : IndexSize.FourByte);
-            this.ConstantBuffer = new ConstantBuffer(device, deviceContext, sizeof(Matrix4x4));
+            this.VertexBuffer = new VertexBuffer<ImDrawVert>(device, deviceContext);
+            this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device, deviceContext);
+            this.ConstantBuffer = new ConstantBuffer<Matrix4x4>(device, deviceContext);
 
             this.Shader = new Shader(device, "../../../../Mini.Engine.Content/Shaders/Immediate.hlsl");
             inputLayout = this.Shader.CreateInputLayout
@@ -66,8 +66,8 @@ namespace VorticeImGui
 
             ID3D11DeviceContext ctx = deviceContext;
 
-            VertexBuffer.EnsureCapacity(data.TotalVtxCount, data.TotalVtxCount / 10);
-            IndexBuffer.EnsureCapacity(data.TotalIdxCount, data.TotalIdxCount / 10);
+            this.VertexBuffer.EnsureCapacity(data.TotalVtxCount, data.TotalVtxCount / 10);
+            this.IndexBuffer.EnsureCapacity(data.TotalIdxCount, data.TotalIdxCount / 10);
 
             var vertexOffset = 0;
             var indexOffset = 0;
@@ -78,10 +78,10 @@ namespace VorticeImGui
                 {
                     var cmdlList = data.CmdListsRange[n];
 
-                    vertexWriter.MapData(cmdlList.VtxBuffer.Data, cmdlList.VtxBuffer.Size, vertexOffset);
+                    vertexWriter.MapData(new Span<ImDrawVert>(cmdlList.VtxBuffer.Data.ToPointer(), cmdlList.VtxBuffer.Size), vertexOffset);
                     vertexOffset += cmdlList.VtxBuffer.Size;
 
-                    indexWriter.MapData(cmdlList.IdxBuffer.Data, cmdlList.IdxBuffer.Size, indexOffset);
+                    indexWriter.MapData(new Span<ImDrawIdx>(cmdlList.IdxBuffer.Data.ToPointer(), cmdlList.IdxBuffer.Size), indexOffset);
                     indexOffset += cmdlList.IdxBuffer.Size;
                 }
             }
