@@ -5,8 +5,8 @@ namespace Mini.Engine.DirectX
     public sealed class VertexBuffer<T> : DeviceBuffer<T>
         where T : unmanaged
     {
-        public VertexBuffer(ID3D11Device device, ID3D11DeviceContext context)
-            : base(device, context) { }
+        public VertexBuffer(ID3D11Device device)
+            : base(device) { }
 
         protected override ID3D11Buffer CreateBuffer(int sizeInBytes)
         {

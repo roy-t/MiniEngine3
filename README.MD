@@ -24,3 +24,5 @@ Other than that it should be similar to what MiniEngine does.
 Is it worth it to get rid of all ID3D11 interfaces? What about device states and the device itself?
 Maybe they could be hidden (internal fields) from everything outside the Mini.Engine.DirectX library?
 
+Rendering with command lists (https://developer.nvidia.com/sites/default/files/akamai/gamedev/docs/GDC_2013_DUDASH_DeferredContexts.pdf)
+could speed things up IFF we adhere to all the ideas in that slideshow.

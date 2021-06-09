@@ -28,13 +28,14 @@ namespace Mini.Engine.Windows
         public void Frame()
         {
             this.Clear();
-            this.Render();
+            this.Render(this.renderView);
             this.Present();
         }
 
         private void Clear()
         {
             var dc = this.DeviceContext;
+
             dc.ClearRenderTargetView(this.renderView, new Color4(0, 0, 0));
             dc.OMSetRenderTargets(this.renderView);
             dc.RSSetViewport(0, 0, this.Width, this.Height);
@@ -43,7 +44,7 @@ namespace Mini.Engine.Windows
         private void Present()
             => this.swapChain.Present(0, PresentFlags.None);
 
-        protected abstract void Render();
+        protected abstract void Render(ID3D11RenderTargetView renderView);
 
         protected override void Resize()
         {

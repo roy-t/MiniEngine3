@@ -9,7 +9,6 @@ using Vortice;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
-using Vortice.Mathematics;
 using ImDrawIdx = System.UInt16;
 
 namespace VorticeImGui
@@ -17,7 +16,8 @@ namespace VorticeImGui
     unsafe public class ImGuiRenderer
     {
         ID3D11Device device;
-        ID3D11DeviceContext deviceContext;
+        ID3D11DeviceContext immediateContext;
+        ID3D11DeviceContext deferredContext;
 
         ID3D11InputLayout inputLayout;
         ID3D11SamplerState fontSampler;
@@ -36,43 +36,44 @@ namespace VorticeImGui
         public ImGuiRenderer(ID3D11Device device, ID3D11DeviceContext deviceContext)
         {
             this.device = device;
-            this.deviceContext = deviceContext;
+            this.immediateContext = deviceContext;
+            this.deferredContext = device.CreateDeferredContext();
 
             var io = ImGui.GetIO();
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
 
-            this.VertexBuffer = new VertexBuffer<ImDrawVert>(device, deviceContext);
-            this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device, deviceContext);
-            this.ConstantBuffer = new ConstantBuffer<Matrix4x4>(device, deviceContext);
+            this.VertexBuffer = new VertexBuffer<ImDrawVert>(device);
+            this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device);
+            this.ConstantBuffer = new ConstantBuffer<Matrix4x4>(device);
 
             this.Shader = new Shader(device, "../../../../Mini.Engine.Content/Shaders/Immediate.hlsl");
-            inputLayout = this.Shader.CreateInputLayout
+            this.inputLayout = this.Shader.CreateInputLayout
             (
                 new InputElementDescription("POSITION", 0, Format.R32G32_Float, 0, 0, InputClassification.PerVertexData, 0),
                 new InputElementDescription("TEXCOORD", 0, Format.R32G32_Float, 8, 0, InputClassification.PerVertexData, 0),
                 new InputElementDescription("COLOR", 0, Format.R8G8B8A8_UNorm, 16, 0, InputClassification.PerVertexData, 0)
             );
 
-            CreateDeviceObjects();
+            this.CreateDeviceObjects();
         }
 
-        public void Render(ImDrawDataPtr data)
+        public void Render(ImDrawDataPtr data, ID3D11RenderTargetView renderView)
         {
             if (data.DisplaySize.X <= 0.0f || data.DisplaySize.Y <= 0.0f || data.TotalVtxCount <= 0)
             {
                 return;
             }
 
-            ID3D11DeviceContext ctx = deviceContext;
+            var ctx = this.deferredContext;
 
             this.VertexBuffer.EnsureCapacity(data.TotalVtxCount, data.TotalVtxCount / 10);
             this.IndexBuffer.EnsureCapacity(data.TotalIdxCount, data.TotalIdxCount / 10);
 
             var vertexOffset = 0;
             var indexOffset = 0;
-            using (var vertexWriter = this.VertexBuffer.OpenWriter())
-            using (var indexWriter = this.IndexBuffer.OpenWriter())
+            using (var vertexWriter = this.VertexBuffer.OpenWriter(ctx))
+            using (var indexWriter = this.IndexBuffer.OpenWriter(ctx))
             {
                 for (var n = 0; n < data.CmdListsCount; n++)
                 {
@@ -88,9 +89,9 @@ namespace VorticeImGui
 
             // Setup orthographic projection matrix into our constant buffer
             var mat = Matrix4x4.CreateOrthographicOffCenter(0, data.DisplaySize.X, data.DisplaySize.Y, 0, -1.0f, 1.0f);
-            this.ConstantBuffer.MapData(mat);
+            this.ConstantBuffer.MapData(ctx, mat);
 
-            SetupRenderState(data, ctx);
+            this.SetupRenderState(data, ctx, renderView);
 
             // Render command lists
             // (Because we merged all buffers into a single one, we maintain our own offset into them)
@@ -112,7 +113,7 @@ namespace VorticeImGui
                         var rect = new RawRect((int)(cmd.ClipRect.X - clip_off.X), (int)(cmd.ClipRect.Y - clip_off.Y), (int)(cmd.ClipRect.Z - clip_off.X), (int)(cmd.ClipRect.W - clip_off.Y));
                         ctx.RSSetScissorRects(new[] { rect });
 
-                        textureResources.TryGetValue(cmd.TextureId, out var texture);
+                        this.textureResources.TryGetValue(cmd.TextureId, out var texture);
                         if (texture != null)
                             ctx.PSSetShaderResources(0, new[] { texture });
 
@@ -122,17 +123,21 @@ namespace VorticeImGui
                 global_idx_offset += cmdList.IdxBuffer.Size;
                 global_vtx_offset += cmdList.VtxBuffer.Size;
             }
+
+            using var commandList = this.deferredContext.FinishCommandList(false);
+            this.immediateContext.ExecuteCommandList(commandList, false);
         }
 
         public void Dispose()
         {
-            if (device == null)
+            if (this.device == null)
                 return;
 
-            InvalidateDeviceObjects();
+            this.InvalidateDeviceObjects();
 
-            ReleaseAndNullify(ref device);
-            ReleaseAndNullify(ref deviceContext);
+            this.ReleaseAndNullify(ref this.device);
+            this.ReleaseAndNullify(ref this.immediateContext);
+            this.ReleaseAndNullify(ref this.deferredContext);
         }
 
         void ReleaseAndNullify<T>(ref T o) where T : SharpGen.Runtime.ComObject
@@ -141,36 +146,29 @@ namespace VorticeImGui
             o = null;
         }
 
-        void SetupRenderState(ImDrawDataPtr drawData, ID3D11DeviceContext ctx)
+        void SetupRenderState(ImDrawDataPtr drawData, ID3D11DeviceContext ctx, ID3D11RenderTargetView renderView)
         {
-            var viewport = new Viewport(
-                0,
-                0,
-                drawData.DisplaySize.X,
-                drawData.DisplaySize.Y,
-                0.0f,
-                1.0f
-            );
-            ctx.RSSetViewports(new[] { viewport });
+            ctx.OMSetRenderTargets(renderView);
+            ctx.RSSetViewport(0, 0, drawData.DisplaySize.X, drawData.DisplaySize.Y);
 
             this.Shader.Set(ctx);
 
             int stride = sizeof(ImDrawVert);
             int offset = 0;
-            ctx.IASetInputLayout(inputLayout);
-            ctx.IASetVertexBuffers(0, 1, new[] { VertexBuffer.Buffer }, new[] { stride }, new[] { offset });
-            ctx.IASetIndexBuffer(IndexBuffer.Buffer, sizeof(ImDrawIdx) == 2 ? Format.R16_UInt : Format.R32_UInt, 0);
+            ctx.IASetInputLayout(this.inputLayout);
+            ctx.IASetVertexBuffers(0, 1, new[] { this.VertexBuffer.Buffer }, new[] { stride }, new[] { offset });
+            ctx.IASetIndexBuffer(this.IndexBuffer.Buffer, sizeof(ImDrawIdx) == 2 ? Format.R16_UInt : Format.R32_UInt, 0);
             ctx.IASetPrimitiveTopology(PrimitiveTopology.TriangleList);
-            ctx.VSSetConstantBuffers(0, new[] { ConstantBuffer.Buffer });
-            ctx.PSSetSamplers(0, new[] { fontSampler });
+            ctx.VSSetConstantBuffers(0, new[] { this.ConstantBuffer.Buffer });
+            ctx.PSSetSamplers(0, new[] { this.fontSampler });
             ctx.GSSetShader(null);
             ctx.HSSetShader(null);
             ctx.DSSetShader(null);
             ctx.CSSetShader(null);
 
-            ctx.OMSetBlendState(blendState);
-            ctx.OMSetDepthStencilState(depthStencilState);
-            ctx.RSSetState(rasterizerState);
+            ctx.OMSetBlendState(this.blendState);
+            ctx.OMSetDepthStencilState(this.depthStencilState);
+            ctx.RSSetState(this.rasterizerState);
         }
 
         void CreateFontsTexture()
@@ -182,8 +180,8 @@ namespace VorticeImGui
 
             var format = Format.R8G8B8A8_UNorm;
             var pixelSpan = new Span<byte>(pixels, width * height * format.SizeOfInBytes());
-            this.fontTexture = new Texture2D(device, deviceContext, pixelSpan, width, height, format, false, "ImGui_Font");
-            io.Fonts.TexID = RegisterTexture(fontTexture.ShaderResourceView);
+            this.fontTexture = new Texture2D(this.device, this.immediateContext, pixelSpan, width, height, format, false, "ImGui_Font");
+            io.Fonts.TexID = this.RegisterTexture(this.fontTexture.ShaderResourceView);
 
             var samplerDesc = new SamplerDescription
             {
@@ -196,13 +194,13 @@ namespace VorticeImGui
                 MinLOD = 0f,
                 MaxLOD = 0f
             };
-            fontSampler = device.CreateSamplerState(samplerDesc);
+            this.fontSampler = this.device.CreateSamplerState(samplerDesc);
         }
 
         IntPtr RegisterTexture(ID3D11ShaderResourceView texture)
         {
             var imguiID = texture.NativePointer;
-            textureResources.Add(imguiID, texture);
+            this.textureResources.Add(imguiID, texture);
 
             return imguiID;
         }
@@ -226,7 +224,7 @@ namespace VorticeImGui
                 RenderTargetWriteMask = ColorWriteEnable.All
             };
 
-            blendState = device.CreateBlendState(blendDesc);
+            this.blendState = this.device.CreateBlendState(blendDesc);
 
             var rasterDesc = new RasterizerDescription
             {
@@ -236,7 +234,7 @@ namespace VorticeImGui
                 DepthClipEnable = true
             };
 
-            rasterizerState = device.CreateRasterizerState(rasterDesc);
+            this.rasterizerState = this.device.CreateRasterizerState(rasterDesc);
 
             var stencilOpDesc = new DepthStencilOperationDescription(StencilOperation.Keep, StencilOperation.Keep, StencilOperation.Keep, ComparisonFunction.Always);
             var depthDesc = new DepthStencilDescription
@@ -249,22 +247,22 @@ namespace VorticeImGui
                 BackFace = stencilOpDesc
             };
 
-            depthStencilState = device.CreateDepthStencilState(depthDesc);
+            this.depthStencilState = this.device.CreateDepthStencilState(depthDesc);
 
-            CreateFontsTexture();
+            this.CreateFontsTexture();
         }
 
         void InvalidateDeviceObjects()
         {
-            ReleaseAndNullify(ref fontSampler);
+            this.ReleaseAndNullify(ref this.fontSampler);
             //ReleaseAndNullify(ref fontTextureView);
             //ReleaseAndNullify(ref indexBuffer);
             //ReleaseAndNullify(ref vertexBuffer);
-            ReleaseAndNullify(ref blendState);
-            ReleaseAndNullify(ref depthStencilState);
-            ReleaseAndNullify(ref rasterizerState);
+            this.ReleaseAndNullify(ref this.blendState);
+            this.ReleaseAndNullify(ref this.depthStencilState);
+            this.ReleaseAndNullify(ref this.rasterizerState);
             //ReleaseAndNullify(ref constantBuffer);
-            ReleaseAndNullify(ref inputLayout);
+            this.ReleaseAndNullify(ref this.inputLayout);
 
             this.Shader?.Dispose();
         }

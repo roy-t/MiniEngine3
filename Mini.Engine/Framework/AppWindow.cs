@@ -4,6 +4,7 @@ using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Debugging;
 using Mini.Engine.Windows;
+using Vortice.Direct3D11;
 using Vortice.Win32;
 
 namespace VorticeImGui
@@ -52,11 +53,11 @@ namespace VorticeImGui
             base.Resize();
         }
 
-        protected override void Render()
+        protected override void Render(ID3D11RenderTargetView renderView)
         {
             this.UpdateImGui();
             ImGui.Render();
-            this.ImGuiRenderer.Render(ImGui.GetDrawData());
+            this.ImGuiRenderer.Render(ImGui.GetDrawData(), renderView);
         }
 
         private void UpdateImGui()
