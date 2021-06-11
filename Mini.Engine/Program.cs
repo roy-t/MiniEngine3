@@ -41,7 +41,15 @@ namespace VorticeImGui
             window.Show();
 
             using var device = new Device(window.Handle, Format.R8G8B8A8_UNorm, window.Width, window.Height);
-            window.OnResize += (o, e) => device.Resize(e.Width, e.Height);
+            using var appWindow = new AppWindow(renderDoc, device, window.Handle, window.Width, window.Height);
+
+            window.OnResize += (o, e) =>
+            {
+                device.Resize(e.Width, e.Height);
+                appWindow.Resize(e.Width, e.Height);
+            };
+
+            window.OnMessage += (o, e) => appWindow.ProcessMessage(e.Msg, e.WParam, e.LParam);
 
             while (!quitRequested)
             {
@@ -57,7 +65,9 @@ namespace VorticeImGui
                     }
                 }
 
-                mainWindow.Frame();
+                device.Clear();
+                appWindow.Render(device.GetBackBufferView());
+                device.Present();
             }
 
             window.Dispose();

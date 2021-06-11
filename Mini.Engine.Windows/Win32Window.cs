@@ -36,6 +36,7 @@ namespace Mini.Engine.Windows
         }
 
         public event EventHandler<ResizeEventArgs> OnResize;
+        public event EventHandler<WindowMessageEventArgs> OnMessage;
 
         public string Title { get; }
         public int Width { get; private set; }
@@ -61,7 +62,7 @@ namespace Mini.Engine.Windows
                             this.Width = Utils.Loword(lp);
                             this.Height = Utils.Hiword(lp);
 
-                            this.OnResize(this, new ResizeEventArgs(this, this.Width, this.Height));
+                            OnResize?.Invoke(this, new ResizeEventArgs(this, this.Width, this.Height));
                             break;
                         case SizeMessage.SIZE_MINIMIZED:
                             this.IsMinimized = true;
@@ -72,6 +73,7 @@ namespace Mini.Engine.Windows
                     break;
             }
 
+            OnMessage?.Invoke(this, new WindowMessageEventArgs(this, msg, wParam, lParam));
             return false;
         }
 

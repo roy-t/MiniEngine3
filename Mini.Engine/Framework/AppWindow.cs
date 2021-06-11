@@ -3,12 +3,13 @@ using System.Diagnostics;
 using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Debugging;
+using Mini.Engine.DirectX;
 using Vortice.Direct3D11;
 using Vortice.Win32;
 
 namespace VorticeImGui
 {
-    internal sealed class AppWindow
+    internal sealed class AppWindow : IDisposable
     {
         private readonly ImGuiRenderer ImGuiRenderer;
         private readonly ImGuiInputHandler ImguiInputHandler;
@@ -18,14 +19,13 @@ namespace VorticeImGui
 
         private TimeSpan lastFrameTime;
 
-        public AppWindow(string title, RenderDoc renderDoc, int width, int height)
-            : base(title, width, height)
+        public AppWindow(RenderDoc renderDoc, Device device, IntPtr windowHandle, int width, int height)
         {
             ImGui.CreateContext();
-            this.ImGuiRenderer = new ImGuiRenderer(base.Device, base.DeviceContext);
-            this.ImguiInputHandler = new ImGuiInputHandler(this.Handle);
+            this.ImGuiRenderer = new ImGuiRenderer(device.GetDevice(), device.GetImmediateContext());
+            this.ImguiInputHandler = new ImGuiInputHandler(windowHandle);
 
-            ImGui.GetIO().DisplaySize = new Vector2(this.Width, this.Height);
+            ImGui.GetIO().DisplaySize = new Vector2(width, height);
 
             if (renderDoc != null)
             {
@@ -36,23 +36,22 @@ namespace VorticeImGui
 
         }
 
-        public override bool ProcessMessage(uint msg, UIntPtr wParam, IntPtr lParam)
+        public bool ProcessMessage(uint msg, UIntPtr wParam, IntPtr lParam)
         {
             if (this.ImguiInputHandler.ProcessMessage((WindowMessage)msg, wParam, lParam))
             {
                 return true;
             }
 
-            return base.ProcessMessage(msg, wParam, lParam);
+            return false;
         }
 
-        protected override void Resize()
+        public void Resize(int width, int height)
         {
-            ImGui.GetIO().DisplaySize = new Vector2(this.Width, this.Height);
-            base.Resize();
+            ImGui.GetIO().DisplaySize = new Vector2(width, height);
         }
 
-        protected override void Render(ID3D11RenderTargetView renderView)
+        public void Render(ID3D11RenderTargetView renderView)
         {
             this.UpdateImGui();
             ImGui.Render();
@@ -98,6 +97,11 @@ namespace VorticeImGui
                 ImGui.EndMainMenuBar();
             }
             ImGui.ShowDemoWindow();
+        }
+
+        public void Dispose()
+        {
+            // TODO:
         }
     }
 }

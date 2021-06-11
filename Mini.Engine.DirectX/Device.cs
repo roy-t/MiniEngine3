@@ -2,6 +2,7 @@
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
+using Vortice.Mathematics;
 using static Vortice.Direct3D11.D3D11;
 
 namespace Mini.Engine.DirectX
@@ -21,7 +22,8 @@ namespace Mini.Engine.DirectX
         {
             this.WindowHandle = windowHandle;
             this.Format = format;
-
+            this.Width = width;
+            this.Height = height;
             var flags = DeviceCreationFlags.None;
 #if DEBUG
             flags |= DeviceCreationFlags.Debug;
@@ -35,10 +37,28 @@ namespace Mini.Engine.DirectX
         }
 
         public ID3D11Device GetDevice() => this.GraphicsDevice;
-        public ID3D11DeviceContext GetImmediateContext => this.ImmediateContext;
+        public ID3D11DeviceContext GetImmediateContext() => this.ImmediateContext;
+        public ID3D11RenderTargetView GetBackBufferView() => this.renderView;
+
+        public int Width { get; private set; }
+        public int Height { get; private set; }
+
+        public void Clear()
+        {
+            var dc = this.ImmediateContext;
+
+            dc.ClearRenderTargetView(this.renderView, new Color4(0, 0, 0));
+            dc.OMSetRenderTargets(this.renderView);
+            dc.RSSetViewport(0, 0, this.Width, this.Height);
+        }
+
+        public void Present() => this.swapChain.Present(0, PresentFlags.None);
 
         public void Resize(int width, int height)
         {
+            this.Width = width;
+            this.Height = height;
+
             this.renderView.Dispose();
             this.backBuffer.Dispose();
 
