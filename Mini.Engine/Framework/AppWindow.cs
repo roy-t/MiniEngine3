@@ -34,17 +34,7 @@ namespace VorticeImGui
                 renderDoc.OverlayEnabled = false;
             }
 
-        }
-
-        public bool ProcessMessage(uint msg, UIntPtr wParam, IntPtr lParam)
-        {
-            if (this.ImguiInputHandler.ProcessMessage((WindowMessage)msg, wParam, lParam))
-            {
-                return true;
-            }
-
-            return false;
-        }
+        }        
 
         public void Resize(int width, int height)
         {

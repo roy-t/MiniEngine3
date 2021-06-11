@@ -375,15 +375,15 @@ namespace Vortice.Win32
         public Point Point;
     }
 
-    public delegate IntPtr WNDPROC(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam);
+    //public delegate IntPtr WNDPROC(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam);
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    public struct WNDCLASSEX
+    public unsafe struct WNDCLASSEX
     {
         public int Size;
         public WindowClassStyles Styles;
 
-        [MarshalAs(UnmanagedType.FunctionPtr)] public WNDPROC WindowProc;
+        public delegate* unmanaged<IntPtr, WindowMessage, nuint, nint, nint> WindowProc;
         public int ClassExtraBytes;
         public int WindowExtraBytes;
         public IntPtr InstanceHandle;
@@ -410,10 +410,10 @@ namespace Vortice.Win32
         public static extern bool UnregisterClass(string lpClassName, IntPtr hInstance);
 
         [DllImport(LibraryName, CharSet = CharSet.Unicode)]
-        public static extern IntPtr DefWindowProc(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam);
+        public static extern IntPtr DefWindowProc(IntPtr hWnd, WindowMessage msg, UIntPtr wParam, IntPtr lParam);
 
-        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
-        public static extern IntPtr CallWindowProc(WNDPROC lpPrevWndFunc, IntPtr hWnd, uint uMsg, UIntPtr wParam, IntPtr lParam);
+        //[DllImport(LibraryName, CharSet = CharSet.Unicode)]
+        //public static extern IntPtr CallWindowProc(WNDPROC lpPrevWndFunc, IntPtr hWnd, uint uMsg, UIntPtr wParam, IntPtr lParam);
 
         [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint uMsg, UIntPtr wParam, IntPtr lParam);
@@ -497,7 +497,7 @@ namespace Vortice.Win32
 
         [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern IntPtr CreateWindowEx(
-            int exStyle,
+            WindowExStyles exStyle,
             string className,
             string windowName,
             int style,

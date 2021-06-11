@@ -7,7 +7,7 @@ namespace Mini.Engine.Windows
 {
     public sealed class Win32Window : IDisposable
     {
-        public Win32Window(string title, int width, int height)
+        internal Win32Window(string title, int width, int height, Events.WindowEvents windowEvents)
         {
             this.Title = title;
             this.Width = width;
@@ -28,15 +28,17 @@ namespace Mini.Engine.Windows
             var windowHeight = windowRect.Bottom - windowRect.Top;
 
             var hwnd = CreateWindowEx(
-                (int)styleEx, "WndClass", this.Title, (int)style,
+                styleEx, "WndClass", this.Title, (int)style,
                 x, y, windowWidth, windowHeight,
                 IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
 
             this.Handle = hwnd;
-        }
 
-        public event EventHandler<ResizeEventArgs> OnResize;
-        public event EventHandler<WindowMessageEventArgs> OnMessage;
+            windowEvents.OnResize += (o, e) =>
+            {
+                this.IsMinimized = e.Width == 0 && e.Height == 0;
+            };
+        }
 
         public string Title { get; }
         public int Width { get; private set; }
@@ -46,36 +48,6 @@ namespace Mini.Engine.Windows
 
         public void Show()
             => ShowWindow(this.Handle, ShowWindowCommand.Normal);
-
-        public bool ProcessMessage(uint msg, UIntPtr wParam, IntPtr lParam)
-        {
-            switch ((WindowMessage)msg)
-            {
-                case WindowMessage.Size:
-                    switch ((SizeMessage)wParam)
-                    {
-                        case SizeMessage.SIZE_RESTORED:
-                        case SizeMessage.SIZE_MAXIMIZED:
-                            this.IsMinimized = false;
-
-                            var lp = (int)lParam;
-                            this.Width = Utils.Loword(lp);
-                            this.Height = Utils.Hiword(lp);
-
-                            OnResize?.Invoke(this, new ResizeEventArgs(this, this.Width, this.Height));
-                            break;
-                        case SizeMessage.SIZE_MINIMIZED:
-                            this.IsMinimized = true;
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-            }
-
-            OnMessage?.Invoke(this, new WindowMessageEventArgs(this, msg, wParam, lParam));
-            return false;
-        }
 
         public void Dispose()
             => DestroyWindow(this.Handle);

@@ -1,5 +1,6 @@
 ﻿using System;
 using ImGuiNET;
+using Mini.Engine.Windows;
 using Vortice.Win32;
 using static Vortice.Win32.User32;
 
@@ -14,6 +15,7 @@ namespace VorticeImGui
         {
             this.HWND = hwnd;
             InitKeyMap();
+            Win32Application.RawEvents.OnEvent += (o, e) => this.ProcessMessage(e.Msg, e.WParam, e.LParam);
         }
 
         private static void InitKeyMap()
@@ -122,7 +124,7 @@ namespace VorticeImGui
             }
         }
 
-        public bool ProcessMessage(WindowMessage msg, UIntPtr wParam, IntPtr lParam)
+        private bool ProcessMessage(WindowMessage msg, UIntPtr wParam, IntPtr lParam)
         {
             if (ImGui.GetCurrentContext() == IntPtr.Zero)
             {
