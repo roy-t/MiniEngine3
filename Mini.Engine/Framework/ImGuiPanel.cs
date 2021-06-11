@@ -5,11 +5,11 @@ using ImGuiNET;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Vortice.Direct3D11;
-using Vortice.Win32;
 
 namespace VorticeImGui
 {
-    internal sealed class AppWindow : IDisposable
+    // TODO: clean up
+    internal sealed class ImGuiPanel : IDisposable
     {
         private readonly ImGuiRenderer ImGuiRenderer;
         private readonly ImGuiInputHandler ImguiInputHandler;
@@ -19,7 +19,7 @@ namespace VorticeImGui
 
         private TimeSpan lastFrameTime;
 
-        public AppWindow(RenderDoc renderDoc, Device device, IntPtr windowHandle, int width, int height)
+        public ImGuiPanel(RenderDoc renderDoc, Device device, IntPtr windowHandle, int width, int height)
         {
             ImGui.CreateContext();
             this.ImGuiRenderer = new ImGuiRenderer(device.GetDevice(), device.GetImmediateContext());
@@ -34,7 +34,7 @@ namespace VorticeImGui
                 renderDoc.OverlayEnabled = false;
             }
 
-        }        
+        }
 
         public void Resize(int width, int height)
         {
