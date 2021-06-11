@@ -1,6 +1,9 @@
 using System;
 using System.Runtime.CompilerServices;
 using Mini.Engine.Debugging;
+using Mini.Engine.DirectX;
+using Mini.Engine.Windows;
+using Vortice.DXGI;
 using Vortice.Win32;
 using static Vortice.Win32.Kernel32;
 using static Vortice.Win32.User32;
@@ -9,7 +12,8 @@ namespace VorticeImGui
 {
     public class Program
     {
-        private static AppWindow mainWindow;
+        private static Win32Window window;
+
 
         [STAThread]
         static void Main()
@@ -33,8 +37,11 @@ namespace VorticeImGui
 
             RenderDoc.Load(out var renderDoc);
 
-            mainWindow = new AppWindow("Vortice ImGui", renderDoc, 800, 600);
-            mainWindow.Show();
+            window = new Win32Window("Hell World!", 800, 600);
+            window.Show();
+
+            using var device = new Device(window.Handle, Format.R8G8B8A8_UNorm, window.Width, window.Height);
+            window.OnResize += (o, e) => device.Resize(e.Width, e.Height);
 
             while (!quitRequested)
             {
@@ -53,12 +60,12 @@ namespace VorticeImGui
                 mainWindow.Frame();
             }
 
-            mainWindow.Dispose();
+            window.Dispose();
         }
 
         private static IntPtr WndProc(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam)
         {
-            if (mainWindow?.ProcessMessage(msg, wParam, lParam) ?? false)
+            if (window?.ProcessMessage(msg, wParam, lParam) ?? false)
                 return IntPtr.Zero;
 
             switch ((WindowMessage)msg)

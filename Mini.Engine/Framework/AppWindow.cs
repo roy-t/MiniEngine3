@@ -3,13 +3,12 @@ using System.Diagnostics;
 using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Debugging;
-using Mini.Engine.Windows;
 using Vortice.Direct3D11;
 using Vortice.Win32;
 
 namespace VorticeImGui
 {
-    internal sealed class AppWindow : DirectXWindow
+    internal sealed class AppWindow
     {
         private readonly ImGuiRenderer ImGuiRenderer;
         private readonly ImGuiInputHandler ImguiInputHandler;

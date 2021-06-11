@@ -5,4 +5,8 @@
     <PackageReference Include="Vortice.Direct3D11" Version="1.9.65" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -5,7 +5,7 @@ using static Vortice.Win32.User32;
 
 namespace Mini.Engine.Windows
 {
-    public abstract class Win32Window : IDisposable
+    public sealed class Win32Window : IDisposable
     {
         public Win32Window(string title, int width, int height)
         {
@@ -35,6 +35,8 @@ namespace Mini.Engine.Windows
             this.Handle = hwnd;
         }
 
+        public event EventHandler<ResizeEventArgs> OnResize;
+
         public string Title { get; }
         public int Width { get; private set; }
         public int Height { get; private set; }
@@ -44,7 +46,7 @@ namespace Mini.Engine.Windows
         public void Show()
             => ShowWindow(this.Handle, ShowWindowCommand.Normal);
 
-        public virtual bool ProcessMessage(uint msg, UIntPtr wParam, IntPtr lParam)
+        public bool ProcessMessage(uint msg, UIntPtr wParam, IntPtr lParam)
         {
             switch ((WindowMessage)msg)
             {
@@ -59,7 +61,7 @@ namespace Mini.Engine.Windows
                             this.Width = Utils.Loword(lp);
                             this.Height = Utils.Hiword(lp);
 
-                            this.Resize();
+                            this.OnResize(this, new ResizeEventArgs(this, this.Width, this.Height));
                             break;
                         case SizeMessage.SIZE_MINIMIZED:
                             this.IsMinimized = true;
@@ -73,15 +75,7 @@ namespace Mini.Engine.Windows
             return false;
         }
 
-        protected abstract void Resize();
-
-        public virtual void Dispose()
-        {
-            if (this.Handle != IntPtr.Zero)
-            {
-                DestroyWindow(this.Handle);
-                this.Handle = IntPtr.Zero;
-            }
-        }
+        public void Dispose()
+            => DestroyWindow(this.Handle);
     }
 }
