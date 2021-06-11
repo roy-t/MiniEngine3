@@ -4,7 +4,7 @@ using Vortice.Direct3D;
 
 namespace Mini.Engine.DirectX
 {
-    internal sealed class ShaderFileInclude : Include
+    internal sealed class ShaderFileInclude : CallbackBase, Include
     {
         private readonly string RootFolder;
 
@@ -12,8 +12,6 @@ namespace Mini.Engine.DirectX
         {
             this.RootFolder = rootFolder;
         }
-
-        public ShadowContainer Shadow { get; set; }
 
         public void Close(Stream stream)
             => stream.Close();
@@ -29,7 +27,5 @@ namespace Mini.Engine.DirectX
                     return File.OpenRead(fileName);
             }
         }
-
-        public void Dispose() { }
     }
 }
