@@ -3,29 +3,31 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31229.75
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine", "Mini.Engine\Mini.Engine.csproj", "{6B26B822-4A95-4A60-A7C9-7260E6F575A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine", "src\Mini.Engine\Mini.Engine.csproj", "{6B26B822-4A95-4A60-A7C9-7260E6F575A7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C66B8D19-4A15-44F0-8DBB-FA8355806E52}"
 	ProjectSection(SolutionItems) = preProject
-		Directory.Build.props = Directory.Build.props
+		src\Directory.Build.props = src\Directory.Build.props
 		README.MD = README.MD
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Windows", "Mini.Engine.Windows\Mini.Engine.Windows.csproj", "{98477A89-CC74-4CFE-B2C6-2574E2471660}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Windows", "src\Mini.Engine.Windows\Mini.Engine.Windows.csproj", "{98477A89-CC74-4CFE-B2C6-2574E2471660}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.DirectX", "Mini.Engine.DirectX\Mini.Engine.DirectX.csproj", "{C5A564B6-B69D-4C95-A034-48CD4EC8D715}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.DirectX", "src\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj", "{C5A564B6-B69D-4C95-A034-48CD4EC8D715}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Content", "Mini.Engine.Content\Mini.Engine.Content.csproj", "{F5DC5983-B29F-4864-8A63-468155F7EAC6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Content", "src\Mini.Engine.Content\Mini.Engine.Content.csproj", "{F5DC5983-B29F-4864-8A63-468155F7EAC6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Debugging", "Mini.Engine.Debugging\Mini.Engine.Debugging.csproj", "{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Debugging", "src\Mini.Engine.Debugging\Mini.Engine.Debugging.csproj", "{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.D3DCompiler", "..\Vortice.Windows\src\Vortice.D3DCompiler\Vortice.D3DCompiler.csproj", "{8C7B45D4-942C-4C05-BAB3-549A462E983B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.D3DCompiler", "src\External\Vortice.Windows\src\Vortice.D3DCompiler\Vortice.D3DCompiler.csproj", "{8C7B45D4-942C-4C05-BAB3-549A462E983B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.Direct3D11", "..\Vortice.Windows\src\Vortice.Direct3D11\Vortice.Direct3D11.csproj", "{2D373FF9-AF18-4F34-A30A-441426B3E22E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.Direct3D11", "src\External\Vortice.Windows\src\Vortice.Direct3D11\Vortice.Direct3D11.csproj", "{2D373FF9-AF18-4F34-A30A-441426B3E22E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.DirectX", "..\Vortice.Windows\src\Vortice.DirectX\Vortice.DirectX.csproj", "{BC579409-53FE-40F9-A5D0-02C9F6FC7BF3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.DirectX", "src\External\Vortice.Windows\src\Vortice.DirectX\Vortice.DirectX.csproj", "{BC579409-53FE-40F9-A5D0-02C9F6FC7BF3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.DXGI", "..\Vortice.Windows\src\Vortice.DXGI\Vortice.DXGI.csproj", "{3C55E10B-E0DA-4848-AF96-D912C3812C45}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.DXGI", "src\External\Vortice.Windows\src\Vortice.DXGI\Vortice.DXGI.csproj", "{3C55E10B-E0DA-4848-AF96-D912C3812C45}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Vortice.Windows", "Vortice.Windows", "{D3327479-7CE2-4A48-B72C-F7D4B3AC2A48}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -74,7 +76,10 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{2D373FF9-AF18-4F34-A30A-441426B3E22E} = {C66B8D19-4A15-44F0-8DBB-FA8355806E52}
+		{8C7B45D4-942C-4C05-BAB3-549A462E983B} = {D3327479-7CE2-4A48-B72C-F7D4B3AC2A48}
+		{2D373FF9-AF18-4F34-A30A-441426B3E22E} = {D3327479-7CE2-4A48-B72C-F7D4B3AC2A48}
+		{BC579409-53FE-40F9-A5D0-02C9F6FC7BF3} = {D3327479-7CE2-4A48-B72C-F7D4B3AC2A48}
+		{3C55E10B-E0DA-4848-AF96-D912C3812C45} = {D3327479-7CE2-4A48-B72C-F7D4B3AC2A48}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CE662EDF-5575-4B51-82CF-58DF83292B85}

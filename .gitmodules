@@ -1,0 +1,3 @@
+[submodule "src/External/Vortice.Windows"]
+	path = src/External/Vortice.Windows
+	url = https://github.com/amerkoleci/Vortice.Windows.git
