@@ -17,7 +17,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.DirectX", "Mini
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Content", "Mini.Engine.Content\Mini.Engine.Content.csproj", "{F5DC5983-B29F-4864-8A63-468155F7EAC6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mini.Engine.Debugging", "Mini.Engine.Debugging\Mini.Engine.Debugging.csproj", "{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Debugging", "Mini.Engine.Debugging\Mini.Engine.Debugging.csproj", "{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.D3DCompiler", "..\Vortice.Windows\src\Vortice.D3DCompiler\Vortice.D3DCompiler.csproj", "{8C7B45D4-942C-4C05-BAB3-549A462E983B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.Direct3D11", "..\Vortice.Windows\src\Vortice.Direct3D11\Vortice.Direct3D11.csproj", "{2D373FF9-AF18-4F34-A30A-441426B3E22E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.DirectX", "..\Vortice.Windows\src\Vortice.DirectX\Vortice.DirectX.csproj", "{BC579409-53FE-40F9-A5D0-02C9F6FC7BF3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.DXGI", "..\Vortice.Windows\src\Vortice.DXGI\Vortice.DXGI.csproj", "{3C55E10B-E0DA-4848-AF96-D912C3812C45}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,9 +53,28 @@ Global
 		{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C7B45D4-942C-4C05-BAB3-549A462E983B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C7B45D4-942C-4C05-BAB3-549A462E983B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C7B45D4-942C-4C05-BAB3-549A462E983B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C7B45D4-942C-4C05-BAB3-549A462E983B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D373FF9-AF18-4F34-A30A-441426B3E22E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D373FF9-AF18-4F34-A30A-441426B3E22E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D373FF9-AF18-4F34-A30A-441426B3E22E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D373FF9-AF18-4F34-A30A-441426B3E22E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC579409-53FE-40F9-A5D0-02C9F6FC7BF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC579409-53FE-40F9-A5D0-02C9F6FC7BF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC579409-53FE-40F9-A5D0-02C9F6FC7BF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC579409-53FE-40F9-A5D0-02C9F6FC7BF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C55E10B-E0DA-4848-AF96-D912C3812C45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C55E10B-E0DA-4848-AF96-D912C3812C45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C55E10B-E0DA-4848-AF96-D912C3812C45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C55E10B-E0DA-4848-AF96-D912C3812C45}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2D373FF9-AF18-4F34-A30A-441426B3E22E} = {C66B8D19-4A15-44F0-8DBB-FA8355806E52}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CE662EDF-5575-4B51-82CF-58DF83292B85}

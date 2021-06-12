@@ -6,8 +6,6 @@
         
   <ItemGroup>
     <PackageReference Include="ImGui.NET" Version="1.78.0" />
-    <PackageReference Include="Vortice.D3DCompiler" Version="1.9.80" />
-    <PackageReference Include="Vortice.Direct3D11" Version="1.9.80" />
   </ItemGroup>
         
   <ItemGroup>

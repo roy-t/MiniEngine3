@@ -12,7 +12,7 @@ namespace Mini.Engine.DirectX
         {
             var description = new BufferDescription()
             {
-                Usage = Usage.Dynamic,
+                Usage = ResourceUsage.Dynamic,
                 SizeInBytes = sizeInBytes,
                 BindFlags = BindFlags.IndexBuffer,
                 CpuAccessFlags = CpuAccessFlags.Write,

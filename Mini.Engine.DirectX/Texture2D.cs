@@ -22,7 +22,7 @@ namespace Mini.Engine.DirectX
                 ArraySize = 1,
                 Format = format,
                 SampleDescription = new SampleDescription(1, 0),
-                Usage = Vortice.Direct3D11.Usage.Default,
+                Usage = ResourceUsage.Default,
                 BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
                 CpuAccessFlags = CpuAccessFlags.None,
                 OptionFlags = generateMipMaps ? ResourceOptionFlags.GenerateMips : ResourceOptionFlags.None

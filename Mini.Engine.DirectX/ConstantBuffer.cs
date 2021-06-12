@@ -15,7 +15,7 @@ namespace Mini.Engine.DirectX
         {
             var constBufferDesc = new BufferDescription
             {
-                Usage = Usage.Dynamic,
+                Usage = ResourceUsage.Dynamic,
                 SizeInBytes = sizeInBytes,
                 BindFlags = BindFlags.ConstantBuffer,
                 CpuAccessFlags = CpuAccessFlags.Write

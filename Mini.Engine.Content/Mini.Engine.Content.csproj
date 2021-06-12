@@ -1,6 +1,1 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <ItemGroup>
-        <PackageReference Include="Vortice.D3DCompiler" Version="1.9.80" />
-        <PackageReference Include="Vortice.Direct3D11" Version="1.9.80" />
-    </ItemGroup>
-</Project>
+<Project Sdk="Microsoft.NET.Sdk" />
