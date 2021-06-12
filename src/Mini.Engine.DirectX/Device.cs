@@ -24,14 +24,13 @@ namespace Mini.Engine.DirectX
             this.Format = format;
             this.Width = width;
             this.Height = height;
-            var flags = DeviceCreationFlags.None;
-#if DEBUG
-            flags |= DeviceCreationFlags.Debug;
-#endif
 
-            D3D11CreateDevice(null, DriverType.Hardware, flags, null, out var device, out var context);
+            D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None, null, out var device, out var context);
+
             this.GraphicsDevice = device;
             this.ImmediateContext = context;
+
+            device.AddRef(); device.AddRef(); device.AddRef(); device.AddRef(); device.AddRef(); device.AddRef();
 
             this.CreateSwapChain(width, height);
         }

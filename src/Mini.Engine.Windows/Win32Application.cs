@@ -32,6 +32,19 @@ namespace Mini.Engine.Windows
             return new Win32Window(title, width, height, WindowEvents);
         }
 
+        public static bool PumpMessages()
+        {
+            if (PeekMessage(out var msg, IntPtr.Zero, 0, 0, PM_REMOVE))
+            {
+                TranslateMessage(ref msg);
+                DispatchMessage(ref msg);
+
+                return msg.Value != (uint)WindowMessage.Quit;
+            }
+
+            return true;
+        }
+
         [UnmanagedCallersOnly]
         public static IntPtr WndProc(IntPtr hWnd, WindowMessage msg, UIntPtr wParam, IntPtr lParam)
         {

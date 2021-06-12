@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Debugging;
@@ -8,16 +7,12 @@ using Vortice.Direct3D11;
 
 namespace VorticeImGui
 {
-    // TODO: clean up
     internal sealed class ImGuiPanel : IDisposable
     {
         private readonly ImGuiRenderer ImGuiRenderer;
         private readonly ImGuiInputHandler ImguiInputHandler;
-        private readonly Stopwatch StopWatch = Stopwatch.StartNew();
         private readonly RenderDoc RenderDoc;
         private readonly bool EnableRenderDoc;
-
-        private TimeSpan lastFrameTime;
 
         public ImGuiPanel(RenderDoc renderDoc, Device device, IntPtr windowHandle, int width, int height)
         {
@@ -33,29 +28,21 @@ namespace VorticeImGui
                 this.RenderDoc = renderDoc;
                 renderDoc.OverlayEnabled = false;
             }
-
         }
 
         public void Resize(int width, int height)
-        {
-            ImGui.GetIO().DisplaySize = new Vector2(width, height);
-        }
+            => ImGui.GetIO().DisplaySize = new Vector2(width, height);
 
-        public void Render(ID3D11RenderTargetView renderView)
+        public void Render(float elapsed, ID3D11RenderTargetView renderView)
         {
-            this.UpdateImGui();
+            this.UpdateImGui(elapsed);
             ImGui.Render();
             this.ImGuiRenderer.Render(ImGui.GetDrawData(), renderView);
         }
 
-        private void UpdateImGui()
+        private void UpdateImGui(float elapsed)
         {
-            var io = ImGui.GetIO();
-
-            var now = this.StopWatch.Elapsed;
-            var delta = now - this.lastFrameTime;
-            this.lastFrameTime = now;
-            io.DeltaTime = (float)delta.TotalSeconds;
+            ImGui.GetIO().DeltaTime = elapsed;
 
             this.ImguiInputHandler.Update();
 
@@ -90,8 +77,6 @@ namespace VorticeImGui
         }
 
         public void Dispose()
-        {
-            // TODO:
-        }
+            => this.ImGuiRenderer.Dispose();
     }
 }

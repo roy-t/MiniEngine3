@@ -1,10 +1,9 @@
 using System;
+using System.Diagnostics;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Mini.Engine.Windows;
 using Vortice.DXGI;
-using Vortice.Win32;
-using static Vortice.Win32.User32;
 
 namespace VorticeImGui
 {
@@ -19,27 +18,22 @@ namespace VorticeImGui
             window.Show();
 
             using var device = new Device(window.Handle, Format.R8G8B8A8_UNorm, window.Width, window.Height);
-            using var appWindow = new ImGuiPanel(renderDoc, device, window.Handle, window.Width, window.Height);
+            using var panel = new ImGuiPanel(renderDoc, device, window.Handle, window.Width, window.Height);
 
             Win32Application.WindowEvents.OnResize += (o, e) =>
             {
                 device.Resize(e.Width, e.Height);
-                appWindow.Resize(e.Width, e.Height);
+                panel.Resize(e.Width, e.Height);
             };
 
-            var running = true;
-            while (running)
+            var stopWatch = Stopwatch.StartNew();
+            while (Win32Application.PumpMessages())
             {
-                if (PeekMessage(out var msg, IntPtr.Zero, 0, 0, PM_REMOVE))
-                {
-                    TranslateMessage(ref msg);
-                    DispatchMessage(ref msg);
-
-                    running = msg.Value != (uint)WindowMessage.Quit;
-                }
+                var elapsed = (float)stopWatch.Elapsed.TotalSeconds;
+                stopWatch.Restart();
 
                 device.Clear();
-                appWindow.Render(device.GetBackBufferView());
+                panel.Render(elapsed, device.GetBackBufferView());
                 device.Present();
             }
 
