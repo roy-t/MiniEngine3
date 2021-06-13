@@ -33,6 +33,8 @@ namespace Mini.Engine.DirectX
             device.AddRef(); device.AddRef(); device.AddRef(); device.AddRef(); device.AddRef(); device.AddRef();
 
             this.CreateSwapChain(width, height);
+
+            this.SamplerStates = new SamplerStates(this.GraphicsDevice);
         }
 
         public ID3D11Device GetDevice() => this.GraphicsDevice;
@@ -41,6 +43,8 @@ namespace Mini.Engine.DirectX
 
         public int Width { get; private set; }
         public int Height { get; private set; }
+
+        public SamplerStates SamplerStates { get; }
 
         public void Clear()
         {
