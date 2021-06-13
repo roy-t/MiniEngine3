@@ -12,9 +12,9 @@ namespace Mini.Engine.DirectX
         protected readonly int PrimitiveSizeInBytes;
         private readonly int Id;
 
-        internal DeviceBuffer(ID3D11Device device)
+        internal DeviceBuffer(Device device)
         {
-            this.Device = device;
+            this.Device = device.ID3D11Device;
             unsafe
             {
                 this.PrimitiveSizeInBytes = sizeof(T);

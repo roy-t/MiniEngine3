@@ -1,10 +1,8 @@
 Sources: https://github.com/YaakovDavis/VorticeImGui/tree/master/VorticeImGui
 TODO:
 
-https://docs.microsoft.com/en-us/windows/win32/direct3d11/overviews-direct3d-11-render-multi-thread-command-list-record
-
-Integrate renderdoc?
-https://github.com/mellinoe/veldrid/tree/master/src/Veldrid.RenderDoc
+Add a depth buffer 
+    https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-depth-stencil
 
 Handle memory
     https://docs.microsoft.com/en-us/dotnet/standard/memory-and-spans/memory-t-usage-guidelines

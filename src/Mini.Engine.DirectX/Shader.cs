@@ -10,16 +10,16 @@ namespace Mini.Engine.DirectX
     {
         private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();
 
-        private readonly ID3D11Device Device;
+        private readonly Device Device;
 
         private ID3D11VertexShader vertexShader;
         private Blob vertexShaderBlob;
         private ID3D11PixelShader pixelShader;
 
-        public Shader(ID3D11Device device, string fileName)
+        public Shader(Device device, string fileName)
             : this(device, fileName, "VS", "vs_5_0", "PS", "ps_5_0") { }
 
-        private Shader(ID3D11Device device,
+        private Shader(Device device,
             string fileName,
             string vertexShaderEntryPoint, string vertexShaderProfile,
             string pixelShaderEntryPoint, string pixelShaderProfile)
@@ -48,10 +48,10 @@ namespace Mini.Engine.DirectX
             var include = new ShaderFileInclude(Path.GetDirectoryName(this.FullPath));
 
             Compiler.Compile(sourceText, Defines, include, this.VertexShaderEntryPoint, this.FileName, this.VertexShaderProfile, out this.vertexShaderBlob, out var vsErrorBlob);
-            this.vertexShader = this.Device.CreateVertexShader(this.vertexShaderBlob.GetBytes());
+            this.vertexShader = this.Device.ID3D11Device.CreateVertexShader(this.vertexShaderBlob.GetBytes());
 
             Compiler.Compile(sourceText, Defines, include, this.PixelShaderEntryPoint, this.FileName, this.PixelShaderProfile, out var psBlob, out var psErrorBlob);
-            this.pixelShader = this.Device.CreatePixelShader(psBlob.GetBytes());
+            this.pixelShader = this.Device.ID3D11Device.CreatePixelShader(psBlob.GetBytes());
         }
 
         public void Set(ID3D11DeviceContext context)
@@ -65,7 +65,7 @@ namespace Mini.Engine.DirectX
         }
 
         public ID3D11InputLayout CreateInputLayout(params InputElementDescription[] elements)
-            => this.Device.CreateInputLayout(elements, this.vertexShaderBlob);
+            => this.Device.ID3D11Device.CreateInputLayout(elements, this.vertexShaderBlob);
 
         public void Dispose()
         {

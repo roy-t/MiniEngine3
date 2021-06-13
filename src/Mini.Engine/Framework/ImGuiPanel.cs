@@ -17,7 +17,7 @@ namespace VorticeImGui
         public ImGuiPanel(RenderDoc renderDoc, Device device, IntPtr windowHandle, int width, int height)
         {
             ImGui.CreateContext();
-            this.ImGuiRenderer = new ImGuiRenderer(device.GetDevice(), device.GetImmediateContext());
+            this.ImGuiRenderer = new ImGuiRenderer(device);
             this.ImguiInputHandler = new ImGuiInputHandler(windowHandle);
 
             ImGui.GetIO().DisplaySize = new Vector2(width, height);

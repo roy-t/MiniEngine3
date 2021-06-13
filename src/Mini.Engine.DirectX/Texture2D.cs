@@ -7,7 +7,7 @@ namespace Mini.Engine.DirectX
 {
     public sealed class Texture2D : IDisposable
     {
-        public unsafe Texture2D(ID3D11Device device, ID3D11DeviceContext context, Span<byte> pixels, int width, int height, Format format, bool generateMipMaps = false, string name = "")
+        public unsafe Texture2D(Device device, Span<byte> pixels, int width, int height, Format format, bool generateMipMaps = false, string name = "")
         {
             if (format.IsCompressed())
             {
@@ -38,11 +38,11 @@ namespace Mini.Engine.DirectX
                 Texture2D = new Texture2DShaderResourceView { MipLevels = -1 }
             };
 
-            var texture = device.CreateTexture2D(description);
+            var texture = device.ID3D11Device.CreateTexture2D(description);
             texture.DebugName = name;
 
-            this.ShaderResourceView = device.CreateShaderResourceView(texture, view);
-            context.UpdateSubresource(pixels, texture, 0, pitch, 0);
+            this.ShaderResourceView = device.ID3D11Device.CreateShaderResourceView(texture, view);
+            device.ID3D11DeviceContext.UpdateSubresource(pixels, texture, 0, pitch, 0);
 
             texture.Release();
         }

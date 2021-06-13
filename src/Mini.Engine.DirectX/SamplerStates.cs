@@ -21,7 +21,7 @@ namespace Mini.Engine.DirectX
     {
         internal SamplerStates(ID3D11Device device)
         {
-            this.LinearWrap = Create(device, LinearWrapDescription(), "LinearWrap");
+            this.LinearWrap = Create(device, LinearWrapDescription(), nameof(this.LinearWrap));
         }
 
         public SamplerState LinearWrap { get; }
