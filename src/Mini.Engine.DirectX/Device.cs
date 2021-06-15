@@ -14,7 +14,6 @@ namespace Mini.Engine.DirectX
 
         private IDXGISwapChain swapChain;
         private ID3D11Texture2D backBuffer;
-        private ID3D11RenderTargetView renderView;
 
         public Device(IntPtr windowHandle, Format format, int width, int height)
         {
@@ -30,7 +29,7 @@ namespace Mini.Engine.DirectX
 
             this.CreateSwapChain(width, height);
 
-            this.ImmediateContext = new DeviceContext(context);
+            this.ImmediateContext = new ImmediateDeviceContext(context);
 
             this.SamplerStates = new SamplerStates(device);
             this.BlendStates = new BlendStates(device);
@@ -41,9 +40,9 @@ namespace Mini.Engine.DirectX
         // TODO: temp properties
         public ID3D11Device GetDevice() => this.ID3D11Device;
         public ID3D11DeviceContext GetImmediateContext() => this.ID3D11DeviceContext;
-        public ID3D11RenderTargetView GetBackBufferView() => this.renderView;
+        public RenderTarget2D BackBuffer { get; private set; }
 
-        public DeviceContext ImmediateContext { get; }
+        public ImmediateDeviceContext ImmediateContext { get; }
 
 
         internal ID3D11Device ID3D11Device { get; }
@@ -58,15 +57,15 @@ namespace Mini.Engine.DirectX
         public DepthStencilStates DepthStencilStates { get; }
         public RasterizerStates RasterizerStates { get; }
 
-        public DeviceContext CreateDeferredContext()
-            => new DeviceContext(this.ID3D11Device.CreateDeferredContext());
+        public DeferredDeviceContext CreateDeferredContext()
+            => new DeferredDeviceContext(this.ID3D11Device.CreateDeferredContext());
 
         public void Clear()
         {
             var dc = this.ID3D11DeviceContext;
 
-            dc.ClearRenderTargetView(this.renderView, new Color4(0, 0, 0));
-            dc.OMSetRenderTargets(this.renderView);
+            dc.ClearRenderTargetView(this.BackBuffer.ID3D11RenderTargetView, new Color4(0, 0, 0));
+            dc.OMSetRenderTargets(this.BackBuffer.ID3D11RenderTargetView);
             dc.RSSetViewport(0, 0, this.Width, this.Height);
         }
 
@@ -77,13 +76,13 @@ namespace Mini.Engine.DirectX
             this.Width = width;
             this.Height = height;
 
-            this.renderView.Dispose();
+            this.BackBuffer.Dispose();
             this.backBuffer.Dispose();
 
             this.swapChain.ResizeBuffers(1, width, height, this.Format, SwapChainFlags.None);
 
             this.backBuffer = this.swapChain.GetBuffer<ID3D11Texture2D1>(0);
-            this.renderView = this.ID3D11Device.CreateRenderTargetView(this.backBuffer);
+            this.BackBuffer = new RenderTarget2D(this.ID3D11Device.CreateRenderTargetView(this.backBuffer), "BackBuffer");
         }
 
         private void CreateSwapChain(int width, int height)
@@ -98,19 +97,19 @@ namespace Mini.Engine.DirectX
                 OutputWindow = this.WindowHandle,
                 SampleDescription = new SampleDescription(1, 0),
                 SwapEffect = SwapEffect.Discard,
-                Usage = Vortice.DXGI.Usage.RenderTargetOutput
+                Usage = Usage.RenderTargetOutput
             };
 
             this.swapChain = dxgiFactory.CreateSwapChain(this.ID3D11Device, swapchainDesc);
             dxgiFactory.MakeWindowAssociation(this.WindowHandle, WindowAssociationFlags.IgnoreAll);
 
             this.backBuffer = this.swapChain.GetBuffer<ID3D11Texture2D>(0);
-            this.renderView = this.ID3D11Device.CreateRenderTargetView(this.backBuffer);
+            this.BackBuffer = new RenderTarget2D(this.ID3D11Device.CreateRenderTargetView(this.backBuffer), "BackBuffer");
         }
 
         public void Dispose()
         {
-            this.renderView?.Dispose();
+            this.BackBuffer?.Dispose();
             this.backBuffer?.Dispose();
             this.swapChain?.Dispose();
 

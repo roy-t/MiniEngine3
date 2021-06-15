@@ -47,7 +47,7 @@ namespace Mini.Engine.DirectX
             texture.Release();
         }
 
-        public ID3D11ShaderResourceView ShaderResourceView { get; }
+        internal ID3D11ShaderResourceView ShaderResourceView { get; }
 
         public void Dispose() =>
             this.ShaderResourceView.Release();

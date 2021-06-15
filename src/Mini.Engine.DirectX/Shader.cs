@@ -54,18 +54,18 @@ namespace Mini.Engine.DirectX
             this.pixelShader = this.Device.ID3D11Device.CreatePixelShader(psBlob.GetBytes());
         }
 
-        public void Set(ID3D11DeviceContext context)
+        public void Set(DeviceContext context)
         {
-            context.VSSetShader(this.vertexShader);
-            context.PSSetShader(this.pixelShader);
-            context.GSSetShader(null);
-            context.HSSetShader(null);
-            context.DSSetShader(null);
-            context.CSSetShader(null);
+            context.ID3D11DeviceContext.VSSetShader(this.vertexShader);
+            context.ID3D11DeviceContext.PSSetShader(this.pixelShader);
+            context.ID3D11DeviceContext.GSSetShader(null);
+            context.ID3D11DeviceContext.HSSetShader(null);
+            context.ID3D11DeviceContext.DSSetShader(null);
+            context.ID3D11DeviceContext.CSSetShader(null);
         }
 
-        public ID3D11InputLayout CreateInputLayout(params InputElementDescription[] elements)
-            => this.Device.ID3D11Device.CreateInputLayout(elements, this.vertexShaderBlob);
+        public InputLayout CreateInputLayout(params InputElementDescription[] elements)
+            => new(this.Device.ID3D11Device.CreateInputLayout(elements, this.vertexShaderBlob));
 
         public void Dispose()
         {

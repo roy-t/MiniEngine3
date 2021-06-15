@@ -9,7 +9,6 @@ namespace Mini.Engine.DirectX
         private static int Counter = 0;
 
         protected readonly ID3D11Device Device;
-        protected readonly int PrimitiveSizeInBytes;
         private readonly int Id;
 
         internal DeviceBuffer(Device device)
@@ -22,6 +21,8 @@ namespace Mini.Engine.DirectX
 
             this.Id = ++Counter;
         }
+
+        internal int PrimitiveSizeInBytes { get; }
 
         public int Capacity { get; private set; }
 
@@ -40,32 +41,34 @@ namespace Mini.Engine.DirectX
             }
         }
 
-        public void MapData(ID3D11DeviceContext context, params T[] primitives)
+        public void MapData(DeviceContext context, params T[] primitives)
         {
             this.EnsureCapacity(primitives.Length);
 
-            var resource = context.Map(this.Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
+            var ctx = context.ID3D11DeviceContext;
+            var resource = ctx.Map(this.Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
             var span = resource.AsSpan<T>(this.Buffer);
 
             primitives.CopyTo(span);
 
-            context.Unmap(this.Buffer);
+            ctx.Unmap(this.Buffer);
         }
 
-        public void MapData(ID3D11DeviceContext context, Span<T> primitives)
+        public void MapData(DeviceContext context, Span<T> primitives)
         {
             this.EnsureCapacity(primitives.Length);
 
-            var resource = context.Map(this.Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
+            var ctx = context.ID3D11DeviceContext;
+            var resource = ctx.Map(this.Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
             var span = resource.AsSpan<T>(this.Buffer);
 
             primitives.CopyTo(span);
 
-            context.Unmap(this.Buffer);
+            ctx.Unmap(this.Buffer);
         }
 
-        public BufferWriter<T> OpenWriter(ID3D11DeviceContext context)
-         => new(context, this.Buffer);
+        public BufferWriter<T> OpenWriter(DeviceContext context)
+         => new(context.ID3D11DeviceContext, this.Buffer);
 
         public void Dispose()
             => this.Buffer?.Release();

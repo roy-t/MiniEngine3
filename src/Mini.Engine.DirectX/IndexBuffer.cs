@@ -1,4 +1,6 @@
-﻿using Vortice.Direct3D11;
+﻿using System;
+using Vortice.Direct3D11;
+using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX
 {
@@ -6,7 +8,23 @@ namespace Mini.Engine.DirectX
         where T : unmanaged
     {
         public IndexBuffer(Device device)
-            : base(device) { }
+            : base(device)
+        {
+            if (this.PrimitiveSizeInBytes == 2)
+            {
+                this.Format = Format.R16_UInt;
+            }
+            else if (this.PrimitiveSizeInBytes == 4)
+            {
+                this.Format = Format.R32_UInt;
+            }
+            else
+            {
+                throw new ArgumentException("Argument <T> should be a type of 2 or 4 bytes to be a valid index type", nameof(T));
+            }
+        }
+
+        internal Format Format { get; }
 
         protected override ID3D11Buffer CreateBuffer(int sizeInBytes)
         {

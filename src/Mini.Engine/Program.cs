@@ -33,7 +33,7 @@ namespace VorticeImGui
                 stopWatch.Restart();
 
                 device.Clear();
-                panel.Render(elapsed, device.GetBackBufferView());
+                panel.Render(elapsed, device.BackBuffer);
                 device.Present();
             }
 

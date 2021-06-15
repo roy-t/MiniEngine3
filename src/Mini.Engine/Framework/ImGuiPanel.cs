@@ -33,11 +33,11 @@ namespace VorticeImGui
         public void Resize(int width, int height)
             => ImGui.GetIO().DisplaySize = new Vector2(width, height);
 
-        public void Render(float elapsed, ID3D11RenderTargetView renderView)
+        public void Render(float elapsed, RenderTarget2D renderTarget)
         {
             this.UpdateImGui(elapsed);
             ImGui.Render();
-            this.ImGuiRenderer.Render(ImGui.GetDrawData(), renderView);
+            this.ImGuiRenderer.Render(ImGui.GetDrawData(), renderTarget);
         }
 
         private void UpdateImGui(float elapsed)
