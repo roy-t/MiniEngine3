@@ -45,8 +45,7 @@ namespace Mini.Engine.DirectX
 
         public void Reload()
         {
-            // TODO: reading all text doesnt solve any UTF8 BOM bugs since the ShaderFileInclude will open all includes
-            // Maybe we can check each file for UTF-8 and a BOM and throw on invalid files?
+            // Files are read via .NET methods
             var sourceText = File.ReadAllText(this.FullPath);
             using var include = new ShaderFileInclude(Path.GetDirectoryName(this.FullPath));
 
