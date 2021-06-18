@@ -37,17 +37,8 @@ namespace Mini.Engine.DirectX
             this.RasterizerStates = new RasterizerStates(device);
         }
 
-        // TODO: temp properties
-        public ID3D11Device GetDevice() => this.ID3D11Device;
-        public ID3D11DeviceContext GetImmediateContext() => this.ID3D11DeviceContext;
         public RenderTarget2D BackBuffer { get; private set; }
-
         public ImmediateDeviceContext ImmediateContext { get; }
-
-
-        internal ID3D11Device ID3D11Device { get; }
-        internal ID3D11DeviceContext ID3D11DeviceContext { get; }
-
 
         public int Width { get; private set; }
         public int Height { get; private set; }
@@ -57,8 +48,11 @@ namespace Mini.Engine.DirectX
         public DepthStencilStates DepthStencilStates { get; }
         public RasterizerStates RasterizerStates { get; }
 
+        internal ID3D11Device ID3D11Device { get; }
+        internal ID3D11DeviceContext ID3D11DeviceContext { get; }
+
         public DeferredDeviceContext CreateDeferredContext()
-            => new DeferredDeviceContext(this.ID3D11Device.CreateDeferredContext());
+            => new(this.ID3D11Device.CreateDeferredContext());
 
         public void Clear()
         {
@@ -109,14 +103,20 @@ namespace Mini.Engine.DirectX
 
         public void Dispose()
         {
+            this.ID3D11DeviceContext.ClearState();
+            this.ID3D11DeviceContext.Flush();
+
             this.BackBuffer?.Dispose();
+            this.ImmediateContext?.Dispose();
+            this.SamplerStates?.Dispose();
+            this.BlendStates?.Dispose();
+            this.DepthStencilStates?.Dispose();
+            this.RasterizerStates?.Dispose();
+
             this.backBuffer?.Dispose();
             this.swapChain?.Dispose();
 
-            this.ID3D11DeviceContext.ClearState();
-            this.ID3D11DeviceContext.Flush();
             this.ID3D11DeviceContext.Dispose();
-
             this.ID3D11Device.Dispose();
         }
     }

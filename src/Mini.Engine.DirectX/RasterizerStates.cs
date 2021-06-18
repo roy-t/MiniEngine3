@@ -1,8 +1,9 @@
-﻿using Vortice.Direct3D11;
+﻿using System;
+using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX
 {
-    public sealed class RasterizerState
+    public sealed class RasterizerState : IDisposable
     {
         internal RasterizerState(ID3D11RasterizerState state, string name)
         {
@@ -14,9 +15,12 @@ namespace Mini.Engine.DirectX
         public string Name { get; }
 
         internal ID3D11RasterizerState State { get; }
+
+        public void Dispose()
+            => this.State.Dispose();
     }
 
-    public sealed class RasterizerStates
+    public sealed class RasterizerStates : IDisposable
     {
         internal RasterizerStates(ID3D11Device device)
         {
@@ -40,6 +44,11 @@ namespace Mini.Engine.DirectX
                 ScissorEnable = true,
                 DepthClipEnable = true
             };
+        }
+
+        public void Dispose()
+        {
+            this.CullNone.Dispose();
         }
     }
 }

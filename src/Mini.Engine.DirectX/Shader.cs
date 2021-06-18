@@ -15,6 +15,7 @@ namespace Mini.Engine.DirectX
         private ID3D11VertexShader vertexShader;
         private Blob vertexShaderBlob;
         private ID3D11PixelShader pixelShader;
+        private Blob pixelShaderBlob;
 
         public Shader(Device device, string fileName)
             : this(device, fileName, "VS", "vs_5_0", "PS", "ps_5_0") { }
@@ -44,14 +45,16 @@ namespace Mini.Engine.DirectX
 
         public void Reload()
         {
+            // TODO: reading all text doesnt solve any UTF8 BOM bugs since the ShaderFileInclude will open all includes
+            // Maybe we can check each file for UTF-8 and a BOM and throw on invalid files?
             var sourceText = File.ReadAllText(this.FullPath);
-            var include = new ShaderFileInclude(Path.GetDirectoryName(this.FullPath));
+            using var include = new ShaderFileInclude(Path.GetDirectoryName(this.FullPath));
 
             Compiler.Compile(sourceText, Defines, include, this.VertexShaderEntryPoint, this.FileName, this.VertexShaderProfile, out this.vertexShaderBlob, out var vsErrorBlob);
             this.vertexShader = this.Device.ID3D11Device.CreateVertexShader(this.vertexShaderBlob.GetBytes());
 
-            Compiler.Compile(sourceText, Defines, include, this.PixelShaderEntryPoint, this.FileName, this.PixelShaderProfile, out var psBlob, out var psErrorBlob);
-            this.pixelShader = this.Device.ID3D11Device.CreatePixelShader(psBlob.GetBytes());
+            Compiler.Compile(sourceText, Defines, include, this.PixelShaderEntryPoint, this.FileName, this.PixelShaderProfile, out this.pixelShaderBlob, out var psErrorBlob);
+            this.pixelShader = this.Device.ID3D11Device.CreatePixelShader(this.pixelShaderBlob.GetBytes());
         }
 
         public void Set(DeviceContext context)
@@ -69,9 +72,10 @@ namespace Mini.Engine.DirectX
 
         public void Dispose()
         {
-            this.vertexShaderBlob?.Release();
-            this.vertexShader?.Release();
-            this.pixelShader?.Release();
+            this.vertexShaderBlob?.Dispose();
+            this.vertexShader?.Dispose();
+            this.pixelShaderBlob?.Dispose();
+            this.pixelShader?.Dispose();
         }
     }
 }

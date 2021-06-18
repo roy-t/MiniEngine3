@@ -1,8 +1,9 @@
-﻿using Vortice.Direct3D11;
+﻿using System;
+using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX
 {
-    public sealed class SamplerState
+    public sealed class SamplerState : IDisposable
     {
         internal SamplerState(ID3D11SamplerState state, string name)
         {
@@ -14,10 +15,12 @@ namespace Mini.Engine.DirectX
         public string Name { get; }
 
         internal ID3D11SamplerState State { get; }
+
+        public void Dispose()
+            => this.State.Dispose();
     }
 
-
-    public sealed class SamplerStates
+    public sealed class SamplerStates : IDisposable
     {
         internal SamplerStates(ID3D11Device device)
         {
@@ -46,6 +49,11 @@ namespace Mini.Engine.DirectX
                 MinLOD = 0f,
                 MaxLOD = 0f
             };
+        }
+
+        public void Dispose()
+        {
+            this.LinearWrap.Dispose();
         }
     }
 }

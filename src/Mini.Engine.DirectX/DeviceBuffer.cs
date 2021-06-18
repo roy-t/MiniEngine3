@@ -32,7 +32,7 @@ namespace Mini.Engine.DirectX
         {
             if (this.Buffer == null || this.Capacity < primitiveCount)
             {
-                this.Buffer?.Release();
+                this.Buffer?.Dispose();
                 this.Capacity = primitiveCount + reserveExtra;
                 this.Buffer = this.CreateBuffer(this.Capacity * this.PrimitiveSizeInBytes);
 #if DEBUG                                
@@ -71,7 +71,7 @@ namespace Mini.Engine.DirectX
          => new(context.ID3D11DeviceContext, this.Buffer);
 
         public void Dispose()
-            => this.Buffer?.Release();
+            => this.Buffer?.Dispose();
 
         protected abstract ID3D11Buffer CreateBuffer(int sizeInBytes);
     }

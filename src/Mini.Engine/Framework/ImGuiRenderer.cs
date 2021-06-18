@@ -147,8 +147,6 @@ namespace VorticeImGui
 
         private void SetupRenderState(ImDrawDataPtr drawData, DeferredDeviceContext context, RenderTarget2D renderTarget)
         {
-            var ctx = context.GetContext();
-
             context.OM.SetRenderTarget(renderTarget);
             context.RS.SetViewPort(0, 0, drawData.DisplaySize.X, drawData.DisplaySize.Y);
 

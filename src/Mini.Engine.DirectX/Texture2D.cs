@@ -7,7 +7,7 @@ namespace Mini.Engine.DirectX
 {
     public sealed class Texture2D : IDisposable
     {
-        public unsafe Texture2D(Device device, Span<byte> pixels, int width, int height, Format format, bool generateMipMaps = false, string name = "")
+        public Texture2D(Device device, Span<byte> pixels, int width, int height, Format format, bool generateMipMaps = false, string name = "")
         {
             if (format.IsCompressed())
             {
@@ -44,12 +44,12 @@ namespace Mini.Engine.DirectX
             this.ShaderResourceView = device.ID3D11Device.CreateShaderResourceView(texture, view);
             device.ID3D11DeviceContext.UpdateSubresource(pixels, texture, 0, pitch, 0);
 
-            texture.Release();
+            texture.Dispose();
         }
 
         internal ID3D11ShaderResourceView ShaderResourceView { get; }
 
         public void Dispose() =>
-            this.ShaderResourceView.Release();
+            this.ShaderResourceView.Dispose();
     }
 }

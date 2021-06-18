@@ -1,22 +1,26 @@
-﻿using Vortice.Direct3D11;
+﻿using System;
+using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX
 {
-    public sealed class DepthStencilState
+    public sealed class DepthStencilState : IDisposable
     {
         internal DepthStencilState(ID3D11DepthStencilState state, string name)
         {
-            this.State = state;
-            this.State.DebugName = name;
+            this.ID3D11DepthStencilState = state;
+            this.ID3D11DepthStencilState.DebugName = name;
             this.Name = name;
         }
 
         public string Name { get; }
 
-        internal ID3D11DepthStencilState State { get; }
+        internal ID3D11DepthStencilState ID3D11DepthStencilState { get; }
+
+        public void Dispose()
+            => this.ID3D11DepthStencilState.Dispose();
     }
 
-    public sealed class DepthStencilStates
+    public sealed class DepthStencilStates : IDisposable
     {
         internal DepthStencilStates(ID3D11Device device)
         {
@@ -45,6 +49,11 @@ namespace Mini.Engine.DirectX
             };
 
             return depthDesc;
+        }
+
+        public void Dispose()
+        {
+            this.None.Dispose();
         }
     }
 }

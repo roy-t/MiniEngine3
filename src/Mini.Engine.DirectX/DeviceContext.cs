@@ -77,10 +77,10 @@ namespace Mini.Engine.DirectX
             : base(iD3D11DeviceContext) { }
 
         public void SetBlendState(BlendState state)
-            => this.ID3D11DeviceContext.OMSetBlendState(state.State);
+            => this.ID3D11DeviceContext.OMSetBlendState(state.ID3D11BlendState);
 
         public void SetDepthStencilState(DepthStencilState state)
-            => this.ID3D11DeviceContext.OMSetDepthStencilState(state.State);
+            => this.ID3D11DeviceContext.OMSetDepthStencilState(state.ID3D11DepthStencilState);
 
         public void SetRenderTarget(RenderTarget2D renderTarget)
             => this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetView);
@@ -123,13 +123,10 @@ namespace Mini.Engine.DirectX
         public void DrawIndexed(int indexCount, int indexOffset, int vertexOffset)
             => this.ID3D11DeviceContext.DrawIndexed(indexCount, indexOffset, vertexOffset);
 
-        // TODO: temp
-        public ID3D11DeviceContext GetContext() => this.ID3D11DeviceContext;
-
         internal ID3D11DeviceContext ID3D11DeviceContext { get; }
 
         public void Dispose()
-            => this.ID3D11DeviceContext.Release();
+            => this.ID3D11DeviceContext.Dispose();
     }
 
     public sealed class ImmediateDeviceContext : DeviceContext
