@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\External\Vortice.Windows\src\Vortice.D3DCompiler\Vortice.D3DCompiler.csproj" />
-    <ProjectReference Include="..\External\Vortice.Windows\src\Vortice.Direct3D11\Vortice.Direct3D11.csproj" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="1.9.87" />
+    <PackageReference Include="Vortice.Direct3D11" Version="1.9.87" />
   </ItemGroup>
 </Project>

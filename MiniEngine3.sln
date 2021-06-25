@@ -19,16 +19,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Content", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Debugging", "src\Mini.Engine.Debugging\Mini.Engine.Debugging.csproj", "{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.D3DCompiler", "src\External\Vortice.Windows\src\Vortice.D3DCompiler\Vortice.D3DCompiler.csproj", "{8C7B45D4-942C-4C05-BAB3-549A462E983B}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.Direct3D11", "src\External\Vortice.Windows\src\Vortice.Direct3D11\Vortice.Direct3D11.csproj", "{2D373FF9-AF18-4F34-A30A-441426B3E22E}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.DirectX", "src\External\Vortice.Windows\src\Vortice.DirectX\Vortice.DirectX.csproj", "{BC579409-53FE-40F9-A5D0-02C9F6FC7BF3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vortice.DXGI", "src\External\Vortice.Windows\src\Vortice.DXGI\Vortice.DXGI.csproj", "{3C55E10B-E0DA-4848-AF96-D912C3812C45}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Vortice.Windows", "Vortice.Windows", "{D3327479-7CE2-4A48-B72C-F7D4B3AC2A48}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,31 +45,9 @@ Global
 		{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5D961EB3-30B3-495C-BF04-FFDFC53D5E69}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8C7B45D4-942C-4C05-BAB3-549A462E983B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8C7B45D4-942C-4C05-BAB3-549A462E983B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8C7B45D4-942C-4C05-BAB3-549A462E983B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8C7B45D4-942C-4C05-BAB3-549A462E983B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2D373FF9-AF18-4F34-A30A-441426B3E22E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2D373FF9-AF18-4F34-A30A-441426B3E22E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2D373FF9-AF18-4F34-A30A-441426B3E22E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2D373FF9-AF18-4F34-A30A-441426B3E22E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BC579409-53FE-40F9-A5D0-02C9F6FC7BF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BC579409-53FE-40F9-A5D0-02C9F6FC7BF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BC579409-53FE-40F9-A5D0-02C9F6FC7BF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BC579409-53FE-40F9-A5D0-02C9F6FC7BF3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3C55E10B-E0DA-4848-AF96-D912C3812C45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3C55E10B-E0DA-4848-AF96-D912C3812C45}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3C55E10B-E0DA-4848-AF96-D912C3812C45}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3C55E10B-E0DA-4848-AF96-D912C3812C45}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{8C7B45D4-942C-4C05-BAB3-549A462E983B} = {D3327479-7CE2-4A48-B72C-F7D4B3AC2A48}
-		{2D373FF9-AF18-4F34-A30A-441426B3E22E} = {D3327479-7CE2-4A48-B72C-F7D4B3AC2A48}
-		{BC579409-53FE-40F9-A5D0-02C9F6FC7BF3} = {D3327479-7CE2-4A48-B72C-F7D4B3AC2A48}
-		{3C55E10B-E0DA-4848-AF96-D912C3812C45} = {D3327479-7CE2-4A48-B72C-F7D4B3AC2A48}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CE662EDF-5575-4B51-82CF-58DF83292B85}
