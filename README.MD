@@ -11,6 +11,9 @@ Handle memory
 # Plans for architecture
 
 ## Shaders
+Use View -> Other Windows -> Shader Syntax Visualizer to help create the right code!
+
+
 Auto generate shaders using a source code generator. Somehow derive the InputLayout and auto generate that as well. 
 Maybe by always declaring the vertex shader input as the struct `VS_INPUT`?
 

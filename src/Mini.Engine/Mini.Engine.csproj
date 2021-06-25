@@ -9,6 +9,7 @@
   </ItemGroup>
         
   <ItemGroup>
+    <ProjectReference Include="..\Mini.Engine.Content\Mini.Engine.Content.csproj" />
     <ProjectReference Include="..\Mini.Engine.Debugging\Mini.Engine.Debugging.csproj" />
     <ProjectReference Include="..\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
     <ProjectReference Include="..\Mini.Engine.Windows\Mini.Engine.Windows.csproj" />

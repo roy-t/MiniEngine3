@@ -1,1 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\Generators\Mini.Engine.Content.Generators\Mini.Engine.Content.Generators.csproj" OutputItemType="Analyzer" />
+  </ItemGroup>
+</Project>

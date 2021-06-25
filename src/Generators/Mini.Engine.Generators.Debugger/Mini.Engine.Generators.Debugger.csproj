@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mini.Engine.Content.Generators\Mini.Engine.Content.Generators.csproj" />
+  </ItemGroup>
+
+</Project>
