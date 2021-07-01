@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -19,7 +21,7 @@ namespace Mini.Engine.Generators.Debugger
         {
             Console.WriteLine("Use View -> Other Windows -> Shader Syntax Visualizer to help create the right code!!");
 
-            var context = CreateContext();
+            var context = CreateContext(args);
 
             var generator = new ShaderDataTypesGenerator();
             generator.Execute(context);
@@ -28,11 +30,11 @@ namespace Mini.Engine.Generators.Debugger
 
             foreach (var file in files)
             {
-                Console.WriteLine(new string('=', 20));
+                Console.WriteLine(new string('#', 20));
                 Console.WriteLine($"{file.Name}");
                 Console.WriteLine(new string('=', 20));
                 Console.WriteLine(file.Text);
-                Console.WriteLine(new string('=', 20));
+                Console.WriteLine(new string('#', 20));
 
                 Console.WriteLine();
             }
@@ -40,15 +42,29 @@ namespace Mini.Engine.Generators.Debugger
             Console.ReadLine();
         }
 
-        private static GeneratorExecutionContext CreateContext()
+        private sealed class AdditionalFileText : AdditionalText
+        {
+            public AdditionalFileText(string path)
+            {
+                this.Path = path;
+            }
+
+            public override string Path { get; }
+
+            public override SourceText GetText(CancellationToken cancellationToken = default)
+                => SourceText.From(File.ReadAllText(this.Path));
+        }
+
+        private static GeneratorExecutionContext CreateContext(params string[] additionalFiles)
         {
             var nonPublicInstance = BindingFlags.NonPublic | BindingFlags.Instance;
 
-            var assembly = typeof(GeneratorExecutionContext).Assembly;
+            var type = typeof(GeneratorExecutionContext);
+
+            var assembly = type.Assembly;
             var collectionType = assembly.GetType("Microsoft.CodeAnalysis.AdditionalSourcesCollection");
             var collection = Activator.CreateInstance(collectionType, nonPublicInstance, null, new object[] { ".cs" }, null);
 
-            var type = typeof(GeneratorExecutionContext);
             var constructor = type.GetConstructor(nonPublicInstance, null,
                 new Type[]
                 {
@@ -61,11 +77,19 @@ namespace Mini.Engine.Generators.Debugger
                     typeof(CancellationToken)
                 }, null);
 
+            var array = ImmutableArray.Create
+            (
+                additionalFiles
+                    .Select(f => new AdditionalFileText(f))
+                    .Cast<AdditionalText>()
+                    .ToArray()
+            );
+
             var context = constructor.Invoke(new object[]
                 {
                     null,
                     null,
-                    null,
+                    array,
                     null,
                     null,
                     collection,

@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.IO;
+using Microsoft.CodeAnalysis;
 
 namespace Mini.Engine.Content.Generators
 {
@@ -12,8 +13,13 @@ namespace Mini.Engine.Content.Generators
 
         public void Execute(GeneratorExecutionContext context)
         {
-            var text = "namespace Mini.Engine.Content { public static class Foo { public static void Bar() {} } }";
-            context.AddSource("Foo.cs", text);
+            foreach (var file in context.AdditionalFiles)
+            {
+                var text = "namespace Mini.Engine.Content { public static class Foo { public static void Bar() {} } }";
+
+                var name = Path.GetFileName(file.Path);
+                context.AddSource($"{name}.cs", text);
+            }
         }
     }
 }
