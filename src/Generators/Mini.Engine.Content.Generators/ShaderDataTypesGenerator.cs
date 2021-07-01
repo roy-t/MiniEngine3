@@ -3,7 +3,7 @@
 namespace Mini.Engine.Content.Generators
 {
     [Generator]
-    public class SourceGenerator : ISourceGenerator
+    public class ShaderDataTypesGenerator : ISourceGenerator
     {
         public void Initialize(GeneratorInitializationContext context)
         {
