@@ -42,7 +42,7 @@ namespace VorticeImGui
             this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device);
             this.ConstantBuffer = new ConstantBuffer<Matrix4x4>(device);
 
-            this.Shader = new Shader(device, "../../../../Mini.Engine.Content/Shaders/Immediate.hlsl");
+            this.Shader = new Shader(device, "../../../../Mini.Engine.Content/Shaders/Immediate.fx");
             this.InputLayout = this.Shader.CreateInputLayout
             (
                 new InputElementDescription("POSITION", 0, Format.R32G32_Float, 0, 0, InputClassification.PerVertexData, 0),

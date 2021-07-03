@@ -3,6 +3,8 @@
 cbuffer vertexBuffer : register(b0)
 {
     float4x4 ProjectionMatrix;
+    float Bar[110,10,10];
+    VS_INPUT Foo;
 };
 
 sampler sampler0;

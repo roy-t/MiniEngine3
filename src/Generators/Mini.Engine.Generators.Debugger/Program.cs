@@ -9,7 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using Mini.Engine.Content.Generators;
+using Mini.Engine.Content.Generators.Shaders;
 
 namespace Mini.Engine.Generators.Debugger
 {
