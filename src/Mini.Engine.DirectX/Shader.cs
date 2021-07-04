@@ -6,7 +6,11 @@ using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX
 {
-    public sealed class Shader : IDisposable
+    public class ShaderBuffer
+    {
+    }
+
+    public class Shader : IDisposable
     {
         private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();
 
