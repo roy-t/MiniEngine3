@@ -4,9 +4,9 @@ namespace Mini.Engine.Content.Generators.Source
 {
     public sealed class ArgumentList : ISource
     {
-        public ArgumentList()
+        public ArgumentList(params string[] arguments)
         {
-            this.Arguments = new List<string>();
+            this.Arguments = new List<string>(arguments);
         }
 
         public List<string> Arguments { get; }

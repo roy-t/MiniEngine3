@@ -12,6 +12,7 @@ namespace Mini.Engine.Content.Generators.Source
             this.Constructors = new List<Constructor>();
             this.Properties = new List<Property>();
             this.Methods = new List<Method>();
+            this.Attributes = new List<Attribute>();
             this.InheritsFrom = new List<string>();
         }
 
@@ -22,12 +23,18 @@ namespace Mini.Engine.Content.Generators.Source
         public List<Constructor> Constructors { get; }
         public List<Property> Properties { get; }
         public List<Method> Methods { get; }
+        public List<Attribute> Attributes { get; }
         public List<string> InheritsFrom { get; }
 
         public abstract string TypeKeyword { get; }
 
         public void Generate(SourceWriter writer)
         {
+            foreach (var attribute in this.Attributes)
+            {
+                attribute.Generate(writer);
+            }
+
             writer.WriteModifiers(this.Modifiers);
             writer.WriteLine($"{this.TypeKeyword} {this.Name}");
             if (this.InheritsFrom.Count > 0)

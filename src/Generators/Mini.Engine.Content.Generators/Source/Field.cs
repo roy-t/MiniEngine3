@@ -12,11 +12,19 @@
         public string[] Modifiers { get; }
         public string Type { get; }
         public string Name { get; }
+        public string Value { get; set; }
 
         public void Generate(SourceWriter writer)
         {
             writer.WriteModifiers(this.Modifiers);
-            writer.WriteLine($"{this.Type} {this.Name};");
+            writer.Write($"{this.Type} {this.Name}");
+
+            if (!string.IsNullOrEmpty(this.Value))
+            {
+                writer.Write($"= {this.Value}");
+            }
+
+            writer.WriteLine(";");
         }
     }
 }
