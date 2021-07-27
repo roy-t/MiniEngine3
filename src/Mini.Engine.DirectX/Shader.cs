@@ -10,7 +10,7 @@ namespace Mini.Engine.DirectX
     {
         private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();
 
-        private readonly Device Device;
+        protected readonly Device Device;
 
         private ID3D11VertexShader vertexShader;
         private Blob vertexShaderBlob;
@@ -20,23 +20,12 @@ namespace Mini.Engine.DirectX
         public Shader(Device device, string fileName)
             : this(device, fileName, "VS", "vs_5_0", "PS", "ps_5_0") { }
 
-        public Shader(Device device, string fileName, string shaderText)
-           : this(device, fileName, shaderText, "VS", "vs_5_0", "PS", "ps_5_0") { }
-
-        private Shader(Device device,
-            string fileName,
-            string vertexShaderEntryPoint, string vertexShaderProfile,
-            string pixelShaderEntryPoint, string pixelShaderProfile)
-            : this(device, fileName, File.ReadAllText(Path.GetFullPath(fileName)), vertexShaderEntryPoint, vertexShaderProfile, pixelShaderEntryPoint, pixelShaderProfile) { }
-
         public Shader(Device device,
             string fileName,
-            string shaderText,
             string vertexShaderEntryPoint, string vertexShaderProfile,
             string pixelShaderEntryPoint, string pixelShaderProfile)
         {
             this.Device = device;
-            this.ShaderText = shaderText;
             this.FileName = fileName;
             this.FullPath = Path.GetFullPath(fileName);
             this.VertexShaderEntryPoint = vertexShaderEntryPoint;
@@ -49,7 +38,6 @@ namespace Mini.Engine.DirectX
 
         public string FileName { get; }
         public string FullPath { get; }
-        public string ShaderText { get; }
         public string VertexShaderEntryPoint { get; }
         public string VertexShaderProfile { get; }
         public string PixelShaderEntryPoint { get; }
@@ -58,7 +46,7 @@ namespace Mini.Engine.DirectX
         public void Reload()
         {
             // Files are read via .NET methods
-            var sourceText = File.Exists(this.FullPath) ? File.ReadAllText(this.FullPath) : this.ShaderText;
+            var sourceText = File.ReadAllText(this.FullPath);
             using var include = new ShaderFileInclude(Path.GetDirectoryName(this.FullPath));
 
             Compiler.Compile(sourceText, Defines, include, this.VertexShaderEntryPoint, this.FileName, this.VertexShaderProfile, out this.vertexShaderBlob, out var vsErrorBlob);

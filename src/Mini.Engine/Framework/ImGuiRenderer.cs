@@ -32,6 +32,7 @@ namespace VorticeImGui
         private readonly VertexBuffer<ImDrawVert> VertexBuffer;
         private readonly IndexBuffer<ImDrawIdx> IndexBuffer;
         private readonly ConstantBuffer<Matrix4x4> ConstantBuffer;
+
         public ImGuiRenderer(Device device)
         {
             this.Device = device;

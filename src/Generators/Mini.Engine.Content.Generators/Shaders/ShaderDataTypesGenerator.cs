@@ -9,6 +9,7 @@ using ShaderTools.CodeAnalysis.Text;
 
 namespace Mini.Engine.Content.Generators.Shaders
 {
+
     [Generator]
     public class ShaderDataTypesGenerator : ISourceGenerator
     {
@@ -22,9 +23,11 @@ namespace Mini.Engine.Content.Generators.Shaders
             foreach (var effectFile in context.AdditionalFiles
                 .Where(f => System.IO.Path.GetExtension(f.Path).Equals(".fx", StringComparison.InvariantCultureIgnoreCase)))
             {
+                // Parse shader data
                 var contents = effectFile.GetText();
                 var syntaxTree = SyntaxFactory.ParseSyntaxTree(new SourceFile(contents), null, new ContentFileSystem());
 
+                // Create the skeleton for the file, namespace and class
                 var name = System.IO.Path.GetFileNameWithoutExtension(effectFile.Path);
 
                 var file = new File($"{name}.cs");
@@ -39,48 +42,30 @@ namespace Mini.Engine.Content.Generators.Shaders
 
                 @class.InheritsFrom.Add("Shader");
 
-                var literal = SourceUtilities.ToMultilineLiteral(contents.ToString());
-                var contentField = new Field("string", "Code", "private static readonly");
-                contentField.Value = literal;
-
-                @class.Fields.Add(contentField);
-
                 var constructor = new Constructor(@class.Name, "public");
                 @class.Constructors.Add(constructor);
 
                 constructor.Parameters.Add(new Field("Device", "device"));
-                constructor.Chain = new BaseConstructorCall("device", SourceUtilities.ToLiteral(effectFile.Path), "Code");
+                constructor.Chain = new BaseConstructorCall("device", SourceUtilities.ToLiteral(effectFile.Path));
 
-                // TODO: find all custom types and add them to the namespace
+                // TODO: find all custom types and add them as inner types
 
-                var setMethod = new Method("void", "Set", "public");
-                @class.Methods.Add(setMethod);
-
-                // TODO: body of set method!
-
+                // 
                 var cbuffers = CBuffer.FindAll(syntaxTree.Root);
                 foreach (var cbuffer in cbuffers)
                 {
-                    var @struct = new Struct($"{name}CBuffer{cbuffer.Slot}", "public");
-                    @namespace.Types.Add(@struct);
-
+                    // Create a custom type for the CBuffer's data
+                    var @struct = new Struct($"CBuffer{cbuffer.Slot}", "public");
                     @struct.Attributes.Add(new Source.Attribute("StructLayout", new ArgumentList("LayoutKind.Sequential")));
-
-                    var createMethod = new Method(@struct.Name, $"Create{@struct.Name}", "public");
-                    @class.Methods.Add(createMethod);
-
-                    createMethod.Body.Expressions.Add(new Statement($"return new ConstantBuffer<{@struct.Name}>(this.Device)"));
+                    @struct.Fields.Add(new Field("int", $"Slot = {cbuffer.Slot}", "public", "const"));
 
                     foreach (var variable in cbuffer.Variables)
                     {
-                        // TODO translate HLSL type to C# type
-                        @struct.Properties.Add(new Property(variable.Type, variable.Name, false, "public"));
+                        var typeName = TypeTranslator.TranslateToDotNet(variable);
+                        @struct.Properties.Add(new Property(typeName, variable.Name, false, "public"));
                     }
 
-                    setMethod.Parameters.Add(new Field($"DeviceContext", "context"));
-                    setMethod.Parameters.Add(new Field($"{@struct.Name}", SourceUtilities.LowerCaseFirstLetter(@struct.Name)));
-                    setMethod.Body.Expressions.Add(new Statement($"context.VS.SetConstantBuffer({cbuffer.Slot},{SourceUtilities.LowerCaseFirstLetter(@struct.Name)})"));
-                    setMethod.Body.Expressions.Add(new Statement($"base.Set(context)"));
+                    @class.InnerTypes.Add(@struct);
                 }
 
 

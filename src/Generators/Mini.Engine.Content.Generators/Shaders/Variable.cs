@@ -18,6 +18,7 @@ namespace Mini.Engine.Content.Generators.Shaders
 
         public string Type { get; }
         public bool IsPredefinedType { get; }
+        public bool IsCustomType => !this.IsPredefinedType;
 
         public string Name { get; }
         public bool IsArray { get; }

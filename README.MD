@@ -17,8 +17,7 @@ Use View -> Other Windows -> Shader Syntax Visualizer to help create the right c
 Auto generate shaders using a source code generator. Somehow derive the InputLayout and auto generate that as well. 
 Maybe by always declaring the vertex shader input as the struct `VS_INPUT`?
 
-I also want to auto generate structs and setters for the constant buffer(s).
-Other than that it should be similar to what MiniEngine does.
+Shader class mimics an effect now. Maybe simplify/split it so that we can do `context.VS.SetShader(...)` and `context.PS.SetShader(...)`
 
 ## General
 

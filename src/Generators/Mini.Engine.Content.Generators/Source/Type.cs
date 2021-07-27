@@ -14,6 +14,7 @@ namespace Mini.Engine.Content.Generators.Source
             this.Methods = new List<Method>();
             this.Attributes = new List<Attribute>();
             this.InheritsFrom = new List<string>();
+            this.InnerTypes = new List<Type>();
         }
 
         public string Name { get; }
@@ -25,6 +26,8 @@ namespace Mini.Engine.Content.Generators.Source
         public List<Method> Methods { get; }
         public List<Attribute> Attributes { get; }
         public List<string> InheritsFrom { get; }
+
+        public List<Type> InnerTypes { get; }
 
         public abstract string TypeKeyword { get; }
 
@@ -69,6 +72,12 @@ namespace Mini.Engine.Content.Generators.Source
             foreach (var method in this.Methods)
             {
                 method.Generate(writer);
+                writer.WriteLine();
+            }
+
+            foreach (var type in this.InnerTypes)
+            {
+                type.Generate(writer);
                 writer.WriteLine();
             }
 
