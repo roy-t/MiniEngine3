@@ -8,7 +8,7 @@ namespace Mini.Engine.Content.Generators.Shaders
         {
             if (variable.IsCustomType)
             {
-                return variable.Type;
+                return Utilities.ToDotNetImportantName(variable.Type);
             }
 
             switch (variable.Type)
@@ -45,7 +45,6 @@ namespace Mini.Engine.Content.Generators.Shaders
                     throw new NotSupportedException($"Cannot translate HLSL type {variable.Type} to .NET");
             }
         }
-
 
         private static string Numerics(string type)
             => $"System.Numerics.{type}";

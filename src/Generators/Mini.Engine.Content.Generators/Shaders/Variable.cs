@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ShaderTools.CodeAnalysis.Hlsl.Syntax;
 using ShaderTools.CodeAnalysis.Syntax;
@@ -9,11 +10,31 @@ namespace Mini.Engine.Content.Generators.Shaders
     {
         public Variable(TypeSyntax type, VariableDeclaratorSyntax syntax)
         {
-            this.Type = type.ToString();
-            this.IsPredefinedType = PredefinedType(type.Kind);
-
             this.Name = syntax.Identifier.ValueText;
+            this.IsPredefinedType = true;
             this.IsArray = syntax.ArrayRankSpecifiers.Any(); // TODO: support both [,] and [][] multi dimensional array syntax
+
+            switch (type)
+            {
+                case VectorTypeSyntax vector:
+                    this.Type = vector.TypeToken.ValueText;
+                    break;
+                case ScalarTypeSyntax scalar:
+                    this.Type = scalar.TypeTokens[0].ValueText;
+                    break;
+                case MatrixTypeSyntax matrix:
+                    this.Type = matrix.TypeToken.ValueText;
+                    break;
+                case PredefinedObjectTypeSyntax obj:
+                    this.Type = obj.ObjectTypeToken.ValueText;
+                    break;
+                case IdentifierNameSyntax structure:
+                    this.Type = structure.Name.ValueText;
+                    this.IsPredefinedType = false;
+                    break;
+                default:
+                    throw new NotSupportedException($"Unsupported type {type}");
+            };
         }
 
         public string Type { get; }
@@ -37,26 +58,5 @@ namespace Mini.Engine.Content.Generators.Shaders
 
         public static IReadOnlyList<Variable> FindAll(VariableDeclarationStatementSyntax syntax)
             => syntax.Declaration.Variables.Select(node => new Variable(syntax.Declaration.Type, node)).ToList();
-
-        private static bool PredefinedType(SyntaxKind kind)
-        {
-            switch (kind)
-            {
-                case SyntaxKind.PredefinedScalarType:
-                    return true;
-                case SyntaxKind.PredefinedVectorType:
-                    return true;
-                case SyntaxKind.PredefinedGenericVectorType:
-                    return true;
-                case SyntaxKind.PredefinedMatrixType:
-                    return true;
-                case SyntaxKind.PredefinedGenericMatrixType:
-                    return true;
-                case SyntaxKind.PredefinedObjectType:
-                    return true;
-                default:
-                    return false;
-            }
-        }
     }
 }
