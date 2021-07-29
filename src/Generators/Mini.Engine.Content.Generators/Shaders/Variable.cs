@@ -12,7 +12,8 @@ namespace Mini.Engine.Content.Generators.Shaders
         {
             this.Name = syntax.Identifier.ValueText;
             this.IsPredefinedType = true;
-            this.IsArray = syntax.ArrayRankSpecifiers.Any(); // TODO: support both [,] and [][] multi dimensional array syntax
+            this.Dimensions = syntax.DescendantNodes().Count(x =>
+                        x.IsKind(SyntaxKind.NumericLiteralExpression) || x.IsKind(SyntaxKind.IdentifierName));
 
             switch (type)
             {
@@ -42,7 +43,7 @@ namespace Mini.Engine.Content.Generators.Shaders
         public bool IsCustomType => !this.IsPredefinedType;
 
         public string Name { get; }
-        public bool IsArray { get; }
+        public int Dimensions { get; }
 
         public static IReadOnlyList<Variable> FindAll(SyntaxNodeBase startingNode)
         {
@@ -54,7 +55,10 @@ namespace Mini.Engine.Content.Generators.Shaders
         }
 
         public override string ToString()
-            => $"{this.Type} {this.Name}{(this.IsArray ? "[]" : string.Empty)}";
+        {
+            var arr = this.Dimensions > 0 ? $"[{new string(',', this.Dimensions - 1)}]" : string.Empty;
+            return $"{this.Type} {this.Name}{arr}";
+        }
 
         public static IReadOnlyList<Variable> FindAll(VariableDeclarationStatementSyntax syntax)
             => syntax.Declaration.Variables.Select(node => new Variable(syntax.Declaration.Type, node)).ToList();

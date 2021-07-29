@@ -8,42 +8,48 @@ namespace Mini.Engine.Content.Generators.Shaders
         {
             if (variable.IsCustomType)
             {
-                return Utilities.ToDotNetImportantName(variable.Type);
+                return Utilities.ToDotNetPublicName(variable.Type);
             }
 
             switch (variable.Type)
             {
                 case "bool":
-                    return "bool";
+                    return Dimension("bool", variable.Dimensions);
 
                 case "int":
-                    return "int";
+                    return Dimension("int", variable.Dimensions);
 
                 case "uint":
                 case "dword":
-                    return "uint";
+                    return Dimension("uint", variable.Dimensions);
 
                 case "float":
-                    return "float";
+                    return Dimension("float", variable.Dimensions);
 
                 case "double":
-                    return "double";
+                    return Dimension("double", variable.Dimensions);
 
                 case "float2":
-                    return Numerics("Vector2");
+                    return Dimension(Numerics("Vector2"), variable.Dimensions);
 
                 case "float3":
-                    return Numerics("Vector3");
+                    return Dimension(Numerics("Vector3"), variable.Dimensions);
 
                 case "float4":
-                    return Numerics("Vector4");
+                    return Dimension(Numerics("Vector4"), variable.Dimensions);
 
                 case "float4x4":
-                    return Numerics("Matrix4x4");
+                    return Dimension(Numerics("Matrix4x4"), variable.Dimensions);
 
                 default:
                     throw new NotSupportedException($"Cannot translate HLSL type {variable.Type} to .NET");
             }
+        }
+
+        private static string Dimension(string type, int dimensions)
+        {
+            var arr = dimensions > 0 ? $"[{new string(',', dimensions - 1)}]" : string.Empty;
+            return $"{type}{arr}";
         }
 
         private static string Numerics(string type)

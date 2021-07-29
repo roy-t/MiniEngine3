@@ -57,12 +57,12 @@ namespace Mini.Engine.Content.Generators.Shaders
                 var customTypes = Structure.FindAll(syntaxTree.Root);
                 foreach (var customType in customTypes)
                 {
-                    var @struct = new Struct(Utilities.ToDotNetImportantName(customType.Name), "public");
+                    var @struct = new Struct(Utilities.ToDotNetPublicName(customType.Name), "public");
                     @struct.Attributes.Add(new Source.Attribute("StructLayout", new ArgumentList("LayoutKind.Sequential")));
                     foreach (var variable in customType.Variables)
                     {
                         var typeName = TypeTranslator.TranslateToDotNet(variable);
-                        @struct.Properties.Add(new Property(typeName, Utilities.ToDotNetImportantName(variable.Name), false, "public"));
+                        @struct.Properties.Add(new Property(typeName, Utilities.ToDotNetPublicName(variable.Name), false, "public"));
                     }
 
                     @class.InnerTypes.Add(@struct);

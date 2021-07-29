@@ -13,7 +13,10 @@ namespace Mini.Engine.Content.Generators.Shaders
             return int.Parse(text);
         }
 
-        public static string ToDotNetImportantName(string name)
+        public static string ToDotNetPrivateName(string name)
+            => LowerCaseFirstLetter(ToDotNetPublicName(name));
+
+        public static string ToDotNetPublicName(string name)
         {
             var builder = new StringBuilder(name.Length);
             var upperCase = false;
@@ -49,6 +52,25 @@ namespace Mini.Engine.Content.Generators.Shaders
             }
 
             return builder.ToString();
+        }
+
+        public static string UpperCaseFirstLetter(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+                return s;
+            if (s.Length == 1)
+                return s.ToUpper();
+            return s.Remove(1).ToUpper() + s.Substring(1);
+        }
+
+
+        public static string LowerCaseFirstLetter(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+                return s;
+            if (s.Length == 1)
+                return s.ToLower();
+            return s.Remove(1).ToLower() + s.Substring(1);
         }
     }
 }
