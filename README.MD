@@ -19,6 +19,16 @@ Maybe by always declaring the vertex shader input as the struct `VS_INPUT`?
 
 Shader class mimics an effect now. Maybe simplify/split it so that we can do `context.VS.SetShader(...)` and `context.PS.SetShader(...)`
 
+
+############
+Split generator into
+- HLSL parser
+- C# code representation
+- C# code builder pattern
+- C# code writers
+#########################
+
+
 ## General
 
 Is it worth it to get rid of all ID3D11 interfaces? What about device states and the device itself?

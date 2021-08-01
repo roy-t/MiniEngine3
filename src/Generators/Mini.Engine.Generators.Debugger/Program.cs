@@ -9,7 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using Mini.Engine.Content.Generators.Shaders;
+using Mini.Engine.Content.Generators;
 
 namespace Mini.Engine.Generators.Debugger
 {
@@ -23,7 +23,7 @@ namespace Mini.Engine.Generators.Debugger
 
             var context = CreateContext(args);
 
-            var generator = new ShaderDataTypesGenerator();
+            var generator = new ShaderGenerator();
             generator.Execute(context);
 
             var files = GetGeneratedSourceFiles(context);
