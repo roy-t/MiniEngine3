@@ -27,4 +27,18 @@ namespace Mini.Engine.Content.Generators.Source.CSharp
             writer.EndScope();
         }
     }
+
+    public sealed class NamespaceBuilder<TPrevious> : Builder<TPrevious, Namespace>
+    {
+        public NamespaceBuilder(TPrevious previous, string name)
+            : base(previous, new Namespace(name)) { }
+
+        public ClassBuilder<NamespaceBuilder<TPrevious>> Class(string name, params string[] modifiers)
+        {
+            var builder = new ClassBuilder<NamespaceBuilder<TPrevious>>(this, name, modifiers);
+            this.Output.Types.Add(builder.Output);
+
+            return builder;
+        }
+    }
 }

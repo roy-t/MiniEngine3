@@ -37,4 +37,24 @@ namespace Mini.Engine.Content.Generators.Source.CSharp
             writer.EndScope();
         }
     }
+
+    public sealed class ConstructorBuilder<TPrevious> : Builder<TPrevious, Constructor>
+    {
+        public ConstructorBuilder(TPrevious previous, string name, params string[] modifiers)
+            : base(previous, new Constructor(name, modifiers)) { }
+
+
+        public ConstructorBuilder<TPrevious> BaseConstructorCall(params string[] arguments)
+        {
+            var @base = new BaseConstructorCall(arguments);
+            this.Output.Chain = new Optional<IConstructorChainCall>(@base);
+            return this;
+        }
+
+        public ConstructorBuilder<TPrevious> Parameter(string type, string name)
+        {
+            this.Output.Parameters.Add(type, name);
+            return this;
+        }
+    }
 }

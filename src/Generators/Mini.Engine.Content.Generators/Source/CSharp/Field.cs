@@ -21,10 +21,22 @@
 
             if (!string.IsNullOrEmpty(this.Value))
             {
-                writer.Write($"= {this.Value}");
+                writer.Write($" = {this.Value}");
             }
 
             writer.WriteLine(";");
+        }
+    }
+
+    public sealed class FieldBuilder<TPrevious> : Builder<TPrevious, Field>
+    {
+        public FieldBuilder(TPrevious previous, string type, string name, params string[] modifiers)
+            : base(previous, new Field(type, name, modifiers)) { }
+
+        public FieldBuilder<TPrevious> Value(string value)
+        {
+            this.Output.Value = value;
+            return this;
         }
     }
 }
