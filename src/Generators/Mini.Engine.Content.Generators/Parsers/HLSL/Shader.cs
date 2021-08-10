@@ -23,6 +23,7 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
 
             this.Structures = Structure.FindAll(syntaxTree.Root);
             this.CBuffers = CBuffer.FindAll(syntaxTree.Root);
+            this.Functions = Function.FindAll(syntaxTree.Root);
         }
 
         public string Name { get; }
@@ -30,5 +31,6 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
 
         public IReadOnlyList<Structure> Structures { get; }
         public IReadOnlyList<CBuffer> CBuffers { get; }
+        public IReadOnlyList<Function> Functions { get; }
     }
 }

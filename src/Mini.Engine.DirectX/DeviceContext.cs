@@ -46,6 +46,9 @@ namespace Mini.Engine.DirectX
         public void SetConstantBuffer<T>(int slot, ConstantBuffer<T> buffer)
             where T : unmanaged
             => this.ID3D11DeviceContext.VSSetConstantBuffer(slot, buffer.Buffer);
+
+        public void SetShader(VertexShader shader)
+            => this.ID3D11DeviceContext.VSSetShader(shader.ID3D11Shader);
     }
 
     public sealed class PixelShaderContext : DeviceContextPart
@@ -66,6 +69,9 @@ namespace Mini.Engine.DirectX
 
             this.ID3D11DeviceContext.PSSetSamplers(startSlot, nativeSamplers);
         }
+
+        public void SetShader(PixelShader shader)
+            => this.ID3D11DeviceContext.PSSetShader(shader.ID3D11Shader);
 
         public void SetShaderResource(int slot, Texture2D texture)
             => this.ID3D11DeviceContext.PSSetShaderResource(slot, texture.ShaderResourceView);

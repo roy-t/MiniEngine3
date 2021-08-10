@@ -40,5 +40,19 @@ namespace Mini.Engine.Content.Generators.Source.CSharp
 
             return builder;
         }
+
+        public StructBuilder<NamespaceBuilder<TPrevious>> Struct(string name, params string[] modifiers)
+        {
+            var builder = new StructBuilder<NamespaceBuilder<TPrevious>>(this, name, modifiers);
+            this.Output.Types.Add(builder.Output);
+
+            return builder;
+        }
+
+        public NamespaceBuilder<TPrevious> Types(IEnumerable<Type> types)
+        {
+            this.Output.Types.AddRange(types);
+            return this;
+        }
     }
 }

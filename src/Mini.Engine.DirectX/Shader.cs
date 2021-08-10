@@ -6,42 +6,31 @@ using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX
 {
-    public class Shader : IDisposable
+    public abstract class Shader<TShader> : IDisposable
+        where TShader : ID3D11DeviceChild
     {
         private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();
 
         protected readonly Device Device;
+        private Blob blob;
 
-        private ID3D11VertexShader vertexShader;
-        private Blob vertexShaderBlob;
-        private ID3D11PixelShader pixelShader;
-        private Blob pixelShaderBlob;
-
-        public Shader(Device device, string fileName)
-            : this(device, fileName, "VS", "vs_5_0", "PS", "ps_5_0") { }
-
-        public Shader(Device device,
-            string fileName,
-            string vertexShaderEntryPoint, string vertexShaderProfile,
-            string pixelShaderEntryPoint, string pixelShaderProfile)
+        public Shader(Device device, string fileName, string entryPoint, string profile)
         {
             this.Device = device;
             this.FileName = fileName;
             this.FullPath = Path.GetFullPath(fileName);
-            this.VertexShaderEntryPoint = vertexShaderEntryPoint;
-            this.VertexShaderProfile = vertexShaderProfile;
-            this.PixelShaderEntryPoint = pixelShaderEntryPoint;
-            this.PixelShaderProfile = pixelShaderProfile;
+            this.EntryPoint = entryPoint;
+            this.Profile = profile;
 
             this.Reload();
         }
 
+        internal TShader ID3D11Shader { get; set; }
+
         public string FileName { get; }
         public string FullPath { get; }
-        public string VertexShaderEntryPoint { get; }
-        public string VertexShaderProfile { get; }
-        public string PixelShaderEntryPoint { get; }
-        public string PixelShaderProfile { get; }
+        public string EntryPoint { get; }
+        public string Profile { get; }
 
         public void Reload()
         {
@@ -49,32 +38,21 @@ namespace Mini.Engine.DirectX
             var sourceText = File.ReadAllText(this.FullPath);
             using var include = new ShaderFileInclude(Path.GetDirectoryName(this.FullPath));
 
-            Compiler.Compile(sourceText, Defines, include, this.VertexShaderEntryPoint, this.FileName, this.VertexShaderProfile, out this.vertexShaderBlob, out var vsErrorBlob);
-            this.vertexShader = this.Device.ID3D11Device.CreateVertexShader(this.vertexShaderBlob.GetBytes());
-
-            Compiler.Compile(sourceText, Defines, include, this.PixelShaderEntryPoint, this.FileName, this.PixelShaderProfile, out this.pixelShaderBlob, out var psErrorBlob);
-            this.pixelShader = this.Device.ID3D11Device.CreatePixelShader(this.pixelShaderBlob.GetBytes());
+            Compiler.Compile(sourceText, Defines, include, this.EntryPoint, this.FileName, this.Profile, out this.blob, out var vsErrorBlob);
+            this.ID3D11Shader = this.Create(this.blob);
         }
 
-        public void Set(DeviceContext context)
-        {
-            context.ID3D11DeviceContext.VSSetShader(this.vertexShader);
-            context.ID3D11DeviceContext.PSSetShader(this.pixelShader);
-            context.ID3D11DeviceContext.GSSetShader(null);
-            context.ID3D11DeviceContext.HSSetShader(null);
-            context.ID3D11DeviceContext.DSSetShader(null);
-            context.ID3D11DeviceContext.CSSetShader(null);
-        }
+        protected abstract TShader Create(Blob blob);
 
         public InputLayout CreateInputLayout(params InputElementDescription[] elements)
-            => new(this.Device.ID3D11Device.CreateInputLayout(elements, this.vertexShaderBlob));
+            => new(this.Device.ID3D11Device.CreateInputLayout(elements, this.blob));
 
         public void Dispose()
         {
-            this.vertexShaderBlob?.Dispose();
-            this.vertexShader?.Dispose();
-            this.pixelShaderBlob?.Dispose();
-            this.pixelShader?.Dispose();
+            this.blob?.Dispose();
+            this.ID3D11Shader?.Dispose();
+
+            GC.SuppressFinalize(this);
         }
     }
 }

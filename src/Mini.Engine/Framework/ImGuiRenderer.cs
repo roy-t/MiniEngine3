@@ -1,9 +1,9 @@
-﻿//based on https://github.com/ocornut/imgui/blob/master/examples/imgui_impl_dx11.cpp
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
+using Mini.Engine.Content.Shaders;
+using Mini.Engine.Content.Shaders.ImmediateShader;
 using Mini.Engine.DirectX;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
@@ -16,22 +16,21 @@ namespace VorticeImGui
     {
         private int textureCounter;
 
-        // TODO: how to abstract this/ the InputElementDescription, there's nothing to add to it with a separate type
-        // tbh and it would also require a lot of duplication of enums etc..        
         private readonly Dictionary<IntPtr, Texture2D> TextureResources;
 
         // Borrowed resources
         private readonly Device Device;
         private readonly ImmediateDeviceContext ImmediateContext;
 
-        // Created resources        
+        // Created resources
         private readonly DeferredDeviceContext DeferredContext;
-        private readonly Shader Shader;
+        private readonly ImmediateShaderVs VertexShader;
+        private readonly ImmediateShaderPs PixelShader;
         private readonly Texture2D FontTexture;
         private readonly InputLayout InputLayout;
         private readonly VertexBuffer<ImDrawVert> VertexBuffer;
         private readonly IndexBuffer<ImDrawIdx> IndexBuffer;
-        private readonly ConstantBuffer<Matrix4x4> ConstantBuffer;
+        private readonly ConstantBuffer<CBuffer0> ConstantBuffer;
 
         public ImGuiRenderer(Device device)
         {
@@ -41,10 +40,12 @@ namespace VorticeImGui
 
             this.VertexBuffer = new VertexBuffer<ImDrawVert>(device);
             this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device);
-            this.ConstantBuffer = new ConstantBuffer<Matrix4x4>(device);
+            this.ConstantBuffer = new ConstantBuffer<CBuffer0>(device);
 
-            this.Shader = new Shader(device, "../../../../Mini.Engine.Content/Shaders/Immediate.fx");
-            this.InputLayout = this.Shader.CreateInputLayout
+            this.VertexShader = new ImmediateShaderVs(device);
+            this.PixelShader = new ImmediateShaderPs(device);
+
+            this.InputLayout = this.VertexShader.CreateInputLayout
             (
                 new InputElementDescription("POSITION", 0, Format.R32G32_Float, 0, 0, InputClassification.PerVertexData, 0),
                 new InputElementDescription("TEXCOORD", 0, Format.R32G32_Float, 8, 0, InputClassification.PerVertexData, 0),
@@ -90,20 +91,19 @@ namespace VorticeImGui
             }
 
             // Setup orthographic projection matrix into our constant buffer
-            var mat = Matrix4x4.CreateOrthographicOffCenter(0, data.DisplaySize.X, data.DisplaySize.Y, 0, -1.0f, 1.0f);
-            this.ConstantBuffer.MapData(this.DeferredContext, mat);
+            var cBufferData = new CBuffer0() { ProjectionMatrix = Matrix4x4.CreateOrthographicOffCenter(0, data.DisplaySize.X, data.DisplaySize.Y, 0, -1.0f, 1.0f) };
+            this.ConstantBuffer.MapData(this.DeferredContext, cBufferData);
 
             this.SetupRenderState(data, this.DeferredContext, renderTarget);
 
             // Render command lists
             // (Because we merged all buffers into a single one, we maintain our own offset into them)
-            int global_idx_offset = 0;
-            int global_vtx_offset = 0;
-            Vector2 clip_off = data.DisplayPos;
-            for (int n = 0; n < data.CmdListsCount; n++)
+            var globalIndexOffset = 0;
+            var lobalVertexOffset = 0;
+            for (var n = 0; n < data.CmdListsCount; n++)
             {
                 var cmdList = data.CmdListsRange[n];
-                for (int i = 0; i < cmdList.CmdBuffer.Size; i++)
+                for (var i = 0; i < cmdList.CmdBuffer.Size; i++)
                 {
                     var cmd = cmdList.CmdBuffer[i];
                     if (cmd.UserCallback != IntPtr.Zero)
@@ -112,10 +112,10 @@ namespace VorticeImGui
                     }
                     else
                     {
-                        var left = (int)(cmd.ClipRect.X - clip_off.X);
-                        var top = (int)(cmd.ClipRect.Y - clip_off.Y);
-                        var right = (int)(cmd.ClipRect.Z - clip_off.X);
-                        var bottom = (int)(cmd.ClipRect.W - clip_off.Y);
+                        var left = (int)(cmd.ClipRect.X - data.DisplayPos.X);
+                        var top = (int)(cmd.ClipRect.Y - data.DisplayPos.Y);
+                        var right = (int)(cmd.ClipRect.Z - data.DisplayPos.X);
+                        var bottom = (int)(cmd.ClipRect.W - data.DisplayPos.Y);
 
                         this.DeferredContext.RS.SetScissorRect(left, top, right - left, bottom - top);
 
@@ -124,11 +124,11 @@ namespace VorticeImGui
                             this.DeferredContext.PS.SetShaderResource(0, texture);
                         }
 
-                        this.DeferredContext.DrawIndexed((int)cmd.ElemCount, (int)(cmd.IdxOffset + global_idx_offset), (int)(cmd.VtxOffset + global_vtx_offset));
+                        this.DeferredContext.DrawIndexed((int)cmd.ElemCount, (int)(cmd.IdxOffset + globalIndexOffset), (int)(cmd.VtxOffset + lobalVertexOffset));
                     }
                 }
-                global_idx_offset += cmdList.IdxBuffer.Size;
-                global_vtx_offset += cmdList.VtxBuffer.Size;
+                globalIndexOffset += cmdList.IdxBuffer.Size;
+                lobalVertexOffset += cmdList.VtxBuffer.Size;
             }
 
             using var commandList = this.DeferredContext.FinishCommandList();
@@ -138,7 +138,8 @@ namespace VorticeImGui
         public void Dispose()
         {
             this.DeferredContext.Dispose();
-            this.Shader.Dispose();
+            this.VertexShader.Dispose();
+            this.PixelShader.Dispose();
             this.ConstantBuffer.Dispose();
             this.IndexBuffer.Dispose();
             this.VertexBuffer.Dispose();
@@ -148,29 +149,28 @@ namespace VorticeImGui
 
         private void SetupRenderState(ImDrawDataPtr drawData, DeferredDeviceContext context, RenderTarget2D renderTarget)
         {
-            context.OM.SetRenderTarget(renderTarget);
-            context.RS.SetViewPort(0, 0, drawData.DisplaySize.X, drawData.DisplaySize.Y);
-
-            this.Shader.Set(context);
-
             context.IA.SetInputLayout(this.InputLayout);
-
             context.IA.SetVertexBuffer(this.VertexBuffer);
             context.IA.SetIndexBuffer(this.IndexBuffer);
-
             context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
 
-            context.VS.SetConstantBuffer(0, this.ConstantBuffer);
+            context.VS.SetShader(this.VertexShader);
+            context.VS.SetConstantBuffer(CBuffer0.Slot, this.ConstantBuffer);
 
+            context.RS.SetViewPort(0, 0, drawData.DisplaySize.X, drawData.DisplaySize.Y);
+            context.RS.SetState(this.Device.RasterizerStates.CullNone);
+
+            context.PS.SetShader(this.PixelShader);
             context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
+
+            context.OM.SetRenderTarget(renderTarget);
             context.OM.SetBlendState(this.Device.BlendStates.AlphaBlend);
             context.OM.SetDepthStencilState(this.Device.DepthStencilStates.None);
-            context.RS.SetState(this.Device.RasterizerStates.CullNone);
         }
 
         private IntPtr RegisterTexture(Texture2D texture)
         {
-            var id = (IntPtr)textureCounter++;
+            var id = (IntPtr)this.textureCounter++;
             this.TextureResources.Add(id, texture);
 
             return id;

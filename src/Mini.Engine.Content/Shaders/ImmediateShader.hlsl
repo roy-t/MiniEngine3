@@ -7,7 +7,8 @@ cbuffer vertexBuffer : register(b0)
 
 sampler sampler0;
 Texture2D texture0;
-            
+
+#pragma VertexShader
 PS_INPUT VS(VS_INPUT input)
 {
     PS_INPUT output;
@@ -16,7 +17,8 @@ PS_INPUT VS(VS_INPUT input)
     output.uv = input.uv;
     return output;
 }
-            
+
+#pragma PixelShader
 float4 PS(PS_INPUT input) : SV_Target
 {
     float4 out_col = input.col * texture0.Sample(sampler0, input.uv);

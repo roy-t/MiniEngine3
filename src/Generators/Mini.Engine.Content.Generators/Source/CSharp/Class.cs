@@ -21,9 +21,9 @@ namespace Mini.Engine.Content.Generators.Source.CSharp
             return this;
         }
 
-        public ConstructorBuilder<ClassBuilder<TPrevious>> Constructor(string name, params string[] modifiers)
+        public ConstructorBuilder<ClassBuilder<TPrevious>> Constructor(params string[] modifiers)
         {
-            var builder = new ConstructorBuilder<ClassBuilder<TPrevious>>(this, name, modifiers);
+            var builder = new ConstructorBuilder<ClassBuilder<TPrevious>>(this, this.Output.Name, modifiers);
             this.Output.Constructors.Add(builder.Output);
             return builder;
         }
