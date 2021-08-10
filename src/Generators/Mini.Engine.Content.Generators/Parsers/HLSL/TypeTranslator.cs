@@ -1,5 +1,5 @@
 ﻿using System;
-using Mini.Engine.Content.Generators.Source;
+using Mini.Engine.Generators.Source;
 
 namespace Mini.Engine.Content.Generators.Parsers.HLSL
 {

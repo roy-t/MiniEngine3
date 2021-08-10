@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\External\HlslParser\src\ShaderTools.CodeAnalysis.Hlsl\ShaderTools.CodeAnalysis.Hlsl.csproj" />
+    <ProjectReference Include="..\Mini.Engine.Generators.Source\Mini.Engine.Generators.Source.csproj" />
   </ItemGroup>
 
 </Project>

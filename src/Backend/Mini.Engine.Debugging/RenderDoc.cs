@@ -29,6 +29,7 @@ namespace Mini.Engine.Debugging
             }
 
             _api = System.Runtime.InteropServices.Marshal.PtrToStructure<RENDERDOC_API_1_4_0>((IntPtr)apiPointers);
+            this.OverlayEnabled = false;
         }
 
         /// <summary>

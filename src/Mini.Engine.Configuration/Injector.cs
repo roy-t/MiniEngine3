@@ -18,7 +18,7 @@ namespace Mini.Engine.Configuration
     {
         private static readonly string[] IgnoredAssemblies = new[]
         {
-            "ImGui.NET", "Microsoft", "Mini.Engine.Content.Generators", "Mini.Engine.DirectX", "NativeLibraryLoader", "ShaderTools", "SharpGen", "Vortice"
+            "ImGui.NET", "LightInject", "Microsoft", "Mini.Engine.Content.Generators", "Mini.Engine.Debugging", "Mini.Engine.DirectX", "Mini.Engine.Windows", "NativeLibraryLoader", "Newtonsoft", "Serilog", "ShaderTools", "SharpGen", "Vortice"
         };
 
         private readonly ServiceContainer Container;
@@ -158,7 +158,7 @@ namespace Mini.Engine.Configuration
             => type.IsDefined(typeof(ContentAttribute), true) && !type.IsAbstract;
 
         private static bool IsRelevantAssembly(AssemblyName name)
-            => !IgnoredAssemblies.Any(n => name.FullName.StartsWith(n));
+            => !IgnoredAssemblies.Any(n => name.FullName.StartsWith(n, StringComparison.InvariantCultureIgnoreCase));
 
         private void RegisterComponentContainers(Type containerType, List<Type> componentTypes)
         {

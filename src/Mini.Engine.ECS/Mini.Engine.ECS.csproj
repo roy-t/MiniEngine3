@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\Mini.Engine.Configuration\Mini.Engine.Configuration.csproj" />
+  </ItemGroup>
+</Project>

@@ -3,8 +3,8 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Mini.Engine.Content.Generators.Parsers.HLSL;
-using Mini.Engine.Content.Generators.Source;
-using Mini.Engine.Content.Generators.Source.CSharp;
+using Mini.Engine.Generators.Source;
+using Mini.Engine.Generators.Source.CSharp;
 
 
 namespace Mini.Engine.Content.Generators
