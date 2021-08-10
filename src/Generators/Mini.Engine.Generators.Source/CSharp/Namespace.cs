@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Mini.Engine.Generators.Source.CSharp
 {
@@ -19,9 +20,10 @@ namespace Mini.Engine.Generators.Source.CSharp
             writer.WriteLine($"namespace {this.Name}");
             writer.StartScope();
 
-            foreach (var @class in this.Types)
+            foreach (var type in this.Types)
             {
-                @class.Generate(writer);
+                type.Generate(writer);
+                writer.ConditionalEmptyLine(type != this.Types.LastOrDefault());
             }
 
             writer.EndScope();

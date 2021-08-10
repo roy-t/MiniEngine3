@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Mini.Engine.Generators.Source.CSharp;
 
@@ -16,30 +17,43 @@ namespace Mini.Engine.ECS.Generators
         {
             if (context.SyntaxReceiver is ProcessAttributeReceiver receiver)
             {
-                var generatedFiles = receiver.Targets.Values.Select(target =>
+                var generatedFiles = receiver.Classes
+                    .Select(target => new Class(context.Compilation, target))
+                    .Select(target =>
                 {
-                    return SourceFile.Build($"{target.Class.Identifier.ValueText}.Generated.cs")
+                    return SourceFile.Build($"{target.Name}.Generated.cs")
                         .Using("Mini.Engine.ECS.Systems")
-                        .Usings(Utilities.GetUsings(target.Class))
-                        .Namespace(Utilities.GetNamespace(context.Compilation, target.Class))
-                            .Class($"{target.Class.Identifier.ValueText}Binding", "public", "sealed")
+                        .Usings(target.Usings)
+                        .Namespace(target.Namespace)
+                            .Class($"{target.Name}Binding", "public", "sealed")
                                 .Inherits("ISystemBinding")
-                                .Field(target.Class.Identifier.ValueText, "System", "private", "readonly")
+                                .Field(target.Name, "System", "private", "readonly")
                                     .Complete()
+                                .Fields(target.GetUniqueComponents()
+                                    .Select(c => new Field($"IComponentContainer<{c}>", $"{c}Container", "private", "readonly")))
                                 .Constructor("public")
-                                    .Parameter(target.Class.Identifier.ValueText, "system")
+                                    .Parameter(target.Name, "system")
                                     .Parameter("ContainerStore", "containerStore")
-                                    // TODO: add body
+                                    .Body()
+                                        .TextCodeBlock("this.System = system;")
+                                        .TextCodeBlocks(target.GetUniqueComponents()
+                                            .Select(c => $"this.{c}Container = containerStore.GetContainer<{c}>();"))
+                                        .Complete()
                                     .Complete()
                                 .Method("void", "Process", "public")
-                                    // TODO: add body
+                                    .Body()
+                                        .TextCodeBlock("this.System.OnSet();")
+                                        .CodeBlocks(target.Methods.Select(m => CreateProcessBlock(m)))
+                                        .Complete()
                                     .Complete()
                                 .Complete()
-                            .Class($"{target.Class.Identifier.ValueText}", "public", "partial")
+                            .Class($"{target.Name}", "public", "partial")
                                 .Inherits("ISystemBindingProvider")
                                 .Method("ISystemBinding", "Bind", "public")
                                     .Parameter("ContainerStore", "containerStore")
-                                    // TODO: add body
+                                    .Body()
+                                        .TextCodeBlock($"return new {target.Name}Binding(this, containerStore);")
+                                        .Complete()
                                     .Complete()
                                 .Complete()
                             .Complete()
@@ -54,6 +68,40 @@ namespace Mini.Engine.ECS.Generators
                     context.AddSource(file.Name, writer.ToString());
                 }
             }
+        }
+
+        private ICodeBlock CreateProcessBlock(Method method)
+        {
+            if (method.Query == Shared.ProcessQuery.None)
+            {
+                return new TextCodeBlock($"this.System.{method.Name}();");
+            }
+
+            var components = method.Components;
+            if (components.Count == 0)
+            {
+                throw new InvalidOperationException($"Method {method.Name} with 0 arguments should not use any other ProcessQuery than 'None'");
+            }
+
+            var primary = components.First();
+            var loop = new ForLoop("i", "0", "<", $"this.{primary}Container.{method.Query}.Count");
+            var block = new TextCodeBlock();
+            block.Text.WriteLine($"var p0 = this.{primary}Container.{method.Query}[i];");
+
+            for (var i = 1; i < components.Count; i++)
+            {
+                var component = components[i];
+                block.Text.WriteLine($"if (!this.{component}Container.Contains(p0.Entity)) {{ continue; }}");
+                block.Text.WriteLine($"var p{i} = this.{component}Container.Get(p0.Entity);");
+            }
+
+            var argumentList = string.Join(", ", Enumerable.Range(0, components.Count).Select(i => $"p{i}"));
+            block.Text.WriteLine($"this.System.{method.Name}({argumentList});");
+
+            var body = new Body();
+            body.Code.Add(block);
+            loop.Body = body;
+            return loop;
         }
     }
 }

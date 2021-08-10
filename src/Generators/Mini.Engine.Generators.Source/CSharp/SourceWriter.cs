@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace Mini.Engine.Generators.Source.CSharp
 {
@@ -19,6 +20,15 @@ namespace Mini.Engine.Generators.Source.CSharp
         {
             this.Indent();
             this.Text.Append(text);
+        }
+
+        public void WriteMultiLine(string text)
+        {
+            var lines = text.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var line in lines)
+            {
+                WriteLine(line);
+            }
         }
 
         public void WriteLine(string text)

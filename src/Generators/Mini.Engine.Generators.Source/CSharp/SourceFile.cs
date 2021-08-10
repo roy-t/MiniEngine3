@@ -18,7 +18,9 @@ namespace Mini.Engine.Generators.Source.CSharp
 
         public void Generate(SourceWriter writer)
         {
-            var usings = this.Usings.Distinct();
+            var usings = this.Usings
+                .Distinct()
+                .OrderBy(x => x.Namespace);
 
             foreach (var @using in usings)
             {

@@ -35,6 +35,12 @@ namespace Mini.Engine.Generators.Source.CSharp
             return builder;
         }
 
+        public ClassBuilder<TPrevious> Fields(IEnumerable<Field> fields)
+        {
+            this.Output.Fields.AddRange(fields);
+            return this;
+        }
+
         public ConstructorBuilder<ClassBuilder<TPrevious>> Constructor(params string[] modifiers)
         {
             var builder = new ConstructorBuilder<ClassBuilder<TPrevious>>(this, this.Output.Name, modifiers);

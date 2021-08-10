@@ -2,10 +2,12 @@
 {
     public enum ProcessQuery
     {
+        Invalid = 0,
         None,
         All,
         New,
         Changed,
+        Unchanged,
         Removed,
     }
 }

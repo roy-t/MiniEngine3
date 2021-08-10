@@ -1,22 +1,54 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Mini.Engine.Generators.Source.CSharp
 {
-    public sealed class Body : IExpression
+    public sealed class Body : ISource
     {
         public Body()
         {
-            this.Expressions = new List<IExpression>();
+            this.Code = new List<ICodeBlock>();
         }
 
-        public List<IExpression> Expressions { get; }
+        public List<ICodeBlock> Code { get; }
 
         public void Generate(SourceWriter writer)
         {
-            foreach (var expression in this.Expressions)
+            foreach (var codeBlock in this.Code)
             {
-                expression.Generate(writer);
+                codeBlock.Generate(writer);
             }
+        }
+    }
+
+    public sealed class BodyBuilder<TPrevious> : Builder<TPrevious, Body>
+    {
+        public BodyBuilder(TPrevious previous)
+            : base(previous, new Body()) { }
+
+        public BodyBuilder<TPrevious> TextCodeBlock(string text)
+        {
+            this.Output.Code.Add(new TextCodeBlock(text));
+            return this;
+        }
+
+        public BodyBuilder<TPrevious> TextCodeBlocks(IEnumerable<string> texts)
+        {
+            this.Output.Code.AddRange(texts.Select(t => new TextCodeBlock(t)));
+            return this;
+        }
+
+        public BodyBuilder<TPrevious> CodeBlocks(IEnumerable<ICodeBlock> blocks)
+        {
+            this.Output.Code.AddRange(blocks);
+            return this;
+        }
+
+        public ForLoopBuilder<BodyBuilder<TPrevious>> For(string variable, string start, string op, string condition)
+        {
+            var builder = new ForLoopBuilder<BodyBuilder<TPrevious>>(this, variable, start, op, condition);
+            this.Output.Code.Add(builder.Output);
+            return builder;
         }
     }
 }

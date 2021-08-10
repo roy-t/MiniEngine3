@@ -15,7 +15,7 @@ namespace Mini.Engine.Generators.Source.CSharp
         public string Class { get; }
         public string[] Modifiers { get; }
         public ParameterList Parameters { get; }
-        public Body Body { get; }
+        public Body Body { get; set; }
 
         public Optional<IConstructorChainCall> Chain { get; set; }
 
@@ -55,6 +55,14 @@ namespace Mini.Engine.Generators.Source.CSharp
         {
             this.Output.Parameters.Add(type, name);
             return this;
+        }
+
+        public BodyBuilder<ConstructorBuilder<TPrevious>> Body()
+        {
+            var builder = new BodyBuilder<ConstructorBuilder<TPrevious>>(this);
+            this.Output.Body = builder.Output;
+
+            return builder;
         }
     }
 }

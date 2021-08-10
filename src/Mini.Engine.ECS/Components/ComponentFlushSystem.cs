@@ -18,6 +18,13 @@ namespace Mini.Engine.ECS.Components
         {
         }
 
+        [Process(Query = ProcessQuery.Changed)]
+        public void Changed(AComponent component)
+        {
+
+        }
+
+
         [Process]
         public void None()
         {
@@ -25,7 +32,7 @@ namespace Mini.Engine.ECS.Components
         }
 
         [Process(Query = ProcessQuery.All)]
-        public void Process()
+        public void Process(AComponent component, AComponent b)
         {
             var containers = this.ContainerStore.GetAllContainers();
             for (var i = 0; i < containers.Count; i++)

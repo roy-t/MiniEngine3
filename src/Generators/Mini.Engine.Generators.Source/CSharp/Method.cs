@@ -15,7 +15,7 @@
         public string Name { get; }
         public string[] Modifiers { get; }
         public ParameterList Parameters { get; }
-        public Body Body { get; }
+        public Body Body { get; set; }
 
         public void Generate(SourceWriter writer)
         {
@@ -39,6 +39,14 @@
         {
             this.Output.Parameters.Add(type, name);
             return this;
+        }
+
+        public BodyBuilder<MethodBuilder<TPrevious>> Body()
+        {
+            var builder = new BodyBuilder<MethodBuilder<TPrevious>>(this);
+            this.Output.Body = builder.Output;
+
+            return builder;
         }
     }
 }

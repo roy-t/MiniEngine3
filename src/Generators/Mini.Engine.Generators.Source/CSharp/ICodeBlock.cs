@@ -1,6 +1,6 @@
 ﻿namespace Mini.Engine.Generators.Source.CSharp
 {
-    public interface IExpression : ISource
+    public interface ICodeBlock : ISource
     {
     }
 }
