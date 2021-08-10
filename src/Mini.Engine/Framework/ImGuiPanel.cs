@@ -3,7 +3,6 @@ using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
-using Vortice.Direct3D11;
 
 namespace VorticeImGui
 {
@@ -22,12 +21,9 @@ namespace VorticeImGui
 
             ImGui.GetIO().DisplaySize = new Vector2(width, height);
 
-            if (renderDoc != null)
-            {
-                this.EnableRenderDoc = true;
-                this.RenderDoc = renderDoc;
-                renderDoc.OverlayEnabled = false;
-            }
+            this.EnableRenderDoc = true;
+            this.RenderDoc = renderDoc;
+            renderDoc.OverlayEnabled = false;
         }
 
         public void Resize(int width, int height)

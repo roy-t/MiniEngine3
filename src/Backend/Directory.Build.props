@@ -5,9 +5,8 @@
     <Platforms>x64</Platforms>
   </PropertyGroup>
 
-    <PropertyGroup>
-        <Nullable>enable</Nullable>
-        <WarningsAsErrors>nullable</WarningsAsErrors>
-    </PropertyGroup>
-
+  <PropertyGroup>
+    <Nullable></Nullable>
+    <WarningsAsErrors></WarningsAsErrors>
+  </PropertyGroup>
 </Project>

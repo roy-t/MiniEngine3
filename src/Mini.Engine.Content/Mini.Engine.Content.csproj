@@ -1,12 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
-    <None Remove="Shaders\ImmediateShader.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
+    <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
     <ProjectReference Include="..\Generators\Mini.Engine.Content.Generators\Mini.Engine.Content.Generators.csproj" OutputItemType="Analyzer" />
-    <ProjectReference Include="..\External\HlslParser\src\ShaderTools.CodeAnalysis.Hlsl\ShaderTools.CodeAnalysis.Hlsl.csproj" OutputItemType="Analyzer" />
-      <ProjectReference Include="..\External\HlslParser\src\ShaderTools.CodeAnalysis\ShaderTools.CodeAnalysis.csproj" OutputItemType="Analyzer" />
-    <ProjectReference Include="..\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
+    <ProjectReference Include="..\External\HlslParser\src\ShaderTools.CodeAnalysis.Hlsl\ShaderTools.CodeAnalysis.Hlsl.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+    <ProjectReference Include="..\External\HlslParser\src\ShaderTools.CodeAnalysis\ShaderTools.CodeAnalysis.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
   </ItemGroup>
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>

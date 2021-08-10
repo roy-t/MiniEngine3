@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Nullable></Nullable>
+    <WarningsAsErrors></WarningsAsErrors>
+  </PropertyGroup>
+</Project>
