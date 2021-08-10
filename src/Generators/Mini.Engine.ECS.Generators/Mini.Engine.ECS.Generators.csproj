@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.10.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mini.Engine.ECS.Generators.Shared\Mini.Engine.ECS.Generators.Shared.csproj" />
+    <ProjectReference Include="..\Mini.Engine.Generators.Source\Mini.Engine.Generators.Source.csproj" />
+  </ItemGroup>
+
+</Project>

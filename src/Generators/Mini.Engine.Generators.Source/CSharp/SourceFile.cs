@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Mini.Engine.Generators.Source.CSharp
 {
@@ -17,12 +18,14 @@ namespace Mini.Engine.Generators.Source.CSharp
 
         public void Generate(SourceWriter writer)
         {
-            foreach (var @using in this.Usings)
+            var usings = this.Usings.Distinct();
+
+            foreach (var @using in usings)
             {
                 @using.Generate(writer);
             }
 
-            writer.ConditionalEmptyLine(this.Usings.Count > 0);
+            writer.ConditionalEmptyLine(usings.Any());
 
             foreach (var @namespace in this.Namespaces)
             {
@@ -49,6 +52,12 @@ namespace Mini.Engine.Generators.Source.CSharp
         public SourceFileBuilder Using(string @using)
         {
             this.Current.Usings.Add(new Using(@using));
+            return this;
+        }
+
+        public SourceFileBuilder Usings(IEnumerable<string> usings)
+        {
+            this.Current.Usings.AddRange(usings.Select(u => new Using(u)));
             return this;
         }
 

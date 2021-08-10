@@ -21,6 +21,20 @@ namespace Mini.Engine.Generators.Source.CSharp
             return this;
         }
 
+        public MethodBuilder<ClassBuilder<TPrevious>> Method(string type, string name, params string[] modifiers)
+        {
+            var builder = new MethodBuilder<ClassBuilder<TPrevious>>(this, type, name, modifiers);
+            this.Output.Methods.Add(builder.Output);
+            return builder;
+        }
+
+        public FieldBuilder<ClassBuilder<TPrevious>> Field(string type, string name, params string[] modifiers)
+        {
+            var builder = new FieldBuilder<ClassBuilder<TPrevious>>(this, type, name, modifiers);
+            this.Output.Fields.Add(new Field(type, name, modifiers));
+            return builder;
+        }
+
         public ConstructorBuilder<ClassBuilder<TPrevious>> Constructor(params string[] modifiers)
         {
             var builder = new ConstructorBuilder<ClassBuilder<TPrevious>>(this, this.Output.Name, modifiers);

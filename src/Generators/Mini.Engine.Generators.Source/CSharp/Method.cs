@@ -29,4 +29,16 @@
             writer.EndScope();
         }
     }
+
+    public sealed class MethodBuilder<TPrevious> : Builder<TPrevious, Method>
+    {
+        public MethodBuilder(TPrevious previous, string type, string name, params string[] modifiers)
+            : base(previous, new Method(type, name, modifiers)) { }
+
+        public MethodBuilder<TPrevious> Parameter(string type, string name)
+        {
+            this.Output.Parameters.Add(type, name);
+            return this;
+        }
+    }
 }

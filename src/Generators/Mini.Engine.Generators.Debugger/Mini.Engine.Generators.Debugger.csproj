@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mini.Engine.Content.Generators\Mini.Engine.Content.Generators.csproj" />
+    <ProjectReference Include="..\Mini.Engine.ECS.Generators\Mini.Engine.ECS.Generators.csproj" />
   </ItemGroup>
 
 </Project>

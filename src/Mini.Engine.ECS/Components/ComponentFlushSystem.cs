@@ -1,4 +1,5 @@
 ﻿using Mini.Engine.Configuration;
+using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 
 namespace Mini.Engine.ECS.Components
@@ -18,6 +19,12 @@ namespace Mini.Engine.ECS.Components
         }
 
         [Process]
+        public void None()
+        {
+
+        }
+
+        [Process(Query = ProcessQuery.All)]
         public void Process()
         {
             var containers = this.ContainerStore.GetAllContainers();

@@ -9,7 +9,9 @@ using Mini.Engine.Generators.Source.CSharp;
 
 namespace Mini.Engine.Content.Generators
 {
-
+    /// <summary>
+    /// "Use View -> Other Windows -> Shader Syntax Visualizer to help create the right code"
+    /// </summary>
     [Generator]
     public class ShaderGenerator : ISourceGenerator
     {
