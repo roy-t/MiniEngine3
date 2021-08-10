@@ -3,11 +3,11 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
   </PropertyGroup>
-        
+
   <ItemGroup>
     <PackageReference Include="ImGui.NET" Version="1.78.0" />
   </ItemGroup>
-        
+
   <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.Debugging\Mini.Engine.Debugging.csproj" />
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
