@@ -1,4 +1,6 @@
-﻿namespace Mini.Engine.Generators.Source.CSharp
+﻿using System;
+
+namespace Mini.Engine.Generators.Source.CSharp
 {
     public abstract class Builder<TPreviousBuilder, TOutput>
     {
@@ -13,6 +15,10 @@
         public TOutput Output { get; }
 
         public TPreviousBuilder Complete()
-            => this.PreviousBuilder;
+        {
+            return this.PreviousBuilder == null
+                ? throw new InvalidOperationException()
+                : this.PreviousBuilder;
+        }
     }
 }

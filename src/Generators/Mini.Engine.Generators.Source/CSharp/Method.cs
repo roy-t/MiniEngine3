@@ -28,16 +28,25 @@
             this.Body.Generate(writer);
             writer.EndScope();
         }
+
+        public static MethodBuilder<Method> Builder(string type, string name, params string[] modifiers)
+        {
+            var method = new Method(type, name, modifiers);
+            return new MethodBuilder<Method>(method, method);
+        }
     }
 
     public sealed class MethodBuilder<TPrevious> : Builder<TPrevious, Method>
     {
+        internal MethodBuilder(TPrevious previous, Method current)
+            : base(previous, current) { }
+
         public MethodBuilder(TPrevious previous, string type, string name, params string[] modifiers)
             : base(previous, new Method(type, name, modifiers)) { }
 
         public MethodBuilder<TPrevious> Parameter(string type, string name)
         {
-            this.Output.Parameters.Add(type, name);
+            this.Output.Parameters.Parameters.Add(new Parameter(type, name));
             return this;
         }
 

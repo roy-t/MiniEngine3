@@ -65,7 +65,7 @@ namespace Mini.Engine.ECS.Generators
             }
         }
 
-        private ICodeBlock CreateProcessBlock(Method method)
+        private static ICodeBlock CreateProcessBlock(Method method)
         {
             if (method.Query == Shared.ProcessQuery.None)
             {

@@ -31,14 +31,14 @@ namespace Mini.Engine.Content.Generators
                         .Namespace($"Mini.Engine.Content.Shaders.{shader.Name}")
                             .Types(shader.Structures.Select(structure =>
                             {
-                                return Struct.Build(Naming.ToPascalCase(structure.Name), "public")
+                                return Struct.Builder(Naming.ToPascalCase(structure.Name), "public")
                                     .Attribute("StructLayout", "LayoutKind.Sequential")
                                     .Properties(structure.Variables.Select(v => new Property(TypeTranslator.GetDotNetType(v), Naming.ToPascalCase(v.Name), false, "public")))
                                     .Output;
                             }))
                             .Types(shader.CBuffers.Select(cBuffer =>
                             {
-                                return Struct.Build($"CBuffer{cBuffer.Slot}", "public")
+                                return Struct.Builder($"CBuffer{cBuffer.Slot}", "public")
                                     .Attribute("StructLayout", "LayoutKind.Sequential")
                                     .Field("int", "Slot", "public", "const")
                                         .Value($"{cBuffer.Slot}")

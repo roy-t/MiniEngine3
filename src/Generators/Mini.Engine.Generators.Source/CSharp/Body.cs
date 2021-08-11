@@ -6,9 +6,7 @@ namespace Mini.Engine.Generators.Source.CSharp
     public sealed class Body : ISource
     {
         public Body()
-        {
-            this.Code = new List<ICodeBlock>();
-        }
+            => this.Code = new List<ICodeBlock>();
 
         public List<ICodeBlock> Code { get; }
 
@@ -19,10 +17,19 @@ namespace Mini.Engine.Generators.Source.CSharp
                 codeBlock.Generate(writer);
             }
         }
+
+        public static BodyBuilder<Body> Builder()
+        {
+            var body = new Body();
+            return new BodyBuilder<Body>(body, body);
+        }
     }
 
     public sealed class BodyBuilder<TPrevious> : Builder<TPrevious, Body>
     {
+        internal BodyBuilder(TPrevious previous, Body current)
+            : base(previous, current) { }
+
         public BodyBuilder(TPrevious previous)
             : base(previous, new Body()) { }
 
@@ -44,7 +51,7 @@ namespace Mini.Engine.Generators.Source.CSharp
             return this;
         }
 
-        public ForLoopBuilder<BodyBuilder<TPrevious>> For(string variable, string start, string op, string condition)
+        public ForLoopBuilder<BodyBuilder<TPrevious>> ForLoop(string variable, string start, string op, string condition)
         {
             var builder = new ForLoopBuilder<BodyBuilder<TPrevious>>(this, variable, start, op, condition);
             this.Output.Code.Add(builder.Output);

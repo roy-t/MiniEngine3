@@ -8,10 +8,19 @@ namespace Mini.Engine.Generators.Source.CSharp
             : base(name, modifiers) { }
 
         public override string TypeKeyword => "class";
+
+        public static ClassBuilder<Class> Builder(string name, params string[] modifiers)
+        {
+            var @class = new Class(name, modifiers);
+            return new ClassBuilder<Class>(@class, @class);
+        }
     }
 
     public sealed class ClassBuilder<TPrevious> : Builder<TPrevious, Class>
     {
+        internal ClassBuilder(TPrevious previous, Class current)
+            : base(previous, current) { }
+
         public ClassBuilder(TPrevious previous, string name, params string[] modifiers)
             : base(previous, new Class(name, modifiers)) { }
 

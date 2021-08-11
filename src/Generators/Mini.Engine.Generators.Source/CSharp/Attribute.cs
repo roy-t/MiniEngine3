@@ -20,5 +20,26 @@
             this.Arguments.Generate(writer);
             writer.WriteLine("]");
         }
+
+        public static AttributeBuilder<Attribute> Builder(string name)
+        {
+            var attribute = new Attribute(name);
+            return new AttributeBuilder<Attribute>(attribute, attribute);
+        }
+    }
+
+    public sealed class AttributeBuilder<TPrevious> : Builder<TPrevious, Attribute>
+    {
+        internal AttributeBuilder(TPrevious previous, Attribute current)
+            : base(previous, current) { }
+
+        public AttributeBuilder(TPrevious previous, string name)
+            : base(previous, new Attribute(name)) { }
+
+        public AttributeBuilder<TPrevious> Argument(string argument)
+        {
+            this.Output.Arguments.Arguments.Add(argument);
+            return this;
+        }
     }
 }

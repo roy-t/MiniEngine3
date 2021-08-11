@@ -35,38 +35,37 @@ namespace Mini.Engine.Generators.Source.CSharp
             }
         }
 
-        public static SourceFileBuilder Build(string fileName)
-            => new SourceFileBuilder(fileName);
+        public static SourceFileBuilder<SourceFile> Build(string fileName)
+        {
+            var sourceFile = new SourceFile(fileName);
+            return new SourceFileBuilder<SourceFile>(sourceFile, sourceFile);
+        }
     }
 
-    public sealed class SourceFileBuilder
+    public sealed class SourceFileBuilder<TPrevious> : Builder<TPrevious, SourceFile>
     {
-        private readonly SourceFile Current;
+        internal SourceFileBuilder(TPrevious previous, SourceFile current)
+            : base(previous, current) { }
 
-        public SourceFileBuilder(string fileName)
+        public SourceFileBuilder(TPrevious previous, string fileName)
+            : base(previous, new SourceFile(fileName)) { }
+
+        public SourceFileBuilder<TPrevious> Using(string @using)
         {
-            this.Current = new SourceFile(fileName);
-        }
-
-        public SourceFile Complete()
-            => this.Current;
-
-        public SourceFileBuilder Using(string @using)
-        {
-            this.Current.Usings.Add(new Using(@using));
+            this.Output.Usings.Add(new Using(@using));
             return this;
         }
 
-        public SourceFileBuilder Usings(IEnumerable<string> usings)
+        public SourceFileBuilder<TPrevious> Usings(IEnumerable<string> usings)
         {
-            this.Current.Usings.AddRange(usings.Select(u => new Using(u)));
+            this.Output.Usings.AddRange(usings.Select(u => new Using(u)));
             return this;
         }
 
-        public NamespaceBuilder<SourceFileBuilder> Namespace(string name)
+        public NamespaceBuilder<SourceFileBuilder<TPrevious>> Namespace(string name)
         {
-            var builder = new NamespaceBuilder<SourceFileBuilder>(this, name);
-            this.Current.Namespaces.Add(builder.Output);
+            var builder = new NamespaceBuilder<SourceFileBuilder<TPrevious>>(this, name);
+            this.Output.Namespaces.Add(builder.Output);
 
             return builder;
         }

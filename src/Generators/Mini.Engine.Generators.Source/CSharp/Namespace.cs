@@ -28,10 +28,19 @@ namespace Mini.Engine.Generators.Source.CSharp
 
             writer.EndScope();
         }
+
+        public static NamespaceBuilder<Namespace> Builder(string name)
+        {
+            var @namespace = new Namespace(name);
+            return new NamespaceBuilder<Namespace>(@namespace, @namespace);
+        }
     }
 
     public sealed class NamespaceBuilder<TPrevious> : Builder<TPrevious, Namespace>
     {
+        internal NamespaceBuilder(TPrevious previous, Namespace current)
+            : base(previous, current) { }
+
         public NamespaceBuilder(TPrevious previous, string name)
             : base(previous, new Namespace(name)) { }
 

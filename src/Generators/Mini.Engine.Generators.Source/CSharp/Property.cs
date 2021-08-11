@@ -20,11 +20,8 @@ namespace Mini.Engine.Generators.Source.CSharp
         public Optional<string[]> GetModifiers { get; set; }
         public Optional<string[]> SetModifiers { get; set; }
 
-        public Optional<Body> Getter { get; set; }
-        public Optional<Body> Setter { get; set; }
-
-        public void SetGetter(Body body) => this.Getter = new Optional<Body>(body);
-        public void SetSetter(Body body) => this.Setter = new Optional<Body>(body);
+        public Optional<Body> GetBody { get; set; }
+        public Optional<Body> SetBody { get; set; }
 
         public void Generate(SourceWriter writer)
         {
@@ -56,7 +53,7 @@ namespace Mini.Engine.Generators.Source.CSharp
                 writer.WriteLine();
                 writer.StartScope();
 
-                if (this.Getter.HasValue)
+                if (this.GetBody.HasValue)
                 {
                     if (this.GetModifiers.HasValue)
                     {
@@ -64,11 +61,11 @@ namespace Mini.Engine.Generators.Source.CSharp
                     }
                     writer.WriteLine("get");
                     writer.StartScope();
-                    this.Getter.Value.Generate(writer);
+                    this.GetBody.Value.Generate(writer);
                     writer.EndScope();
                 }
 
-                if (this.Setter.HasValue)
+                if (this.SetBody.HasValue)
                 {
                     if (this.SetModifiers.HasValue)
                     {
@@ -76,7 +73,7 @@ namespace Mini.Engine.Generators.Source.CSharp
                     }
                     writer.WriteLine("set");
                     writer.StartScope();
-                    this.Setter.Value.Generate(writer);
+                    this.SetBody.Value.Generate(writer);
                     writer.EndScope();
                 }
 
@@ -84,6 +81,37 @@ namespace Mini.Engine.Generators.Source.CSharp
             }
         }
 
-        public bool IsAutoProperty() => !(this.Getter.HasValue || this.Setter.HasValue);
+        public bool IsAutoProperty() => !(this.GetBody.HasValue || this.SetBody.HasValue);
+
+        public static PropertyBuilder<Property> Builder(string type, string name, bool isReadOnly, params string[] modifiers)
+        {
+            var property = new Property(type, name, isReadOnly, modifiers);
+            return new PropertyBuilder<Property>(property, property);
+        }
+    }
+
+    public sealed class PropertyBuilder<TPrevious> : Builder<TPrevious, Property>
+    {
+        internal PropertyBuilder(TPrevious previous, Property current)
+            : base(previous, current) { }
+
+        public PropertyBuilder(TPrevious previous, string type, string name, bool isReadOnly, params string[] modifiers)
+            : base(previous, new Property(type, name, isReadOnly, modifiers)) { }
+
+        public BodyBuilder<PropertyBuilder<TPrevious>> Getter()
+        {
+            var builder = new BodyBuilder<PropertyBuilder<TPrevious>>(this);
+            this.Output.GetBody = builder.Output;
+
+            return builder;
+        }
+
+        public BodyBuilder<PropertyBuilder<TPrevious>> Setter()
+        {
+            var builder = new BodyBuilder<PropertyBuilder<TPrevious>>(this);
+            this.Output.SetBody = builder.Output;
+
+            return builder;
+        }
     }
 }

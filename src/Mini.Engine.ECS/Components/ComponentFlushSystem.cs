@@ -9,30 +9,14 @@ namespace Mini.Engine.ECS.Components
     {
         private readonly ContainerStore ContainerStore;
 
-        public ComponentFlushSystem(ContainerStore containerStore)
-        {
-            this.ContainerStore = containerStore;
-        }
+        public ComponentFlushSystem(ContainerStore containerStore) => this.ContainerStore = containerStore;
 
         public void OnSet()
         {
         }
 
-        [Process(Query = ProcessQuery.Changed)]
-        public void Changed(AComponent component)
-        {
-
-        }
-
-
         [Process]
-        public void None()
-        {
-
-        }
-
-        [Process(Query = ProcessQuery.All)]
-        public void Process(AComponent component, AComponent b)
+        public void Process()
         {
             var containers = this.ContainerStore.GetAllContainers();
             for (var i = 0; i < containers.Count; i++)

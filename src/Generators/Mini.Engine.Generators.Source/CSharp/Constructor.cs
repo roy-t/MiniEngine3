@@ -36,12 +36,21 @@ namespace Mini.Engine.Generators.Source.CSharp
             this.Body.Generate(writer);
             writer.EndScope();
         }
+
+        public static ConstructorBuilder<Constructor> Builder(string @class, params string[] modifiers)
+        {
+            var constructor = new Constructor(@class, modifiers);
+            return new ConstructorBuilder<Constructor>(constructor, constructor);
+        }
     }
 
     public sealed class ConstructorBuilder<TPrevious> : Builder<TPrevious, Constructor>
     {
-        public ConstructorBuilder(TPrevious previous, string name, params string[] modifiers)
-            : base(previous, new Constructor(name, modifiers)) { }
+        internal ConstructorBuilder(TPrevious previous, Constructor current)
+            : base(previous, current) { }
+
+        public ConstructorBuilder(TPrevious previous, string @class, params string[] modifiers)
+            : base(previous, new Constructor(@class, modifiers)) { }
 
 
         public ConstructorBuilder<TPrevious> BaseConstructorCall(params string[] arguments)
@@ -53,7 +62,7 @@ namespace Mini.Engine.Generators.Source.CSharp
 
         public ConstructorBuilder<TPrevious> Parameter(string type, string name)
         {
-            this.Output.Parameters.Add(type, name);
+            this.Output.Parameters.Parameters.Add(new Parameter(type, name));
             return this;
         }
 

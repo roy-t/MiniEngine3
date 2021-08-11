@@ -19,7 +19,7 @@ namespace Mini.Engine.Generators.Source.CSharp
         public void Write(string text)
         {
             this.Indent();
-            this.Text.Append(text);
+            _ = this.Text.Append(text);
         }
 
         public void WriteMultiLine(string text)
@@ -27,20 +27,20 @@ namespace Mini.Engine.Generators.Source.CSharp
             var lines = text.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var line in lines)
             {
-                WriteLine(line);
+                this.WriteLine(line);
             }
         }
 
         public void WriteLine(string text)
         {
             this.Indent();
-            this.Text.AppendLine(text);
+            _ = this.Text.AppendLine(text);
             this.currentIndentation = 0;
         }
 
         public void WriteLine()
         {
-            this.Text.AppendLine();
+            _ = this.Text.AppendLine();
             this.currentIndentation = 0;
         }
 
@@ -89,7 +89,7 @@ namespace Mini.Engine.Generators.Source.CSharp
         {
             while (this.currentIndentation < this.targetIndentation)
             {
-                this.Text.Append("    ");
+                _ = this.Text.Append("    ");
                 this.currentIndentation++;
             }
         }

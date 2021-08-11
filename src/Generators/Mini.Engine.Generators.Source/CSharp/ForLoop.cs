@@ -4,11 +4,10 @@
     {
         public ForLoop(string variable, string start, string op, string condition)
         {
-
-            Variable = variable;
-            Start = start;
-            Op = op;
-            Condition = condition;
+            this.Variable = variable;
+            this.Start = start;
+            this.Op = op;
+            this.Condition = condition;
             this.Body = new Body();
         }
 
@@ -26,10 +25,19 @@
             this.Body.Generate(writer);
             writer.EndScope();
         }
+
+        public static ForLoopBuilder<ForLoop> Builder(string variable, string start, string op, string condition)
+        {
+            var forLoop = new ForLoop(variable, start, op, condition);
+            return new ForLoopBuilder<ForLoop>(forLoop, forLoop);
+        }
     }
 
     public sealed class ForLoopBuilder<TPrevious> : Builder<TPrevious, ForLoop>
     {
+        internal ForLoopBuilder(TPrevious previous, ForLoop current)
+            : base(previous, current) { }
+
         public ForLoopBuilder(TPrevious previous, string variable, string start, string op, string condition)
             : base(previous, new ForLoop(variable, start, op, condition)) { }
 

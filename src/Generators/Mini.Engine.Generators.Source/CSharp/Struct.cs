@@ -9,14 +9,17 @@ namespace Mini.Engine.Generators.Source.CSharp
 
         public override string TypeKeyword => "struct";
 
-        public static StructBuilder<object> Build(string name, params string[] modifiers)
-            => new StructBuilder<object>(name, modifiers);
+        public static StructBuilder<Struct> Builder(string name, params string[] modifiers)
+        {
+            var @struct = new Struct(name, modifiers);
+            return new StructBuilder<Struct>(@struct, @struct);
+        }
     }
 
     public sealed class StructBuilder<TPrevious> : Builder<TPrevious, Struct>
     {
-        public StructBuilder(string name, params string[] modifiers)
-            : base(default, new Struct(name, modifiers)) { }
+        internal StructBuilder(TPrevious previous, Struct current)
+            : base(previous, current) { }
 
         public StructBuilder(TPrevious previous, string name, params string[] modifiers)
             : base(previous, new Struct(name, modifiers)) { }

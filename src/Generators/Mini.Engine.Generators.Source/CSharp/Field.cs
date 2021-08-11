@@ -26,10 +26,19 @@
 
             writer.WriteLine(";");
         }
+
+        public static FieldBuilder<Field> Builder(string type, string name, params string[] modifiers)
+        {
+            var field = new Field(type, name, modifiers);
+            return new FieldBuilder<Field>(field, field);
+        }
     }
 
     public sealed class FieldBuilder<TPrevious> : Builder<TPrevious, Field>
     {
+        internal FieldBuilder(TPrevious previous, Field current)
+            : base(previous, current) { }
+
         public FieldBuilder(TPrevious previous, string type, string name, params string[] modifiers)
             : base(previous, new Field(type, name, modifiers)) { }
 

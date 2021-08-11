@@ -4,10 +4,7 @@ namespace Mini.Engine.Generators.Source.CSharp
 {
     public sealed class Using : ISource, IEquatable<Using>
     {
-        public Using(string @namespace)
-        {
-            this.Namespace = @namespace;
-        }
+        public Using(string @namespace) => this.Namespace = @namespace;
 
         public string Namespace { get; }
 
