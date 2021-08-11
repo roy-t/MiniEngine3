@@ -9,9 +9,7 @@ namespace Mini.Engine.ECS.Generators
     public class SystemGenerator : ISourceGenerator
     {
         public void Initialize(GeneratorInitializationContext context)
-        {
-            context.RegisterForSyntaxNotifications(() => new ProcessAttributeReceiver());
-        }
+            => context.RegisterForSyntaxNotifications(() => new ProcessAttributeReceiver());
 
         public void Execute(GeneratorExecutionContext context)
         {
@@ -20,8 +18,7 @@ namespace Mini.Engine.ECS.Generators
                 var generatedFiles = receiver.Classes
                     .Select(target => new Class(context.Compilation, target))
                     .Select(target =>
-                {
-                    return SourceFile.Build($"{target.Name}.Generated.cs")
+                        SourceFile.Build($"{target.Name}.Generated.cs")
                         .Using("Mini.Engine.ECS.Systems")
                         .Usings(target.Usings)
                         .Namespace(target.Namespace)
@@ -57,9 +54,7 @@ namespace Mini.Engine.ECS.Generators
                                     .Complete()
                                 .Complete()
                             .Complete()
-                        .Complete();
-
-                });
+                        .Complete());
 
                 foreach (var file in generatedFiles)
                 {
