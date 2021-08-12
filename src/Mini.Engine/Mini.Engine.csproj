@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+    <StartupObject>Mini.Engine.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +15,7 @@
     <ProjectReference Include="..\Backend\Mini.Engine.Windows\Mini.Engine.Windows.csproj" />
     <ProjectReference Include="..\Mini.Engine.Configuration\Mini.Engine.Configuration.csproj" />
     <ProjectReference Include="..\Mini.Engine.Content\Mini.Engine.Content.csproj" />
+    <ProjectReference Include="..\Mini.Engine.ECS\Mini.Engine.ECS.csproj" />
   </ItemGroup>
 
 </Project>

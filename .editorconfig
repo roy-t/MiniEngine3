@@ -123,6 +123,7 @@ csharp_style_expression_bodied_lambdas=when_on_single_line:suggestion
 csharp_style_expression_bodied_local_functions=when_on_single_line:suggestion
 csharp_style_unused_value_expression_statement_preference=discard_variable:suggestion
 csharp_style_prefer_pattern_matching=true:suggestion
+csharp_prefer_static_local_function=true:suggestion
 ###############################
 # VB Coding Conventions       #
 ###############################

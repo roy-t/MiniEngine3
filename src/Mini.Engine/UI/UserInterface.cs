@@ -12,17 +12,20 @@ namespace Mini.Engine.UI
         private readonly ImGuiInputHandler ImguiInputHandler;
         private readonly RenderDoc RenderDoc;
         private readonly ImGuiIOPtr IO;
+        private readonly MicroBenchmark MicroBenchmark;
+
 
         public UserInterface(RenderDoc renderDoc, Device device, IntPtr windowHandle, int width, int height)
         {
             this.RenderDoc = renderDoc;
 
-            ImGui.CreateContext();
+            _ = ImGui.CreateContext();
             this.IO = ImGui.GetIO();
             this.ImGuiRenderer = new ImGuiRenderer(device);
             this.ImguiInputHandler = new ImGuiInputHandler(windowHandle);
+            this.MicroBenchmark = new MicroBenchmark("MicroBenchmark", TimeSpan.FromSeconds(5));
 
-            Resize(width, height);
+            this.Resize(width, height);
         }
 
         public void Resize(int width, int height)
@@ -33,6 +36,7 @@ namespace Mini.Engine.UI
             this.IO.DeltaTime = elapsed;
 
             this.ImguiInputHandler.Update();
+            this.MicroBenchmark.Update();
 
             ImGui.NewFrame();
             if (ImGui.BeginMainMenuBar())
@@ -42,7 +46,7 @@ namespace Mini.Engine.UI
 
                     if (ImGui.MenuItem("Launch Replay UI"))
                     {
-                        this.RenderDoc.LaunchReplayUI();
+                        _ = this.RenderDoc.LaunchReplayUI();
                     }
 
                     if (ImGui.MenuItem("Capture"))
@@ -53,9 +57,14 @@ namespace Mini.Engine.UI
                     if (ImGui.MenuItem("Open Last Capture", this.RenderDoc.GetNumCaptures() > 0))
                     {
                         var path = this.RenderDoc.GetCapture(this.RenderDoc.GetNumCaptures() - 1);
-                        this.RenderDoc.LaunchReplayUI(path);
+                        _ = this.RenderDoc.LaunchReplayUI(path);
                     }
 
+                    ImGui.EndMenu();
+                }
+
+                if(ImGui.BeginMenu(this.MicroBenchmark.ToString()))
+                {
                     ImGui.EndMenu();
                 }
 

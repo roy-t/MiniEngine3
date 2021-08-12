@@ -1,10 +1,10 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Mini.Engine.UI;
 using Mini.Engine.Windows;
+using Serilog;
 using Vortice.DXGI;
 
 namespace Mini.Engine
@@ -14,10 +14,12 @@ namespace Mini.Engine
         private readonly Win32Window Window;
         private readonly Device Device;
         private readonly UserInterface UI;
+        private readonly GameLoop GameLoop;
 
-        public GameBootstrapper(Register registerDelegate)
+        public GameBootstrapper(ILogger logger,  Register registerDelegate, Resolve resolveDelegate)
         {
-            RenderDoc.Load(out var renderDoc);
+            var loaded = RenderDoc.Load(out var renderDoc);
+            if(!loaded) { logger.Warning("Could not load RenderDoc"); }
 
             this.Window = Win32Application.Initialize("Mini.Engine", 1280, 720);
             this.Window.Show();
@@ -33,6 +35,8 @@ namespace Mini.Engine
 
             registerDelegate(this.Device);
             registerDelegate(this.Window);
+
+            this.GameLoop = (GameLoop)resolveDelegate(typeof(GameLoop));
         }
 
         public void Run()
@@ -46,7 +50,7 @@ namespace Mini.Engine
                 this.Device.Clear();
                 this.UI.Update(elapsed);
 
-                // TODO: add drawing code here
+                this.GameLoop.Draw(elapsed);
 
                 this.UI.Render(this.Device.BackBuffer);
                 this.Device.Present();

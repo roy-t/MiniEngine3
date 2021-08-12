@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using Microsoft.CodeAnalysis.Text;
+﻿using Microsoft.CodeAnalysis.Text;
 using Mini.Engine.ECS.Generators;
 
 namespace Mini.Engine.Generators.Debugger
@@ -28,8 +25,6 @@ namespace Mini.Engine.Generators.Debugger
 
                 Console.WriteLine();
             }
-
-            Console.ReadLine();
         }
     }
 }
