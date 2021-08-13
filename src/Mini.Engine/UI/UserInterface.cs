@@ -23,7 +23,7 @@ namespace Mini.Engine.UI
             this.IO = ImGui.GetIO();
             this.ImGuiRenderer = new ImGuiRenderer(device);
             this.ImguiInputHandler = new ImGuiInputHandler(windowHandle);
-            this.MicroBenchmark = new MicroBenchmark("MicroBenchmark", TimeSpan.FromSeconds(5));
+            this.MicroBenchmark = new MicroBenchmark("Perf", TimeSpan.FromSeconds(5));
 
             this.Resize(width, height);
         }
@@ -69,10 +69,10 @@ namespace Mini.Engine.UI
             ImGui.ShowDemoWindow();
         }
 
-        public void Render(RenderTarget2D renderTarget)
+        public void Render()
         {
             ImGui.Render();
-            this.ImGuiRenderer.Render(ImGui.GetDrawData(), renderTarget);
+            this.ImGuiRenderer.Render(ImGui.GetDrawData());
         }
 
         public void Dispose()

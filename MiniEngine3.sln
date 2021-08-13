@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31229.75
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31606.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine", "src\Mini.Engine\Mini.Engine.csproj", "{6B26B822-4A95-4A60-A7C9-7260E6F575A7}"
 EndProject
@@ -38,13 +38,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Windows", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Configuration", "src\Mini.Engine.Configuration\Mini.Engine.Configuration.csproj", "{F7669F36-F351-4824-874E-54D025167804}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mini.Engine.ECS", "src\Mini.Engine.ECS\Mini.Engine.ECS.csproj", "{D3B454E4-2490-426A-A944-06AC00547388}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.ECS", "src\Mini.Engine.ECS\Mini.Engine.ECS.csproj", "{D3B454E4-2490-426A-A944-06AC00547388}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mini.Engine.Generators.Source", "src\Generators\Mini.Engine.Generators.Source\Mini.Engine.Generators.Source.csproj", "{1625575A-2569-4955-A2CA-5B6B9162319B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Generators.Source", "src\Generators\Mini.Engine.Generators.Source\Mini.Engine.Generators.Source.csproj", "{1625575A-2569-4955-A2CA-5B6B9162319B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mini.Engine.ECS.Generators", "src\Generators\Mini.Engine.ECS.Generators\Mini.Engine.ECS.Generators.csproj", "{B6D1A166-5270-41B7-A73E-718589E2284E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.ECS.Generators", "src\Generators\Mini.Engine.ECS.Generators\Mini.Engine.ECS.Generators.csproj", "{B6D1A166-5270-41B7-A73E-718589E2284E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mini.Engine.ECS.Generators.Shared", "src\Generators\Mini.Engine.ECS.Generators.Shared\Mini.Engine.ECS.Generators.Shared.csproj", "{8B70A0ED-B566-4A9D-9A6B-E5EEE4E0AE21}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.ECS.Generators.Shared", "src\Generators\Mini.Engine.ECS.Generators.Shared\Mini.Engine.ECS.Generators.Shared.csproj", "{8B70A0ED-B566-4A9D-9A6B-E5EEE4E0AE21}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mini.Engine.Graphics", "src\Mini.Engine.Graphics\Mini.Engine.Graphics.csproj", "{B8650ABE-F31A-45D6-A007-E3C80AB05FB4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -160,6 +162,12 @@ Global
 		{8B70A0ED-B566-4A9D-9A6B-E5EEE4E0AE21}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8B70A0ED-B566-4A9D-9A6B-E5EEE4E0AE21}.Release|x64.ActiveCfg = Release|Any CPU
 		{8B70A0ED-B566-4A9D-9A6B-E5EEE4E0AE21}.Release|x64.Build.0 = Release|Any CPU
+		{B8650ABE-F31A-45D6-A007-E3C80AB05FB4}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{B8650ABE-F31A-45D6-A007-E3C80AB05FB4}.Debug|x64.ActiveCfg = Debug|x64
+		{B8650ABE-F31A-45D6-A007-E3C80AB05FB4}.Debug|x64.Build.0 = Debug|x64
+		{B8650ABE-F31A-45D6-A007-E3C80AB05FB4}.Release|Any CPU.ActiveCfg = Release|x64
+		{B8650ABE-F31A-45D6-A007-E3C80AB05FB4}.Release|x64.ActiveCfg = Release|x64
+		{B8650ABE-F31A-45D6-A007-E3C80AB05FB4}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

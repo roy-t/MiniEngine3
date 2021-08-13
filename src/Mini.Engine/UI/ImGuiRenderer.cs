@@ -61,7 +61,7 @@ namespace Mini.Engine.UI
             io.Fonts.TexID = this.RegisterTexture(this.FontTexture);
         }
 
-        public void Render(ImDrawDataPtr data, RenderTarget2D renderTarget)
+        public void Render(ImDrawDataPtr data)
         {
             if (data.DisplaySize.X <= 0.0f || data.DisplaySize.Y <= 0.0f || data.TotalVtxCount <= 0)
             {
@@ -94,7 +94,7 @@ namespace Mini.Engine.UI
             var cBufferData = new CBuffer0() { ProjectionMatrix = Matrix4x4.CreateOrthographicOffCenter(0, data.DisplaySize.X, data.DisplaySize.Y, 0, -1.0f, 1.0f) };
             this.ConstantBuffer.MapData(this.DeferredContext, cBufferData);
 
-            this.SetupRenderState(data, this.DeferredContext, renderTarget);
+            this.SetupRenderState(data, this.DeferredContext);
 
             // Render command lists
             // (Because we merged all buffers into a single one, we maintain our own offset into them)
@@ -147,7 +147,7 @@ namespace Mini.Engine.UI
             this.InputLayout.Dispose();
         }
 
-        private void SetupRenderState(ImDrawDataPtr drawData, DeferredDeviceContext context, RenderTarget2D renderTarget)
+        private void SetupRenderState(ImDrawDataPtr drawData, DeferredDeviceContext context)
         {
             context.IA.SetInputLayout(this.InputLayout);
             context.IA.SetVertexBuffer(this.VertexBuffer);
@@ -163,7 +163,7 @@ namespace Mini.Engine.UI
             context.PS.SetShader(this.PixelShader);
             context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
 
-            context.OM.SetRenderTarget(renderTarget);
+            context.OM.SetRenderTarget(null);
             context.OM.SetBlendState(this.Device.BlendStates.AlphaBlend);
             context.OM.SetDepthStencilState(this.Device.DepthStencilStates.None);
         }

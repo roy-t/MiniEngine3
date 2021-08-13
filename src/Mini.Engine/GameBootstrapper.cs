@@ -52,7 +52,7 @@ namespace Mini.Engine
 
                 this.GameLoop.Draw(elapsed);
 
-                this.UI.Render(this.Device.BackBuffer);
+                this.UI.Render();
                 this.Device.Present();
             }
         }

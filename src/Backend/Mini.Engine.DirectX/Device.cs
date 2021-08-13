@@ -13,7 +13,6 @@ namespace Mini.Engine.DirectX
         private readonly Format Format;
 
         private IDXGISwapChain swapChain;
-        private ID3D11Texture2D backBuffer;
 
         public Device(IntPtr windowHandle, Format format, int width, int height)
         {
@@ -22,14 +21,14 @@ namespace Mini.Engine.DirectX
             this.Width = width;
             this.Height = height;
 
-            D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None, null, out var device, out var context);
+            _ = D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None, null, out var device, out var context);
 
             this.ID3D11Device = device;
             this.ID3D11DeviceContext = context;
 
             this.CreateSwapChain(width, height);
 
-            this.ImmediateContext = new ImmediateDeviceContext(context);
+            this.ImmediateContext = new ImmediateDeviceContext(this, context);
 
             this.SamplerStates = new SamplerStates(device);
             this.BlendStates = new BlendStates(device);
@@ -37,7 +36,6 @@ namespace Mini.Engine.DirectX
             this.RasterizerStates = new RasterizerStates(device);
         }
 
-        public RenderTarget2D BackBuffer { get; private set; }
         public ImmediateDeviceContext ImmediateContext { get; }
 
         public int Width { get; private set; }
@@ -51,15 +49,18 @@ namespace Mini.Engine.DirectX
         internal ID3D11Device ID3D11Device { get; }
         internal ID3D11DeviceContext ID3D11DeviceContext { get; }
 
+        internal ID3D11Texture2D BackBuffer { get; private set; }
+        internal ID3D11RenderTargetView BackBufferView { get; private set; }
+
         public DeferredDeviceContext CreateDeferredContext()
-            => new(this.ID3D11Device.CreateDeferredContext());
+            => new(this, this.ID3D11Device.CreateDeferredContext());
 
         public void Clear()
         {
             var dc = this.ID3D11DeviceContext;
 
-            dc.ClearRenderTargetView(this.BackBuffer.ID3D11RenderTargetView, new Color4(0, 0, 0));
-            dc.OMSetRenderTargets(this.BackBuffer.ID3D11RenderTargetView);
+            dc.ClearRenderTargetView(this.BackBufferView, new Color4(0, 0, 0));
+            dc.OMSetRenderTargets(this.BackBufferView);
             dc.RSSetViewport(0, 0, this.Width, this.Height);
         }
 
@@ -70,13 +71,14 @@ namespace Mini.Engine.DirectX
             this.Width = width;
             this.Height = height;
 
+            this.BackBufferView.Dispose();
             this.BackBuffer.Dispose();
-            this.backBuffer.Dispose();
 
-            this.swapChain.ResizeBuffers(1, width, height, this.Format, SwapChainFlags.None);
+            _ = this.swapChain.ResizeBuffers(1, width, height, this.Format, SwapChainFlags.None);
 
-            this.backBuffer = this.swapChain.GetBuffer<ID3D11Texture2D1>(0);
-            this.BackBuffer = new RenderTarget2D(this.ID3D11Device.CreateRenderTargetView(this.backBuffer), "BackBuffer");
+            this.BackBuffer = this.swapChain.GetBuffer<ID3D11Texture2D1>(0);
+            this.BackBufferView = this.ID3D11Device.CreateRenderTargetView(this.BackBuffer);
+            this.BackBufferView.DebugName = "BackBufferView";
         }
 
         private void CreateSwapChain(int width, int height)
@@ -97,8 +99,9 @@ namespace Mini.Engine.DirectX
             this.swapChain = dxgiFactory.CreateSwapChain(this.ID3D11Device, swapchainDesc);
             dxgiFactory.MakeWindowAssociation(this.WindowHandle, WindowAssociationFlags.IgnoreAll);
 
-            this.backBuffer = this.swapChain.GetBuffer<ID3D11Texture2D>(0);
-            this.BackBuffer = new RenderTarget2D(this.ID3D11Device.CreateRenderTargetView(this.backBuffer), "BackBuffer");
+            this.BackBuffer = this.swapChain.GetBuffer<ID3D11Texture2D>(0);
+            this.BackBufferView = this.ID3D11Device.CreateRenderTargetView(this.BackBuffer);
+            this.BackBufferView.DebugName = "BackBufferView";
         }
 
         public void Dispose()
@@ -106,14 +109,14 @@ namespace Mini.Engine.DirectX
             this.ID3D11DeviceContext.ClearState();
             this.ID3D11DeviceContext.Flush();
 
-            this.BackBuffer?.Dispose();
+            this.BackBufferView?.Dispose();
             this.ImmediateContext?.Dispose();
             this.SamplerStates?.Dispose();
             this.BlendStates?.Dispose();
             this.DepthStencilStates?.Dispose();
             this.RasterizerStates?.Dispose();
 
-            this.backBuffer?.Dispose();
+            this.BackBuffer?.Dispose();
             this.swapChain?.Dispose();
 
             this.ID3D11DeviceContext.Dispose();

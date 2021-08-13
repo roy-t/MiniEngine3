@@ -6,18 +6,20 @@ namespace Mini.Engine.DirectX
 {
     public abstract class DeviceContextPart
     {
+        protected readonly DeviceContext DeviceContext;
         protected readonly ID3D11DeviceContext ID3D11DeviceContext;
 
-        protected DeviceContextPart(ID3D11DeviceContext iD3D11DeviceContext)
+        protected DeviceContextPart(DeviceContext context)
         {
-            this.ID3D11DeviceContext = iD3D11DeviceContext;
+            this.DeviceContext = context;
+            this.ID3D11DeviceContext = context.ID3D11DeviceContext;
         }
     }
 
     public sealed class InputAssemblerContext : DeviceContextPart
     {
-        public InputAssemblerContext(ID3D11DeviceContext iD3D11DeviceContext)
-            : base(iD3D11DeviceContext) { }
+        public InputAssemblerContext(DeviceContext context)
+            : base(context) { }
 
         public void SetVertexBuffer<T>(VertexBuffer<T> buffer)
             where T : unmanaged
@@ -40,8 +42,8 @@ namespace Mini.Engine.DirectX
 
     public sealed class VertexShaderContext : DeviceContextPart
     {
-        public VertexShaderContext(ID3D11DeviceContext iD3D11DeviceContext)
-            : base(iD3D11DeviceContext) { }
+        public VertexShaderContext(DeviceContext context)
+            : base(context) { }
 
         public void SetConstantBuffer<T>(int slot, ConstantBuffer<T> buffer)
             where T : unmanaged
@@ -53,8 +55,8 @@ namespace Mini.Engine.DirectX
 
     public sealed class PixelShaderContext : DeviceContextPart
     {
-        public PixelShaderContext(ID3D11DeviceContext iD3D11DeviceContext)
-            : base(iD3D11DeviceContext) { }
+        public PixelShaderContext(DeviceContext context)
+            : base(context) { }
 
         public void SetSampler(int slot, SamplerState sampler)
             => this.ID3D11DeviceContext.PSSetSampler(slot, sampler.State);
@@ -79,8 +81,8 @@ namespace Mini.Engine.DirectX
 
     public sealed class OutputMergerContext : DeviceContextPart
     {
-        public OutputMergerContext(ID3D11DeviceContext iD3D11DeviceContext)
-            : base(iD3D11DeviceContext) { }
+        public OutputMergerContext(DeviceContext context)
+            : base(context) { }
 
         public void SetBlendState(BlendState state)
             => this.ID3D11DeviceContext.OMSetBlendState(state.ID3D11BlendState);
@@ -89,13 +91,22 @@ namespace Mini.Engine.DirectX
             => this.ID3D11DeviceContext.OMSetDepthStencilState(state.ID3D11DepthStencilState);
 
         public void SetRenderTarget(RenderTarget2D renderTarget)
-            => this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetView);
+        {
+            if (renderTarget != null)
+            {
+                this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetView);
+            }
+            else
+            {
+                this.ID3D11DeviceContext.OMSetRenderTargets(base.DeviceContext.Device.BackBufferView);
+            }
+        }
     }
 
     public sealed class RasterizerContext : DeviceContextPart
     {
-        public RasterizerContext(ID3D11DeviceContext iD3D11DeviceContext)
-            : base(iD3D11DeviceContext) { }
+        public RasterizerContext(DeviceContext context)
+            : base(context) { }
 
         public void SetState(RasterizerState state)
             => this.ID3D11DeviceContext.RSSetState(state.State);
@@ -109,15 +120,16 @@ namespace Mini.Engine.DirectX
 
     public abstract class DeviceContext : IDisposable
     {
-        internal DeviceContext(ID3D11DeviceContext context)
+        internal DeviceContext(Device device, ID3D11DeviceContext context)
         {
-            this.IA = new InputAssemblerContext(context);
-            this.VS = new VertexShaderContext(context);
-            this.PS = new PixelShaderContext(context);
-            this.OM = new OutputMergerContext(context);
-            this.RS = new RasterizerContext(context);
-
+            this.Device = device;
             this.ID3D11DeviceContext = context;
+
+            this.IA = new InputAssemblerContext(this);
+            this.VS = new VertexShaderContext(this);
+            this.PS = new PixelShaderContext(this);
+            this.OM = new OutputMergerContext(this);
+            this.RS = new RasterizerContext(this);
         }
 
         public InputAssemblerContext IA { get; }
@@ -129,16 +141,20 @@ namespace Mini.Engine.DirectX
         public void DrawIndexed(int indexCount, int indexOffset, int vertexOffset)
             => this.ID3D11DeviceContext.DrawIndexed(indexCount, indexOffset, vertexOffset);
 
+        public Device Device { get; }
         internal ID3D11DeviceContext ID3D11DeviceContext { get; }
 
         public void Dispose()
-            => this.ID3D11DeviceContext.Dispose();
+        { 
+            this.ID3D11DeviceContext.Dispose();
+            GC.SuppressFinalize(this);
+        }
     }
 
     public sealed class ImmediateDeviceContext : DeviceContext
     {
-        public ImmediateDeviceContext(ID3D11DeviceContext context)
-            : base(context) { }
+        public ImmediateDeviceContext(Device device, ID3D11DeviceContext context)
+            : base(device, context) { }
 
         public void ExecuteCommandList(CommandList commandList)
            => this.ID3D11DeviceContext.ExecuteCommandList(commandList.ID3D11CommandList, false);
@@ -146,8 +162,8 @@ namespace Mini.Engine.DirectX
 
     public sealed class DeferredDeviceContext : DeviceContext
     {
-        public DeferredDeviceContext(ID3D11DeviceContext context)
-            : base(context) { }
+        public DeferredDeviceContext(Device device, ID3D11DeviceContext context)
+            : base(device, context) { }
 
         public CommandList FinishCommandList()
            => new(this.ID3D11DeviceContext.FinishCommandList(false));

@@ -1,22 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <StartupObject>Mini.Engine.Program</StartupObject>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="ImGui.NET" Version="1.78.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Backend\Mini.Engine.Debugging\Mini.Engine.Debugging.csproj" />
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
-    <ProjectReference Include="..\Backend\Mini.Engine.Windows\Mini.Engine.Windows.csproj" />
     <ProjectReference Include="..\Mini.Engine.Configuration\Mini.Engine.Configuration.csproj" />
     <ProjectReference Include="..\Mini.Engine.Content\Mini.Engine.Content.csproj" />
     <ProjectReference Include="..\Mini.Engine.ECS\Mini.Engine.ECS.csproj" />
-    <ProjectReference Include="..\Mini.Engine.Graphics\Mini.Engine.Graphics.csproj" />
   </ItemGroup>
-
 </Project>

@@ -1,19 +1,13 @@
-﻿using System;
-using Vortice.Direct3D;
+﻿using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX
 {
-    public sealed class Texture2D : IDisposable
+    public class Texture2D : IDisposable
     {
-        public Texture2D(Device device, Span<byte> pixels, int width, int height, Format format, bool generateMipMaps = false, string name = "")
+        public Texture2D(Device device, int width, int height, Format format, bool generateMipMaps = false, string name = "")
         {
-            if (format.IsCompressed())
-            {
-                throw new NotSupportedException($"Compressed texture formats are not supported: {format}");
-            }
-
             var description = new Texture2DDescription
             {
                 Width = width,
@@ -28,9 +22,6 @@ namespace Mini.Engine.DirectX
                 OptionFlags = generateMipMaps ? ResourceOptionFlags.GenerateMips : ResourceOptionFlags.None
             };
 
-            // Assumes texture is uncompressed and fills the entire buffer
-            var pitch = width * format.SizeOfInBytes();
-
             var view = new ShaderResourceViewDescription
             {
                 Format = format,
@@ -38,18 +29,33 @@ namespace Mini.Engine.DirectX
                 Texture2D = new Texture2DShaderResourceView { MipLevels = -1 }
             };
 
-            var texture = device.ID3D11Device.CreateTexture2D(description);
-            texture.DebugName = name;
+            this.Texture = device.ID3D11Device.CreateTexture2D(description);
+            this.Texture.DebugName = name;
 
-            this.ShaderResourceView = device.ID3D11Device.CreateShaderResourceView(texture, view);
-            device.ID3D11DeviceContext.UpdateSubresource(pixels, texture, 0, pitch, 0);
+            this.ShaderResourceView = device.ID3D11Device.CreateShaderResourceView(this.Texture, view);
+        }
 
-            texture.Dispose();
+        public Texture2D(Device device, Span<byte> pixels, int width, int height, Format format, bool generateMipMaps = false, string name = "")
+            : this(device, width, height, format, generateMipMaps, name)
+        {
+            if (format.IsCompressed())
+            {
+                throw new NotSupportedException($"Compressed texture formats are not supported: {format}");
+            }
+
+            // Assumes texture is uncompressed and fills the entire buffer
+            var pitch = width * format.SizeOfInBytes();
+            device.ID3D11DeviceContext.UpdateSubresource(pixels, this.Texture, 0, pitch, 0);
         }
 
         internal ID3D11ShaderResourceView ShaderResourceView { get; }
+        internal ID3D11Texture2D Texture { get; }
 
-        public void Dispose() =>
+        public virtual void Dispose()
+        { 
             this.ShaderResourceView.Dispose();
+            this.Texture.Dispose();
+            GC.SuppressFinalize(this);
+        }
     }
 }
