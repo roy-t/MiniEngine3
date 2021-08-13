@@ -63,11 +63,7 @@ namespace Mini.Engine.UI
                     ImGui.EndMenu();
                 }
 
-                if(ImGui.BeginMenu(this.MicroBenchmark.ToString()))
-                {
-                    ImGui.EndMenu();
-                }
-
+                ImGui.Text(this.MicroBenchmark.ToString());
                 ImGui.EndMainMenuBar();
             }
             ImGui.ShowDemoWindow();
