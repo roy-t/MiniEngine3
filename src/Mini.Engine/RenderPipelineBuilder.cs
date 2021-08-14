@@ -1,6 +1,7 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Pipeline;
+using Mini.Engine.Graphics;
 
 namespace Mini.Engine
 {
@@ -16,9 +17,13 @@ namespace Mini.Engine
             var pipeline = this.Builder.Builder();
             return pipeline
                 .System<ComponentFlushSystem>()
-                .Parallel()
-                .Produces("Initialization", "Containers")
-                .Build()
+                    .Parallel()
+                    .Produces("Initialization", "Containers")
+                    .Build()
+                .System<ClearGBufferSystem>()
+                    .InSequence()
+                    .Produces("Initialization", "GBuffer")
+                    .Build()
             .Build();
         }
     }

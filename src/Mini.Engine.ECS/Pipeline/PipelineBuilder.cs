@@ -22,7 +22,7 @@ namespace Mini.Engine.ECS.Pipeline
             this.Logger = logger;
         }
 
-        public PipelineSpecifier Builder() => new PipelineSpecifier(this.ResolveDelegate, this.ContainerStore, this.Logger);
+        public PipelineSpecifier Builder() => new(this.ResolveDelegate, this.ContainerStore, this.Logger);
 
         public class PipelineSpecifier
         {
@@ -68,7 +68,7 @@ namespace Mini.Engine.ECS.Pipeline
                 }
 
                 var text = new StringBuilder();
-                text.AppendLine("Parallel Pipeline:");
+                _ = text.AppendLine("Parallel Pipeline:");
                 PrintPipeline(text, pipelineStages);
 
                 this.Logger.Information(text.ToString());
@@ -81,9 +81,9 @@ namespace Mini.Engine.ECS.Pipeline
                 for (var i = 0; i < stages.Count; i++)
                 {
                     var stage = stages[i];
-                    text.Append($"[{i}]: ");
-                    text.AppendJoin(", ", stage.Systems.Select(system => system.GetType().Name));
-                    text.AppendLine();
+                    _ = text.Append($"[{i}]: ")
+                        .AppendJoin(", ", stage.Systems.Select(system => system.GetType().Name))
+                        .AppendLine();
                 }
             }
         }
@@ -101,7 +101,7 @@ namespace Mini.Engine.ECS.Pipeline
 
             public SystemSpecifier Requires(string resource, string state)
             {
-                this.Spec.Requires(resource, state);
+                _ = this.Spec.Requires(resource, state);
                 return this;
             }
 
@@ -110,7 +110,7 @@ namespace Mini.Engine.ECS.Pipeline
 
             public SystemSpecifier RequiresAll(string resource)
             {
-                this.Spec.RequiresAll(resource);
+                _ =this.Spec.RequiresAll(resource);
                 return this;
             }
 
@@ -119,7 +119,7 @@ namespace Mini.Engine.ECS.Pipeline
 
             public SystemSpecifier Produces(string resource, string state)
             {
-                this.Spec.Produces(resource, state);
+                _ =this.Spec.Produces(resource, state);
                 return this;
             }
 
@@ -128,7 +128,7 @@ namespace Mini.Engine.ECS.Pipeline
 
             public SystemSpecifier Produces(string resource)
             {
-                this.Spec.Produces(resource);
+                _ = this.Spec.Produces(resource);
                 return this;
             }
 
@@ -137,13 +137,13 @@ namespace Mini.Engine.ECS.Pipeline
 
             public SystemSpecifier Parallel()
             {
-                this.Spec.Parallel();
+                _ = this.Spec.Parallel();
                 return this;
             }
 
             public SystemSpecifier InSequence()
             {
-                this.Spec.InSequence();
+                _ = this.Spec.InSequence();
                 return this;
             }
 

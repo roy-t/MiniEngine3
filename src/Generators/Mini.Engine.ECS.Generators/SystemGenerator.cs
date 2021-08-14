@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Mini.Engine.Generators.Source.CSharp;
@@ -20,6 +21,7 @@ namespace Mini.Engine.ECS.Generators
                     .Select(target =>
                         SourceFile.Build($"{target.Name}.Generated.cs")
                         .Using("Mini.Engine.ECS.Systems")
+                        .Using("Mini.Engine.ECS.Components")
                         .Usings(target.Usings)
                         .Namespace(target.Namespace)
                             .Class($"{target.Name}Binding", "public", "sealed")

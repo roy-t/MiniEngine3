@@ -33,9 +33,11 @@ namespace Mini.Engine
                 this.UI.Resize(e.Width, e.Height);
             };
 
+            // Handle ownership/lifetime control over to LightInject
             registerDelegate(this.Device);
             registerDelegate(this.Window);
 
+            // Lifetime already handled by LightInject
             this.GameLoop = (GameLoop)resolveDelegate(typeof(GameLoop));
         }
 
@@ -47,21 +49,16 @@ namespace Mini.Engine
                 var elapsed = (float)stopWatch.Elapsed.TotalSeconds;
                 stopWatch.Restart();
 
-                this.Device.Clear();
+                this.Device.ClearBackBuffer();
                 this.UI.Update(elapsed);
 
-                this.GameLoop.Draw(elapsed);
+                this.GameLoop.Draw();
 
                 this.UI.Render();
                 this.Device.Present();
             }
         }
 
-        public void Dispose()
-        {
-            this.UI.Dispose();
-            this.Device.Dispose();
-            this.Window.Dispose();
-        }
+        public void Dispose() => this.UI.Dispose();
     }
 }

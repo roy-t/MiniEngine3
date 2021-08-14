@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
 
 namespace Mini.Engine.ECS.Components
 {
@@ -105,7 +103,7 @@ namespace Mini.Engine.ECS.Components
                 if (component.ChangeState.CurrentState == LifetimeState.Removed)
                 {
                     this.AllComponents.RemoveAt(i);
-                    this.Components.Remove(component.Entity);
+                    _ = this.Components.Remove(component.Entity);
                 }
                 else
                 {

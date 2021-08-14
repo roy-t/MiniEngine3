@@ -158,7 +158,7 @@ namespace Mini.Engine.UI
             context.VS.SetConstantBuffer(CBuffer0.Slot, this.ConstantBuffer);
 
             context.RS.SetViewPort(0, 0, drawData.DisplaySize.X, drawData.DisplaySize.Y);
-            context.RS.SetState(this.Device.RasterizerStates.CullNone);
+            context.RS.SetRasterizerState(this.Device.RasterizerStates.CullNone);
 
             context.PS.SetShader(this.PixelShader);
             context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);

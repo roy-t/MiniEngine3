@@ -24,7 +24,7 @@ namespace Mini.Engine.ECS.Pipeline
 
         public static SystemSpec Construct<T>()
             where T : ISystem
-            => new SystemSpec(typeof(T));
+            => new(typeof(T));
 
         public Type SystemType { get; }
 

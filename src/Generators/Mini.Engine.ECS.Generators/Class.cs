@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -31,7 +32,7 @@ namespace Mini.Engine.ECS.Generators
 
         private static string GetNamespace(Compilation compilation, TypeDeclarationSyntax type)
         {
-            var space = type.Ancestors().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
+            var space = type.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault();
             var model = compilation.GetSemanticModel(space.SyntaxTree);
             var symbol = model.GetDeclaredSymbol(space) as INamespaceSymbol;
 

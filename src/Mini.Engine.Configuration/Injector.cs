@@ -22,26 +22,25 @@ namespace Mini.Engine.Configuration
 
         public Injector()
         {
-            this.Container = new ServiceContainer();
-            this.Container.SetDefaultLifetime<PerContainerLifetime>();
-
             Log.Logger = new LoggerConfiguration()
-                .Enrich.FromLogContext()
-                .MinimumLevel.Debug()
-                .WriteTo.Debug()
-                .CreateLogger();
+             .Enrich.FromLogContext()
+             .MinimumLevel.Debug()
+             .WriteTo.Debug()
+             .CreateLogger();
 
-            this.Container.RegisterInstance(Log.Logger);
             this.Logger = Log.Logger;
 
+            this.Container = new ServiceContainer();
+
             Resolve resolveDelegate = type => this.Container.GetInstance(type);
-            this.Container.RegisterInstance(resolveDelegate);
-
             Register registerDelegate = o => this.Container.RegisterInstance(o.GetType(), o);
-            this.Container.RegisterInstance(registerDelegate);
-
             RegisterAs registerAsDelgate = (o, t) => this.Container.RegisterInstance(t, o);
-            this.Container.RegisterInstance(registerAsDelgate);
+
+            _ = this.Container.SetDefaultLifetime<PerContainerLifetime>()
+                .RegisterInstance(Log.Logger)
+                .RegisterInstance(resolveDelegate)
+                .RegisterInstance(registerDelegate)
+                .RegisterInstance(registerAsDelgate);
 
             this.RegisterTypesFromAssembliesInWorkingDirectory();
         }
@@ -62,7 +61,7 @@ namespace Mini.Engine.Configuration
 
             foreach (var assembly in assemblies)
             {
-                this.Container.RegisterAssembly(assembly, (serviceType, concreteType) =>
+                _ = this.Container.RegisterAssembly(assembly, (serviceType, concreteType) =>
                 {
                     // Do not register services as an implementation of an abstract class or interface
                     if (serviceType != concreteType)
@@ -100,12 +99,12 @@ namespace Mini.Engine.Configuration
                 });
             }
 
-            //if (containerType == null)
-            //{
-            //    throw new Exception("Could not find any suitable containers");
-            //}
+            if (containerType == null)
+            {
+                throw new Exception("Could not find any suitable containers");
+            }
 
-            //this.RegisterComponentContainers(containerType, componentTypes);
+            this.RegisterComponentContainers(containerType, componentTypes);
 
             this.Logger.Information("Registered {@count} services", this.Container.AvailableServices.Count());
         }
@@ -171,10 +170,10 @@ namespace Mini.Engine.Configuration
 
             foreach (var interfaceType in containerType.GetInterfaces())
             {
-                this.Container.RegisterInstance(interfaceType, instance);
+                _ = this.Container.RegisterInstance(interfaceType, instance);
             }
 
-            this.Container.RegisterInstance(containerType, instance);
+            _ = this.Container.RegisterInstance(containerType, instance);
         }
     }
 }

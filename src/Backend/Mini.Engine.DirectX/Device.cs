@@ -55,7 +55,13 @@ namespace Mini.Engine.DirectX
         public DeferredDeviceContext CreateDeferredContext()
             => new(this, this.ID3D11Device.CreateDeferredContext());
 
-        public void Clear()
+        public void Clear(RenderTarget2D renderTarget, Color4 color)
+        {
+            var dc = this.ID3D11DeviceContext;
+            dc.ClearRenderTargetView(renderTarget.ID3D11RenderTargetView, color);
+        }
+
+        public void ClearBackBuffer()
         {
             var dc = this.ID3D11DeviceContext;
 

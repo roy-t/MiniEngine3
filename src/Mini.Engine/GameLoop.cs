@@ -4,23 +4,14 @@ using Mini.Engine.ECS.Pipeline;
 namespace Mini.Engine
 {
     [Service]
-    internal sealed class GameLoop
+    internal sealed class GameLoop : IDisposable
     {
         private readonly ParallelPipeline Pipeline;
 
-        public GameLoop(RenderPipelineBuilder builder)
-        {
-            this.Pipeline = builder.Build();
-        }
+        public GameLoop(RenderPipelineBuilder builder) => this.Pipeline = builder.Build();
 
-        public void Draw(float elapsed)
-        {
-            this.Pipeline.Frame();
-        }
+        public void Draw() => this.Pipeline.Frame();
 
-        internal void Initialize()
-        {
-        }
-
+        public void Dispose() => this.Pipeline.Dispose();
     }
 }

@@ -98,7 +98,7 @@ namespace Mini.Engine.ECS.Pipeline
                     if (this.Work.TryDequeue(out var system))
                     {
                         system.Process();
-                        this.WorkCountdownEvent.Signal();
+                        _ = this.WorkCountdownEvent.Signal();
                     }
                 }
 

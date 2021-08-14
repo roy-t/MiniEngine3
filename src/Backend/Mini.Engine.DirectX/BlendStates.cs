@@ -25,9 +25,11 @@ namespace Mini.Engine.DirectX
         internal BlendStates(ID3D11Device device)
         {
             this.AlphaBlend = Create(device, AlphaBlendDescription(), nameof(this.AlphaBlend));
+            this.Opaque = Create(device, OpaqueBlendDescription(), nameof(this.Opaque));
         }
 
         public BlendState AlphaBlend { get; }
+        public BlendState Opaque { get; }
 
         private static BlendState Create(ID3D11Device device, BlendDescription description, string name)
         {
@@ -57,9 +59,26 @@ namespace Mini.Engine.DirectX
             return blendDesc;
         }
 
+        private static BlendDescription OpaqueBlendDescription()
+        {
+            var blendDesc = new BlendDescription
+            {
+                AlphaToCoverageEnable = false
+            };
+
+            blendDesc.RenderTarget[0] = new RenderTargetBlendDescription
+            {
+                IsBlendEnabled = false,
+                RenderTargetWriteMask = ColorWriteEnable.All
+            };
+
+            return blendDesc;
+        }
+
         public void Dispose()
         {
             this.AlphaBlend.Dispose();
+            this.Opaque.Dispose();
         }
     }
 }

@@ -108,7 +108,7 @@ namespace Mini.Engine.DirectX
         public RasterizerContext(DeviceContext context)
             : base(context) { }
 
-        public void SetState(RasterizerState state)
+        public void SetRasterizerState(RasterizerState state)
             => this.ID3D11DeviceContext.RSSetState(state.State);
 
         public void SetScissorRect(int x, int y, int width, int height)
