@@ -1,7 +1,5 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using ImGuiNET;
-using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 
 namespace Mini.Engine.UI
@@ -20,7 +18,7 @@ namespace Mini.Engine.UI
             this.IO = ImGui.GetIO();
             this.ImGuiRenderer = new ImGuiRenderer(device);
             this.ImguiInputHandler = new ImGuiInputHandler(windowHandle);
-            this.MicroBenchmark = new MicroBenchmark("Perf", TimeSpan.FromSeconds(5));
+            this.MicroBenchmark = new MicroBenchmark("Perf");
 
             this.Resize(width, height);
         }
@@ -33,7 +31,7 @@ namespace Mini.Engine.UI
             this.IO.DeltaTime = elapsed;
 
             this.ImguiInputHandler.Update();
-            this.MicroBenchmark.Update();
+            this.MicroBenchmark.Update(elapsed);
 
             ImGui.NewFrame();
             if (ImGui.BeginMainMenuBar())

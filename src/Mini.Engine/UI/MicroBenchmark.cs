@@ -1,45 +1,41 @@
 ﻿namespace Mini.Engine.UI
 {
-    internal class MicroBenchmark
+    internal sealed class MicroBenchmark
     {
         private readonly string Name;
-        private readonly TimeSpan UpdateInterval;
+        private readonly float[] Samples;
+        private int index;
+        private int seen;
 
-        private DateTime lastMicroBenchmark;
-        private int frameAccumulator;
-
-        public MicroBenchmark(string name, TimeSpan updateInterval)
+        public MicroBenchmark(string name, int sampleLength = 300)
         {
-            this.lastMicroBenchmark = DateTime.MinValue;
-            this.frameAccumulator = 0;
-            this.LastResult = 0;
             this.Name = name;
-            this.UpdateInterval = updateInterval;
+            this.Samples = new float[sampleLength];
         }
 
-        public double LastResult { get; private set; }
+        public float AverageMs { get; private set; }
 
-        public void Update()
+        public void Update(float elapsed)
         {
-            var elapsed = (DateTime.Now - this.lastMicroBenchmark);
-            if (elapsed > this.UpdateInterval)
+            this.Samples[this.index] = elapsed;
+            this.index = (this.index + 1) % this.Samples.Length;
+            this.seen = Math.Max(this.seen, this.index - 1);
+
+            var aggregate = 0.0f;
+            for(var i = 0; i < this.seen; i++)
             {
-                this.lastMicroBenchmark = DateTime.Now;
-                this.LastResult = elapsed.TotalMilliseconds / this.frameAccumulator;
-                this.frameAccumulator = 0;
+                aggregate += this.Samples[i];
             }
 
-            this.frameAccumulator++;
+            if (this.seen > 0)
+            {
+                this.AverageMs = (aggregate / this.seen) * 1000.0f;
+            }
         }
 
         public override string ToString()
         {
-            var elapsed = (DateTime.Now - this.lastMicroBenchmark);
-            var progress = elapsed.TotalMilliseconds / this.UpdateInterval.TotalMilliseconds;
-            var seconds = (int)(progress * this.UpdateInterval.TotalSeconds);
-            var invSeconds = (int)this.UpdateInterval.TotalSeconds - seconds;
-
-            return $"{this.Name} {this.LastResult:F2}ms [{new string('|', seconds)}{new string('.', invSeconds)}]";
+            return $"{this.Name} {this.AverageMs:F2}ms";
         }
     }
 }
