@@ -10,15 +10,12 @@ namespace Mini.Engine.UI
     {
         private readonly ImGuiRenderer ImGuiRenderer;
         private readonly ImGuiInputHandler ImguiInputHandler;
-        private readonly RenderDoc RenderDoc;
         private readonly ImGuiIOPtr IO;
         private readonly MicroBenchmark MicroBenchmark;
 
 
-        public UserInterface(RenderDoc renderDoc, Device device, IntPtr windowHandle, int width, int height)
+        public UserInterface(Device device, IntPtr windowHandle, int width, int height)
         {
-            this.RenderDoc = renderDoc;
-
             _ = ImGui.CreateContext();
             this.IO = ImGui.GetIO();
             this.ImGuiRenderer = new ImGuiRenderer(device);
@@ -41,28 +38,6 @@ namespace Mini.Engine.UI
             ImGui.NewFrame();
             if (ImGui.BeginMainMenuBar())
             {
-                if (ImGui.BeginMenu("RenderDoc"))
-                {
-
-                    if (ImGui.MenuItem("Launch Replay UI"))
-                    {
-                        _ = this.RenderDoc.LaunchReplayUI();
-                    }
-
-                    if (ImGui.MenuItem("Capture"))
-                    {
-                        this.RenderDoc.TriggerCapture();
-                    }
-
-                    if (ImGui.MenuItem("Open Last Capture", this.RenderDoc.GetNumCaptures() > 0))
-                    {
-                        var path = this.RenderDoc.GetCapture(this.RenderDoc.GetNumCaptures() - 1);
-                        _ = this.RenderDoc.LaunchReplayUI(path);
-                    }
-
-                    ImGui.EndMenu();
-                }
-
                 ImGui.Text(this.MicroBenchmark.ToString());
                 ImGui.EndMainMenuBar();
             }

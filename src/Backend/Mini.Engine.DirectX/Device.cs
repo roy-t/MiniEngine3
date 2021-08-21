@@ -1,9 +1,11 @@
-﻿using System;
-using Vortice.Direct3D;
+﻿using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 using Vortice.Mathematics;
 using static Vortice.Direct3D11.D3D11;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("Mini.Engine.Debugging")]
 
 namespace Mini.Engine.DirectX
 {
@@ -14,6 +16,12 @@ namespace Mini.Engine.DirectX
 
         private IDXGISwapChain swapChain;
 
+#if DEBUG
+        private static DeviceCreationFlags Flags = DeviceCreationFlags.Debug;
+#else
+        private static DeviceCreationFlags Flags = DeviceCreationFlags.None;
+#endif
+
         public Device(IntPtr windowHandle, Format format, int width, int height)
         {
             this.WindowHandle = windowHandle;
@@ -21,7 +29,7 @@ namespace Mini.Engine.DirectX
             this.Width = width;
             this.Height = height;
 
-            _ = D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None, null, out var device, out var context);
+            _ = D3D11CreateDevice(null, DriverType.Hardware, Flags, null, out var device, out var context);
 
             this.ID3D11Device = device;
             this.ID3D11DeviceContext = context;
