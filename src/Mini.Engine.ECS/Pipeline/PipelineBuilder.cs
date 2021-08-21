@@ -19,7 +19,7 @@ namespace Mini.Engine.ECS.Pipeline
         {
             this.ResolveDelegate = resolveDelegate;
             this.ContainerStore = containerStore;
-            this.Logger = logger;
+            this.Logger = logger.ForContext<PipelineBuilder>();
         }
 
         public PipelineSpecifier Builder() => new(this.ResolveDelegate, this.ContainerStore, this.Logger);
@@ -36,7 +36,7 @@ namespace Mini.Engine.ECS.Pipeline
                 this.SystemSpecs = new List<SystemSpec>();
                 this.ResolveDelegate = resolveDelegate;
                 this.ContainerStore = containerStore;
-                this.Logger = logger;
+                this.Logger = logger.ForContext<PipelineSpecifier>();
             }
 
             public SystemSpecifier System<T>()

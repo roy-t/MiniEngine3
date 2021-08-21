@@ -23,14 +23,14 @@ namespace Mini.Engine
 
         public GameBootstrapper(ILogger logger,  Register registerDelegate, Resolve resolveDelegate)
         {
-            this.Logger = logger;
+            this.Logger = logger.ForContext<GameBootstrapper>();
 
             this.Window = Win32Application.Initialize("Mini.Engine", 1280, 720);
             this.Window.Show();
 
             this.LoadRenderDoc();
 
-            this.Device = new Device(this.Window.Handle, Format.R8G8B8A8_UNorm, this.Window.Width, this.Window.Height);
+            this.Device = new Device(this.Window.Handle, Format.R8G8B8A8_UNorm, this.Window.Width, this.Window.Height, "Device");
             this.DebugLayerLogger = new DebugLayerLogger(this.Device, logger);
             this.UI = new UserInterface(this.Device, this.Window.Handle, this.Window.Width, this.Window.Height);
 

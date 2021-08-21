@@ -120,10 +120,11 @@ namespace Mini.Engine.DirectX
 
     public abstract class DeviceContext : IDisposable
     {
-        internal DeviceContext(Device device, ID3D11DeviceContext context)
+        internal DeviceContext(Device device, ID3D11DeviceContext context, string name)
         {
             this.Device = device;
             this.ID3D11DeviceContext = context;
+            this.ID3D11DeviceContext.SetName(name);
 
             this.IA = new InputAssemblerContext(this);
             this.VS = new VertexShaderContext(this);
@@ -153,8 +154,8 @@ namespace Mini.Engine.DirectX
 
     public sealed class ImmediateDeviceContext : DeviceContext
     {
-        public ImmediateDeviceContext(Device device, ID3D11DeviceContext context)
-            : base(device, context) { }
+        public ImmediateDeviceContext(Device device, ID3D11DeviceContext context, string name)
+            : base(device, context, name) { }
 
         public void ExecuteCommandList(CommandList commandList)
            => this.ID3D11DeviceContext.ExecuteCommandList(commandList.ID3D11CommandList, false);
@@ -162,8 +163,8 @@ namespace Mini.Engine.DirectX
 
     public sealed class DeferredDeviceContext : DeviceContext
     {
-        public DeferredDeviceContext(Device device, ID3D11DeviceContext context)
-            : base(device, context) { }
+        public DeferredDeviceContext(Device device, ID3D11DeviceContext context, string name)
+            : base(device, context, name) { }
 
         public CommandList FinishCommandList()
            => new(this.ID3D11DeviceContext.FinishCommandList(false));

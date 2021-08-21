@@ -28,7 +28,7 @@ namespace Mini.Engine.Configuration
              .WriteTo.Debug()
              .CreateLogger();
 
-            this.Logger = Log.Logger;
+            this.Logger = Log.Logger.ForContext<Injector>();
 
             this.Container = new ServiceContainer();
 

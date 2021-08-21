@@ -4,6 +4,7 @@ using Vortice.DXGI;
 using Vortice.Mathematics;
 using static Vortice.Direct3D11.D3D11;
 using System.Runtime.CompilerServices;
+using Vortice.Direct3D11.Debug;
 
 [assembly: InternalsVisibleTo("Mini.Engine.Debugging")]
 
@@ -22,7 +23,7 @@ namespace Mini.Engine.DirectX
         private static DeviceCreationFlags Flags = DeviceCreationFlags.None;
 #endif
 
-        public Device(IntPtr windowHandle, Format format, int width, int height)
+        public Device(IntPtr windowHandle, Format format, int width, int height, string name)
         {
             this.WindowHandle = windowHandle;
             this.Format = format;
@@ -32,11 +33,13 @@ namespace Mini.Engine.DirectX
             _ = D3D11CreateDevice(null, DriverType.Hardware, Flags, null, out var device, out var context);
 
             this.ID3D11Device = device;
+            this.ID3D11Device.SetName(name);
+            this.ID3D11Debug = device.QueryInterface<ID3D11Debug>();
             this.ID3D11DeviceContext = context;
 
             this.CreateSwapChain(width, height);
 
-            this.ImmediateContext = new ImmediateDeviceContext(this, context);
+            this.ImmediateContext = new ImmediateDeviceContext(this, context, "ImmediateDeviceContext");
 
             this.SamplerStates = new SamplerStates(device);
             this.BlendStates = new BlendStates(device);
@@ -55,13 +58,14 @@ namespace Mini.Engine.DirectX
         public RasterizerStates RasterizerStates { get; }
 
         internal ID3D11Device ID3D11Device { get; }
+        internal ID3D11Debug ID3D11Debug { get; }
         internal ID3D11DeviceContext ID3D11DeviceContext { get; }
 
         internal ID3D11Texture2D BackBuffer { get; private set; }
         internal ID3D11RenderTargetView BackBufferView { get; private set; }
 
-        public DeferredDeviceContext CreateDeferredContext()
-            => new(this, this.ID3D11Device.CreateDeferredContext());
+        public DeferredDeviceContext CreateDeferredContextFor<T>()
+        => new(this, this.ID3D11Device.CreateDeferredContext(), $"{typeof(T).Name}DeferredContext");
 
         public void Clear(RenderTarget2D renderTarget, Color4 color)
         {
@@ -134,6 +138,8 @@ namespace Mini.Engine.DirectX
             this.swapChain?.Dispose();
 
             this.ID3D11DeviceContext.Dispose();
+
+            this.ID3D11Debug.ReportLiveDeviceObjects(ReportLiveDeviceObjectFlags.Detail);
             this.ID3D11Device.Dispose();
         }
     }

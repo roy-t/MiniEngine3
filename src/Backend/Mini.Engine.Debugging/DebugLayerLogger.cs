@@ -1,23 +1,31 @@
 ﻿using Mini.Engine.DirectX;
 using Serilog;
 using Serilog.Events;
+using Vortice.DXGI;
+using Vortice.DXGI.Debug;
 using Vortice.Direct3D11;
 using Vortice.Direct3D11.Debug;
 
 namespace Mini.Engine.Debugging
 {
-    public sealed class DebugLayerLogger : IDisposable
+    public sealed class DebugLayerLogger
     {
         private readonly ID3D11InfoQueue DebugInfoQueue;
-        private readonly ID3D11Debug DebugDevice;
         private readonly ILogger Logger;
 
         public DebugLayerLogger(Device device, ILogger logger)
         {
-            this.DebugDevice = device.ID3D11Device.QueryInterface<ID3D11Debug>();
-            this.DebugInfoQueue = this.DebugDevice.QueryInterface<ID3D11InfoQueue>();
+            this.DebugInfoQueue = device.ID3D11Debug.QueryInterface<ID3D11InfoQueue>();
             this.DebugInfoQueue.PushEmptyStorageFilter();
+#if DEBUG
+            this.DebugInfoQueue.SetBreakOnSeverity(MessageSeverity.Error, true);
+            this.DebugInfoQueue.SetBreakOnSeverity(MessageSeverity.Corruption, true);
 
+            var dxgiInfoQueue = DXGI.DXGIGetDebugInterface1<IDXGIInfoQueue>();
+            dxgiInfoQueue.SetBreakOnSeverity(DXGI.DebugAll, InfoQueueMessageSeverity.Error, true);
+            dxgiInfoQueue.SetBreakOnSeverity(DXGI.DebugAll, InfoQueueMessageSeverity.Corruption, true);
+
+#endif
             this.Logger = logger.ForContext<DebugLayerLogger>();
 
             var annotations = device.ID3D11DeviceContext.QueryInterface<ID3DUserDefinedAnnotation>();
@@ -62,7 +70,5 @@ namespace Mini.Engine.Debugging
                 _ => LogEventLevel.Information,
             };
         }
-
-        public void Dispose() => this.DebugInfoQueue.Dispose();
     }
 }

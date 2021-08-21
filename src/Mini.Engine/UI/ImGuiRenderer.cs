@@ -36,7 +36,7 @@ namespace Mini.Engine.UI
         {
             this.Device = device;
             this.ImmediateContext = device.ImmediateContext;
-            this.DeferredContext = device.CreateDeferredContext();
+            this.DeferredContext = device.CreateDeferredContextFor<ImGuiRenderer>();
 
             this.VertexBuffer = new VertexBuffer<ImDrawVert>(device);
             this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device);
