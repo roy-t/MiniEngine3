@@ -21,7 +21,7 @@ namespace Mini.Engine
 
         private RenderDoc? renderDoc;
 
-        public GameBootstrapper(ILogger logger,  Register registerDelegate, Resolve resolveDelegate)
+        public GameBootstrapper(ILogger logger, Register registerDelegate, Resolve resolveDelegate)
         {
             this.Logger = logger.ForContext<GameBootstrapper>();
 
@@ -31,22 +31,20 @@ namespace Mini.Engine
             this.LoadRenderDoc();
 
             this.Device = new Device(this.Window.Handle, Format.R8G8B8A8_UNorm, this.Window.Width, this.Window.Height, "Device");
-            this.DebugLayerLogger = new DebugLayerLogger(this.Device, logger);
-            this.UI = new UserInterface(this.Device, this.Window.Handle, this.Window.Width, this.Window.Height);
-
-            Win32Application.WindowEvents.OnResize += (o, e) =>
-            {
-                this.Device.Resize(e.Width, e.Height);
-                this.UI.Resize(e.Width, e.Height);
-            };
 
             // Handle ownership/lifetime control over to LightInject
             registerDelegate(this.Device);
             registerDelegate(this.Window);
 
-            // Lifetime already handled by LightInject
+            this.DebugLayerLogger = (DebugLayerLogger)resolveDelegate(typeof(DebugLayerLogger));
             this.GameLoop = (GameLoop)resolveDelegate(typeof(GameLoop));
+            this.UI = (UserInterface)resolveDelegate(typeof(UserInterface));
             
+            Win32Application.WindowEvents.OnResize += (o, e) =>
+            {
+                this.Device.Resize(e.Width, e.Height);
+                this.UI.Resize(e.Width, e.Height);
+            };
         }
 
         public void Run()
@@ -63,9 +61,9 @@ namespace Mini.Engine
                 this.UI.Update(elapsed);
 
                 this.GameLoop.Draw();
-
+#if DEBUG
                 this.ShowRenderDocUI();
-
+#endif
                 this.UI.Render();
                 this.Device.Present();
             }

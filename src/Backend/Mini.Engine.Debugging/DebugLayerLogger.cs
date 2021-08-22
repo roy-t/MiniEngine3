@@ -5,9 +5,11 @@ using Vortice.DXGI;
 using Vortice.DXGI.Debug;
 using Vortice.Direct3D11;
 using Vortice.Direct3D11.Debug;
+using Mini.Engine.Configuration;
 
 namespace Mini.Engine.Debugging
 {
+    [Service]
     public sealed class DebugLayerLogger
     {
         private readonly ID3D11InfoQueue DebugInfoQueue;

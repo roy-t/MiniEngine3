@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -19,6 +20,8 @@ namespace Mini.Engine.Content.Generators
 
         public void Execute(GeneratorExecutionContext context)
         {
+            var contentFiles = new List<SourceFile>();
+
             var generatedFiles = context.AdditionalFiles
                 .Where(f => Path.GetExtension(f.Path).Equals(".hlsl", StringComparison.InvariantCultureIgnoreCase))
                 .Select(f => new Shader(f))
@@ -59,7 +62,7 @@ namespace Mini.Engine.Content.Generators
                                 .Namespace("Mini.Engine.Content.Shaders")
                                     .Class(Naming.ToPascalCase($"{shader.Name}{function.Name}"), "public", "sealed")
                                         .Inherits(BaseTypeTranslator.GetBaseType(function))
-                                        .Constructor("public")
+                                        .Constructor("internal")
                                             .Parameter("Device", "device")
                                             .BaseConstructorCall("device",
                                                 SourceUtilities.ToLiteral(shader.FilePath),
@@ -71,6 +74,7 @@ namespace Mini.Engine.Content.Generators
                                 .Complete();
                         });
 
+                    contentFiles.AddRange(classFiles);
                     return classFiles.Append(structuresFile);
                 });
 
@@ -80,6 +84,8 @@ namespace Mini.Engine.Content.Generators
                 file.Generate(writer);
                 context.AddSource(file.Name, writer.ToString());
             }
+
+            ContentManager.AddLoadMethods(context, contentFiles, "Mini.Engine.Content.Shaders");
         }
     }
 }

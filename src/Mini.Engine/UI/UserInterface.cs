@@ -1,26 +1,29 @@
 ﻿using System.Numerics;
 using ImGuiNET;
+using Mini.Engine.Configuration;
+using Mini.Engine.Content;
 using Mini.Engine.DirectX;
+using Mini.Engine.Windows;
 
 namespace Mini.Engine.UI
 {
-    internal sealed class UserInterface : IDisposable
+    [Service]
+    public sealed class UserInterface : IDisposable
     {
         private readonly ImGuiRenderer ImGuiRenderer;
         private readonly ImGuiInputHandler ImguiInputHandler;
         private readonly ImGuiIOPtr IO;
         private readonly MicroBenchmark MicroBenchmark;
 
-
-        public UserInterface(Device device, IntPtr windowHandle, int width, int height)
+        public UserInterface(Win32Window window, Device device, ContentManager content)
         {
             _ = ImGui.CreateContext();
             this.IO = ImGui.GetIO();
-            this.ImGuiRenderer = new ImGuiRenderer(device);
-            this.ImguiInputHandler = new ImGuiInputHandler(windowHandle);
+            this.ImGuiRenderer = new ImGuiRenderer(device, content);
+            this.ImguiInputHandler = new ImGuiInputHandler(window.Handle);
             this.MicroBenchmark = new MicroBenchmark("Perf");
 
-            this.Resize(width, height);
+            this.Resize(window.Width, window.Height);
         }
 
         public void Resize(int width, int height)

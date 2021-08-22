@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using ImGuiNET;
+using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.ImmediateShader;
 using Mini.Engine.DirectX;
@@ -12,7 +11,7 @@ using ImDrawIdx = System.UInt16;
 
 namespace Mini.Engine.UI
 {
-    public class ImGuiRenderer
+    internal sealed class ImGuiRenderer
     {
         private int textureCounter;
 
@@ -32,7 +31,7 @@ namespace Mini.Engine.UI
         private readonly IndexBuffer<ImDrawIdx> IndexBuffer;
         private readonly ConstantBuffer<CBuffer0> ConstantBuffer;
 
-        public ImGuiRenderer(Device device)
+        public ImGuiRenderer(Device device, ContentManager content)
         {
             this.Device = device;
             this.ImmediateContext = device.ImmediateContext;
@@ -42,8 +41,8 @@ namespace Mini.Engine.UI
             this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device);
             this.ConstantBuffer = new ConstantBuffer<CBuffer0>(device);
 
-            this.VertexShader = new ImmediateShaderVs(device);
-            this.PixelShader = new ImmediateShaderPs(device);
+            this.VertexShader = content.LoadImmediateShaderVs();
+            this.PixelShader = content.LoadImmediateShaderPs();
 
             this.InputLayout = this.VertexShader.CreateInputLayout
             (

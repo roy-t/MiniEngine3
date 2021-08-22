@@ -4,11 +4,16 @@
     <ProjectReference Include="..\Generators\Mini.Engine.Content.Generators\Mini.Engine.Content.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Generators\Mini.Engine.Generators.Source\Mini.Engine.Generators.Source.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\External\HlslParser\src\ShaderTools.CodeAnalysis.Hlsl\ShaderTools.CodeAnalysis.Hlsl.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\External\HlslParser\src\ShaderTools.CodeAnalysis\ShaderTools.CodeAnalysis.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />    
+    <ProjectReference Include="..\External\HlslParser\src\ShaderTools.CodeAnalysis\ShaderTools.CodeAnalysis.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Mini.Engine.Configuration\Mini.Engine.Configuration.csproj" />    
   </ItemGroup>
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
-    <AdditionalFiles Include="Shaders\ImmediateShader.hlsl" />
-    <AdditionalFiles Include="Shaders\Include.hlsl" />
+    <AdditionalFiles Include="Shaders\ImmediateShader.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AdditionalFiles>
+    <AdditionalFiles Include="Shaders\Include.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AdditionalFiles>
   </ItemGroup>
 </Project>

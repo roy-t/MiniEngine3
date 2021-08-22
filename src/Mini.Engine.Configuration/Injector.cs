@@ -14,7 +14,7 @@ namespace Mini.Engine.Configuration
     {
         private static readonly string[] IgnoredAssemblies = new[]
         {
-            "ImGui.NET", "LightInject", "Microsoft", "Mini.Engine.Content.Generators", "Mini.Engine.Debugging", "Mini.Engine.DirectX", "Mini.Engine.Windows", "NativeLibraryLoader", "Newtonsoft", "Serilog", "ShaderTools", "SharpGen", "Vortice"
+            "ImGui.NET", "LightInject", "Microsoft", "Mini.Engine.Content.Generators", "Mini.Engine.DirectX", "Mini.Engine.Windows", "NativeLibraryLoader", "Newtonsoft", "Serilog", "ShaderTools", "SharpGen", "Vortice"
         };
 
         private readonly ServiceContainer Container;
@@ -32,6 +32,7 @@ namespace Mini.Engine.Configuration
 
             this.Container = new ServiceContainer();
 
+            // TODO: replace resolve and register(as) with a type so it can be done typesafe
             Resolve resolveDelegate = type => this.Container.GetInstance(type);
             Register registerDelegate = o => this.Container.RegisterInstance(o.GetType(), o);
             RegisterAs registerAsDelgate = (o, t) => this.Container.RegisterInstance(t, o);

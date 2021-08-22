@@ -1,12 +1,10 @@
-﻿using System;
-using System.IO;
-using Vortice.D3DCompiler;
+﻿using Vortice.D3DCompiler;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX
 {
-    public abstract class Shader<TShader> : IDisposable
+    public abstract class Shader<TShader> : IContent
         where TShader : ID3D11DeviceChild
     {
         private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();

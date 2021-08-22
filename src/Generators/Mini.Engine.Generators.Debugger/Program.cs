@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.Text;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
+using Mini.Engine.Content.Generators;
 using Mini.Engine.ECS.Generators;
 
 namespace Mini.Engine.Generators.Debugger
@@ -10,12 +12,19 @@ namespace Mini.Engine.Generators.Debugger
         static void Main(string[] args)
         {
             var sourceArgs = args.Where(f => Path.GetExtension(f).Equals(".cs", StringComparison.InvariantCultureIgnoreCase));
-            var shaderArgs = args.Where(f => Path.GetExtension(f).Equals(".hlsl", StringComparison.InvariantCultureIgnoreCase));
+            var shaderArgs = args.Where(f => Path.GetExtension(f).Equals(".hlsl", StringComparison.InvariantCultureIgnoreCase));            
 
-            var compilation = Compiler.CreateCompilationFromSource(File.ReadAllText(sourceArgs.First()));
-            //var generator = new ShaderGenerator();
-            var generator = new SystemGenerator();
-            var sources = Compiler.Test(compilation, generator, shaderArgs);
+            ISourceGenerator generator = sourceArgs.Any()
+                ? new SystemGenerator()
+                : new ShaderGenerator();
+
+            IEnumerable<string> fileArgs = sourceArgs.Any()
+                ? sourceArgs
+                : shaderArgs;
+
+            var compilation = Compiler.CreateCompilationFromSource(File.ReadAllText(fileArgs.First()));
+
+            var sources = Compiler.Test(compilation, generator, fileArgs);
             foreach (var source in sources)
             {
                 Console.WriteLine("/// <generated>");
