@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
+    <None Remove=".contentroot" />
+  </ItemGroup> 
+  <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
+    <ProjectReference Include="..\Backend\Mini.Engine.IO\Mini.Engine.IO.csproj" />
     <ProjectReference Include="..\Generators\Mini.Engine.Content.Generators\Mini.Engine.Content.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Generators\Mini.Engine.Generators.Source\Mini.Engine.Generators.Source.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\External\HlslParser\src\ShaderTools.CodeAnalysis.Hlsl\ShaderTools.CodeAnalysis.Hlsl.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
@@ -9,6 +13,9 @@
   </ItemGroup>
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
+    <AdditionalFiles Include=".contentroot">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </AdditionalFiles>
     <AdditionalFiles Include="Shaders\ImmediateShader.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AdditionalFiles>

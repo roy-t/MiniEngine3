@@ -12,7 +12,7 @@ namespace Mini.Engine.Generators.Debugger
         static void Main(string[] args)
         {
             var sourceArgs = args.Where(f => Path.GetExtension(f).Equals(".cs", StringComparison.InvariantCultureIgnoreCase));
-            var shaderArgs = args.Where(f => Path.GetExtension(f).Equals(".hlsl", StringComparison.InvariantCultureIgnoreCase));            
+            var shaderArgs = args.Where(f => Path.GetExtension(f).Equals(".hlsl", StringComparison.InvariantCultureIgnoreCase));
 
             ISourceGenerator generator = sourceArgs.Any()
                 ? new SystemGenerator()

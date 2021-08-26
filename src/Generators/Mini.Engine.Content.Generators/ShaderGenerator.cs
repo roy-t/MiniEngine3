@@ -58,13 +58,15 @@ namespace Mini.Engine.Content.Generators
                         {
                             return SourceFile.Build($"{shader.Name}{function.Name}.cs")
                                 .Using("Mini.Engine.DirectX")
+                                .Using("Mini.Engine.IO")
                                 .Using("System.Runtime.InteropServices")
                                 .Namespace("Mini.Engine.Content.Shaders")
                                     .Class(Naming.ToPascalCase($"{shader.Name}{function.Name}"), "public", "sealed")
                                         .Inherits(BaseTypeTranslator.GetBaseType(function))
                                         .Constructor("internal")
                                             .Parameter("Device", "device")
-                                            .BaseConstructorCall("device",
+                                            .Parameter("IVirtualFileSystem", "fileSystem")
+                                            .BaseConstructorCall("device", "fileSystem",
                                                 SourceUtilities.ToLiteral(shader.FilePath),
                                                 SourceUtilities.ToLiteral(function.Name),
                                                 SourceUtilities.ToLiteral(function.GetProfile()))

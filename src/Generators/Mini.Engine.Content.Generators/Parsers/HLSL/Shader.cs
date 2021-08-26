@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ShaderTools.CodeAnalysis.Hlsl;
 using ShaderTools.CodeAnalysis.Hlsl.Syntax;
 using ShaderTools.CodeAnalysis.Hlsl.Text;
@@ -11,7 +13,7 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
     {
         public Shader(Microsoft.CodeAnalysis.AdditionalText shader)
         {
-            this.FilePath = shader.Path;
+            this.FilePath = FindRelativePath(shader.Path);
             this.Name = Path.GetFileNameWithoutExtension(shader.Path);
 
             var options = new HlslParseOptions();
@@ -32,5 +34,27 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
         public IReadOnlyList<Structure> Structures { get; }
         public IReadOnlyList<CBuffer> CBuffers { get; }
         public IReadOnlyList<Function> Functions { get; }
+
+
+        private static string FindRelativePath(string path)
+        {
+            var relativePath = Path.GetFileName(path);
+            var directory = new DirectoryInfo(Path.GetDirectoryName(path));
+            while(directory != null && !directory.EnumerateFiles(".contentroot").Any())
+            {
+                relativePath = Path.Combine(directory.Name, relativePath);
+                directory = directory.Parent;
+
+            }
+
+            if (directory != null)
+            {
+                return relativePath;
+            }
+            else
+            {
+                throw new Exception($"Could not find .contentroot file in the directory {Path.GetDirectoryName(path)} or any of its parent directories");
+            }
+        }
     }
 }

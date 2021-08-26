@@ -1,5 +1,6 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
+using Mini.Engine.IO;
 
 namespace Mini.Engine.Content
 {
@@ -7,13 +8,15 @@ namespace Mini.Engine.Content
     public sealed partial class ContentManager : IDisposable
     {
         private readonly Device Device;
+        private readonly IVirtualFileSystem FileSystem;
         private readonly Stack<List<IContent>> ContentStack;
 
-        public ContentManager(Device device)
+        public ContentManager(Device device, IVirtualFileSystem fileSystem)
         {
             this.ContentStack = new Stack<List<IContent>>();
             this.ContentStack.Push(new List<IContent>());
             this.Device = device;
+            this.FileSystem = fileSystem;
         }
 
         public void Push()

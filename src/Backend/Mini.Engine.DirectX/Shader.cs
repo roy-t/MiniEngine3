@@ -1,4 +1,5 @@
-﻿using Vortice.D3DCompiler;
+﻿using Mini.Engine.IO;
+using Vortice.D3DCompiler;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 
@@ -9,14 +10,16 @@ namespace Mini.Engine.DirectX
     {
         private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();
 
+        private readonly IVirtualFileSystem FileSystem;
         protected readonly Device Device;
+        
         private Blob blob;
 
-        public Shader(Device device, string fileName, string entryPoint, string profile)
+        public Shader(Device device, IVirtualFileSystem fileSystem, string fileName, string entryPoint, string profile)
         {
             this.Device = device;
+            this.FileSystem = fileSystem;
             this.FileName = fileName;
-            this.FullPath = Path.GetFullPath(fileName);
             this.EntryPoint = entryPoint;
             this.Profile = profile;
 
@@ -26,15 +29,14 @@ namespace Mini.Engine.DirectX
         internal TShader ID3D11Shader { get; set; }
 
         public string FileName { get; }
-        public string FullPath { get; }
         public string EntryPoint { get; }
         public string Profile { get; }
 
         public void Reload()
         {
             // Files are read via .NET methods
-            var sourceText = File.ReadAllText(this.FullPath);
-            using var include = new ShaderFileInclude(Path.GetDirectoryName(this.FullPath));
+            var sourceText = this.FileSystem.ReadAllText(this.FileName);
+            using var include = new ShaderFileInclude(this.FileSystem, Path.GetDirectoryName(this.FileName));
 
             Compiler.Compile(sourceText, Defines, include, this.EntryPoint, this.FileName, this.Profile, out this.blob, out var vsErrorBlob);
             this.ID3D11Shader = this.Create(this.blob);

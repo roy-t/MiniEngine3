@@ -3,6 +3,7 @@ using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
+using Mini.Engine.IO;
 using Mini.Engine.UI;
 using Mini.Engine.Windows;
 using Serilog;
@@ -14,6 +15,8 @@ namespace Mini.Engine
     {
         private readonly Win32Window Window;
         private readonly Device Device;
+        private readonly IVirtualFileSystem FileSystem;
+
         private readonly DebugLayerLogger DebugLayerLogger;
         private readonly UserInterface UI;
         private readonly GameLoop GameLoop;
@@ -21,7 +24,7 @@ namespace Mini.Engine
 
         private RenderDoc? renderDoc;
 
-        public GameBootstrapper(ILogger logger, Register registerDelegate, Resolve resolveDelegate)
+        public GameBootstrapper(ILogger logger, Register register, RegisterAs registerAs, Resolve resolve)
         {
             this.Logger = logger.ForContext<GameBootstrapper>();
 
@@ -31,14 +34,16 @@ namespace Mini.Engine
             this.LoadRenderDoc();
 
             this.Device = new Device(this.Window.Handle, Format.R8G8B8A8_UNorm, this.Window.Width, this.Window.Height, "Device");
+            this.FileSystem = new DiskFileSystem(StartupArguments.ContentRoot);
 
             // Handle ownership/lifetime control over to LightInject
-            registerDelegate(this.Device);
-            registerDelegate(this.Window);
+            register(this.Device);
+            register(this.Window);
+            registerAs(this.FileSystem, typeof(IVirtualFileSystem));
 
-            this.DebugLayerLogger = (DebugLayerLogger)resolveDelegate(typeof(DebugLayerLogger));
-            this.GameLoop = (GameLoop)resolveDelegate(typeof(GameLoop));
-            this.UI = (UserInterface)resolveDelegate(typeof(UserInterface));
+            this.DebugLayerLogger = (DebugLayerLogger)resolve(typeof(DebugLayerLogger));
+            this.GameLoop = (GameLoop)resolve(typeof(GameLoop));
+            this.UI = (UserInterface)resolve(typeof(UserInterface));
             
             Win32Application.WindowEvents.OnResize += (o, e) =>
             {

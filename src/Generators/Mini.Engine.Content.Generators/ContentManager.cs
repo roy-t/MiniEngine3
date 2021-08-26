@@ -18,7 +18,7 @@ namespace Mini.Engine.Content.Generators
                             .SelectMany(n => n.Types)
                             .Select(type => Method.Builder(type.Name, $"Load{type.Name}", "public")
                                 .Body()
-                                    .TextCodeBlock($"var content = new {type.Name}(this.Device);")
+                                    .TextCodeBlock($"var content = new {type.Name}(this.Device, this.FileSystem);")
                                     .TextCodeBlock($"this.Add(content);")
                                     .TextCodeBlock($"return content;")
                                     .Complete()

@@ -46,12 +46,15 @@ namespace Mini.Engine.Configuration
             this.RegisterTypesFromAssembliesInWorkingDirectory();
         }
 
-        public T Get<T>()
-         where T : class
-         => this.Container.Create<T>();
+        public T Get<T>() where T : class
+        {
+            return this.Container.Create<T>();
+        }
 
         public void Dispose()
-            => this.Container?.Dispose();
+        {
+            this.Container?.Dispose();
+        }
 
         private void RegisterTypesFromAssembliesInWorkingDirectory()
         {

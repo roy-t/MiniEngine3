@@ -3,4 +3,7 @@
     <PackageReference Include="Vortice.D3DCompiler" Version="1.9.87" />
     <PackageReference Include="Vortice.Direct3D11" Version="1.9.87" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Mini.Engine.IO\Mini.Engine.IO.csproj" />
+  </ItemGroup>
 </Project>
