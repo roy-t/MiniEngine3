@@ -16,9 +16,6 @@ namespace Mini.Engine.IO
             this.RootDirectory = Path.GetFullPath(rootDirectory);
 
             this.FileSystemWatcher = CreateWatcher(this.RootDirectory);
-            this.FileSystemWatcher.Created += (s, e) => this.OnChange(e.FullPath, "Created");
-            this.FileSystemWatcher.Deleted += (s, e) => this.OnChange(e.FullPath, "Deleted");
-            this.FileSystemWatcher.Renamed += (s, e) => this.OnChange(e.FullPath, "Renamed");
             this.FileSystemWatcher.Changed += (s, e) => this.OnChange(e.FullPath, "Changed");
 
             this.ChangedFilesFilter = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

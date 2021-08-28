@@ -42,14 +42,13 @@ namespace Mini.Engine.Content
         }
 
         [Conditional("DEBUG")]
-        public void ReloadChangedFiles()
+        public void ReloadChangedContent()
         {
             foreach (var file in this.FileSystem.GetChangedFiles())
             {
                 try
                 {
-                    this.Logger.Information("Reloading {@file}", file);
-                    this.Find(file).Reload();
+                    this.ReloadContentReferencingFile(file);
                 }
                 catch (Exception ex)
                 {
@@ -73,20 +72,19 @@ namespace Mini.Engine.Content
             this.Watch(content);
         }
 
-        private IContent Find(string path)
+        private void ReloadContentReferencingFile(string path)
         {
-            foreach(var list in this.ContentStack)
+            foreach (var list in this.ContentStack)
             {
-                foreach(var content in list)
+                foreach (var content in list)
                 {
-                    if(content.FileName.Equals(path, StringComparison.OrdinalIgnoreCase))
+                    if (content.FileName.Equals(path, StringComparison.OrdinalIgnoreCase))
                     {
-                        return content;
+                        this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, path);
+                        content.Reload();
                     }
                 }
             }
-
-            throw new KeyNotFoundException($"Could not find content for path: {path}");
         }
 
         private static void Dispose(List<IContent> list)

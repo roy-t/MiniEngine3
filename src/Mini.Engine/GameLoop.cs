@@ -18,7 +18,7 @@ namespace Mini.Engine
 
         public void Update()
         {
-            this.Content.ReloadChangedFiles();
+            this.Content.ReloadChangedContent();
         }
 
         public void Draw()

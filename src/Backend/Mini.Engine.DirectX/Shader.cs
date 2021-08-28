@@ -40,9 +40,15 @@ namespace Mini.Engine.DirectX
             var sourceText = this.FileSystem.ReadAllText(this.FileName);
             using var include = new ShaderFileInclude(this.FileSystem, Path.GetDirectoryName(this.FileName));
 
-            Compiler.Compile(sourceText, Defines, include, this.EntryPoint, this.FileName, this.Profile, out this.blob, out var errorBlob);
+            Compiler.Compile(sourceText, Defines, include, this.EntryPoint, this.FileName, this.Profile, out var shaderBlob, out var errorBlob);
             ShaderCompilationErrorFilter.ThrowOnWarningOrError(errorBlob, "X3568");
+
+            this.blob?.Dispose();
+            this.ID3D11Shader?.Dispose();
+
+            this.blob = shaderBlob;
             this.ID3D11Shader = this.Create(this.blob);
+            this.ID3D11Shader.DebugName = this.FileName;
         }
 
         protected abstract TShader Create(Blob blob);
