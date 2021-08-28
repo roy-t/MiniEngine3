@@ -1,18 +1,22 @@
-﻿using Mini.Engine.Configuration;
+﻿using System.Diagnostics;
+using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.IO;
+using Serilog;
 
 namespace Mini.Engine.Content
 {
     [Service]
     public sealed partial class ContentManager : IDisposable
     {
+        private readonly ILogger Logger;
         private readonly Device Device;
         private readonly IVirtualFileSystem FileSystem;
         private readonly Stack<List<IContent>> ContentStack;
 
-        public ContentManager(Device device, IVirtualFileSystem fileSystem)
+        public ContentManager(ILogger logger, Device device, IVirtualFileSystem fileSystem)
         {
+            this.Logger = logger.ForContext<ContentManager>();
             this.ContentStack = new Stack<List<IContent>>();
             this.ContentStack.Push(new List<IContent>());
             this.Device = device;
@@ -37,9 +41,52 @@ namespace Mini.Engine.Content
             }
         }
 
+        [Conditional("DEBUG")]
+        public void ReloadChangedFiles()
+        {
+            foreach (var file in this.FileSystem.GetChangedFiles())
+            {
+                try
+                {
+                    this.Logger.Information("Reloading {@file}", file);
+                    this.Find(file).Reload();
+                }
+                catch (Exception ex)
+                {
+                    this.Logger.Error(ex, "Failed to reload {@file}", file);
+                }
+            }
+
+            this.FileSystem.ClearChangedFiles();
+        }
+
+        [Conditional("DEBUG")]
+        private void Watch(IContent content)
+        {
+            this.FileSystem.WatchFile(content.FileName);
+            this.Logger.Information("Watching file {@file}", content.FileName);
+        }
+
         private void Add(IContent content)
         {
             this.ContentStack.Peek().Add(content);
+            this.Watch(content);
+        }
+
+        private IContent Find(string path)
+        {
+            foreach(var list in this.ContentStack)
+            {
+                foreach(var content in list)
+                {
+                    if(content.FileName.Equals(path, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return content;
+                    }
+                }
+            }
+
+            throw new KeyNotFoundException($"Could not find content for path: {path}");
         }
 
         private static void Dispose(List<IContent> list)

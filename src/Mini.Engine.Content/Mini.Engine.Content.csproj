@@ -13,14 +13,11 @@
   </ItemGroup>
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
-    <AdditionalFiles Include=".contentroot">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </AdditionalFiles>
-    <AdditionalFiles Include="Shaders\ImmediateShader.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AdditionalFiles>
-    <AdditionalFiles Include="Shaders\Include.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AdditionalFiles>
+    <AdditionalFiles Include=".contentroot" />
+    <AdditionalFiles Include="Shaders\ImmediateShader.hlsl" />
+    <AdditionalFiles Include="Shaders\Include.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="2.10.0" />
   </ItemGroup>
 </Project>

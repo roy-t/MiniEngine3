@@ -1,20 +1,53 @@
-﻿namespace Mini.Engine.IO
+﻿using Serilog;
+
+namespace Mini.Engine.IO
 {
     public sealed class DiskFileSystem : IVirtualFileSystem
     {
-        public DiskFileSystem(string rootDirectory)
+        private readonly ILogger Logger;
+        private readonly FileSystemWatcher FileSystemWatcher;
+
+        private readonly HashSet<string> ChangedFilesFilter;
+        private readonly HashSet<string> ChangedFiles;
+
+        public DiskFileSystem(ILogger logger, string rootDirectory)
         {
+            this.Logger = logger.ForContext<DiskFileSystem>();
             this.RootDirectory = Path.GetFullPath(rootDirectory);
+
+            this.FileSystemWatcher = CreateWatcher(this.RootDirectory);
+            this.FileSystemWatcher.Created += (s, e) => this.OnChange(e.FullPath, "Created");
+            this.FileSystemWatcher.Deleted += (s, e) => this.OnChange(e.FullPath, "Deleted");
+            this.FileSystemWatcher.Renamed += (s, e) => this.OnChange(e.FullPath, "Renamed");
+            this.FileSystemWatcher.Changed += (s, e) => this.OnChange(e.FullPath, "Changed");
+
+            this.ChangedFilesFilter = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            this.ChangedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
         public string RootDirectory { get; }
 
         public string ReadAllText(string path)
         {
-            return File.ReadAllText(this.CombinePath(path));
+            return File.ReadAllText(this.ToAbsolute(path));
         }
 
-        private string CombinePath(string path)
+        public void WatchFile(string path)
+        {
+            this.ChangedFilesFilter.Add(path);
+        }
+
+        public IEnumerable<string> GetChangedFiles()
+        {
+            return this.ChangedFiles;
+        }
+
+        public void ClearChangedFiles()
+        {
+            this.ChangedFiles.Clear();
+        }
+
+        private string ToAbsolute(string path)
         {
             if (Path.IsPathRooted(path))
             {
@@ -22,6 +55,45 @@
             }
 
             return Path.Combine(this.RootDirectory, path);
+        }
+
+        private string ToRelative(string path)
+        {
+            if (path.StartsWith(this.RootDirectory, StringComparison.OrdinalIgnoreCase))
+            {
+                return path.Substring(this.RootDirectory.Length + 1);
+            }
+
+            throw new ArgumentException($"Expected absolute path but bot '{path}'", nameof(path));
+        }
+
+        private void OnChange(string fullPath, string reason)
+        {
+            var relativePath = ToRelative(fullPath);
+            this.Logger.Debug("[{@reason}] {@file}", reason, relativePath);
+
+            if (this.ChangedFilesFilter.Contains(relativePath))
+            {
+                this.ChangedFiles.Add(relativePath);
+            }
+        }
+
+        private static FileSystemWatcher CreateWatcher(string directory)
+        {
+            return new FileSystemWatcher(directory)
+            {
+                NotifyFilter = NotifyFilters.Attributes
+                            | NotifyFilters.CreationTime
+                            | NotifyFilters.DirectoryName
+                            | NotifyFilters.FileName
+                            | NotifyFilters.LastAccess
+                            | NotifyFilters.LastWrite
+                            | NotifyFilters.Security
+                            | NotifyFilters.Size,
+                Filter = "*",
+                IncludeSubdirectories = true,
+                EnableRaisingEvents = true,
+            };
         }
     }
 }

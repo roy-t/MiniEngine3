@@ -34,7 +34,7 @@ namespace Mini.Engine
             this.LoadRenderDoc();
 
             this.Device = new Device(this.Window.Handle, Format.R8G8B8A8_UNorm, this.Window.Width, this.Window.Height, "Device");
-            this.FileSystem = new DiskFileSystem(StartupArguments.ContentRoot);
+            this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
 
             // Handle ownership/lifetime control over to LightInject
             register(this.Device);
@@ -65,6 +65,7 @@ namespace Mini.Engine
                 this.Device.ClearBackBuffer();
                 this.UI.Update(elapsed);
 
+                this.GameLoop.Update();
                 this.GameLoop.Draw();
 #if DEBUG
                 this.ShowRenderDocUI();

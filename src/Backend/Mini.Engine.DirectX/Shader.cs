@@ -1,4 +1,6 @@
-﻿using Mini.Engine.IO;
+﻿using System.Runtime.InteropServices;
+using System.Text;
+using Mini.Engine.IO;
 using Vortice.D3DCompiler;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
@@ -38,7 +40,8 @@ namespace Mini.Engine.DirectX
             var sourceText = this.FileSystem.ReadAllText(this.FileName);
             using var include = new ShaderFileInclude(this.FileSystem, Path.GetDirectoryName(this.FileName));
 
-            Compiler.Compile(sourceText, Defines, include, this.EntryPoint, this.FileName, this.Profile, out this.blob, out var vsErrorBlob);
+            Compiler.Compile(sourceText, Defines, include, this.EntryPoint, this.FileName, this.Profile, out this.blob, out var errorBlob);
+            ShaderCompilationErrorFilter.ThrowOnWarningOrError(errorBlob, "X3568");
             this.ID3D11Shader = this.Create(this.blob);
         }
 

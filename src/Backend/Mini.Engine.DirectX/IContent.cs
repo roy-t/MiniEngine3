@@ -3,5 +3,6 @@
     public interface IContent : IDisposable
     {
         void Reload();
+        string FileName { get; }
     }
 }
