@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		src\Directory.Build.props = src\Directory.Build.props
 		README.MD = README.MD
+		TODO.MD = TODO.MD
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Content", "src\Mini.Engine.Content\Mini.Engine.Content.csproj", "{F5DC5983-B29F-4864-8A63-468155F7EAC6}"
@@ -48,7 +49,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.ECS.Generators.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Graphics", "src\Mini.Engine.Graphics\Mini.Engine.Graphics.csproj", "{B8650ABE-F31A-45D6-A007-E3C80AB05FB4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mini.Engine.IO", "src\Backend\Mini.Engine.IO\Mini.Engine.IO.csproj", "{5CFD85E9-47EF-43A2-9519-EAAC3043532C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.IO", "src\Backend\Mini.Engine.IO\Mini.Engine.IO.csproj", "{5CFD85E9-47EF-43A2-9519-EAAC3043532C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
