@@ -40,7 +40,6 @@ namespace Mini.Engine.DirectX
 
             this.CreateSwapChain(width, height);
 
-            this.DepthStencilBuffer = new DepthStencilBuffer(this, width, height);
             this.ImmediateContext = new ImmediateDeviceContext(this, context, "ImmediateDeviceContext");
 
             this.SamplerStates = new SamplerStates(device);
@@ -49,7 +48,6 @@ namespace Mini.Engine.DirectX
             this.RasterizerStates = new RasterizerStates(device);
         }
 
-        public DepthStencilBuffer DepthStencilBuffer { get; }
         public ImmediateDeviceContext ImmediateContext { get; }
 
         public int Width { get; private set; }
@@ -76,6 +74,12 @@ namespace Mini.Engine.DirectX
         {
             var dc = this.ID3D11DeviceContext;
             dc.ClearRenderTargetView(renderTarget.ID3D11RenderTargetView, color);
+        }
+
+        public void Clear(DepthStencilBuffer depthStencilBuffer, DepthStencilClearFlags flags, float depth, byte stencil)
+        {
+            var dc = this.ID3D11DeviceContext;
+            dc.ClearDepthStencilView(depthStencilBuffer.DepthStencilView, flags, depth, stencil);
         }
 
         public void ClearBackBuffer()

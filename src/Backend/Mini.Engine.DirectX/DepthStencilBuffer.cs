@@ -1,20 +1,29 @@
-﻿using Vortice.Direct3D;
-using Vortice.Direct3D11;
+﻿using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX
 {
+    public enum DepthStencilFormat
+    {
+        D16_UNorm,
+        D24_UNorm_S8_UInt,
+        D32_Float,
+        D32_Float_S8X24_UInt
+    }
+
     public sealed class DepthStencilBuffer : IDisposable
     {
-        public DepthStencilBuffer(Device device, int width, int height)
+        public DepthStencilBuffer(Device device, DepthStencilFormat depthStencilFormat, int width, int height)
         {
+            var format = ToFormat(depthStencilFormat);
+
             var description = new Texture2DDescription
             {
                 Width = width,
                 Height = height,
                 MipLevels = 1,
                 ArraySize = 1,
-                Format = Format.D24_UNorm_S8_UInt,
+                Format = format,
                 SampleDescription = new SampleDescription(1, 0),
                 Usage = ResourceUsage.Default,
                 BindFlags = BindFlags.DepthStencil,
@@ -24,7 +33,7 @@ namespace Mini.Engine.DirectX
 
             var view = new DepthStencilViewDescription
             {
-                Format = Format.D24_UNorm_S8_UInt,
+                Format = format,
                 ViewDimension = DepthStencilViewDimension.Texture2D,
                 Texture2D = new Texture2DDepthStencilView() { MipSlice = 0 }
             };
@@ -37,6 +46,18 @@ namespace Mini.Engine.DirectX
 
         internal ID3D11Texture2D Texture { get; }
         internal ID3D11DepthStencilView DepthStencilView { get; }
+
+        private static Format ToFormat(DepthStencilFormat format)
+        {
+            return format switch
+            {
+                DepthStencilFormat.D16_UNorm => Format.D16_UNorm,
+                DepthStencilFormat.D24_UNorm_S8_UInt => Format.D24_UNorm_S8_UInt,
+                DepthStencilFormat.D32_Float => Format.D32_Float,
+                DepthStencilFormat.D32_Float_S8X24_UInt => Format.D32_Float_S8X24_UInt,
+                _ => throw new ArgumentOutOfRangeException(nameof(format)),
+            };
+        }
 
         public void Dispose()
         {

@@ -2,6 +2,7 @@
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
+using Vortice.Direct3D11;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics;
@@ -26,7 +27,11 @@ public partial class ClearGBufferSystem : ISystem
     }
 
     [Process]
-    public void Process() => this.Device.Clear(this.FrameService.GBuffer.Albedo, new Color(255, 0, 0));
-
+    public void Process()
+    {
+        this.Device.Clear(this.FrameService.GBuffer.Albedo, new Color(255, 0, 0));
+        this.Device.Clear(this.FrameService.GBuffer.DepthStencilBuffer,
+             DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, 1.0f, 0);
+    }
 }
 

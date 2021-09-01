@@ -59,17 +59,17 @@ namespace Mini.Engine.Content
             this.FileSystem.ClearChangedFiles();
         }
 
+        private void Add(IContent content)
+        {
+            this.ContentStack.Peek().Add(content);
+            this.Watch(content);
+        }
+
         [Conditional("DEBUG")]
         private void Watch(IContent content)
         {
             this.FileSystem.WatchFile(content.FileName);
             this.Logger.Information("Watching file {@file}", content.FileName);
-        }
-
-        private void Add(IContent content)
-        {
-            this.ContentStack.Peek().Add(content);
-            this.Watch(content);
         }
 
         private void ReloadContentReferencingFile(string path)
