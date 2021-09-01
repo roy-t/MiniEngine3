@@ -15,12 +15,12 @@ namespace Mini.Engine.DirectX
         private readonly IntPtr WindowHandle;
         private readonly Format Format;
 
-        private IDXGISwapChain swapChain;
+        private IDXGISwapChain swapChain = null!;
 
 #if DEBUG
-        private static DeviceCreationFlags Flags = DeviceCreationFlags.Debug;
+        private static readonly DeviceCreationFlags Flags = DeviceCreationFlags.Debug;
 #else
-        private static DeviceCreationFlags Flags = DeviceCreationFlags.None;
+        private static readonly DeviceCreationFlags Flags = DeviceCreationFlags.None;
 #endif
 
         public Device(IntPtr windowHandle, Format format, int width, int height, string name)
@@ -30,8 +30,9 @@ namespace Mini.Engine.DirectX
             this.Width = width;
             this.Height = height;
 
+#nullable disable
             _ = D3D11CreateDevice(null, DriverType.Hardware, Flags, null, out var device, out var context);
-
+#nullable restore
             this.ID3D11Device = device;
             this.ID3D11Device.SetName(name);
             this.ID3D11Debug = device.QueryInterface<ID3D11Debug>();
@@ -39,6 +40,7 @@ namespace Mini.Engine.DirectX
 
             this.CreateSwapChain(width, height);
 
+            this.DepthStencilBuffer = new DepthStencilBuffer(this, width, height);
             this.ImmediateContext = new ImmediateDeviceContext(this, context, "ImmediateDeviceContext");
 
             this.SamplerStates = new SamplerStates(device);
@@ -47,6 +49,7 @@ namespace Mini.Engine.DirectX
             this.RasterizerStates = new RasterizerStates(device);
         }
 
+        public DepthStencilBuffer DepthStencilBuffer { get; }
         public ImmediateDeviceContext ImmediateContext { get; }
 
         public int Width { get; private set; }
@@ -61,11 +64,13 @@ namespace Mini.Engine.DirectX
         internal ID3D11Debug ID3D11Debug { get; }
         internal ID3D11DeviceContext ID3D11DeviceContext { get; }
 
-        internal ID3D11Texture2D BackBuffer { get; private set; }
-        internal ID3D11RenderTargetView BackBufferView { get; private set; }
+        internal ID3D11Texture2D BackBuffer { get; private set; } = null!;
+        internal ID3D11RenderTargetView BackBufferView { get; private set; } = null!;
 
         public DeferredDeviceContext CreateDeferredContextFor<T>()
-        => new(this, this.ID3D11Device.CreateDeferredContext(), $"{typeof(T).Name}DeferredContext");
+        {
+            return new(this, this.ID3D11Device.CreateDeferredContext(), $"{typeof(T).Name}DeferredContext");
+        }
 
         public void Clear(RenderTarget2D renderTarget, Color4 color)
         {
@@ -82,7 +87,10 @@ namespace Mini.Engine.DirectX
             dc.RSSetViewport(0, 0, this.Width, this.Height);
         }
 
-        public void Present() => this.swapChain.Present(0, PresentFlags.None);
+        public void Present()
+        {
+            this.swapChain.Present(0, PresentFlags.None);
+        }
 
         public void Resize(int width, int height)
         {
@@ -101,7 +109,10 @@ namespace Mini.Engine.DirectX
 
         private void CreateSwapChain(int width, int height)
         {
-            var dxgiFactory = this.ID3D11Device.QueryInterface<IDXGIDevice>().GetParent<IDXGIAdapter>().GetParent<IDXGIFactory>();
+            var dxgiFactory = this.ID3D11Device.QueryInterface<IDXGIDevice>()
+                ?.GetParent<IDXGIAdapter>()
+                ?.GetParent<IDXGIFactory>()
+                ?? throw new Exception("Could not query for IDXGIAdapter or IDXGIFactory");
 
             var swapchainDesc = new SwapChainDescription()
             {

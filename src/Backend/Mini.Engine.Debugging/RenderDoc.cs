@@ -368,16 +368,16 @@ namespace Mini.Engine.Debugging
         /// </summary>
         /// <param name="renderDoc">If successful, this parameter contains a loaded <see cref="RenderDoc"/> instance.</param>
         /// <returns>Whether or not RenderDoc was successfully loaded.</returns>
-        public static bool Load(out RenderDoc renderDoc) => Load(GetLibNames(), out renderDoc);
+        public static bool Load(out RenderDoc? renderDoc) => Load(GetLibNames(), out renderDoc);
 
         /// Attempts to load RenderDoc from the given path.
         /// </summary>
         /// <param name="renderDocLibPath">The path to the RenderDoc shared library.</param>
         /// <param name="renderDoc">If successful, this parameter contains a loaded <see cref="RenderDoc"/> instance.</param>
         /// <returns>Whether or not RenderDoc was successfully loaded.</returns>
-        public static bool Load(string renderDocLibPath, out RenderDoc renderDoc) => Load(new[] { renderDocLibPath }, out renderDoc);
+        public static bool Load(string renderDocLibPath, out RenderDoc? renderDoc) => Load(new[] { renderDocLibPath }, out renderDoc);
 
-        private static bool Load(string[] renderDocLibPaths, out RenderDoc renderDoc)
+        private static bool Load(string[] renderDocLibPaths, out RenderDoc? renderDoc)
         {
             try
             {
@@ -395,7 +395,7 @@ namespace Mini.Engine.Debugging
         private static string[] GetLibNames()
         {
             List<string> paths = new List<string>();
-            string programFiles = Environment.GetEnvironmentVariable("ProgramFiles");
+            var programFiles = Environment.GetEnvironmentVariable("ProgramFiles") ?? string.Empty;
             if (programFiles != null)
             {
                 string systemInstallPath = Path.Combine(programFiles, "RenderDoc", "renderdoc.dll");

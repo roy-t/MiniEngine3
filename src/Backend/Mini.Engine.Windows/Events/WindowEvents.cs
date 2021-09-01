@@ -5,7 +5,7 @@ namespace Mini.Engine.Windows.Events
 {
     public sealed class WindowEvents
     {
-        public EventHandler<SizeEventArgs> OnResize;
+        public EventHandler<SizeEventArgs>? OnResize;
 
         internal void FireWindowEvents(IntPtr hWnd, WindowMessage msg, UIntPtr wParam, IntPtr lParam)
         {

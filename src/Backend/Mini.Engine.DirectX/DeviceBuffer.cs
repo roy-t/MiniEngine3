@@ -26,7 +26,7 @@ namespace Mini.Engine.DirectX
 
         public int Capacity { get; private set; }
 
-        public ID3D11Buffer Buffer { get; private set; }
+        public ID3D11Buffer Buffer { get; private set; } = null!;
 
         public void EnsureCapacity(int primitiveCount, int reserveExtra = 0)
         {
@@ -35,7 +35,7 @@ namespace Mini.Engine.DirectX
                 this.Buffer?.Dispose();
                 this.Capacity = primitiveCount + reserveExtra;
                 this.Buffer = this.CreateBuffer(this.Capacity * this.PrimitiveSizeInBytes);
-#if DEBUG                                
+#if DEBUG
                 this.Buffer.DebugName = $"{this.GetType().Name}[{this.Capacity}]_{this.Id}";
 #endif
             }

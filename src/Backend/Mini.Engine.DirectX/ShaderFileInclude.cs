@@ -11,10 +11,10 @@ namespace Mini.Engine.DirectX
         private readonly string RootFolder;
         private readonly List<IDisposable> Disposables;
 
-        public ShaderFileInclude(IVirtualFileSystem fileSystem, string rootFolder)
+        public ShaderFileInclude(IVirtualFileSystem fileSystem, string? rootFolder = null)
         {
             this.FileSystem = fileSystem;
-            this.RootFolder = rootFolder;
+            this.RootFolder = rootFolder ?? Environment.CurrentDirectory;
             this.Disposables = new List<IDisposable>();
         }
 
@@ -23,7 +23,7 @@ namespace Mini.Engine.DirectX
             stream.Close();
         }
 
-        public Stream Open(IncludeType type, string fileName, Stream parentStream)
+        public Stream Open(IncludeType type, string fileName, Stream? parentStream)
         {
             // Ensure C# handles all the text handling, conversions, BOMs, etc...
             // and return the raw ASCII bytes to DirectX

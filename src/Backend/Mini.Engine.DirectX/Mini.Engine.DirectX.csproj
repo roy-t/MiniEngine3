@@ -6,4 +6,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Mini.Engine.IO\Mini.Engine.IO.csproj" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>nullable</WarningsAsErrors>
+  </PropertyGroup>
 </Project>

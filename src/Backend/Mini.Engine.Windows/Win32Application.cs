@@ -15,7 +15,9 @@ namespace Mini.Engine.Windows
 
         public static Win32Window Initialize(string title, int width, int height)
         {
+#nullable disable
             var moduleHandle = GetModuleHandle(null);
+#nullable restore
             var wndClass = new WNDCLASSEX
             {
                 Size = Unsafe.SizeOf<WNDCLASSEX>(),

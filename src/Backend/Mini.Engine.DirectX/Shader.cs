@@ -15,7 +15,7 @@ namespace Mini.Engine.DirectX
         private readonly IVirtualFileSystem FileSystem;
         protected readonly Device Device;
         
-        private Blob blob;
+        private Blob blob = null!;
 
         public Shader(Device device, IVirtualFileSystem fileSystem, string fileName, string entryPoint, string profile)
         {
@@ -28,7 +28,7 @@ namespace Mini.Engine.DirectX
             this.Reload();
         }
 
-        internal TShader ID3D11Shader { get; set; }
+        internal TShader ID3D11Shader { get; set; } = null!;
 
         public string FileName { get; }
         public string EntryPoint { get; }

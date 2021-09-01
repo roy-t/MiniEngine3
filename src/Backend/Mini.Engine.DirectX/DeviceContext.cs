@@ -90,17 +90,11 @@ namespace Mini.Engine.DirectX
         public void SetDepthStencilState(DepthStencilState state)
             => this.ID3D11DeviceContext.OMSetDepthStencilState(state.ID3D11DepthStencilState);
 
-        public void SetRenderTarget(RenderTarget2D renderTarget)
-        {
-            if (renderTarget != null)
-            {
-                this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetView);
-            }
-            else
-            {
-                this.ID3D11DeviceContext.OMSetRenderTargets(base.DeviceContext.Device.BackBufferView);
-            }
-        }
+        public void SetRenderTargetToBackBuffer(DepthStencilBuffer? depthStencilBuffer = null)
+            => this.ID3D11DeviceContext.OMSetRenderTargets(base.DeviceContext.Device.BackBufferView, depthStencilBuffer?.DepthStencilView);
+
+        public void SetRenderTarget(RenderTarget2D renderTarget, DepthStencilBuffer? depthStencilBuffer = null)
+            => this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetView, depthStencilBuffer?.DepthStencilView);
     }
 
     public sealed class RasterizerContext : DeviceContextPart
@@ -146,7 +140,7 @@ namespace Mini.Engine.DirectX
         internal ID3D11DeviceContext ID3D11DeviceContext { get; }
 
         public void Dispose()
-        { 
+        {
             this.ID3D11DeviceContext.Dispose();
             GC.SuppressFinalize(this);
         }

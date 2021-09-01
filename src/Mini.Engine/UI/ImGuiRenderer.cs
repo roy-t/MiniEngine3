@@ -162,7 +162,7 @@ namespace Mini.Engine.UI
             context.PS.SetShader(this.PixelShader);
             context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
 
-            context.OM.SetRenderTarget(null);
+            context.OM.SetRenderTargetToBackBuffer();
             context.OM.SetBlendState(this.Device.BlendStates.AlphaBlend);
             context.OM.SetDepthStencilState(this.Device.DepthStencilStates.None);
         }
