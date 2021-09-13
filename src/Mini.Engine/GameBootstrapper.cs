@@ -63,7 +63,8 @@ namespace Mini.Engine
                 stopWatch.Restart();
 
                 this.Device.ClearBackBuffer();
-                this.UI.Update(elapsed);
+
+                this.UI.NewFrame(elapsed);
 
                 this.GameLoop.Update();
                 this.GameLoop.Draw();

@@ -10,7 +10,10 @@ namespace Mini.Engine
     {
         private readonly PipelineBuilder Builder;
 
-        public RenderPipelineBuilder(PipelineBuilder builder) => this.Builder = builder;
+        public RenderPipelineBuilder(PipelineBuilder builder)
+        {
+            this.Builder = builder;
+        }
 
         public ParallelPipeline Build()
         {

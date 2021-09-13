@@ -25,6 +25,8 @@ namespace Mini.Engine.DirectX
         }
 
         public void Dispose()
-            => this.Context.Unmap(this.Buffer);
+        {
+            this.Context.Unmap(this.Buffer);
+        }
     }
 }

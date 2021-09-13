@@ -103,7 +103,12 @@ namespace Mini.Engine.ECS.Components
                 if (component.ChangeState.CurrentState == LifetimeState.Removed)
                 {
                     this.AllComponents.RemoveAt(i);
-                    _ = this.Components.Remove(component.Entity);
+                    this.Components.Remove(component.Entity);
+
+                    if (component is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
                 }
                 else
                 {

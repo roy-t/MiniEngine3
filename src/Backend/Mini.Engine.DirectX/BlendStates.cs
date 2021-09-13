@@ -16,8 +16,10 @@ namespace Mini.Engine.DirectX
 
         internal ID3D11BlendState ID3D11BlendState { get; }
 
-        public void Dispose() =>
+        public void Dispose()
+        {
             this.ID3D11BlendState.Dispose();
+        }
     }
 
     public sealed class BlendStates : IDisposable

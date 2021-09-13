@@ -29,7 +29,7 @@ namespace Mini.Engine.UI
         public void Resize(int width, int height)
             => this.IO.DisplaySize = new Vector2(width, height);
 
-        public void Update(float elapsed)
+        public void NewFrame(float elapsed)
         {
             this.IO.DeltaTime = elapsed;
 

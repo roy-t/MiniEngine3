@@ -43,6 +43,7 @@ namespace Mini.Engine.ECS.Generators
                                     .Body()
                                         .TextCodeBlock("this.System.OnSet();")
                                         .CodeBlocks(target.Methods.Select(m => CreateProcessBlock(m)))
+                                        .TextCodeBlock("this.System.OnUnSet();")
                                         .Complete()
                                     .Complete()
                                 .Complete()

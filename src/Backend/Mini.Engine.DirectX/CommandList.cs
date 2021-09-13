@@ -13,6 +13,8 @@ namespace Mini.Engine.DirectX
         internal ID3D11CommandList ID3D11CommandList { get; }
 
         public void Dispose()
-            => this.ID3D11CommandList.Dispose();
+        {
+            this.ID3D11CommandList.Dispose();
+        }
     }
 }

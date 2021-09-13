@@ -31,12 +31,13 @@ namespace Mini.Engine.DirectX
 
         public ModelData()
         {
-            var c = 1;
+            var e = 1;
+            var z = -5;
             this.Vertices = new ModelVertex[]
             {
-                new ModelVertex(new Vector3(-c, 0, 0)),
-                new ModelVertex(new Vector3(0, c, 0)),
-                new ModelVertex(new Vector3(c, 0, 0)),
+                new ModelVertex(new Vector3(-e, 0, z)),
+                new ModelVertex(new Vector3(0, e, z)),
+                new ModelVertex(new Vector3(e, 0, z)),
             };
 
             this.Indices = new int[]
@@ -51,7 +52,7 @@ namespace Mini.Engine.DirectX
         }
     }
 
-    public sealed class Model
+    public sealed class Model : IDisposable
     {
         public readonly VertexBuffer<ModelVertex> Vertices;
         public readonly IndexBuffer<int> Indices;
@@ -68,6 +69,12 @@ namespace Mini.Engine.DirectX
         }
 
         public int PrimitiveCount => this.Primitives.Length;
+
+        public void Dispose()
+        {
+            this.Indices.Dispose();
+            this.Vertices.Dispose();
+        }
 
         // TODO add a hierarchy of matrices
     }

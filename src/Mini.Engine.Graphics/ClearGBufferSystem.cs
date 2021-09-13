@@ -33,5 +33,10 @@ public partial class ClearGBufferSystem : ISystem
         this.Device.Clear(this.FrameService.GBuffer.DepthStencilBuffer,
              DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, 1.0f, 0);
     }
+
+    public void OnUnSet()
+    {
+
+    }
 }
 

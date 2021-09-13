@@ -17,7 +17,9 @@ namespace Mini.Engine.DirectX
         internal ID3D11SamplerState State { get; }
 
         public void Dispose()
-            => this.State.Dispose();
+        {
+            this.State.Dispose();
+        }
     }
 
     public sealed class SamplerStates : IDisposable

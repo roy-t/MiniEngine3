@@ -3,5 +3,6 @@
     public interface ISystem : ISystemBindingProvider
     {
         public void OnSet();
+        public void OnUnSet();
     }
 }

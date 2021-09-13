@@ -10,6 +10,8 @@ namespace Mini.Engine.DirectX
             : base(device, fileSystem, fileName, entryPoint, profile) { }
 
         protected override ID3D11PixelShader Create(Blob blob)
-            => this.Device.ID3D11Device.CreatePixelShader(blob.GetBytes());
+        {
+            return this.Device.ID3D11Device.CreatePixelShader(blob.GetBytes());
+        }
     }
 }

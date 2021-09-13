@@ -10,6 +10,8 @@ namespace Mini.Engine.DirectX
             : base(device, fileSystem, fileName, entryPoint, profile) { }
 
         protected override ID3D11VertexShader Create(Blob blob)
-            => this.Device.ID3D11Device.CreateVertexShader(blob.GetBytes());
+        {
+            return this.Device.ID3D11Device.CreateVertexShader(blob.GetBytes());
+        }
     }
 }

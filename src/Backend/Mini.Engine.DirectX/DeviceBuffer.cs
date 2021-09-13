@@ -68,10 +68,14 @@ namespace Mini.Engine.DirectX
         }
 
         public BufferWriter<T> OpenWriter(DeviceContext context)
-         => new(context.ID3D11DeviceContext, this.Buffer);
+        {
+            return new(context.ID3D11DeviceContext, this.Buffer);
+        }
 
         public void Dispose()
-            => this.Buffer?.Dispose();
+        {
+            this.Buffer?.Dispose();
+        }
 
         protected abstract ID3D11Buffer CreateBuffer(int sizeInBytes);
     }

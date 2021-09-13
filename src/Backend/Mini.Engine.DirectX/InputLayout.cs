@@ -13,6 +13,8 @@ namespace Mini.Engine.DirectX
         internal ID3D11InputLayout ID3D11InputLayout { get; }
 
         public void Dispose()
-            => this.ID3D11InputLayout.Dispose();
+        {
+            this.ID3D11InputLayout.Dispose();
+        }
     }
 }

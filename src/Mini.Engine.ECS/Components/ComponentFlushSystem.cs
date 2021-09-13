@@ -15,6 +15,11 @@ namespace Mini.Engine.ECS.Components
         {
         }
 
+        public void OnUnSet()
+        {
+
+        }
+
         [Process]
         public void Process()
         {
