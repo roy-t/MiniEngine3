@@ -31,11 +31,12 @@ namespace Mini.Engine.DirectX
 
         public ModelData()
         {
+            var c = 1;
             this.Vertices = new ModelVertex[]
             {
-                new ModelVertex(new Vector3(-1, 0, 0)),
-                new ModelVertex(new Vector3(0, 1, 0)),
-                new ModelVertex(new Vector3(1, 0, 0)),
+                new ModelVertex(new Vector3(-c, 0, 0)),
+                new ModelVertex(new Vector3(0, c, 0)),
+                new ModelVertex(new Vector3(c, 0, 0)),
             };
 
             this.Indices = new int[]

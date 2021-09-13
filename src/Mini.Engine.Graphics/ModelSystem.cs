@@ -54,8 +54,7 @@ namespace Mini.Engine.Graphics
 
             var cBuffer = new CBuffer0()
             {
-                //WorldViewProjection = world * view * projection
-                WorldViewProjection = Matrix4x4.CreateOrthographicOffCenter(0, this.FrameService.GBuffer.Width, this.FrameService.GBuffer.Height, 0, -1.0f, 1.0f)
+                WorldViewProjection = world * view * projection
             };
             this.ConstantBuffer.MapData(context, cBuffer);
 
