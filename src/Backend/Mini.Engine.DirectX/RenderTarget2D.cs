@@ -7,7 +7,10 @@ namespace Mini.Engine.DirectX
     {
         public RenderTarget2D(Device device, int width, int height, Format format, bool generateMipMaps, string name)
             : base(device, width, height, format, generateMipMaps, name)
-            => this.ID3D11RenderTargetView = device.ID3D11Device.CreateRenderTargetView(this.Texture);
+        {
+            this.ID3D11RenderTargetView = device.ID3D11Device.CreateRenderTargetView(this.Texture);
+            this.ID3D11RenderTargetView.DebugName = $"{name}_RenderTargetView";
+        }
 
         internal ID3D11RenderTargetView ID3D11RenderTargetView { get; }
 

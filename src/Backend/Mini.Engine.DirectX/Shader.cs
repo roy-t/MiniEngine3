@@ -54,7 +54,9 @@ namespace Mini.Engine.DirectX
         protected abstract TShader Create(Blob blob);
 
         public InputLayout CreateInputLayout(params InputElementDescription[] elements)
-            => new(this.Device.ID3D11Device.CreateInputLayout(elements, this.blob));
+        {
+            return new(this.Device.ID3D11Device.CreateInputLayout(elements, this.blob));
+        }
 
         public void Dispose()
         {

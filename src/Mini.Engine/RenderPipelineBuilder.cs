@@ -24,6 +24,11 @@ namespace Mini.Engine
                     .InSequence()
                     .Produces("Initialization", "GBuffer")
                     .Build()
+                .System<ModelSystem>()
+                    .InSequence()
+                    .Requires("Initialization", "GBuffer")
+                    .Produces("Renderer", "Models")
+                    .Build()
             .Build();
         }
     }
