@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using Vortice.Direct3D;
 
 namespace Mini.Engine.DirectX

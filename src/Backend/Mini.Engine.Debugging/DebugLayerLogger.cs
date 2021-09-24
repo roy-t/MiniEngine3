@@ -12,14 +12,16 @@ namespace Mini.Engine.Debugging
     [Service]
     public sealed class DebugLayerLogger
     {
+#if DEBUG
         private readonly ID3D11InfoQueue DebugInfoQueue;
         private readonly ILogger Logger;
-
+#endif
         public DebugLayerLogger(Device device, ILogger logger)
         {
+#if DEBUG
             this.DebugInfoQueue = device.ID3D11Debug.QueryInterface<ID3D11InfoQueue>();
             this.DebugInfoQueue.PushEmptyStorageFilter();
-#if DEBUG
+
             this.DebugInfoQueue.SetBreakOnSeverity(MessageSeverity.Error, true);
             this.DebugInfoQueue.SetBreakOnSeverity(MessageSeverity.Corruption, true);
 
@@ -27,7 +29,7 @@ namespace Mini.Engine.Debugging
             dxgiInfoQueue.SetBreakOnSeverity(DXGI.DebugAll, InfoQueueMessageSeverity.Error, true);
             dxgiInfoQueue.SetBreakOnSeverity(DXGI.DebugAll, InfoQueueMessageSeverity.Corruption, true);
 
-#endif
+
             this.Logger = logger.ForContext<DebugLayerLogger>();
 
             var annotations = device.ID3D11DeviceContext.QueryInterface<ID3DUserDefinedAnnotation>();
@@ -35,10 +37,12 @@ namespace Mini.Engine.Debugging
             {
                 this.Logger.Warning("A Microsoft Direct3D profiling tool (RenderDoc, Visual Studio Profiler, ...) is attached to the current context. Log messages from the DirectX Debug Layer might not be available");
             }
+#endif
         }
 
         public void LogMessages()
         {
+#if DEBUG
             var stored = this.DebugInfoQueue.NumStoredMessages;
 
             for(ulong i = 0; i < stored; i++)
@@ -51,6 +55,7 @@ namespace Mini.Engine.Debugging
             }
 
             this.DebugInfoQueue.ClearStoredMessages();
+#endif
         }
 
         private static string UnterminateString(string message)

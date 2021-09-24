@@ -1,4 +1,6 @@
-﻿namespace Mini.Engine.UI
+﻿using System;
+
+namespace Mini.Engine.UI
 {
     internal sealed class MicroBenchmark
     {

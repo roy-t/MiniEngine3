@@ -1,4 +1,5 @@
-﻿using Vortice.Direct3D;
+﻿using System;
+using Vortice.Direct3D;
 using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX

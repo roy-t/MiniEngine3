@@ -1,4 +1,6 @@
-﻿using Mini.Engine.Configuration;
+﻿using System;
+using System.Collections.Generic;
+using Mini.Engine.Configuration;
 
 namespace Mini.Engine.ECS.Components
 {

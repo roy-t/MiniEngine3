@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
@@ -55,24 +56,25 @@ namespace Mini.Engine
         public void Run()
         {
             var stopWatch = Stopwatch.StartNew();
+            var elapsed = 1.0f / 60.0f;
             while (Win32Application.PumpMessages())
             {
+                // TODO: what if the game is running slowly? We can detect this using swapChain.GetFrameStats
+                // but what can we do about ti then...
+                this.UI.NewFrame(elapsed);
                 this.DebugLayerLogger.LogMessages();
 
-                var elapsed = (float)stopWatch.Elapsed.TotalSeconds;
-                stopWatch.Restart();
-
-                this.Device.ClearBackBuffer();
-
-                this.UI.NewFrame(elapsed);
-
                 this.GameLoop.Update();
+                this.Device.ClearBackBuffer();
                 this.GameLoop.Draw();
 #if DEBUG
                 this.ShowRenderDocUI();
 #endif
                 this.UI.Render();
                 this.Device.Present();
+
+                elapsed = (float)stopWatch.Elapsed.TotalSeconds;
+                stopWatch.Restart();
             }
         }
 

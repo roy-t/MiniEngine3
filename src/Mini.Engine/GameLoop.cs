@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Configuration;
+﻿using System;
+using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS.Components;

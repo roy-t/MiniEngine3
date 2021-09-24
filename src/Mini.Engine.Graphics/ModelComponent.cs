@@ -1,4 +1,5 @@
-﻿using Mini.Engine.DirectX;
+﻿using System;
+using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 
 namespace Mini.Engine.Graphics

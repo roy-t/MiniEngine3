@@ -1,4 +1,6 @@
-﻿namespace Mini.Engine.DirectX
+﻿using System;
+
+namespace Mini.Engine.DirectX
 {
     public interface IContent : IDisposable
     {

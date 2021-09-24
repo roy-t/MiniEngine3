@@ -1,4 +1,6 @@
-﻿namespace Mini.Engine.IO
+﻿using System.Collections.Generic;
+
+namespace Mini.Engine.IO
 {
     public interface IVirtualFileSystem
     {

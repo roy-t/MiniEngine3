@@ -5,6 +5,7 @@ using Vortice.Mathematics;
 using static Vortice.Direct3D11.D3D11;
 using System.Runtime.CompilerServices;
 using Vortice.Direct3D11.Debug;
+using System;
 
 [assembly: InternalsVisibleTo("Mini.Engine.Debugging")]
 
@@ -35,7 +36,9 @@ namespace Mini.Engine.DirectX
 #nullable restore
             this.ID3D11Device = device;
             this.ID3D11Device.SetName(name);
+#if DEBUG
             this.ID3D11Debug = device.QueryInterface<ID3D11Debug>();
+#endif
             this.ID3D11DeviceContext = context;
 
             this.CreateSwapChain(width, height);
@@ -59,7 +62,9 @@ namespace Mini.Engine.DirectX
         public RasterizerStates RasterizerStates { get; }
 
         internal ID3D11Device ID3D11Device { get; }
+#if DEBUG
         internal ID3D11Debug ID3D11Debug { get; }
+#endif
         internal ID3D11DeviceContext ID3D11DeviceContext { get; }
 
         internal ID3D11Texture2D BackBuffer { get; private set; } = null!;
@@ -93,7 +98,7 @@ namespace Mini.Engine.DirectX
 
         public void Present()
         {
-            this.swapChain.Present(0, PresentFlags.None);
+            this.swapChain.Present(0, PresentFlags.AllowTearing);
         }
 
         public void Resize(int width, int height)
@@ -104,7 +109,12 @@ namespace Mini.Engine.DirectX
             this.BackBufferView.Dispose();
             this.BackBuffer.Dispose();
 
-            _ = this.swapChain.ResizeBuffers(1, width, height, this.Format, SwapChainFlags.None);
+            var swapChainDescription = this.CreateSwapChainDescription(width, height);
+            this.swapChain.ResizeBuffers(swapChainDescription.BufferCount,
+                swapChainDescription.Width,
+                swapChainDescription.Height,
+                swapChainDescription.Format,
+                swapChainDescription.Flags);
 
             this.BackBuffer = this.swapChain.GetBuffer<ID3D11Texture2D1>(0);
             this.BackBufferView = this.ID3D11Device.CreateRenderTargetView(this.BackBuffer);
@@ -115,26 +125,39 @@ namespace Mini.Engine.DirectX
         {
             var dxgiFactory = this.ID3D11Device.QueryInterface<IDXGIDevice>()
                 ?.GetParent<IDXGIAdapter>()
-                ?.GetParent<IDXGIFactory>()
+                ?.GetParent<IDXGIFactory5>() // Requires DXGI 1.5 which was added in the Windows 10 Anniverary edition
                 ?? throw new Exception("Could not query for IDXGIAdapter or IDXGIFactory");
 
-            var swapchainDesc = new SwapChainDescription()
-            {
-                BufferCount = 1,
-                BufferDescription = new ModeDescription(width, height, this.Format),
-                IsWindowed = true,
-                OutputWindow = this.WindowHandle,
-                SampleDescription = new SampleDescription(1, 0),
-                SwapEffect = SwapEffect.Discard,
-                Usage = Usage.RenderTargetOutput
-            };
+            var swapchainDesc = CreateSwapChainDescription(width, height);
 
-            this.swapChain = dxgiFactory.CreateSwapChain(this.ID3D11Device, swapchainDesc);
-            dxgiFactory.MakeWindowAssociation(this.WindowHandle, WindowAssociationFlags.IgnoreAll);
+            this.swapChain = dxgiFactory.CreateSwapChainForHwnd(this.ID3D11Device, this.WindowHandle, swapchainDesc);
 
             this.BackBuffer = this.swapChain.GetBuffer<ID3D11Texture2D>(0);
             this.BackBufferView = this.ID3D11Device.CreateRenderTargetView(this.BackBuffer);
             this.BackBufferView.DebugName = "BackBufferView";
+        }
+
+        private SwapChainDescription1 CreateSwapChainDescription(int width, int height)
+        {
+            var dxgiFactory = this.ID3D11Device.QueryInterface<IDXGIDevice>()
+               ?.GetParent<IDXGIAdapter>()
+               ?.GetParent<IDXGIFactory5>() // Requires DXGI 1.5 which was added in the Windows 10 Anniverary edition
+               ?? throw new Exception("Could not query for IDXGIAdapter or IDXGIFactory");
+
+            return new SwapChainDescription1()
+            {
+                BufferCount = 3,
+                Format = this.Format,
+                AlphaMode = AlphaMode.Unspecified,
+                Height = height,
+                Width = width,
+                Scaling = Scaling.None,
+                Stereo = false,
+                SampleDescription = new SampleDescription(1, 0),
+                SwapEffect = SwapEffect.FlipSequential,
+                Usage = Usage.RenderTargetOutput,
+                Flags = dxgiFactory.PresentAllowTearing ? SwapChainFlags.AllowTearing : SwapChainFlags.None
+            };
         }
 
         public void Dispose()
@@ -153,8 +176,9 @@ namespace Mini.Engine.DirectX
             this.swapChain?.Dispose();
 
             this.ID3D11DeviceContext.Dispose();
-
+#if DEBUG
             this.ID3D11Debug.ReportLiveDeviceObjects(ReportLiveDeviceObjectFlags.Detail);
+#endif
             this.ID3D11Device.Dispose();
         }
     }
