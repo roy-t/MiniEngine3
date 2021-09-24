@@ -13,6 +13,11 @@ public class FrameService
         this.Camera = new PerspectiveCamera(this.GBuffer.AspectRatio, Transform.Identity);
     }
 
+    /// <summary>
+    /// How much to interpolate between the previous and current state of any drawables to prevent stutter
+    /// </summary>
+    public float Alpha { get; set; }
+
     public GBuffer GBuffer { get; }
 
     public PerspectiveCamera Camera { get; }

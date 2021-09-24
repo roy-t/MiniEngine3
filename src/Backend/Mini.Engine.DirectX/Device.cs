@@ -1,11 +1,11 @@
-﻿using Vortice.Direct3D;
+﻿using System;
+using System.Runtime.CompilerServices;
+using Vortice.Direct3D;
 using Vortice.Direct3D11;
+using Vortice.Direct3D11.Debug;
 using Vortice.DXGI;
 using Vortice.Mathematics;
 using static Vortice.Direct3D11.D3D11;
-using System.Runtime.CompilerServices;
-using Vortice.Direct3D11.Debug;
-using System;
 
 [assembly: InternalsVisibleTo("Mini.Engine.Debugging")]
 
@@ -116,33 +116,37 @@ namespace Mini.Engine.DirectX
                 swapChainDescription.Format,
                 swapChainDescription.Flags);
 
+            this.CreateBackBuffer();
+        }
+
+        private void CreateBackBuffer()
+        {
             this.BackBuffer = this.swapChain.GetBuffer<ID3D11Texture2D1>(0);
             this.BackBufferView = this.ID3D11Device.CreateRenderTargetView(this.BackBuffer);
             this.BackBufferView.DebugName = "BackBufferView";
         }
 
-        private void CreateSwapChain(int width, int height)
+        private IDXGIFactory5 GetDxgiFactory()
         {
             var dxgiFactory = this.ID3D11Device.QueryInterface<IDXGIDevice>()
                 ?.GetParent<IDXGIAdapter>()
                 ?.GetParent<IDXGIFactory5>() // Requires DXGI 1.5 which was added in the Windows 10 Anniverary edition
-                ?? throw new Exception("Could not query for IDXGIAdapter or IDXGIFactory");
+                ?? throw new Exception("Could not query for IDXGIAdapter or IDXGIFactory5");
+            return dxgiFactory;
+        }
 
-            var swapchainDesc = CreateSwapChainDescription(width, height);
+        private void CreateSwapChain(int width, int height)
+        {
+            var dxgiFactory = this.GetDxgiFactory();
+            var swapchainDesc = this.CreateSwapChainDescription(width, height);
 
             this.swapChain = dxgiFactory.CreateSwapChainForHwnd(this.ID3D11Device, this.WindowHandle, swapchainDesc);
-
-            this.BackBuffer = this.swapChain.GetBuffer<ID3D11Texture2D>(0);
-            this.BackBufferView = this.ID3D11Device.CreateRenderTargetView(this.BackBuffer);
-            this.BackBufferView.DebugName = "BackBufferView";
+            this.CreateBackBuffer();
         }
 
         private SwapChainDescription1 CreateSwapChainDescription(int width, int height)
         {
-            var dxgiFactory = this.ID3D11Device.QueryInterface<IDXGIDevice>()
-               ?.GetParent<IDXGIAdapter>()
-               ?.GetParent<IDXGIFactory5>() // Requires DXGI 1.5 which was added in the Windows 10 Anniverary edition
-               ?? throw new Exception("Could not query for IDXGIAdapter or IDXGIFactory");
+            var dxgiFactory = this.GetDxgiFactory();
 
             return new SwapChainDescription1()
             {

@@ -45,7 +45,7 @@ namespace Mini.Engine
             this.DebugLayerLogger = (DebugLayerLogger)resolve(typeof(DebugLayerLogger));
             this.GameLoop = (GameLoop)resolve(typeof(GameLoop));
             this.UI = (UserInterface)resolve(typeof(UserInterface));
-            
+
             Win32Application.WindowEvents.OnResize += (o, e) =>
             {
                 this.Device.Resize(e.Width, e.Height);
@@ -55,38 +55,55 @@ namespace Mini.Engine
 
         public void Run()
         {
-            var stopWatch = Stopwatch.StartNew();
-            var elapsed = 1.0f / 60.0f;
+            var stopwatch = Stopwatch.StartNew();
+
+            const double dt = 1.0 / 60.0; // constant tick rate of simulation
+            var t = 0.0;
+            var accumulator = 0.0;
+
             while (Win32Application.PumpMessages())
             {
-                // TODO: what if the game is running slowly? We can detect this using swapChain.GetFrameStats
-                // but what can we do about ti then...
-                this.UI.NewFrame(elapsed);
+                var elapsed = stopwatch.Elapsed.TotalSeconds;
+                stopwatch.Restart();
+
+                elapsed = Math.Min(elapsed, 0.25);
+                accumulator += elapsed;
+
+                this.UI.NewFrame((float)elapsed);
                 this.DebugLayerLogger.LogMessages();
 
-                this.GameLoop.Update();
+                while (accumulator >= dt)
+                {
+                    // everything that changes on screen should have a current and previous state
+                    // updating it moves both one step forward.
+                    this.GameLoop.Update((float)t, (float)dt);
+                    accumulator -= dt;
+                }
+
+                var alpha = accumulator / dt;
                 this.Device.ClearBackBuffer();
-                this.GameLoop.Draw();
+                this.GameLoop.Draw((float)alpha); // alpha signifies how much to lerp betwen previous and current state
 #if DEBUG
                 this.ShowRenderDocUI();
 #endif
                 this.UI.Render();
                 this.Device.Present();
-
-                elapsed = (float)stopWatch.Elapsed.TotalSeconds;
-                stopWatch.Restart();
+                //https://www.gafferongames.com/post/fix_your_timestep/
             }
         }
 
-        public void Dispose() => this.UI.Dispose();
+        public void Dispose()
+        {
+            this.UI.Dispose();
+        }
 
         private void ShowRenderDocUI()
         {
             if (this.renderDoc is RenderDoc renderDoc)
             {
-                if(ImGui.Begin("RenderDoc"))
+                if (ImGui.Begin("RenderDoc"))
                 {
-                    if(ImGui.MenuItem("Capture"))
+                    if (ImGui.MenuItem("Capture"))
                     {
                         renderDoc.TriggerCapture();
                     }
@@ -103,10 +120,10 @@ namespace Mini.Engine
 
         private void LoadRenderDoc()
         {
-            if(StartupArguments.EnableRenderDoc)
+            if (StartupArguments.EnableRenderDoc)
             {
                 var loaded = RenderDoc.Load(out var renderDoc);
-                if(loaded)
+                if (loaded)
                 {
                     this.renderDoc = renderDoc;
                     this.Logger.Information("Started RenderDoc");

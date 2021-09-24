@@ -12,11 +12,13 @@ namespace Mini.Engine
     [Service]
     internal sealed class GameLoop : IDisposable
     {
+        private readonly FrameService FrameService;
         private readonly ContentManager Content;
         private readonly ParallelPipeline Pipeline;
 
-        public GameLoop(Device device, RenderPipelineBuilder builder, ContentManager content, EntityAdministrator entities, IComponentContainer<ModelComponent> models)
+        public GameLoop(Device device, FrameService frameService, RenderPipelineBuilder builder, ContentManager content, EntityAdministrator entities, IComponentContainer<ModelComponent> models)
         {
+            this.FrameService = frameService;
             this.Content = content;
             this.Pipeline = builder.Build();
 
@@ -25,13 +27,14 @@ namespace Mini.Engine
             models.Add(new ModelComponent(entity, new Model(device, new ModelData())));
         }
 
-        public void Update()
+        public void Update(float time, float elapsed)
         {
             this.Content.ReloadChangedContent();
         }
 
-        public void Draw()
+        public void Draw(float alpha)
         {
+            this.FrameService.Alpha = alpha;
             this.Pipeline.Frame();
             // TODO: post process and render to screen
         }
