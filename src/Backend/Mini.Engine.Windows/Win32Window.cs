@@ -2,6 +2,8 @@
 using Vortice;
 using Vortice.Win32;
 using static Vortice.Win32.User32;
+using static Vortice.Win32.WindowExStyles;
+using static Vortice.Win32.WindowStyles;
 
 namespace Mini.Engine.Windows
 {
@@ -18,8 +20,8 @@ namespace Mini.Engine.Windows
             var x = (screenWidth - this.Width) / 2;
             var y = (screenHeight - this.Height) / 2;
 
-            var style = WindowStyles.WS_OVERLAPPEDWINDOW;
-            var styleEx = WindowExStyles.WS_EX_APPWINDOW | WindowExStyles.WS_EX_WINDOWEDGE;
+            var style = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+            var styleEx = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 
             var windowRect = new RawRect(0, 0, this.Width, this.Height);
             AdjustWindowRectEx(ref windowRect, style, false, styleEx);

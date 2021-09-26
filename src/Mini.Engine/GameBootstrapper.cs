@@ -45,12 +45,6 @@ namespace Mini.Engine
             this.DebugLayerLogger = (DebugLayerLogger)resolve(typeof(DebugLayerLogger));
             this.GameLoop = (GameLoop)resolve(typeof(GameLoop));
             this.UI = (UserInterface)resolve(typeof(UserInterface));
-
-            Win32Application.WindowEvents.OnResize += (o, e) =>
-            {
-                this.Device.Resize(e.Width, e.Height);
-                this.UI.Resize(e.Width, e.Height);
-            };
         }
 
         public void Run()
@@ -63,6 +57,7 @@ namespace Mini.Engine
 
             while (Win32Application.PumpMessages())
             {
+                // Main loop based on https://www.gafferongames.com/post/fix_your_timestep/
                 var elapsed = stopwatch.Elapsed.TotalSeconds;
                 stopwatch.Restart();
 
@@ -74,21 +69,22 @@ namespace Mini.Engine
 
                 while (accumulator >= dt)
                 {
-                    // everything that changes on screen should have a current and previous state
+                    // everything that changes on screen should have a current and future state
                     // updating it moves both one step forward.
                     this.GameLoop.Update((float)t, (float)dt);
+                    t += dt;
                     accumulator -= dt;
                 }
 
                 var alpha = accumulator / dt;
                 this.Device.ClearBackBuffer();
-                this.GameLoop.Draw((float)alpha); // alpha signifies how much to lerp betwen previous and current state
+                this.GameLoop.Draw((float)alpha); // alpha signifies how much to lerp betwen current and future state
 #if DEBUG
                 this.ShowRenderDocUI();
 #endif
                 this.UI.Render();
                 this.Device.Present();
-                //https://www.gafferongames.com/post/fix_your_timestep/
+
             }
         }
 

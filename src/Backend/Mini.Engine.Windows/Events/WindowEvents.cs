@@ -1,5 +1,7 @@
 ﻿using System;
 using Vortice.Win32;
+using static Vortice.Win32.SizeMessage;
+using static Vortice.Win32.WindowMessage;
 
 namespace Mini.Engine.Windows.Events
 {
@@ -11,17 +13,16 @@ namespace Mini.Engine.Windows.Events
         {
             switch (msg)
             {
-                case WindowMessage.Size:
+                case Size:
                     var lp = (int)lParam;
                     var width = Utils.Loword(lp);
                     var height = Utils.Hiword(lp);
 
-
                     switch ((SizeMessage)wParam)
                     {
-                        case SizeMessage.SIZE_RESTORED:
-                        case SizeMessage.SIZE_MAXIMIZED:
-                        case SizeMessage.SIZE_MINIMIZED:
+                        case SIZE_RESTORED:
+                        case SIZE_MAXIMIZED:
+                        case SIZE_MINIMIZED:
                             this.OnResize?.Invoke(hWnd, new SizeEventArgs(width, height));
                             break;
                     }

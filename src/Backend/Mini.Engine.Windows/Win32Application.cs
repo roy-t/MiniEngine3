@@ -27,7 +27,7 @@ namespace Mini.Engine.Windows
                 CursorHandle = LoadCursor(IntPtr.Zero, SystemCursor.IDC_ARROW),
                 BackgroundBrushHandle = IntPtr.Zero,
                 IconHandle = IntPtr.Zero,
-                ClassName = "WndClass",
+                ClassName = "WndClass"
             };
 
             RegisterClassEx(ref wndClass);
