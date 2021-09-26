@@ -2,6 +2,7 @@
   <ItemGroup>
     <None Remove=".contentroot" />
     <None Remove="Shaders\FlatShader.hlsl" />
+    <None Remove="Shaders\PostProcessShader.hlsl" />
   </ItemGroup> 
   <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
@@ -15,6 +16,7 @@
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
     <AdditionalFiles Include=".contentroot" />
+    <AdditionalFiles Include="Shaders\PostProcessShader.hlsl" />
     <AdditionalFiles Include="Shaders\FlatShader.hlsl" />
     <AdditionalFiles Include="Shaders\ImmediateShader.hlsl" />
     <AdditionalFiles Include="Shaders\Include.hlsl" />

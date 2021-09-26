@@ -43,17 +43,17 @@ namespace Mini.Engine.Graphics
             this.Context.VS.SetShader(this.VertexShader);
 
             this.Context.RS.SetViewPort(0, 0, width, height);
+            this.Context.RS.SetScissorRect(0, 0, width, height);
             this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
 
             this.Context.PS.SetShader(this.PixelShader);
             this.Context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
 
-            //this.Context.OM.SetRenderTarget(this.FrameService.GBuffer.Albedo);
-            this.Context.OM.SetRenderTargetToBackBuffer();
+            this.Context.OM.SetRenderTarget(this.FrameService.GBuffer.Albedo);
+            //this.Context.OM.SetRenderTargetToBackBuffer();
 
             this.Context.OM.SetBlendState(this.Device.BlendStates.Opaque);
             this.Context.OM.SetDepthStencilState(this.Device.DepthStencilStates.Default);
-            this.Context.RS.SetScissorRect(0, 0, width, height);
         }
 
         [Process(Query = ProcessQuery.All)]
