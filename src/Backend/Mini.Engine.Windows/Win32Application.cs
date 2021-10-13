@@ -34,6 +34,17 @@ namespace Mini.Engine.Windows
             return new Win32Window(title, width, height, WindowEvents);
         }
 
+        public static void RegisterMessageListener(WindowMessage message, Action<UIntPtr, IntPtr> handler)
+        {
+            RawEvents.OnEvent += (o, e) =>
+            {
+                if (e.Msg == message)
+                {
+                    handler(e.WParam, e.LParam);
+                }
+            };
+        }
+
         public static bool PumpMessages()
         {
             if (PeekMessage(out var msg, IntPtr.Zero, 0, 0, PM_REMOVE))
@@ -52,6 +63,8 @@ namespace Mini.Engine.Windows
         {
             // TODO: ideally we never want to expose these events, right now its necessary for input
             // but we should replace it with input system similar to what ImGui uses
+
+            // TODO: maybe we can move the input classes here and make ImGui use RawInputController?
             RawEvents.FireWindowEvents(hWnd, msg, wParam, lParam);
 
             switch (msg)

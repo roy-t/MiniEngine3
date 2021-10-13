@@ -399,7 +399,7 @@ namespace Mini.Engine.Input
     /// <summary>
     /// Enumeration contanining the command types to issue.
     /// </summary>
-    public enum RawInputCommand
+    public enum RawInputCommand : uint
     {
         /// <summary>
         /// Get input data.
@@ -415,8 +415,7 @@ namespace Mini.Engine.Input
     /// Enumeration containing the button data for raw mouse input.
     /// </summary>
     [Flags()]
-    public enum RawMouseButtons
-        : ushort
+    public enum RawMouseButtons : ushort
     {
         /// <summary>No button.</summary>
         None = 0,
@@ -441,15 +440,16 @@ namespace Mini.Engine.Input
         /// <summary>Button 5 up.</summary>
         Button5Up = 0x0200,
         /// <summary>Mouse wheel moved.</summary>
-        MouseWheel = 0x0400
+        MouseWheel = 0x0400,
+        /// <summary>Horizontal mouse wheel moved.</summary>
+        MouseHWheel = 0x0800
     }
 
     /// <summary>
     /// Enumeration containing the flags for raw mouse data.
     /// </summary>
     [Flags()]
-    public enum RawMouseFlags
-        : ushort
+    public enum RawMouseFlags : ushort
     {
         /// <summary>Relative to the last position.</summary>
         MoveRelative = 0,
@@ -458,7 +458,9 @@ namespace Mini.Engine.Input
         /// <summary>Coordinate data is mapped to a virtual desktop.</summary>
         VirtualDesktop = 2,
         /// <summary>Attributes for the mouse have changed.</summary>
-        AttributesChanged = 4
+        AttributesChanged = 4,
+        /// <summary> This mouse movement event was not coalesced. Mouse movement events can be coalesced by default. Windows XP/2000: This value is not supported.</summary>
+        NoCoalesce = 8
     }
 
     /// <summary>
@@ -500,13 +502,7 @@ namespace Mini.Engine.Input
         /// <summary>The key is up</summary>
         KeyE0 = 2,
         /// <summary></summary>
-        KeyE1 = 4,
-        /// <summary></summary>
-        TerminalServerSetLED = 8,
-        /// <summary></summary>
-        TerminalServerShadow = 0x10,
-        /// <summary></summary>
-        TerminalServerVKPACKET = 0x20
+        KeyE1 = 4
     }
 
     /// <summary>Value type for raw input devices.</summary>
@@ -543,7 +539,7 @@ namespace Mini.Engine.Input
         /// If the mouse wheel is moved, this will contain the delta amount.
         /// </summary>
         [FieldOffset(6)]
-        public short ButtonData;
+        public ushort ButtonData;
         /// <summary>
         /// Raw button data.
         /// </summary>
@@ -591,17 +587,17 @@ namespace Mini.Engine.Input
     public struct RawKeyboard
     {
         /// <summary>Scan code for key depression, see: https://download.microsoft.com/download/1/6/1/161ba512-40e2-4cc9-843a-923143f3456c/translate.pdf.</summary>
-        public short MakeCode;
+        public ushort MakeCode;
         /// <summary>Scan code information.</summary>
         public RawKeyboardFlags Flags;
         /// <summary>Reserved.</summary>
-        public short Reserved;
+        public ushort Reserved;
         /// <summary>Virtual key code.</summary>
         public VK VirtualKey;
         /// <summary>Corresponding window message.</summary>
         public WindowMessage Message;
         /// <summary>Extra information.</summary>
-        public int ExtraInformation;
+        public uint ExtraInformation;
     }
 
     /// <summary>
@@ -658,6 +654,6 @@ namespace Mini.Engine.Input
         /// <param name="cbSizeHeader">Size of the header.</param>
         /// <returns>0 if successful if pData is null, otherwise number of bytes if pData is not null.</returns>
         [DllImport("user32.dll")]
-        public static extern int GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, out RawInputData pData, ref int pcbSize, int cbSizeHeader);
+        public static extern uint GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, out RawInputData pData, ref uint pcbSize, uint cbSizeHeader);
     }
 }

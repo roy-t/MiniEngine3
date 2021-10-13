@@ -571,7 +571,7 @@ namespace Vortice.Win32
         }
     }
 
-    public enum VK
+    public enum VK : ushort
     {
         ///<summary>
         ///Left mouse button

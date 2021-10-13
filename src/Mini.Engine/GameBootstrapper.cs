@@ -28,7 +28,7 @@ namespace Mini.Engine
 
         private RenderDoc? renderDoc;
 
-        private readonly RawMouseController RawMouse;
+        private readonly RawInputController RawMouse;
 
         public GameBootstrapper(ILogger logger, Register register, RegisterAs registerAs, Resolve resolve)
         {
@@ -44,7 +44,7 @@ namespace Mini.Engine
             this.Mouse = new DirectInputMouseController(this.Window.Handle);
             this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
 
-            this.RawMouse = new RawMouseController(this.Window.Handle);
+            this.RawMouse = new RawInputController(this.Window.Handle);
 
             // Handle ownership/lifetime control over to LightInject
             register(this.Device);
