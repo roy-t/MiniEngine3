@@ -4,7 +4,7 @@ using Vortice.DirectInput;
 
 namespace Mini.Engine.Input
 {
-    public sealed class MouseController : IDisposable
+    public sealed class DirectInputMouseController : IDisposable
     {
         private readonly IDirectInput8 Instance;
         private readonly IDirectInputDevice8 Mouse;
@@ -12,7 +12,7 @@ namespace Mini.Engine.Input
         private MouseState LastState;
         private MouseState CurrentState;
 
-        public MouseController(IntPtr hwnd)
+        public DirectInputMouseController(IntPtr hwnd)
         {
             this.Instance = DInput.DirectInput8Create();
             this.Mouse = this.Instance.CreateDevice(PredefinedDevice.SysMouse);

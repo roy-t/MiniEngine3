@@ -14,12 +14,12 @@ namespace Mini.Engine.Controllers
         private const float MaxLinearVelocity = 25.0f;
 
         private readonly KeyboardController Keyboard;
-        private readonly MouseController Mouse;
+        private readonly DirectInputMouseController Mouse;
         private readonly float AngularVelocity = MathF.PI * 0.002f;
 
-        private float linearVelocity = 1.1f;
+        private float linearVelocity = 5.0f;
 
-        public CameraController(KeyboardController keyboard, MouseController mouse)
+        public CameraController(KeyboardController keyboard, DirectInputMouseController mouse)
         {
             this.Keyboard = keyboard;
             this.Mouse = mouse;
@@ -37,7 +37,7 @@ namespace Mini.Engine.Controllers
             var right = -left;
 
             var groundMovement = this.Keyboard.AsVector(InputState.Pressed, Key.W, Key.A, Key.S, Key.D);
-            var verticalMovement = this.Keyboard.AsVector(InputState.Pressed, Key.Space, Key.LeftControl);
+            var verticalMovement = this.Keyboard.AsVector(InputState.Pressed, Key.Space, Key.C);
 
             if (groundMovement.LengthSquared() > 0 || verticalMovement.LengthSquared() > 0)
             {

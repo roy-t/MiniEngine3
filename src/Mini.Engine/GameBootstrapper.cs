@@ -18,7 +18,7 @@ namespace Mini.Engine
         private readonly Win32Window Window;
         private readonly Device Device;
         private readonly KeyboardController Keyboard;
-        private readonly MouseController Mouse;
+        private readonly DirectInputMouseController Mouse;
         private readonly IVirtualFileSystem FileSystem;
 
         private readonly DebugLayerLogger DebugLayerLogger;
@@ -27,6 +27,8 @@ namespace Mini.Engine
         private readonly ILogger Logger;
 
         private RenderDoc? renderDoc;
+
+        private readonly RawMouseController RawMouse;
 
         public GameBootstrapper(ILogger logger, Register register, RegisterAs registerAs, Resolve resolve)
         {
@@ -39,8 +41,10 @@ namespace Mini.Engine
 
             this.Device = new Device(this.Window.Handle, Format.R8G8B8A8_UNorm, this.Window.Width, this.Window.Height, "Device");
             this.Keyboard = new KeyboardController(this.Window.Handle);
-            this.Mouse = new MouseController(this.Window.Handle);
+            this.Mouse = new DirectInputMouseController(this.Window.Handle);
             this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
+
+            this.RawMouse = new RawMouseController(this.Window.Handle);
 
             // Handle ownership/lifetime control over to LightInject
             register(this.Device);

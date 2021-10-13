@@ -6,4 +6,7 @@
 	<ItemGroup>
 	  <PackageReference Include="Vortice.DirectInput" Version="1.9.143" />
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Mini.Engine.Windows\Mini.Engine.Windows.csproj" />
+	</ItemGroup>
 </Project>

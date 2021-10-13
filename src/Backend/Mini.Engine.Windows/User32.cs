@@ -154,7 +154,8 @@ namespace Vortice.Win32
         NcMouseMove = 0x00A0,
         WindowPositionChanging = 0x0046,
         WindowPositionChanged = 0x0047,
-        DeviceChange = 0x0219
+        DeviceChange = 0x0219,
+        Input = 0x00FF,
     }
 
     public enum ShowWindowCommand
