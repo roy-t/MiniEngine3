@@ -31,9 +31,6 @@ namespace Mini.Engine.Input
             this.CurrentState = this.Mouse.GetCurrentMouseState();
         }
 
-        public Vector2 Movement => new(this.CurrentState.X, this.CurrentState.Y);
-
-
         public bool Pressed(int button)
         {
             return this.Is(button, InputState.JustPressed);
@@ -49,14 +46,16 @@ namespace Mini.Engine.Input
             return this.Is(button, InputState.JustReleased);
         }
 
+        public Vector2 Movement => new(this.CurrentState.X, this.CurrentState.Y);
+
         public bool ScrolledUp()
         {
-            return this.LastState.Z < this.CurrentState.Z;
+            return this.CurrentState.Z > 0;
         }
 
         public bool ScrolledDown()
         {
-            return this.LastState.Z > this.CurrentState.Z;
+            return this.CurrentState.Z < 0;
         }
 
         private bool Is(int button, InputState state)
