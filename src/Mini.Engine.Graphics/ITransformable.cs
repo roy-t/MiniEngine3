@@ -35,6 +35,11 @@ namespace Mini.Engine.Graphics
             return target.Retransform(target.Transform.SetRotation(rotation));
         }
 
+        public static T ApplyTranslation<T>(this ITransformable<T> target, Vector3 translation)
+        {
+            return target.Retransform(target.Transform.MoveTo(target.Transform.Position + translation));
+        }
+
         public static T ApplyRotation<T>(this ITransformable<T> target, Quaternion rotation)
         {
             return target.Retransform(target.Transform.ApplyRotation(rotation));

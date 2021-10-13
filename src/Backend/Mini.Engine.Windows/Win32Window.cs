@@ -1,4 +1,5 @@
 ﻿using System;
+using Mini.Engine.Windows.Events;
 using Vortice;
 using Vortice.Win32;
 using static Vortice.Win32.User32;
@@ -9,7 +10,7 @@ namespace Mini.Engine.Windows
 {
     public sealed class Win32Window : IDisposable
     {
-        internal Win32Window(string title, int width, int height, Events.WindowEvents windowEvents)
+        internal Win32Window(string title, int width, int height, WindowEvents windowEvents)
         {
             this.Title = title;
             this.Width = width;
@@ -40,6 +41,11 @@ namespace Mini.Engine.Windows
             {
                 this.IsMinimized = e.Width == 0 && e.Height == 0;
             };
+
+            windowEvents.OnFocus += (o, e) =>
+            {
+                this.HasFocus = e;
+            };
         }
 
         public string Title { get; }
@@ -47,11 +53,16 @@ namespace Mini.Engine.Windows
         public int Height { get; private set; }
         public IntPtr Handle { get; private set; }
         public bool IsMinimized { get; private set; }
+        public bool HasFocus { get; private set; }
 
         public void Show()
-            => ShowWindow(this.Handle, ShowWindowCommand.Normal);
+        {
+            ShowWindow(this.Handle, ShowWindowCommand.Normal);
+        }
 
         public void Dispose()
-            => DestroyWindow(this.Handle);
+        {
+            DestroyWindow(this.Handle);
+        }
     }
 }

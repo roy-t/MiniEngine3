@@ -4,6 +4,7 @@ using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
+using Mini.Engine.Input;
 using Mini.Engine.IO;
 using Mini.Engine.UI;
 using Mini.Engine.Windows;
@@ -16,6 +17,8 @@ namespace Mini.Engine
     {
         private readonly Win32Window Window;
         private readonly Device Device;
+        private readonly KeyboardController Keyboard;
+        private readonly MouseController Mouse;
         private readonly IVirtualFileSystem FileSystem;
 
         private readonly DebugLayerLogger DebugLayerLogger;
@@ -35,10 +38,14 @@ namespace Mini.Engine
             this.LoadRenderDoc();
 
             this.Device = new Device(this.Window.Handle, Format.R8G8B8A8_UNorm, this.Window.Width, this.Window.Height, "Device");
+            this.Keyboard = new KeyboardController(this.Window.Handle);
+            this.Mouse = new MouseController(this.Window.Handle);
             this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
 
             // Handle ownership/lifetime control over to LightInject
             register(this.Device);
+            register(this.Keyboard);
+            register(this.Mouse);
             register(this.Window);
             registerAs(this.FileSystem, typeof(IVirtualFileSystem));
 
@@ -67,8 +74,22 @@ namespace Mini.Engine
                 this.UI.NewFrame((float)elapsed);
                 this.DebugLayerLogger.LogMessages();
 
+                var processInput = this.Window.HasFocus;
                 while (accumulator >= dt)
                 {
+                    if (processInput)
+                    {
+                        this.Keyboard.Update();
+                        this.Mouse.Update();
+
+                        processInput = false;
+
+                        if (this.Keyboard.Pressed(Vortice.DirectInput.Key.Escape))
+                        {
+                            this.Window.Dispose();
+                        }
+                    }
+
                     // everything that changes on screen should have a current and future state
                     // updating it moves both one step forward.
                     this.GameLoop.Update((float)t, (float)dt);

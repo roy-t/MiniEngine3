@@ -20,5 +20,5 @@ public class FrameService
 
     public GBuffer GBuffer { get; }
 
-    public PerspectiveCamera Camera { get; }
+    public PerspectiveCamera Camera;
 }

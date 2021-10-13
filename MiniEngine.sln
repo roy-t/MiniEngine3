@@ -51,6 +51,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Graphics", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.IO", "src\Backend\Mini.Engine.IO\Mini.Engine.IO.csproj", "{5CFD85E9-47EF-43A2-9519-EAAC3043532C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mini.Engine.Input", "src\Backend\Mini.Engine.Input\Mini.Engine.Input.csproj", "{5DF9E61E-4A18-4D57-9C8A-1D1ADAECD58A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -125,6 +127,10 @@ Global
 		{5CFD85E9-47EF-43A2-9519-EAAC3043532C}.Debug|x64.Build.0 = Debug|x64
 		{5CFD85E9-47EF-43A2-9519-EAAC3043532C}.Release|x64.ActiveCfg = Release|x64
 		{5CFD85E9-47EF-43A2-9519-EAAC3043532C}.Release|x64.Build.0 = Release|x64
+		{5DF9E61E-4A18-4D57-9C8A-1D1ADAECD58A}.Debug|x64.ActiveCfg = Debug|x64
+		{5DF9E61E-4A18-4D57-9C8A-1D1ADAECD58A}.Debug|x64.Build.0 = Debug|x64
+		{5DF9E61E-4A18-4D57-9C8A-1D1ADAECD58A}.Release|x64.ActiveCfg = Release|x64
+		{5DF9E61E-4A18-4D57-9C8A-1D1ADAECD58A}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -142,6 +148,7 @@ Global
 		{B6D1A166-5270-41B7-A73E-718589E2284E} = {82AF3DCE-0279-475D-B1A8-D610C8735F09}
 		{8B70A0ED-B566-4A9D-9A6B-E5EEE4E0AE21} = {82AF3DCE-0279-475D-B1A8-D610C8735F09}
 		{5CFD85E9-47EF-43A2-9519-EAAC3043532C} = {DC1F1BAE-401D-4710-848C-316561617DCD}
+		{5DF9E61E-4A18-4D57-9C8A-1D1ADAECD58A} = {DC1F1BAE-401D-4710-848C-316561617DCD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CE662EDF-5575-4B51-82CF-58DF83292B85}

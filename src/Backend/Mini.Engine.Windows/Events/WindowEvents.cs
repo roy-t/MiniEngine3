@@ -8,6 +8,7 @@ namespace Mini.Engine.Windows.Events
     public sealed class WindowEvents
     {
         public EventHandler<SizeEventArgs>? OnResize;
+        public EventHandler<bool>? OnFocus;
 
         internal void FireWindowEvents(IntPtr hWnd, WindowMessage msg, UIntPtr wParam, IntPtr lParam)
         {
@@ -26,6 +27,18 @@ namespace Mini.Engine.Windows.Events
                             this.OnResize?.Invoke(hWnd, new SizeEventArgs(width, height));
                             break;
                     }
+                    break;
+
+                case SetFocus:
+                    this.OnFocus?.Invoke(hWnd, true);
+                    break;
+
+                case KillFocus:
+                    this.OnFocus?.Invoke(hWnd, false);
+                    break;
+
+                case Activate:
+                    this.OnFocus?.Invoke(hWnd, Utils.Loword((int)wParam) != 0);
                     break;
             }
         }

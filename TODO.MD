@@ -1,18 +1,5 @@
 # TODO
-https://docs.microsoft.com/en-us/windows/win32/direct3ddxgi/dxgi-flip-model
-1. Wait for ready outside the device
-2. Start the clock
-3. Render all the things
-4. Get the frame statistics for last frame, make sure that it was presented, otherwise ignore
-5. Present the frame, using no wait, (and get the frame id to compare it)
-6. Stop the clock and use this number to benchmark
-7. Use the time the frame was presented at - the last frame time to do the actual delta calculations
-8. Profit
-9. Figure out why VSYNC is a thing
-10. Use 3 buffers
-
-Measure if doing a lot of work makes it slower?
-
+Maybe parse mouse using https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/DxTechArts/taking-advantage-of-high-dpi-mouse-movement.md
 
 
 Define internal model format

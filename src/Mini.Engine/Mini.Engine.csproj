@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.Debugging\Mini.Engine.Debugging.csproj" />
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
+    <ProjectReference Include="..\Backend\Mini.Engine.Input\Mini.Engine.Input.csproj" />
     <ProjectReference Include="..\Backend\Mini.Engine.Windows\Mini.Engine.Windows.csproj" />
     <ProjectReference Include="..\Mini.Engine.Configuration\Mini.Engine.Configuration.csproj" />
     <ProjectReference Include="..\Mini.Engine.Content\Mini.Engine.Content.csproj" />
