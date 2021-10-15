@@ -1,6 +1,6 @@
 # TODO
 
-// replace pinvoke with types generated like this: https://github.com/microsoft/CsWin32
+// continue replacing things in Mini.Engine.Windows with this: https://github.com/microsoft/CsWin32
 
 Maybe parse mouse using https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/DxTechArts/taking-advantage-of-high-dpi-mouse-movement.md
 

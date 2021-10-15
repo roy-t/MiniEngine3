@@ -3,8 +3,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Mini.Engine.Windows.Events;
 using Vortice.Win32;
-using static Vortice.Win32.Kernel32;
 using static Vortice.Win32.User32;
+using static Windows.Win32.PInvoke;
 
 namespace Mini.Engine.Windows
 {
@@ -16,14 +16,14 @@ namespace Mini.Engine.Windows
         public static Win32Window Initialize(string title, int width, int height)
         {
 #nullable disable
-            var moduleHandle = GetModuleHandle(null);
+            var moduleHandle = GetModuleHandle((string)null);
 #nullable restore
             var wndClass = new WNDCLASSEX
             {
                 Size = Unsafe.SizeOf<WNDCLASSEX>(),
                 Styles = WindowClassStyles.CS_HREDRAW | WindowClassStyles.CS_VREDRAW | WindowClassStyles.CS_OWNDC,
                 WindowProc = &WndProc,
-                InstanceHandle = moduleHandle,
+                InstanceHandle = moduleHandle.DangerousGetHandle(),
                 CursorHandle = LoadCursor(IntPtr.Zero, SystemCursor.IDC_ARROW),
                 BackgroundBrushHandle = IntPtr.Zero,
                 IconHandle = IntPtr.Zero,

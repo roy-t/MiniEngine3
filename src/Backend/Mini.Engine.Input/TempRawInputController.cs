@@ -7,12 +7,12 @@ using static Mini.Engine.Input.RawInput;
 
 namespace Mini.Engine.Input
 {
-    public sealed class RawInputController
+    public sealed class TempRawInputController
     {
         private static readonly uint RawInputDataSize = (uint)Marshal.SizeOf<RawInputData>();
         private static readonly uint RawInputHeaderSize = (uint)Marshal.SizeOf<RawInputHeader>();
 
-        public RawInputController(IntPtr hwnd)
+        public TempRawInputController(IntPtr hwnd)
         {
             Win32Application.RegisterMessageListener(WindowMessage.Input, (wParam, lParam) => this.ProcessMessage(wParam, lParam));
 
