@@ -10,6 +10,12 @@ namespace Mini.Engine.Windows
 {
     public sealed class RawInputController
     {
+        private const ushort HID_USAGE_PAGE_GENERIC = 0x01;
+        private const ushort HID_USAGE_GENERIC_MOUSE = 0x02;
+        private const ushort HID_USAGE_GENERIC_KEYBOARD = 0x06;
+        private const ushort RIM_TYPEMOUSE = 0;
+        private const ushort RIM_TYPEKEYBOARD = 1;
+
         private static readonly uint RawInputSize = (uint)Marshal.SizeOf<RAWINPUT>();
         private static readonly uint RawInputHeaderSize = (uint)Marshal.SizeOf<RAWINPUTHEADER>();
 
@@ -32,15 +38,14 @@ namespace Mini.Engine.Windows
             var rawInput = new RAWINPUT();
             GetRawInputData((HRAWINPUT)lParam, RAW_INPUT_DATA_COMMAND_FLAGS.RID_INPUT, &rawInput, ref size, RawInputHeaderSize);
 
-            if (rawInput.header.dwType == 0) // Mouse
+            if (rawInput.header.dwType == RIM_TYPEMOUSE)
             {
-                const short WheelDelta = 120;
-                Debug.WriteLine($"Mouse: p:{rawInput.data.mouse.lLastX},{rawInput.data.mouse.lLastY}. {rawInput.data.mouse.Anonymous.Anonymous.usButtonFlags}, {(short)rawInput.data.mouse.Anonymous.Anonymous.usButtonData / WheelDelta}");
+                Debug.WriteLine($"Mouse: p:{Mouse.GetPosition(rawInput)}, {Mouse.GetButtons(rawInput)}, {Mouse.GetMouseWheel(rawInput)}");
             }
 
-            if (rawInput.header.dwType == 1) // Keyboard
+            if (rawInput.header.dwType == RIM_TYPEKEYBOARD)
             {
-                Debug.WriteLine($"Keyboard: {rawInput.data.keyboard.VKey}, {rawInput.data.keyboard.MakeCode}. {rawInput.data.keyboard.Flags}");
+                Debug.WriteLine($"Keyboard: {Keyboard.GetKey(rawInput)}, {Keyboard.GetScanCode(rawInput)}, {Keyboard.GetEvent(rawInput)}");
             }
         }
 
@@ -48,8 +53,8 @@ namespace Mini.Engine.Windows
         {
             return new RAWINPUTDEVICE
             {
-                usUsagePage = 0x01,
-                usUsage = 0x02,
+                usUsagePage = HID_USAGE_PAGE_GENERIC,
+                usUsage = HID_USAGE_GENERIC_MOUSE,
                 dwFlags = RAWINPUTDEVICE_FLAGS.RIDEV_INPUTSINK,
                 hwndTarget = (HWND)hwnd
             };
@@ -59,8 +64,8 @@ namespace Mini.Engine.Windows
         {
             return new RAWINPUTDEVICE
             {
-                usUsagePage = 0x01,
-                usUsage = 0x06,
+                usUsagePage = HID_USAGE_PAGE_GENERIC,
+                usUsage = HID_USAGE_GENERIC_KEYBOARD,
                 dwFlags = RAWINPUTDEVICE_FLAGS.RIDEV_INPUTSINK,
                 hwndTarget = (HWND)hwnd
             };
