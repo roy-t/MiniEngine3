@@ -40,12 +40,12 @@ namespace Mini.Engine.Windows
 
             if (rawInput.header.dwType == RIM_TYPEMOUSE)
             {
-                Debug.WriteLine($"Mouse: p:{Mouse.GetPosition(rawInput)}, {Mouse.GetButtons(rawInput)}, {Mouse.GetMouseWheel(rawInput)}");
+                Debug.WriteLine($"Mouse: p:{MouseDecoder.GetPosition(rawInput)}, {MouseDecoder.GetButtons(rawInput)}, {MouseDecoder.GetMouseWheel(rawInput)}");
             }
 
             if (rawInput.header.dwType == RIM_TYPEKEYBOARD)
             {
-                Debug.WriteLine($"Keyboard: {Keyboard.GetKey(rawInput)}, {Keyboard.GetScanCode(rawInput)}, {Keyboard.GetEvent(rawInput)}");
+                Debug.WriteLine($"Keyboard: {KeyboardDecoder.GetKey(rawInput)}, {KeyboardDecoder.GetScanCode(rawInput)}, {KeyboardDecoder.GetEvent(rawInput)}");
             }
         }
 

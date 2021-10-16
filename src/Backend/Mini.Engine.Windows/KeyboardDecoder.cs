@@ -13,7 +13,7 @@ namespace Mini.Engine.Windows
         E1 = 4
     }
 
-    internal static class Keyboard
+    internal static class KeyboardDecoder
     {
         public static KeyFlags GetEvent(RAWINPUT input)
         {

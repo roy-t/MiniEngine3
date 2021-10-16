@@ -1,83 +1,79 @@
 ﻿using System;
 using System.Numerics;
 using Windows.Win32.UI.KeyboardAndMouseInput;
-
 namespace Mini.Engine.Windows
 {
-    /// <summary>
-    /// Enumeration containing the button data for raw mouse input.
-    /// </summary>
-    [Flags()]
-    internal enum ButtonFlags : ushort
+    public enum MouseButtons : ushort
     {
-        /// <summary>No button.</summary>
-        None = 0,
-        /// <summary>Left (button 1) down.</summary>
-        LeftDown = 0x0001,
-        /// <summary>Left (button 1) up.</summary>
-        LeftUp = 0x0002,
-        /// <summary>Right (button 2) down.</summary>
-        RightDown = 0x0004,
-        /// <summary>Right (button 2) up.</summary>
-        RightUp = 0x0008,
-        /// <summary>Middle (button 3) down.</summary>
-        MiddleDown = 0x0010,
-        /// <summary>Middle (button 3) up.</summary>
-        MiddleUp = 0x0020,
-        /// <summary>Button 4 down.</summary>
-        Button4Down = 0x0040,
-        /// <summary>Button 4 up.</summary>
-        Button4Up = 0x0080,
-        /// <summary>Button 5 down.</summary>
-        Button5Down = 0x0100,
-        /// <summary>Button 5 up.</summary>
-        Button5Up = 0x0200,
-        /// <summary>Mouse wheel moved.</summary>
-        MouseWheel = 0x0400,
-        /// <summary>Horizontal mouse wheel moved.</summary>
-        MouseHWheel = 0x0800
+        Left = 0,
+        Right = 1,
+        Middle = 2,
+        Four = 3,
+        Five = 4
     }
 
-    /// <summary>
-    /// Enumeration containing the flags for raw mouse data.
-    /// </summary>
-    [Flags()]
-    internal enum MouseFlags : ushort
+    public sealed class Mouse
     {
-        /// <summary>Relative to the last position.</summary>
-        MoveRelative = 0,
-        /// <summary>Absolute positioning.</summary>
-        MoveAbsolute = 1,
-        /// <summary>Coordinate data is mapped to a virtual desktop.</summary>
-        VirtualDesktop = 2,
-        /// <summary>Attributes for the mouse have changed.</summary>
-        AttributesChanged = 4,
-        /// <summary> This mouse movement event was not coalesced. Mouse movement events can be coalesced by default. Windows XP/2000: This value is not supported.</summary>
-        NoCoalesce = 8
-    }
-
-    internal static class Mouse
-    {
-        private const short WheelDelta = 120;
-
-        public static MouseFlags GetFlags(RAWINPUT input)
+        private enum ButtonState : ushort
         {
-            return (MouseFlags)input.data.mouse.usFlags;
+            JustPressed,
+            Pressed,
+            JustReleased,
+            Released
         }
 
-        public static ButtonFlags GetButtons(RAWINPUT input)
+        private enum Direction : ushort
         {
-            return (ButtonFlags)input.data.mouse.Anonymous.Anonymous.usButtonFlags;
+            None,
+            Up,
+            Down
         }
 
-        public static int GetMouseWheel(RAWINPUT input)
+        private readonly ButtonState[] Buttons;
+        private Direction scrollDirection;
+
+        public Mouse()
         {
-            return (short)input.data.mouse.Anonymous.Anonymous.usButtonData / WheelDelta;
+            this.Buttons = new ButtonState[Enum.GetValues<MouseButtons>().Length];
+            this.scrollDirection = Direction.None;
+            this.Movement = Vector2.Zero;
         }
 
-        public static Vector2 GetPosition(RAWINPUT input)
+        public void Update()
         {
-            return new Vector2(input.data.mouse.lLastX, input.data.mouse.lLastY);
+            this.scrollDirection = Direction.None;
+            this.Movement = Vector2.Zero;
+
+            for (var i = 0; i < this.Buttons.Length; i++)
+            {
+                this.Buttons[i] = this.Buttons[i] switch
+                {
+                    ButtonState.JustPressed => ButtonState.Pressed,
+                    ButtonState.Pressed => ButtonState.Pressed,
+                    ButtonState.JustReleased => ButtonState.Released,
+                    ButtonState.Released => ButtonState.Released,
+                    _ => throw new NotImplementedException(),
+                };
+            }
+        }
+
+        public Vector2 Movement { get; private set; }
+
+        public bool ScrolledUp => this.scrollDirection == Direction.Up;
+        public bool ScrolledDown => this.scrollDirection == Direction.Down;
+
+        public bool Pressed(MouseButtons button)
+            => this.Buttons[(int)button] == ButtonState.JustPressed;
+
+        public bool Held(MouseButtons button)
+            => this.Buttons[(int)button] == ButtonState.Pressed;
+
+        public bool Released(MouseButtons button)
+            => this.Buttons[(int)button] == ButtonState.JustReleased;
+
+        internal void ProcessEvent(RAWINPUT input)
+        {
+
         }
     }
 }
