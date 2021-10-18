@@ -73,7 +73,13 @@ namespace Mini.Engine.Windows
 
         internal void ProcessEvent(RAWINPUT input)
         {
+            var position = MouseDecoder.GetPosition(input);
+            var buttons = MouseDecoder.GetButtons(input);
+            var scroll = MouseDecoder.GetMouseWheel(input);
 
+            // TODO: make sure mouse button presses/releases are not missed
+            // queue events or something like that?
+            // also, what if 2 events enter in the same frame, overwrites stuff maybe?
         }
     }
 }

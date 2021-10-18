@@ -1,7 +1,6 @@
 ﻿using System;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
-using Mini.Engine.Controllers;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Entities;
@@ -16,16 +15,16 @@ namespace Mini.Engine
         private readonly Device Device;
         private readonly RenderHelper Helper;
         private readonly FrameService FrameService;
-        private readonly CameraController CameraController;
+        //private readonly CameraController CameraController;
         private readonly ContentManager Content;
         private readonly ParallelPipeline Pipeline;
 
-        public GameLoop(Device device, RenderHelper helper, FrameService frameService, CameraController cameraController, RenderPipelineBuilder builder, ContentManager content, EntityAdministrator entities, IComponentContainer<ModelComponent> models)
+        public GameLoop(Device device, RenderHelper helper, FrameService frameService, /*CameraController cameraController, */RenderPipelineBuilder builder, ContentManager content, EntityAdministrator entities, IComponentContainer<ModelComponent> models)
         {
             this.Device = device;
             this.Helper = helper;
             this.FrameService = frameService;
-            this.CameraController = cameraController;
+            //this.CameraController = cameraController;
             this.Content = content;
             this.Pipeline = builder.Build();
 
@@ -37,7 +36,7 @@ namespace Mini.Engine
         public void Update(float time, float elapsed)
         {
             this.Content.ReloadChangedContent();
-            this.CameraController.Update(ref this.FrameService.Camera, elapsed);
+            //this.CameraController.Update(ref this.FrameService.Camera, elapsed);
         }
 
         public void Draw(float alpha)

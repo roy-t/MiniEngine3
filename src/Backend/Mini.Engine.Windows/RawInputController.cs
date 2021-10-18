@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Vortice.Win32;
@@ -19,6 +20,8 @@ namespace Mini.Engine.Windows
         private static readonly uint RawInputSize = (uint)Marshal.SizeOf<RAWINPUT>();
         private static readonly uint RawInputHeaderSize = (uint)Marshal.SizeOf<RAWINPUTHEADER>();
 
+        private readonly ConcurrentQueue<RAWINPUT> EventQueue;
+
         public RawInputController(IntPtr hwnd)
         {
             Win32Application.RegisterMessageListener(WindowMessage.Input, (wParam, lParam) => this.ProcessMessage(wParam, lParam));
@@ -29,24 +32,33 @@ namespace Mini.Engine.Windows
             {
                 throw new Exception("Could not register input devices");
             }
+
+            this.EventQueue = new ConcurrentQueue<RAWINPUT>();
+        }
+
+        public void NextFrame()
+        {
+            while (this.EventQueue.TryDequeue(out var input))
+            {
+                if (input.header.dwType == RIM_TYPEMOUSE)
+                {
+                    Debug.WriteLine($"Mouse: p:{MouseDecoder.GetPosition(input)}, {MouseDecoder.GetButtons(input)}, {MouseDecoder.GetMouseWheel(input)}");
+                }
+
+                if (input.header.dwType == RIM_TYPEKEYBOARD)
+                {
+                    Debug.WriteLine($"Keyboard: {KeyboardDecoder.GetKey(input)}, {KeyboardDecoder.GetScanCode(input)}, {KeyboardDecoder.GetEvent(input)}");
+                }
+            }
         }
 
         private unsafe void ProcessMessage(UIntPtr wParam, IntPtr lParam)
         {
             var size = RawInputSize;
-
             var rawInput = new RAWINPUT();
             GetRawInputData((HRAWINPUT)lParam, RAW_INPUT_DATA_COMMAND_FLAGS.RID_INPUT, &rawInput, ref size, RawInputHeaderSize);
 
-            if (rawInput.header.dwType == RIM_TYPEMOUSE)
-            {
-                Debug.WriteLine($"Mouse: p:{MouseDecoder.GetPosition(rawInput)}, {MouseDecoder.GetButtons(rawInput)}, {MouseDecoder.GetMouseWheel(rawInput)}");
-            }
-
-            if (rawInput.header.dwType == RIM_TYPEKEYBOARD)
-            {
-                Debug.WriteLine($"Keyboard: {KeyboardDecoder.GetKey(rawInput)}, {KeyboardDecoder.GetScanCode(rawInput)}, {KeyboardDecoder.GetEvent(rawInput)}");
-            }
+            this.EventQueue.Enqueue(rawInput);
         }
 
         private static RAWINPUTDEVICE CreateMouse(IntPtr hwnd)
