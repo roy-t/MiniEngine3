@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Vortice.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.KeyboardAndMouseInput;
+using static Windows.Win32.Constants;
 using static Windows.Win32.PInvoke;
 
 namespace Mini.Engine.Windows
@@ -21,6 +22,8 @@ namespace Mini.Engine.Windows
         private static readonly uint RawInputHeaderSize = (uint)Marshal.SizeOf<RAWINPUTHEADER>();
 
         private readonly ConcurrentQueue<RAWINPUT> EventQueue;
+        private readonly List<RAWINPUT> MouseEvents;
+        private readonly List<RAWINPUT> KeyboardEvents;
 
         public RawInputController(IntPtr hwnd)
         {
@@ -34,22 +37,42 @@ namespace Mini.Engine.Windows
             }
 
             this.EventQueue = new ConcurrentQueue<RAWINPUT>();
+            this.MouseEvents = new List<RAWINPUT>(3);
+            this.KeyboardEvents = new List<RAWINPUT>(3);
+        }
+
+        public bool ProcessEvents(Mouse mouse)
+        {
+            return ProcesEvents(mouse, this.MouseEvents);
+        }
+
+        public bool ProcessEvents(Keyboard keyboard)
+        {
+            return ProcesEvents(keyboard, this.KeyboardEvents);
         }
 
         public void NextFrame()
         {
+            this.MouseEvents.Clear();
+            this.KeyboardEvents.Clear();
+
             while (this.EventQueue.TryDequeue(out var input))
             {
                 if (input.header.dwType == RIM_TYPEMOUSE)
                 {
-                    Debug.WriteLine($"Mouse: p:{MouseDecoder.GetPosition(input)}, {MouseDecoder.GetButtons(input)}, {MouseDecoder.GetMouseWheel(input)}");
+                    this.MouseEvents.Add(input);
                 }
 
                 if (input.header.dwType == RIM_TYPEKEYBOARD)
                 {
-                    Debug.WriteLine($"Keyboard: {KeyboardDecoder.GetKey(input)}, {KeyboardDecoder.GetScanCode(input)}, {KeyboardDecoder.GetEvent(input)}");
+                    this.KeyboardEvents.Add(input);
                 }
             }
+        }
+
+        public static ushort GetScanCode(VK virtualKey)
+        {
+            return (ushort)MapVirtualKey((uint)virtualKey, MAPVK_VK_TO_VSC);
         }
 
         private unsafe void ProcessMessage(UIntPtr wParam, IntPtr lParam)
@@ -59,6 +82,28 @@ namespace Mini.Engine.Windows
             GetRawInputData((HRAWINPUT)lParam, RAW_INPUT_DATA_COMMAND_FLAGS.RID_INPUT, &rawInput, ref size, RawInputHeaderSize);
 
             this.EventQueue.Enqueue(rawInput);
+        }
+
+        private static bool ProcesEvents(InputDevice device, IReadOnlyList<RAWINPUT> events)
+        {
+            if (device.iterator == -1)
+            {
+                device.NextFrame();
+                device.iterator = 0;
+                return true;
+            }
+
+            if (device.iterator < events.Count)
+            {
+                device.NextEvent(events[device.iterator]);
+                device.iterator++;
+                return true;
+            }
+            else
+            {
+                device.iterator = -1;
+                return false;
+            }
         }
 
         private static RAWINPUTDEVICE CreateMouse(IntPtr hwnd)
