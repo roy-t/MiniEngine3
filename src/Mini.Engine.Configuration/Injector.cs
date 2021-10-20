@@ -89,6 +89,12 @@ namespace Mini.Engine.Configuration
                         return true;
                     }
 
+                    if (IsSystem(concreteType))
+                    {
+                        this.Logger.Debug("Registered system {@system}", concreteType.FullName);
+                        return true;
+                    }
+
                     if (IsContentType(concreteType))
                     {
                         this.Logger.Debug("Registered content {@content}", concreteType.FullName);
@@ -99,7 +105,7 @@ namespace Mini.Engine.Configuration
                 });
             }
 
-            this.Logger.Information("Registered {@count} services/content", this.Container.AvailableServices.Count());
+            this.Logger.Information("Registered {@count} classes", this.Container.AvailableServices.Count());
         }
 
         private IEnumerable<Assembly> LoadAssembliesInCurrentDirectory()
@@ -134,13 +140,13 @@ namespace Mini.Engine.Configuration
         }
 
         private static bool IsServiceType(Type type)
-            => (type.IsDefined(typeof(ServiceAttribute), true) || type.IsDefined(typeof(SystemAttribute), true)) && !type.IsAbstract;
+            => type.IsDefined(typeof(ServiceAttribute), true) && !type.IsAbstract;
+
+        private static bool IsSystem(Type type)
+            => type.IsDefined(typeof(SystemAttribute), true) && !type.IsAbstract;
 
         private static bool IsComponentType(Type type)
             => type.IsDefined(typeof(ComponentAttribute), true) && !type.IsAbstract;
-
-        private static bool IsContainerType(Type type)
-            => type.IsDefined(typeof(ComponentContainerAttribute), true) && !type.IsAbstract;
 
         private static bool IsContentType(Type type)
             => type.IsDefined(typeof(ContentAttribute), true) && !type.IsAbstract;

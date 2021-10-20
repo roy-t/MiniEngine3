@@ -10,7 +10,7 @@ namespace Mini.Engine
         static void Main()
         {
             using var injector = new Injector();
-            injector.RegisterContainer(typeof(LookupArray<>));
+            injector.RegisterContainer(typeof(ComponentContainer<>));
             var bootstrapper = injector.Get<GameBootstrapper>();
             bootstrapper.Run();
         }

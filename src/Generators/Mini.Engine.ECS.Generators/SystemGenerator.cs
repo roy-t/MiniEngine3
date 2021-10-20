@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Mini.Engine.Generators.Source.CSharp;
@@ -82,9 +81,8 @@ namespace Mini.Engine.ECS.Generators
             }
 
             var primary = components.First();
-            var loop = new ForLoop("i", "0", "<", $"this.{primary}Container.{method.Query}.Count");
+            var loop = new ForeachLoop("p0", $"this.{primary}Container.Get{method.Query}Items()");
             var block = new TextCodeBlock();
-            block.Text.WriteLine($"var p0 = this.{primary}Container.{method.Query}[i];");
 
             for (var i = 1; i < components.Count; i++)
             {

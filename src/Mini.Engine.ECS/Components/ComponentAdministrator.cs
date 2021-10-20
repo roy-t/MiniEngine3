@@ -51,7 +51,7 @@ namespace Mini.Engine.ECS.Components
             where T : AComponent
         {
             var store = this.ContainerStore.GetContainer<T>();
-            var component = store.Get(entity);
+            var component = store[entity];
 
             return component;
         }
@@ -66,7 +66,7 @@ namespace Mini.Engine.ECS.Components
                 var container = containers[i];
                 if (container.Contains(entity))
                 {
-                    components.Add(container.GetComponent(entity));
+                    components.Add(container.Get(entity));
                 }
             }
 
@@ -79,9 +79,8 @@ namespace Mini.Engine.ECS.Components
             var components = new List<T>();
 
             var container = this.ContainerStore.GetContainer<T>();
-            for (var i = 0; i < container.All.Count; i++)
+            foreach (var component in container.GetAllItems())
             {
-                var component = container.All[i];
                 components.Add(component);
             }
 
@@ -96,7 +95,7 @@ namespace Mini.Engine.ECS.Components
                 var container = containers[i];
                 if (container.Contains(entity))
                 {
-                    container.GetComponent(entity).ChangeState.Remove();
+                    container.Get(entity).ChangeState.Remove();
                 }
             }
         }

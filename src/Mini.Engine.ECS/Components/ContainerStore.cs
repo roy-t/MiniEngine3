@@ -18,13 +18,15 @@ namespace Mini.Engine.ECS.Components
         }
 
         public IReadOnlyList<IComponentContainer> GetAllContainers()
-            => this.Containers;
+        {
+            return this.Containers;
+        }
 
         public IComponentContainer<T> GetContainer<T>()
             where T : AComponent
         {
             var key = typeof(T);
-            return this.ContainersByType[key].Specialize<T>();
+            return (IComponentContainer<T>)this.ContainersByType[key];
         }
     }
 }
