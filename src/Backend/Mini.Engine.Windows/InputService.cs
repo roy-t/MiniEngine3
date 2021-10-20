@@ -10,7 +10,7 @@ using static Windows.Win32.PInvoke;
 
 namespace Mini.Engine.Windows
 {
-    public sealed class RawInputController
+    public sealed class InputService
     {
         private const ushort HID_USAGE_PAGE_GENERIC = 0x01;
         private const ushort HID_USAGE_GENERIC_MOUSE = 0x02;
@@ -24,12 +24,13 @@ namespace Mini.Engine.Windows
         private readonly ConcurrentQueue<RAWINPUT> EventQueue;
         private readonly List<RAWINPUT> MouseEvents;
         private readonly List<RAWINPUT> KeyboardEvents;
+        private readonly Win32Window Window;
 
-        public RawInputController(IntPtr hwnd)
+        public InputService(Win32Window window)
         {
             Win32Application.RegisterMessageListener(WindowMessage.Input, (wParam, lParam) => this.ProcessMessage(wParam, lParam));
 
-            var devices = new RAWINPUTDEVICE[] { CreateKeyboard(hwnd), CreateMouse(hwnd) };
+            var devices = new RAWINPUTDEVICE[] { CreateKeyboard(window.Handle), CreateMouse(window.Handle) };
             var success = RegisterRawInputDevices(devices, (uint)Marshal.SizeOf<RAWINPUTDEVICE>());
             if (!success)
             {
@@ -39,6 +40,7 @@ namespace Mini.Engine.Windows
             this.EventQueue = new ConcurrentQueue<RAWINPUT>();
             this.MouseEvents = new List<RAWINPUT>(3);
             this.KeyboardEvents = new List<RAWINPUT>(3);
+            this.Window = window;
         }
 
         public bool ProcessEvents(Mouse mouse)
@@ -75,13 +77,16 @@ namespace Mini.Engine.Windows
             return (ushort)MapVirtualKey((uint)virtualKey, MAPVK_VK_TO_VSC);
         }
 
-        private unsafe void ProcessMessage(UIntPtr wParam, IntPtr lParam)
+        private unsafe void ProcessMessage(UIntPtr _, IntPtr lParam)
         {
-            var size = RawInputSize;
-            var rawInput = new RAWINPUT();
-            GetRawInputData((HRAWINPUT)lParam, RAW_INPUT_DATA_COMMAND_FLAGS.RID_INPUT, &rawInput, ref size, RawInputHeaderSize);
+            if (this.Window.HasFocus)
+            {
+                var size = RawInputSize;
+                var rawInput = new RAWINPUT();
+                GetRawInputData((HRAWINPUT)lParam, RAW_INPUT_DATA_COMMAND_FLAGS.RID_INPUT, &rawInput, ref size, RawInputHeaderSize);
 
-            this.EventQueue.Enqueue(rawInput);
+                this.EventQueue.Enqueue(rawInput);
+            }
         }
 
         private static bool ProcesEvents(InputDevice device, IReadOnlyList<RAWINPUT> events)

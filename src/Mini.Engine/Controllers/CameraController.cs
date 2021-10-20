@@ -10,12 +10,12 @@ namespace Mini.Engine.Controllers
     [Service]
     public sealed class CameraController
     {
-        private static readonly ushort CodeLeft = RawInputController.GetScanCode(VK.KEY_A);
-        private static readonly ushort CodeRight = RawInputController.GetScanCode(VK.KEY_D);
-        private static readonly ushort CodeForward = RawInputController.GetScanCode(VK.KEY_W);
-        private static readonly ushort CodeBackward = RawInputController.GetScanCode(VK.KEY_S);
-        private static readonly ushort CodeUp = RawInputController.GetScanCode(VK.SPACE);
-        private static readonly ushort CodeDown = RawInputController.GetScanCode(VK.KEY_C);
+        private static readonly ushort CodeLeft = InputService.GetScanCode(VK.KEY_A);
+        private static readonly ushort CodeRight = InputService.GetScanCode(VK.KEY_D);
+        private static readonly ushort CodeForward = InputService.GetScanCode(VK.KEY_W);
+        private static readonly ushort CodeBackward = InputService.GetScanCode(VK.KEY_S);
+        private static readonly ushort CodeUp = InputService.GetScanCode(VK.SPACE);
+        private static readonly ushort CodeDown = InputService.GetScanCode(VK.KEY_C);
 
         private const float MinLinearVelocity = 1.0f;
         private const float MaxLinearVelocity = 25.0f;
@@ -26,9 +26,9 @@ namespace Mini.Engine.Controllers
 
         private readonly Mouse Mouse;
         private readonly Keyboard Keyboard;
-        private readonly RawInputController InputController;
+        private readonly InputService InputController;
 
-        public CameraController(RawInputController inputController)
+        public CameraController(InputService inputController)
         {
             this.Mouse = new Mouse();
             this.Keyboard = new Keyboard();

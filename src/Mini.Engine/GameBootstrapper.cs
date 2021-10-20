@@ -9,11 +9,14 @@ using Mini.Engine.UI;
 using Mini.Engine.Windows;
 using Serilog;
 using Vortice.DXGI;
+using Vortice.Win32;
 
 namespace Mini.Engine
 {
     public sealed class GameBootstrapper : IDisposable
     {
+        private static readonly ushort Escape = InputService.GetScanCode(VK.ESCAPE);
+
         private readonly Win32Window Window;
         private readonly Device Device;
         private readonly IVirtualFileSystem FileSystem;
@@ -25,7 +28,8 @@ namespace Mini.Engine
 
         private RenderDoc? renderDoc;
 
-        private readonly RawInputController InputController;
+        private readonly InputService InputService;
+        private readonly Keyboard Keyboard;
 
         public GameBootstrapper(ILogger logger, Register register, RegisterAs registerAs, Resolve resolve)
         {
@@ -39,11 +43,12 @@ namespace Mini.Engine
             this.Device = new Device(this.Window.Handle, Format.R8G8B8A8_UNorm, this.Window.Width, this.Window.Height, "Device");
             this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
 
-            this.InputController = new RawInputController(this.Window.Handle);
+            this.InputService = new InputService(this.Window);
+            this.Keyboard = new Keyboard();
 
             // Handle ownership/lifetime control over to LightInject
             register(this.Device);
-            register(this.InputController);
+            register(this.InputService);
             register(this.Window);
             registerAs(this.FileSystem, typeof(IVirtualFileSystem));
 
@@ -72,16 +77,15 @@ namespace Mini.Engine
                 this.UI.NewFrame((float)elapsed);
                 this.DebugLayerLogger.LogMessages();
 
-                var processInput = this.Window.HasFocus;
                 while (accumulator >= dt)
                 {
-                    if (processInput)
+                    this.InputService.NextFrame();
+                    while (this.InputService.ProcessEvents(this.Keyboard))
                     {
-                        this.InputController.NextFrame();
-                        //if (this.Keyboard.Pressed(Vortice.DirectInput.Key.Escape))
-                        //{
-                        //    this.Window.Dispose();
-                        //}
+                        if (this.Keyboard.Pressed(Escape))
+                        {
+                            this.Window.Dispose();
+                        }
                     }
 
                     // everything that changes on screen should have a current and future state

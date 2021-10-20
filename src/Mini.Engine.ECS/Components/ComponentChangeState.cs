@@ -25,20 +25,6 @@
             this.NextState = LifetimeState.Unchanged;
         }
 
-        public void Update(ChangeState state)
-        {
-            switch (state)
-            {
-                case ChangeState.Changed:
-                    this.Change();
-                    break;
-
-                case ChangeState.Removed:
-                    this.Remove();
-                    break;
-            }
-        }
-
         public override string ToString()
             => $"{this.CurrentState} -> {this.NextState}";
     }
