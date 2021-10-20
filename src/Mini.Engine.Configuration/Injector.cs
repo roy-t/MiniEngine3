@@ -22,6 +22,7 @@ namespace Mini.Engine.Configuration
         };
 
         private readonly ServiceContainer Container;
+        private readonly List<Type> ComponentTypes;
         private readonly ILogger Logger;
 
         public Injector()
@@ -47,6 +48,7 @@ namespace Mini.Engine.Configuration
                 .RegisterInstance(registerDelegate)
                 .RegisterInstance(registerAsDelgate);
 
+            this.ComponentTypes = new List<Type>();
             this.RegisterTypesFromAssembliesInWorkingDirectory();
         }
 
@@ -64,9 +66,6 @@ namespace Mini.Engine.Configuration
         {
             var assemblies = this.LoadAssembliesInCurrentDirectory();
 
-            var componentTypes = new List<Type>();
-            Type? containerType = null;
-
             foreach (var assembly in assemblies)
             {
                 _ = this.Container.RegisterAssembly(assembly, (serviceType, concreteType) =>
@@ -79,15 +78,8 @@ namespace Mini.Engine.Configuration
 
                     if (IsComponentType(concreteType))
                     {
-                        componentTypes.Add(concreteType);
+                        this.ComponentTypes.Add(concreteType);
                         this.Logger.Debug("Registered component {@component}", concreteType.FullName);
-                        return false;
-                    }
-
-                    if (IsContainerType(concreteType))
-                    {
-                        containerType = concreteType;
-                        this.Logger.Debug("Registered container {@container}", concreteType.FullName);
                         return false;
                     }
 
@@ -107,14 +99,7 @@ namespace Mini.Engine.Configuration
                 });
             }
 
-            if (containerType == null)
-            {
-                throw new Exception("Could not find any suitable containers");
-            }
-
-            this.RegisterComponentContainers(containerType, componentTypes);
-
-            this.Logger.Information("Registered {@count} services", this.Container.AvailableServices.Count());
+            this.Logger.Information("Registered {@count} services/content", this.Container.AvailableServices.Count());
         }
 
         private IEnumerable<Assembly> LoadAssembliesInCurrentDirectory()
@@ -163,12 +148,15 @@ namespace Mini.Engine.Configuration
         private static bool IsRelevantAssembly(AssemblyName name)
             => !IgnoredAssemblies.Any(n => name.FullName.StartsWith(n, StringComparison.InvariantCultureIgnoreCase));
 
-        private void RegisterComponentContainers(Type containerType, List<Type> componentTypes)
+
+        public void RegisterContainer(Type containerType)
         {
-            foreach (var componentType in componentTypes)
+            foreach (var componentType in this.ComponentTypes)
             {
                 this.RegisterContainerFor(containerType, componentType);
             }
+
+            this.Logger.Information("Registered {@container} for {@count} components", containerType.FullName, this.ComponentTypes.Count);
         }
 
         private void RegisterContainerFor(Type containerType, Type componentType)
