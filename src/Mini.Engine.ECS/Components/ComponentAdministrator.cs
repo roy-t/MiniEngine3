@@ -15,7 +15,9 @@ namespace Mini.Engine.ECS.Components
 
         public void Add<T>(T component)
             where T : AComponent
-            => this.ContainerStore.GetContainer<T>().Add(component);
+        {
+            this.ContainerStore.GetContainer<T>().Add(component);
+        }
 
         public void Add<T, U>(T componentA, U componentB)
             where T : AComponent
