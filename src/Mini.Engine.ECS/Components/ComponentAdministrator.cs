@@ -97,7 +97,7 @@ namespace Mini.Engine.ECS.Components
                 var container = containers[i];
                 if (container.Contains(entity))
                 {
-                    container.Get(entity).ChangeState.Remove();
+                    container.MarkForRemoval(entity);
                 }
             }
         }

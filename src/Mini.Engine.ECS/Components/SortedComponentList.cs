@@ -1,14 +1,11 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Mini.Engine.ECS.Components
 {
-    public interface IComponent
-    {
-        Entity Entity { get; }
-    }
-
-    public sealed class SortedComponentList<T>
-        where T : struct, IComponent
+    public sealed class SortedComponentList<T> : IEnumerable<T>
+        where T : AComponent
     {
         private const int DefaultCapacity = 4;
         private const int GrowthFactor = 2;
@@ -22,7 +19,20 @@ namespace Mini.Engine.ECS.Components
 
         public int Count { get; private set; }
 
-        public ref T this[int i] => ref this.components[i];
+        public T this[int i] => this.components[i];
+        public T this[Entity entity]
+        {
+            get
+            {
+                var index = this.BinarySearch(entity);
+                return this.components[index];
+            }
+        }
+
+        public bool Contains(Entity entity)
+        {
+            return this.BinarySearch(entity) >= 0;
+        }
 
         public void Remove(Entity entity)
         {
@@ -42,7 +52,9 @@ namespace Mini.Engine.ECS.Components
                 Array.Copy(this.components, index + 1, this.components, index, this.Count - index);
             }
 
+#nullable disable
             this.components[this.Count] = default;
+#nullable restore
         }
 
         public void Add(T component)
@@ -53,10 +65,10 @@ namespace Mini.Engine.ECS.Components
                 throw new ArgumentException($"Adding component with duplicate key {component.Entity.Id}");
             }
 
-            this.Insert(~index, ref component);
+            this.Insert(~index, component);
         }
 
-        private void Insert(int index, ref T component)
+        private void Insert(int index, T component)
         {
             if (this.Count == this.components.Length)
             {
@@ -101,6 +113,16 @@ namespace Mini.Engine.ECS.Components
             }
 
             return ~low;
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return new ArraySegment<T>(this.components, 0, this.Count).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return new ArraySegment<T>(this.components, 0, this.Count).GetEnumerator();
         }
     }
 }

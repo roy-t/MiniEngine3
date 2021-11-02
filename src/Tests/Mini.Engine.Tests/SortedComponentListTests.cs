@@ -7,13 +7,9 @@ namespace Mini.Engine.Tests
 {
     public class SortedComponentListTests
     {
-        private readonly struct Component : IComponent
+        private sealed class Component : AComponent
         {
-            public Component(int id)
-            {
-                this.Entity = new Entity(id);
-            }
-            public Entity Entity { get; }
+            public Component(int id) : base(new Entity(id)) { }
         }
 
         [Fact]
