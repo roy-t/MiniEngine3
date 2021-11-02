@@ -1,10 +1,8 @@
 ﻿namespace Mini.Engine.ECS.Components
 {
-    public sealed class ComponentChangeState
+    public struct ComponentChangeState
     {
-        public static ComponentChangeState NewComponent() => new ComponentChangeState();
-
-        private ComponentChangeState()
+        public ComponentChangeState()
         {
             this.CurrentState = LifetimeState.Created;
             this.NextState = LifetimeState.New;
@@ -14,10 +12,14 @@
         internal LifetimeState NextState { get; set; }
 
         public void Change()
-            => this.NextState = LifetimeState.Changed;
+        {
+            this.NextState = LifetimeState.Changed;
+        }
 
         public void Remove()
-            => this.NextState = LifetimeState.Removed;
+        {
+            this.NextState = LifetimeState.Removed;
+        }
 
         public void Next()
         {
@@ -26,22 +28,17 @@
         }
 
         public override string ToString()
-            => $"{this.CurrentState} -> {this.NextState}";
+        {
+            return $"{this.CurrentState} -> {this.NextState}";
+        }
     }
 
-    internal enum LifetimeState
+    internal enum LifetimeState : byte
     {
         Created,
         New,
         Changed,
         Unchanged,
-        Removed
-    }
-
-    public enum ChangeState
-    {
-        Unchanged,
-        Changed,
         Removed
     }
 }

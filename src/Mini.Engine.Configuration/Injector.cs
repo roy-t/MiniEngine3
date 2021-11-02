@@ -68,18 +68,13 @@ namespace Mini.Engine.Configuration
 
             foreach (var assembly in assemblies)
             {
-                _ = this.Container.RegisterAssembly(assembly, (serviceType, concreteType) =>
+                this.ComponentTypes.AddRange(assembly.GetExportedTypes().Where(t => IsComponentType(t)));
+
+                this.Container.RegisterAssembly(assembly, (serviceType, concreteType) =>
                 {
                     // Do not register services as an implementation of an abstract class or interface
                     if (serviceType != concreteType)
                     {
-                        return false;
-                    }
-
-                    if (IsComponentType(concreteType))
-                    {
-                        this.ComponentTypes.Add(concreteType);
-                        this.Logger.Debug("Registered component {@component}", concreteType.FullName);
                         return false;
                     }
 
@@ -161,8 +156,6 @@ namespace Mini.Engine.Configuration
             {
                 this.RegisterContainerFor(containerType, componentType);
             }
-
-            this.Logger.Information("Registered {@container} for {@count} components", containerType.FullName, this.ComponentTypes.Count);
         }
 
         private void RegisterContainerFor(Type containerType, Type componentType)
@@ -172,10 +165,13 @@ namespace Mini.Engine.Configuration
 
             foreach (var interfaceType in containerType.GetInterfaces())
             {
-                _ = this.Container.RegisterInstance(interfaceType, instance);
+                this.Container.RegisterInstance(interfaceType, instance);
             }
 
-            _ = this.Container.RegisterInstance(containerType, instance);
+            this.Container.RegisterInstance(containerType, instance);
+
+            var name = $"{containerType.GetGenericTypeDefinition().FullName}<{containerType.GetGenericArguments()[0].FullName}>";
+            this.Logger.Information("Registered {@container}", name);
         }
     }
 }

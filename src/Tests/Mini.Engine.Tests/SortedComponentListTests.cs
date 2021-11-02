@@ -12,9 +12,17 @@ namespace Mini.Engine.Tests
             public Component(int id)
             {
                 this.Entity = new Entity(id);
+                this.ChangeState = new ComponentChangeState();
             }
+
             public Entity Entity { get; }
+            public ComponentChangeState ChangeState { get; }
         }
+
+        private Component three = new(3);
+        private Component five = new(5);
+        private Component seven = new(7);
+        private Component nine = new(9);
 
         [Fact]
         public void AddShouldAddElementAndKeepCompentsSorted()
@@ -23,23 +31,23 @@ namespace Mini.Engine.Tests
 
             Equal(0, list.Count);
 
-            list.Add(new Component(5));
+            list.Add(ref this.five);
 
             Equal(1, list.Count);
             Equal(5, list[0].Entity.Id);
 
-            list.Add(new Component(7));
+            list.Add(ref this.seven);
             Equal(2, list.Count);
             Equal(5, list[0].Entity.Id);
             Equal(7, list[1].Entity.Id);
 
-            list.Add(new Component(9));
+            list.Add(ref this.nine);
             Equal(3, list.Count);
             Equal(5, list[0].Entity.Id);
             Equal(7, list[1].Entity.Id);
             Equal(9, list[2].Entity.Id);
 
-            list.Add(new Component(3));
+            list.Add(ref this.three);
             Equal(4, list.Count);
             Equal(3, list[0].Entity.Id);
             Equal(5, list[1].Entity.Id);
@@ -52,10 +60,10 @@ namespace Mini.Engine.Tests
         {
             var list = new SortedComponentList<Component>();
 
-            list.Add(new Component(3));
-            list.Add(new Component(5));
-            list.Add(new Component(7));
-            list.Add(new Component(9));
+            list.Add(ref this.three);
+            list.Add(ref this.five);
+            list.Add(ref this.seven);
+            list.Add(ref this.nine);
 
             list.Remove(new Entity(7));
 
@@ -70,10 +78,10 @@ namespace Mini.Engine.Tests
         {
             var list = new SortedComponentList<Component>();
 
-            list.Add(new Component(3));
-            list.Add(new Component(5));
-            list.Add(new Component(7));
-            list.Add(new Component(9));
+            list.Add(ref this.three);
+            list.Add(ref this.five);
+            list.Add(ref this.seven);
+            list.Add(ref this.nine);
 
             list.RemoveAt(2);
 

@@ -23,7 +23,7 @@ namespace Mini.Engine.ECS.Components
         }
 
         public IComponentContainer<T> GetContainer<T>()
-            where T : AComponent
+            where T : struct, IComponent
         {
             var key = typeof(T);
             return (IComponentContainer<T>)this.ContainersByType[key];

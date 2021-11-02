@@ -3,11 +3,11 @@
 namespace Mini.Engine.Configuration
 {
     /// <summary>
-    /// Marks the class as a component, the injector will make sure a suitable container is created
+    /// Marks the struct as a component, the injector will make sure a suitable container is created
     /// for the component
     /// </summary>
     /// <seealso cref="Injector"/>
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Struct)]
     public sealed class ComponentAttribute : Attribute
     {
     }

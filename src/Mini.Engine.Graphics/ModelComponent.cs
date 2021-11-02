@@ -1,18 +1,27 @@
 ﻿using System;
+using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
+using Mini.Engine.ECS.Components;
 
 namespace Mini.Engine.Graphics
 {
-    public sealed class ModelComponent : AComponent, IDisposable
+    [Component]
+    public struct ModelComponent : IComponent, IDisposable
     {
         public ModelComponent(Entity entity, Model model)
-            : base(entity)
         {
+            this.Entity = entity;
+            this.ChangeState = new ComponentChangeState();
+
             this.Model = model;
         }
 
         public Model Model { get; }
+
+        public Entity Entity { get; }
+
+        public ComponentChangeState ChangeState { get; }
 
         public void Dispose()
         {

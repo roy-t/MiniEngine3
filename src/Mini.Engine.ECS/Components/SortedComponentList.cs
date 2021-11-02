@@ -1,13 +1,10 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Mini.Engine.ECS.Components
 {
-    public interface IComponent
-    {
-        Entity Entity { get; }
-    }
-
-    public sealed class SortedComponentList<T>
+    public sealed class SortedComponentList<T> : IEnumerable<T>
         where T : struct, IComponent
     {
         private const int DefaultCapacity = 4;
@@ -23,6 +20,25 @@ namespace Mini.Engine.ECS.Components
         public int Count { get; private set; }
 
         public ref T this[int i] => ref this.components[i];
+
+        public ref T this[Entity entity]
+        {
+            get
+            {
+                var index = this.BinarySearch(entity);
+                return ref this.components[index];
+            }
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return new ArraySegment<T>(this.components, 0, this.Count).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return new ArraySegment<T>(this.components, 0, this.Count).GetEnumerator();
+        }
 
         public void Remove(Entity entity)
         {
@@ -45,7 +61,7 @@ namespace Mini.Engine.ECS.Components
             this.components[this.Count] = default;
         }
 
-        public void Add(T component)
+        public void Add(ref T component)
         {
             var index = this.BinarySearch(component.Entity);
             if (index >= 0)
@@ -54,6 +70,11 @@ namespace Mini.Engine.ECS.Components
             }
 
             this.Insert(~index, ref component);
+        }
+
+        public bool Contains(Entity entity)
+        {
+            return this.BinarySearch(entity) >= 0;
         }
 
         private void Insert(int index, ref T component)

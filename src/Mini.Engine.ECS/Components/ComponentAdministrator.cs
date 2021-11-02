@@ -13,44 +13,44 @@ namespace Mini.Engine.ECS.Components
             this.ContainerStore = containerStore;
         }
 
-        public void Add<T>(T component)
-            where T : AComponent
+        public void Add<T>(ref T component)
+            where T : struct, IComponent
         {
-            this.ContainerStore.GetContainer<T>().Add(component);
+            this.ContainerStore.GetContainer<T>().Add(ref component);
         }
 
-        public void Add<T, U>(T componentA, U componentB)
-            where T : AComponent
-            where U : AComponent
+        public void Add<T, U>(ref T componentA, ref U componentB)
+            where T : struct, IComponent
+            where U : struct, IComponent
         {
-            this.ContainerStore.GetContainer<T>().Add(componentA);
-            this.ContainerStore.GetContainer<U>().Add(componentB);
+            this.ContainerStore.GetContainer<T>().Add(ref componentA);
+            this.ContainerStore.GetContainer<U>().Add(ref componentB);
         }
 
-        public void Add<T, U, V>(T componentA, U componentB, V componentC)
-            where T : AComponent
-            where U : AComponent
-            where V : AComponent
+        public void Add<T, U, V>(ref T componentA, ref U componentB, ref V componentC)
+            where T : struct, IComponent
+            where U : struct, IComponent
+            where V : struct, IComponent
         {
-            this.ContainerStore.GetContainer<T>().Add(componentA);
-            this.ContainerStore.GetContainer<U>().Add(componentB);
-            this.ContainerStore.GetContainer<V>().Add(componentC);
+            this.ContainerStore.GetContainer<T>().Add(ref componentA);
+            this.ContainerStore.GetContainer<U>().Add(ref componentB);
+            this.ContainerStore.GetContainer<V>().Add(ref componentC);
         }
 
-        public void Add<T, U, V, W>(T componentA, U componentB, V componentC, W componentD)
-            where T : AComponent
-            where U : AComponent
-            where V : AComponent
-            where W : AComponent
+        public void Add<T, U, V, W>(ref T componentA, ref U componentB, ref V componentC, ref W componentD)
+            where T : struct, IComponent
+            where U : struct, IComponent
+            where V : struct, IComponent
+            where W : struct, IComponent
         {
-            this.ContainerStore.GetContainer<T>().Add(componentA);
-            this.ContainerStore.GetContainer<U>().Add(componentB);
-            this.ContainerStore.GetContainer<V>().Add(componentC);
-            this.ContainerStore.GetContainer<W>().Add(componentD);
+            this.ContainerStore.GetContainer<T>().Add(ref componentA);
+            this.ContainerStore.GetContainer<U>().Add(ref componentB);
+            this.ContainerStore.GetContainer<V>().Add(ref componentC);
+            this.ContainerStore.GetContainer<W>().Add(ref componentD);
         }
 
         public T GetComponent<T>(Entity entity)
-            where T : AComponent
+            where T : struct, IComponent
         {
             var store = this.ContainerStore.GetContainer<T>();
             var component = store[entity];
@@ -58,25 +58,8 @@ namespace Mini.Engine.ECS.Components
             return component;
         }
 
-        public IReadOnlyList<AComponent> GetComponents(Entity entity)
-        {
-            var components = new List<AComponent>();
-
-            var containers = this.ContainerStore.GetAllContainers();
-            for (var i = 0; i < containers.Count; i++)
-            {
-                var container = containers[i];
-                if (container.Contains(entity))
-                {
-                    components.Add(container.Get(entity));
-                }
-            }
-
-            return components;
-        }
-
         public IReadOnlyList<T> GetComponents<T>()
-            where T : AComponent
+            where T : struct, IComponent
         {
             var components = new List<T>();
 
@@ -97,7 +80,7 @@ namespace Mini.Engine.ECS.Components
                 var container = containers[i];
                 if (container.Contains(entity))
                 {
-                    container.Get(entity).ChangeState.Remove();
+                    container.Remove(entity);
                 }
             }
         }

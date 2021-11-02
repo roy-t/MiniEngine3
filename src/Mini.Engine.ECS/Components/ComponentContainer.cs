@@ -7,16 +7,15 @@ namespace Mini.Engine.ECS.Components
     {
         Type ComponentType { get; }
         int Count { get; }
-        AComponent Get(Entity entity);
         bool Contains(Entity entity);
         void Flush();
         void Remove(Entity entity);
     }
 
     public interface IComponentContainer<T> : IComponentContainer
-        where T : AComponent
+        where T : struct, IComponent
     {
-        void Add(T component);
+        void Add(ref T component);
         T this[Entity entity] { get; }
         IEnumerable<T> GetAllItems();
         IEnumerable<T> GetChangedItems();
@@ -26,31 +25,26 @@ namespace Mini.Engine.ECS.Components
     }
 
     public sealed class ComponentContainer<T> : IComponentContainer<T>
-        where T : AComponent
+        where T : struct, IComponent
     {
-        private readonly SortedList<Entity, T> Items;
+        private readonly SortedComponentList<T> Items;
 
         public ComponentContainer()
         {
-            this.Items = new SortedList<Entity, T>();
+            this.Items = new SortedComponentList<T>();
         }
 
-        public void Add(T component)
+        public void Add(ref T component)
         {
-            this.Items.Add(component.Entity, component);
+            this.Items.Add(ref component);
         }
-
-        public AComponent Get(Entity entity)
-        {
-            return this.Items[entity];
-        }
-
-        public T this[Entity entity] => this.Items[entity];
 
         public void Remove(Entity entity)
         {
-            this.Items.Remove(entity);
+            this.Items[entity].ChangeState.Remove();
         }
+
+        public T this[Entity entity] => this.Items[entity];
 
         public int Count => this.Items.Count;
 
@@ -58,18 +52,18 @@ namespace Mini.Engine.ECS.Components
 
         public bool Contains(Entity entity)
         {
-            return this.Items.ContainsKey(entity);
+            return this.Items.Contains(entity);
         }
 
         public void Flush()
         {
             for (var i = this.Items.Count - 1; i >= 0; i--)
             {
-                var item = this.Items.Values[i];
+                var item = this.Items[i];
                 if (item.ChangeState.CurrentState == LifetimeState.Removed)
                 {
                     (item as IDisposable)?.Dispose();
-                    this.Remove(item.Entity);
+                    this.Items.RemoveAt(i);
                 }
                 else
                 {
@@ -80,7 +74,7 @@ namespace Mini.Engine.ECS.Components
 
         public IEnumerable<T> GetAllItems()
         {
-            return this.Items.Values;
+            return this.Items;
         }
 
         public IEnumerable<T> GetNewItems()
@@ -107,7 +101,7 @@ namespace Mini.Engine.ECS.Components
         {
             for (var i = 0; i < this.Items.Count; i++)
             {
-                var item = this.Items.Values[i];
+                var item = this.Items[i];
                 if (item.ChangeState.CurrentState == state)
                 {
                     yield return item;
