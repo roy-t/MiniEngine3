@@ -10,15 +10,21 @@ namespace Mini.Engine.DirectX
     public struct ModelVertex
     {
         public Vector3 Position;
+        public Vector2 Texcoord;
+        public Vector3 Normal;
 
-        public ModelVertex(Vector3 position)
+        public ModelVertex(Vector3 position, Vector2 texcoord, Vector3 normal)
         {
             this.Position = position;
+            this.Texcoord = texcoord;
+            this.Normal = normal;
         }
 
         public static readonly InputElementDescription[] Elements = new InputElementDescription[]
         {
-            new InputElementDescription("POSITION", 0, Format.R32G32B32_Float, 0, 0, InputClassification.PerVertexData, 0)
+            new InputElementDescription("POSITION", 0, Format.R32G32B32_Float, 0 * sizeof(float), 0, InputClassification.PerVertexData, 0),
+            new InputElementDescription("TEXCOORD", 0, Format.R32G32_Float, 3 * sizeof(float), 0, InputClassification.PerVertexData, 0),
+            new InputElementDescription("NORMAL", 0, Format.R32G32B32_Float, 5 * sizeof(float), 0, InputClassification.PerVertexData, 0)
         };
     }
 
@@ -36,9 +42,9 @@ namespace Mini.Engine.DirectX
             var z = -5;
             this.Vertices = new ModelVertex[]
             {
-                new ModelVertex(new Vector3(-e, 0, z)),
-                new ModelVertex(new Vector3(0, e, z)),
-                new ModelVertex(new Vector3(e, 0, z)),
+                new ModelVertex(new Vector3(-e, 0, z), Vector2.Zero, new Vector3(1, 0, 0)),
+                new ModelVertex(new Vector3(0, e, z), Vector2.Zero, new Vector3(0, 1, 0)),
+                new ModelVertex(new Vector3(e, 0, z), Vector2.Zero, new Vector3(0, 0, 1)),
             };
 
             this.Indices = new int[]
