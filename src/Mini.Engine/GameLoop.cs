@@ -37,7 +37,7 @@ namespace Mini.Engine
         public void Update(float time, float elapsed)
         {
             this.Content.ReloadChangedContent();
-            this.CameraController.Update(ref this.FrameService.Camera, elapsed);
+            this.CameraController.Update(this.FrameService.Camera, elapsed);
         }
 
         public void Draw(float alpha)

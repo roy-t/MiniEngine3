@@ -5,54 +5,63 @@ namespace Mini.Engine.Graphics
     public interface ITransformable<T>
     {
         public Transform Transform { get; }
-        public T Retransform(Transform transform);
+        public void OnTransform();
     }
 
     public static class ITransformExtensions
     {
-        public static T MoveTo<T>(this ITransformable<T> target, Vector3 position)
+        public static void MoveTo<T>(this ITransformable<T> target, Vector3 position)
         {
-            return target.Retransform(target.Transform.MoveTo(position));
+            target.Transform.MoveTo(position);
+            target.OnTransform();
         }
 
-        public static T SetScale<T>(this ITransformable<T> target, float scale)
+        public static void SetScale<T>(this ITransformable<T> target, float scale)
         {
-            return target.Retransform(target.Transform.SetScale(scale));
+            target.Transform.SetScale(scale);
+            target.OnTransform();
         }
 
-        public static T SetScale<T>(this ITransformable<T> target, Vector3 scale)
+        public static void SetScale<T>(this ITransformable<T> target, Vector3 scale)
         {
-            return target.Retransform(target.Transform.SetScale(scale));
+            target.Transform.SetScale(scale);
+            target.OnTransform();
         }
 
-        public static T SetOrigin<T>(this ITransformable<T> target, Vector3 origin)
+        public static void SetOrigin<T>(this ITransformable<T> target, Vector3 origin)
         {
-            return target.Retransform(target.Transform.SetOrigin(origin));
+            target.Transform.SetOrigin(origin);
+            target.OnTransform();
         }
 
-        public static T SetRotation<T>(this ITransformable<T> target, Quaternion rotation)
+        public static void SetRotation<T>(this ITransformable<T> target, Quaternion rotation)
         {
-            return target.Retransform(target.Transform.SetRotation(rotation));
+            target.Transform.SetRotation(rotation);
+            target.OnTransform();
         }
 
-        public static T ApplyTranslation<T>(this ITransformable<T> target, Vector3 translation)
+        public static void ApplyTranslation<T>(this ITransformable<T> target, Vector3 translation)
         {
-            return target.Retransform(target.Transform.MoveTo(target.Transform.Position + translation));
+            target.Transform.MoveTo(target.Transform.Position + translation);
+            target.OnTransform();
         }
 
-        public static T ApplyRotation<T>(this ITransformable<T> target, Quaternion rotation)
+        public static void ApplyRotation<T>(this ITransformable<T> target, Quaternion rotation)
         {
-            return target.Retransform(target.Transform.ApplyRotation(rotation));
+            target.Transform.ApplyRotation(rotation);
+            target.OnTransform();
         }
 
-        public static T FaceTarget<T>(this ITransformable<T> target, Vector3 position)
+        public static void FaceTarget<T>(this ITransformable<T> target, Vector3 position)
         {
-            return target.Retransform(target.Transform.FaceTarget(position));
+            target.Transform.FaceTarget(position);
+            target.OnTransform();
         }
 
-        public static T FaceTargetConstrained<T>(this ITransformable<T> target, Vector3 position, Vector3 up)
+        public static void FaceTargetConstrained<T>(this ITransformable<T> target, Vector3 position, Vector3 up)
         {
-            return target.Retransform(target.Transform.FaceTargetConstrained(position, up));
+            target.Transform.FaceTargetConstrained(position, up);
+            target.OnTransform();
         }
     }
 }

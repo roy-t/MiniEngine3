@@ -4,24 +4,24 @@ using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics
 {
-    public readonly struct Transform
+    public sealed class Transform
     {
         public static readonly Transform Identity = new();
-
-        public readonly Matrix4x4 Matrix;
-        public readonly Quaternion Rotation;
-        public readonly Vector3 Origin;
-        public readonly Vector3 Position;
-        public readonly Vector3 Forward;
-        public readonly Vector3 Up;
-        public readonly Vector3 Left;
-        public readonly Vector3 Scale;
 
         public Transform()
             : this(Vector3.Zero) { }
 
         public Transform(Transform source)
-            : this(source.Matrix, source.Rotation, source.Origin, source.Position, source.Forward, source.Up, source.Left, source.Scale) { }
+        {
+            this.Matrix = source.Matrix;
+            this.Rotation = source.Rotation;
+            this.Origin = source.Origin;
+            this.Position = source.Position;
+            this.Forward = source.Forward;
+            this.Up = source.Up;
+            this.Left = source.Left;
+            this.Scale = source.Scale;
+        }
 
         public Transform(Vector3 position)
             : this(position, Vector3.One, Quaternion.Identity) { }
@@ -33,58 +33,57 @@ namespace Mini.Engine.Graphics
             : this(position, scale, Quaternion.Identity) { }
 
         public Transform(Vector3 position, Vector3 scale, Quaternion rotation, Vector3 origin = default)
-            : this(Recompute(position, scale, rotation, origin)) { }
-
-        private Transform(Matrix4x4 matrix, Quaternion rotation, Vector3 origin, Vector3 position, Vector3 forward, Vector3 up, Vector3 left, Vector3 scale)
         {
-            this.Matrix = matrix;
-            this.Rotation = rotation;
-            this.Origin = origin;
-            this.Position = position;
-            this.Forward = forward;
-            this.Up = up;
-            this.Left = left;
-            this.Scale = scale;
+            this.Recompute(position, scale, rotation, origin);
         }
 
-        public Transform MoveTo(Vector3 position)
+        public Matrix4x4 Matrix { get; private set; }
+        public Quaternion Rotation { get; private set; }
+        public Vector3 Origin { get; private set; }
+        public Vector3 Position { get; private set; }
+        public Vector3 Forward { get; private set; }
+        public Vector3 Up { get; private set; }
+        public Vector3 Left { get; private set; }
+        public Vector3 Scale { get; private set; }
+
+        public void MoveTo(Vector3 position)
         {
-            return Recompute(position, this.Scale, this.Rotation, this.Origin);
+            this.Recompute(position, this.Scale, this.Rotation, this.Origin);
         }
 
-        public Transform SetScale(float scale)
+        public void SetScale(float scale)
         {
-            return this.SetScale(Vector3.One * scale);
+            this.SetScale(Vector3.One * scale);
         }
 
-        public Transform SetScale(Vector3 scale)
+        public void SetScale(Vector3 scale)
         {
-            return Recompute(this.Position, scale, this.Rotation, this.Origin);
+            this.Recompute(this.Position, scale, this.Rotation, this.Origin);
         }
 
-        public Transform SetOrigin(Vector3 origin)
+        public void SetOrigin(Vector3 origin)
         {
-            return Recompute(this.Position, this.Scale, this.Rotation, origin);
+            this.Recompute(this.Position, this.Scale, this.Rotation, origin);
         }
 
-        public Transform SetRotation(Quaternion rotation)
+        public void SetRotation(Quaternion rotation)
         {
-            return Recompute(this.Position, this.Scale, rotation, this.Origin);
+            this.Recompute(this.Position, this.Scale, rotation, this.Origin);
         }
 
-        public Transform ApplyRotation(Quaternion rotation)
+        public void ApplyRotation(Quaternion rotation)
         {
-            return Recompute(this.Position, this.Scale, rotation * this.Rotation, this.Origin);
+            this.Recompute(this.Position, this.Scale, rotation * this.Rotation, this.Origin);
         }
 
-        public Transform FaceTarget(Vector3 target)
+        public void FaceTarget(Vector3 target)
         {
             var newForward = Vector3.Normalize(target - this.Position);
             var rotation = GetRotation(this.Forward, newForward, this.Up);
-            return this.ApplyRotation(rotation);
+            this.ApplyRotation(rotation);
         }
 
-        public Transform FaceTargetConstrained(Vector3 target, Vector3 up)
+        public void FaceTargetConstrained(Vector3 target, Vector3 up)
         {
             var dot = Vector3.Dot(Vector3.Normalize(target - this.Position), up);
             if (Math.Abs(dot) < 0.99f)
@@ -93,23 +92,22 @@ namespace Mini.Engine.Graphics
                 if (Matrix4x4.Invert(matrix, out var inverted))
                 {
                     var quaternion = Quaternion.CreateFromRotationMatrix(inverted);
-                    return this.SetRotation(quaternion);
+                    this.SetRotation(quaternion);
                 }
             }
-
-            return this;
         }
 
-        private static Transform Recompute(Vector3 position, Vector3 scale, Quaternion rotation, Vector3 origin = default)
+        private void Recompute(Vector3 position, Vector3 scale, Quaternion rotation, Vector3 origin = default)
         {
-            rotation = Quaternion.Normalize(rotation);
+            this.Position = position;
+            this.Scale = scale;
+            this.Rotation = Quaternion.Normalize(rotation);
+            this.Origin = origin;
 
-            var forward = Vector3.Transform(-Vector3.UnitZ, rotation);
-            var up = Vector3.Transform(Vector3.UnitY, rotation);
-            var left = Vector3.Transform(-Vector3.UnitX, rotation);
-            var matrix = Combine(position, scale, origin, rotation);
-
-            return new Transform(matrix, rotation, origin, position, forward, up, left, scale);
+            this.Forward = Vector3.Transform(-Vector3.UnitZ, rotation);
+            this.Up = Vector3.Transform(Vector3.UnitY, rotation);
+            this.Left = Vector3.Transform(-Vector3.UnitX, rotation);
+            this.Matrix = Combine(position, scale, origin, rotation);
         }
 
         private static Matrix4x4 Combine(Vector3 position, Vector3 scale, Vector3 origin, Quaternion rotation)

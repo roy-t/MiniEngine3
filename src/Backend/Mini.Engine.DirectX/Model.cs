@@ -22,13 +22,13 @@ namespace Mini.Engine.DirectX
         };
     }
 
-    public readonly record struct Range(int Offset, int Count);
+    public readonly record struct Primitive(int Offset, int Count);
 
     public sealed class ModelData
     {
         public readonly ModelVertex[] Vertices;
         public readonly int[] Indices;
-        public readonly Range[] Primitives;
+        public readonly Primitive[] Primitives;
 
         public ModelData()
         {
@@ -46,9 +46,9 @@ namespace Mini.Engine.DirectX
                 0, 1, 2,
             };
 
-            this.Primitives = new Range[]
+            this.Primitives = new Primitive[]
             {
-                new Range(0, 3),
+                new Primitive(0, 3),
             };
         }
     }
@@ -57,14 +57,14 @@ namespace Mini.Engine.DirectX
     {
         public readonly VertexBuffer<ModelVertex> Vertices;
         public readonly IndexBuffer<int> Indices;
-        public readonly Range[] Primitives;
+        public readonly Primitive[] Primitives;
 
         public Model(Device device, ModelData data)
         {
             this.Vertices = new VertexBuffer<ModelVertex>(device);
             this.Indices = new IndexBuffer<int>(device);
             this.Primitives = data.Primitives;
-            
+
             this.Vertices.MapData(device.ImmediateContext, data.Vertices);
             this.Indices.MapData(device.ImmediateContext, data.Indices);
         }

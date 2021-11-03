@@ -1,9 +1,8 @@
 # TODO
 
-// continue replacing things in Mini.Engine.Windows with this: https://github.com/microsoft/CsWin32
+Transform should not be a struct as its way too big
 
-Maybe parse mouse using https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/DxTechArts/taking-advantage-of-high-dpi-mouse-movement.md
-
+Continue replacing things in Mini.Engine.Windows with this: https://github.com/microsoft/CsWin32
 
 Define internal model format
 

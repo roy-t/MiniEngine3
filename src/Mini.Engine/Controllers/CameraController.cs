@@ -35,7 +35,7 @@ namespace Mini.Engine.Controllers
             this.InputController = inputController;
         }
 
-        public void Update(ref PerspectiveCamera camera, float elapsed)
+        public void Update(PerspectiveCamera camera, float elapsed)
         {
             var horizontal = Vector4.Zero;
             var vertical = Vector2.Zero;
@@ -67,7 +67,7 @@ namespace Mini.Engine.Controllers
                 translation += vertical.Y * down;
 
                 translation *= step;
-                camera = camera.ApplyTranslation(translation);
+                camera.ApplyTranslation(translation);
             }
 
             var movement = Vector2.Zero;
@@ -91,7 +91,7 @@ namespace Mini.Engine.Controllers
                 rotation *= Quaternion.CreateFromAxisAngle(-camera.Transform.Left, movement.Y);
 
                 var lookAt = camera.Transform.Position + Vector3.Transform(camera.Transform.Forward, rotation);
-                camera = camera.FaceTargetConstrained(lookAt, Vector3.UnitY);
+                camera.FaceTargetConstrained(lookAt, Vector3.UnitY);
             }
 
             if (scrolledUp)
