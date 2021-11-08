@@ -13,7 +13,6 @@ namespace Mini.Engine.Content
     {
         private readonly ILogger Logger;
         private readonly Device Device;
-        private readonly IVirtualFileSystem FileSystem;
         private readonly Stack<List<IContent>> ContentStack;
 
         public ContentManager(ILogger logger, Device device, IVirtualFileSystem fileSystem)
@@ -24,6 +23,9 @@ namespace Mini.Engine.Content
             this.Device = device;
             this.FileSystem = fileSystem;
         }
+
+        // TODO: make private once models get loaded normally
+        public IVirtualFileSystem FileSystem { get; }
 
         public void Push()
         {
@@ -83,7 +85,7 @@ namespace Mini.Engine.Content
                     if (content.FileName.Equals(path, StringComparison.OrdinalIgnoreCase))
                     {
                         this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, path);
-                        content.Reload();
+                        content.Reload(this.Device, this.FileSystem);
                     }
                 }
             }

@@ -1,7 +1,6 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
 using Mini.Engine.IO;
 using Vortice.D3DCompiler;
 using Vortice.Direct3D;
@@ -14,20 +13,18 @@ namespace Mini.Engine.DirectX
     {
         private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();
 
-        private readonly IVirtualFileSystem FileSystem;
         protected readonly Device Device;
-        
-        private Blob blob = null!;
+
+        private Blob blob;
 
         public Shader(Device device, IVirtualFileSystem fileSystem, string fileName, string entryPoint, string profile)
         {
             this.Device = device;
-            this.FileSystem = fileSystem;
             this.FileName = fileName;
             this.EntryPoint = entryPoint;
             this.Profile = profile;
 
-            this.Reload();
+            this.Reload(device, fileSystem);
         }
 
         internal TShader ID3D11Shader { get; set; } = null!;
@@ -36,11 +33,11 @@ namespace Mini.Engine.DirectX
         public string EntryPoint { get; }
         public string Profile { get; }
 
-        public void Reload()
+        [MemberNotNull(nameof(blob))]
+        public void Reload(Device device, IVirtualFileSystem fileSystem)
         {
-            // Files are read via .NET methods
-            var sourceText = this.FileSystem.ReadAllText(this.FileName);
-            using var include = new ShaderFileInclude(this.FileSystem, Path.GetDirectoryName(this.FileName));
+            var sourceText = fileSystem.ReadAllText(this.FileName);
+            using var include = new ShaderFileInclude(fileSystem, Path.GetDirectoryName(this.FileName));
 
             Compiler.Compile(sourceText, Defines, include, this.EntryPoint, this.FileName, this.Profile, out var shaderBlob, out var errorBlob);
             ShaderCompilationErrorFilter.ThrowOnWarningOrError(errorBlob, "X3568");
@@ -55,9 +52,9 @@ namespace Mini.Engine.DirectX
 
         protected abstract TShader Create(Blob blob);
 
-        public InputLayout CreateInputLayout(params InputElementDescription[] elements)
+        public InputLayout CreateInputLayout(Device device, params InputElementDescription[] elements)
         {
-            return new(this.Device.ID3D11Device.CreateInputLayout(elements, this.blob));
+            return new(device.ID3D11Device.CreateInputLayout(elements, this.blob));
         }
 
         public void Dispose()

@@ -28,7 +28,7 @@ namespace Mini.Engine.Graphics
             this.FrameService = frameService;
             this.VertexShader = content.LoadFlatShaderVs();
             this.PixelShader = content.LoadFlatShaderPs();
-            this.InputLayout = this.VertexShader.CreateInputLayout(ModelVertex.Elements);
+            this.InputLayout = this.VertexShader.CreateInputLayout(device, ModelVertex.Elements);
             this.ConstantBuffer = new ConstantBuffer<CBuffer0>(device);
         }
 

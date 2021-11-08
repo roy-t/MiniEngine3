@@ -48,6 +48,7 @@ namespace Mini.Engine.UI
 
             this.InputLayout = this.VertexShader.CreateInputLayout
             (
+                device,
                 new InputElementDescription("POSITION", 0, Format.R32G32_Float, 0, 0, InputClassification.PerVertexData, 0),
                 new InputElementDescription("TEXCOORD", 0, Format.R32G32_Float, 8, 0, InputClassification.PerVertexData, 0),
                 new InputElementDescription("COLOR", 0, Format.R8G8B8A8_UNorm, 16, 0, InputClassification.PerVertexData, 0)

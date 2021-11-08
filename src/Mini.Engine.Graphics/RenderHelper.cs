@@ -21,7 +21,7 @@ namespace Mini.Engine.Graphics
             this.PixelShader = content.LoadPostProcessShaderPs();
             this.VertexShader = content.LoadPostProcessShaderVs();
 
-            this.InputLayout = this.VertexShader.CreateInputLayout(PostProcessVertex.Elements);
+            this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
         }
 
         public void RenderToViewPort(DeviceContext context, Texture2D texture)

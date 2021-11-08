@@ -31,7 +31,7 @@ namespace Mini.Engine
 
             // TODO: move to scene
             var entity = entities.Create();
-            models.Add(new ModelComponent(entity, new Model(device, new ModelData())));
+            models.Add(new ModelComponent(entity, new Model(device, content.FileSystem, string.Empty)));
         }
 
         public void Update(float time, float elapsed)

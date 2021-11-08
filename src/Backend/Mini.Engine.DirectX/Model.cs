@@ -1,6 +1,7 @@
-﻿using System;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Mini.Engine.IO;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -45,44 +46,56 @@ namespace Mini.Engine.DirectX
                 new ModelVertex(new Vector3(-e, 0, z), Vector2.Zero, new Vector3(1, 0, 0)),
                 new ModelVertex(new Vector3(0, e, z), Vector2.Zero, new Vector3(0, 1, 0)),
                 new ModelVertex(new Vector3(e, 0, z), Vector2.Zero, new Vector3(0, 0, 1)),
+                new ModelVertex(new Vector3(0, -e, z), Vector2.Zero, new Vector3(1, 1, 1)),
             };
 
             this.Indices = new int[]
             {
                 0, 1, 2,
+                0, 2, 3
             };
 
             this.Primitives = new Primitive[]
             {
                 new Primitive(0, 3),
+                new Primitive(3, 3)
             };
         }
     }
 
-    public sealed class Model : IDisposable
+    public sealed class Model : IContent
     {
-        public readonly VertexBuffer<ModelVertex> Vertices;
-        public readonly IndexBuffer<int> Indices;
-        public readonly Primitive[] Primitives;
-
-        public Model(Device device, ModelData data)
+        public Model(Device device, IVirtualFileSystem fileSystem, string fileName)
         {
-            this.Vertices = new VertexBuffer<ModelVertex>(device);
+            this.FileName = fileName;
+            this.Reload(device, fileSystem);
+        }
+
+        public string FileName { get; }
+
+        public VertexBuffer<ModelVertex> Vertices { get; private set; }
+        public IndexBuffer<int> Indices { get; private set; }
+        public Primitive[] Primitives { get; private set; }
+
+        public int PrimitiveCount => this.Primitives.Length;
+
+        [MemberNotNull(nameof(Vertices), nameof(Indices), nameof(Primitives))]
+        public void Reload(Device device, IVirtualFileSystem fileSystem)
+        {
             this.Indices = new IndexBuffer<int>(device);
+            this.Vertices = new VertexBuffer<ModelVertex>(device);
+
+            var data = new ModelData();
             this.Primitives = data.Primitives;
 
             this.Vertices.MapData(device.ImmediateContext, data.Vertices);
             this.Indices.MapData(device.ImmediateContext, data.Indices);
         }
 
-        public int PrimitiveCount => this.Primitives.Length;
-
         public void Dispose()
         {
             this.Indices.Dispose();
             this.Vertices.Dispose();
         }
-
-        // TODO add a hierarchy of matrices
     }
 }
