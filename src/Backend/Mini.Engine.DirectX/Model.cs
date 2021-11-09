@@ -30,18 +30,20 @@ namespace Mini.Engine.DirectX
     }
 
     public readonly record struct Primitive(int Offset, int Count);
+    public sealed record ModelData(ModelVertex[] Vertices, int[] Indices, Primitive[] Primitives);
 
-    public sealed class ModelData
+    public interface IModelLoader
     {
-        public readonly ModelVertex[] Vertices;
-        public readonly int[] Indices;
-        public readonly Primitive[] Primitives;
+        ModelData Load(IVirtualFileSystem fileSystem, string fileName);
+    }
 
-        public ModelData()
+    public sealed class DummyModelLoader : IModelLoader
+    {
+        public ModelData Load(IVirtualFileSystem fileSystem, string fileName)
         {
             var e = 1;
             var z = -5;
-            this.Vertices = new ModelVertex[]
+            var vertices = new ModelVertex[]
             {
                 new ModelVertex(new Vector3(-e, 0, z), Vector2.Zero, new Vector3(1, 0, 0)),
                 new ModelVertex(new Vector3(0, e, z), Vector2.Zero, new Vector3(0, 1, 0)),
@@ -49,24 +51,29 @@ namespace Mini.Engine.DirectX
                 new ModelVertex(new Vector3(0, -e, z), Vector2.Zero, new Vector3(1, 1, 1)),
             };
 
-            this.Indices = new int[]
+            var indices = new int[]
             {
                 0, 1, 2,
                 0, 2, 3
             };
 
-            this.Primitives = new Primitive[]
+            var primitives = new Primitive[]
             {
                 new Primitive(0, 3),
                 new Primitive(3, 3)
             };
+
+            return new ModelData(vertices, indices, primitives);
         }
     }
 
     public sealed class Model : IContent
     {
-        public Model(Device device, IVirtualFileSystem fileSystem, string fileName)
+        private readonly IModelLoader Loader;
+
+        public Model(Device device, IVirtualFileSystem fileSystem, IModelLoader loader, string fileName)
         {
+            this.Loader = loader;
             this.FileName = fileName;
             this.Reload(device, fileSystem);
         }
@@ -85,7 +92,7 @@ namespace Mini.Engine.DirectX
             this.Indices = new IndexBuffer<int>(device);
             this.Vertices = new VertexBuffer<ModelVertex>(device);
 
-            var data = new ModelData();
+            var data = this.Loader.Load(fileSystem, this.FileName);
             this.Primitives = data.Primitives;
 
             this.Vertices.MapData(device.ImmediateContext, data.Vertices);
