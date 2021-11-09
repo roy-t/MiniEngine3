@@ -32,6 +32,11 @@ namespace Mini.Engine.IO
             return File.ReadAllText(this.ToAbsolute(path));
         }
 
+        public string[] ReadAllLines(string path)
+        {
+            return File.ReadAllLines(this.ToAbsolute(path));
+        }
+
         public void WatchFile(string path)
         {
             this.ChangedFilesFilter.Add(path);

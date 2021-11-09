@@ -5,6 +5,7 @@ namespace Mini.Engine.IO
     public interface IVirtualFileSystem
     {
         string ReadAllText(string path);
+        string[] ReadAllLines(string path);
         IEnumerable<string> GetChangedFiles();
         void WatchFile(string path);
         void ClearChangedFiles();
