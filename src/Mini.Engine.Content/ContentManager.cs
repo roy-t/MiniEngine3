@@ -24,6 +24,15 @@ namespace Mini.Engine.Content
             this.FileSystem = fileSystem;
         }
 
+        public Model LoadAsteroid()
+        {
+            var loader = new ObjModelLoader(this.Logger);
+            var model = new Model(this.Device, this.FileSystem, loader, @"Models\AsteroidField\Asteroid001.obj");
+            this.Add(model);
+
+            return model;
+        }
+
         // TODO: make private once models get loaded normally
         public IVirtualFileSystem FileSystem { get; }
 

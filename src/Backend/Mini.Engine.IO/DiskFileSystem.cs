@@ -69,7 +69,7 @@ namespace Mini.Engine.IO
                 return path.Substring(this.RootDirectory.Length + 1);
             }
 
-            throw new ArgumentException($"Expected absolute path but bot '{path}'", nameof(path));
+            throw new ArgumentException($"Expected absolute path but got '{path}'", nameof(path));
         }
 
         private void OnChange(string fullPath, string reason)

@@ -31,8 +31,9 @@ namespace Mini.Engine
 
             // TODO: move to scene
             var entity = entities.Create();
-            var loader = new DummyModelLoader();
-            models.Add(new ModelComponent(entity, new Model(device, content.FileSystem, loader, string.Empty)));
+            //var loader = new DummyModelLoader();
+            //models.Add(new ModelComponent(entity, new Model(device, content.FileSystem, loader, string.Empty)));
+            models.Add(new ModelComponent(entity, content.LoadAsteroid()));
         }
 
         public void Update(float time, float elapsed)

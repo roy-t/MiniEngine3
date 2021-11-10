@@ -28,5 +28,5 @@ PS_INPUT VS(VS_INPUT input)
 #pragma PixelShader
 float4 PS(PS_INPUT input) : SV_Target
 {
-    return float4(input.normal, 1);
+    return float4(1, 1, 1, 1);
 }
