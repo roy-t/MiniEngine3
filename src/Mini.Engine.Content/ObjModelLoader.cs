@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using Mini.Engine.DirectX;
@@ -75,41 +76,68 @@ namespace Mini.Engine.Content
                 }
             }
 
-            var vertices = new ModelVertex[state.Vertices.Count];
-            var indices = new int[state.Faces.Count * 3];
-            var primitives = new List<Primitive>();
+            return TransformToModelData(state);
+        }
 
-            // TODO: almost works but there's a small bug that makes me miss some triangles
-            for (var i = 0; i < state.Faces.Count; i++)
+        private class ModelVertexComparer : IEqualityComparer<ModelVertex>
+        {
+            public bool Equals(ModelVertex x, ModelVertex y)
             {
-                var face = state.Faces[i];
-                if (face.Length == 3)
-                {
-                    var index = new int[3];
-                    for (var j = 0; j < 3; j++)
-                    {
-                        var point = face[j];
-                        var position = state.Vertices[point.X - 1];
-                        var texcoord = state.Texcoords[point.Y - 1];
-                        var normal = state.Normals[point.Z - 1];
-                        vertices[point.X - 1] = new ModelVertex(position, texcoord, normal);
-
-                        index[j] = point.X - 1;
-                    }
-
-                    indices[i * 3 + 0] = index[0];
-                    indices[i * 3 + 1] = index[1];
-                    indices[i * 3 + 2] = index[2];
-                }
-                else
-                {
-                    throw new Exception("Unexpected number of elements per face");
-                }
+                return x.Normal.Equals(y.Normal) && x.Position.Equals(y.Position) && x.Texcoord.Equals(y.Texcoord);
             }
 
-            // TODO: support models with more than one primitive!
-            primitives.Add(new Primitive(state.Object, 0, indices.Length / 3));
-            return new ModelData(vertices, indices, primitives.ToArray());
+            public int GetHashCode([DisallowNull] ModelVertex obj)
+            {
+                return HashCode.Combine(obj.Normal, obj.Position, obj.Texcoord);
+            }
+        }
+
+        private static ModelData TransformToModelData(ParseState state)
+        {
+            var comparer = new ModelVertexComparer();
+            var vertices = new Dictionary<ModelVertex, int>(comparer);
+            var indexList = new List<int>();
+            var nextIndex = 0;
+            foreach (var face in state.Faces)
+            {
+                var indices = new int[3];
+                for (var i = 0; i < 3; i++)
+                {
+                    var lookup = face[i];
+
+                    var position = state.Vertices[lookup.X - 1];
+                    var texcoord = state.Texcoords[lookup.Y - 1];
+                    var normal = state.Normals[lookup.Z - 1];
+
+                    var vertex = new ModelVertex(position, texcoord, normal);
+
+                    if (vertices.TryGetValue(vertex, out var index))
+                    {
+                        indices[i] = index;
+                    }
+                    else
+                    {
+                        indices[i] = nextIndex;
+                        vertices.Add(vertex, nextIndex);
+                        ++nextIndex;
+                    }
+                }
+                indexList.AddRange(indices);
+            }
+
+            // TODO: support multiple primitives in one file!
+            var primitives = new List<Primitive>
+            {
+                new Primitive(state.Object, 0, indexList.Count)
+            };
+
+            var vertexArray = new ModelVertex[indexList.Max() + 1];
+            foreach (var tuple in vertices)
+            {
+                vertexArray[tuple.Value] = tuple.Key;
+            }
+
+            return new ModelData(vertexArray, indexList.ToArray(), primitives.ToArray());
         }
 
         #region General Statements

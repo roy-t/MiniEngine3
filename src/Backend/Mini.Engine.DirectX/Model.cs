@@ -29,7 +29,7 @@ namespace Mini.Engine.DirectX
         };
     }
 
-    public readonly record struct Primitive(string Name, int Offset, int Count);
+    public readonly record struct Primitive(string Name, int IndexOffset, int IndexCount);
     public sealed record ModelData(ModelVertex[] Vertices, int[] Indices, Primitive[] Primitives);
 
     public interface IModelLoader

@@ -73,7 +73,7 @@ namespace Mini.Engine.Graphics
             for (var i = 0; i < component.Model.PrimitiveCount; i++)
             {
                 var primitive = component.Model.Primitives[i];
-                this.Context.DrawIndexed(primitive.Count, primitive.Offset, 0);
+                this.Context.DrawIndexed(primitive.IndexCount, primitive.IndexOffset, 0);
             }
         }
 
