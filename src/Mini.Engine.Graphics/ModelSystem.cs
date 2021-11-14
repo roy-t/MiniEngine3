@@ -44,7 +44,7 @@ namespace Mini.Engine.Graphics
 
             this.Context.RS.SetViewPort(0, 0, width, height);
             this.Context.RS.SetScissorRect(0, 0, width, height);
-            this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
+            this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullNone); // TODO
 
             this.Context.PS.SetShader(this.PixelShader);
             this.Context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
@@ -60,7 +60,8 @@ namespace Mini.Engine.Graphics
         {
             var cBuffer = new CBuffer0()
             {
-                WorldViewProjection = this.FrameService.Camera.ViewProjection
+                WorldViewProjection = System.Numerics.Matrix4x4.CreateScale(0.01f) * this.FrameService.Camera.ViewProjection
+                //WorldViewProjection = this.FrameService.Camera.ViewProjection
             };
             this.ConstantBuffer.MapData(this.Context, cBuffer);
 

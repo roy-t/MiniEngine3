@@ -6,7 +6,7 @@ namespace Mini.Engine.Graphics
     public sealed class PerspectiveCamera : ITransformable<PerspectiveCamera>
     {
         public const float NearPlane = 0.1f;
-        public const float FarPlane = 250.1f;
+        public const float FarPlane = 2500.1f;
         public const float FieldOfView = MathF.PI / 2.0f;
 
         public readonly float AspectRatio;

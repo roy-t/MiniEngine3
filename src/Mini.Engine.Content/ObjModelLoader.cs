@@ -15,30 +15,33 @@ namespace Mini.Engine.Content
     /// </summary>
     public sealed class ObjModelLoader : IModelLoader
     {
+        private record class Group(string Name, int startFace, int endFace);
+
         private sealed class ParseState
         {
-            public List<Vector3> Vertices { get; }
-            public List<Vector3> Normals { get; }
-            public List<Vector2> Texcoords { get; }
+            public List<Vector4> Vertices { get; }
+            public List<Vector4> Normals { get; }
+            public List<Vector4> Texcoords { get; }
             public List<Point3[]> Faces { get; }
-            public List<Primitive> Primitives { get; }
+            public List<Group> Groups { get; }
 
             public List<string> MaterialLibraries { get; }
 
-            public string Group { get; set; }
             public string Object { get; set; }
             public string Material { get; set; }
 
+            public Group? Group { get; set; }
+
             public ParseState()
             {
-                this.Vertices = new List<Vector3>();
-                this.Normals = new List<Vector3>();
-                this.Texcoords = new List<Vector2>();
+                this.Vertices = new List<Vector4>();
+                this.Normals = new List<Vector4>();
+                this.Texcoords = new List<Vector4>();
                 this.Faces = new List<Point3[]>();
-                this.Primitives = new List<Primitive>();
+                this.Groups = new List<Group>();
                 this.MaterialLibraries = new List<string>();
 
-                this.Group = "default";
+                this.Group = null;
                 this.Object = string.Empty;
                 this.Material = string.Empty;
             }
@@ -94,42 +97,65 @@ namespace Mini.Engine.Content
 
         private static ModelData TransformToModelData(ParseState state)
         {
-            var comparer = new ModelVertexComparer();
-            var vertices = new Dictionary<ModelVertex, int>(comparer);
-            var indexList = new List<int>();
-            var nextIndex = 0;
-            foreach (var face in state.Faces)
+            if (state.Group != null)
             {
-                var indices = new int[3];
-                for (var i = 0; i < 3; i++)
-                {
-                    var lookup = face[i];
-
-                    var position = state.Vertices[lookup.X - 1];
-                    var texcoord = state.Texcoords[lookup.Y - 1];
-                    var normal = state.Normals[lookup.Z - 1];
-
-                    var vertex = new ModelVertex(position, texcoord, normal);
-
-                    if (vertices.TryGetValue(vertex, out var index))
-                    {
-                        indices[i] = index;
-                    }
-                    else
-                    {
-                        indices[i] = nextIndex;
-                        vertices.Add(vertex, nextIndex);
-                        ++nextIndex;
-                    }
-                }
-                indexList.AddRange(indices);
+                EndPreviousGroup(state);
             }
 
-            // TODO: support multiple primitives in one file!
-            var primitives = new List<Primitive>
+            if (state.Groups.Count == 0)
             {
-                new Primitive(state.Object, 0, indexList.Count)
-            };
+                state.Groups.Add(new Group(state.Object, 0, state.Faces.Count - 1));
+            }
+
+            var comparer = new ModelVertexComparer();
+            var vertices = new Dictionary<ModelVertex, int>(comparer);
+            var primitives = new List<Primitive>();
+            var indexList = new List<int>();
+            var nextIndex = 0;
+
+            foreach (var group in state.Groups)
+            {
+                var startIndex = indexList.Count;
+
+                for (var fi = group.startFace; fi <= group.endFace; fi++)
+                {
+                    var face = state.Faces[fi];
+
+                    if (face.Length != 3)
+                    {
+                        throw new Exception("Face is not a triangle");
+                    }
+
+                    var indices = new int[3];
+                    for (var i = 0; i < 3; i++)
+                    {
+                        var lookup = face[i];
+
+                        var position = state.Vertices[lookup.X - 1];
+                        var texcoord = state.Texcoords[lookup.Y - 1];
+                        var normal = state.Normals[lookup.Z - 1];
+
+                        var p = new Vector3(position.X, position.Y, position.Z);
+                        var t = new Vector2(texcoord.X, texcoord.Y);
+                        var n = new Vector3(normal.X, normal.Y, normal.Z);
+                        var vertex = new ModelVertex(p, t, n);
+
+                        if (vertices.TryGetValue(vertex, out var index))
+                        {
+                            indices[i] = index;
+                        }
+                        else
+                        {
+                            indices[i] = nextIndex;
+                            vertices.Add(vertex, nextIndex);
+                            ++nextIndex;
+                        }
+                    }
+                    indexList.AddRange(indices);
+                }
+
+                primitives.Add(new Primitive(group.Name, startIndex, indexList.Count - startIndex));
+            }
 
             var vertexArray = new ModelVertex[indexList.Max() + 1];
             foreach (var tuple in vertices)
@@ -137,7 +163,7 @@ namespace Mini.Engine.Content
                 vertexArray[tuple.Value] = tuple.Key;
             }
 
-            return new ModelData(vertexArray, indexList.ToArray(), primitives.ToArray());
+            return new ModelData(state.Object, vertexArray, indexList.ToArray(), primitives.ToArray());
         }
 
         #region General Statements
@@ -158,8 +184,23 @@ namespace Mini.Engine.Content
         /// </summary>
         private static bool ParseGroup(ParseState state, string statement)
         {
-            return ParseList(statement, "g", arguments => state.Group = string.Join(' ', arguments));
-            // TODO: start a new group and end previous groups
+            return ParseList(statement, "g", arguments => NewGroup(state, arguments));
+        }
+
+        private static void EndPreviousGroup(ParseState state)
+        {
+            if (state.Group != null)
+            {
+                state.Groups.Add(new Group(state.Group.Name, state.Group.startFace, state.Faces.Count - 1));
+            }
+        }
+
+        private static void NewGroup(ParseState state, string[] arguments)
+        {
+            EndPreviousGroup(state);
+
+            var name = string.Join(' ', arguments);
+            state.Group = new Group(name, state.Faces.Count, 0);
         }
 
         /// <summary>
@@ -184,7 +225,7 @@ namespace Mini.Engine.Content
         /// </summary>
         private static bool ParseVertex(ParseState state, string statement)
         {
-            return ParseList(statement, "v", s => float.Parse(s), elements => state.Vertices.Add(ToVector3(elements)));
+            return ParseList(statement, "v", s => float.Parse(s), elements => state.Vertices.Add(ToVector(elements)));
         }
 
         /// <summary>
@@ -193,7 +234,7 @@ namespace Mini.Engine.Content
         /// </summary>
         private static bool ParseVertexTexture(ParseState state, string statement)
         {
-            return ParseList(statement, "vt", s => float.Parse(s), elements => state.Texcoords.Add(ToVector2(elements)));
+            return ParseList(statement, "vt", s => float.Parse(s), elements => state.Texcoords.Add(ToVector(elements)));
         }
 
         /// <summary>
@@ -202,7 +243,7 @@ namespace Mini.Engine.Content
         /// </summary>
         private static bool ParseNormal(ParseState state, string statement)
         {
-            return ParseList(statement, "vn", s => float.Parse(s), elements => state.Normals.Add(ToVector3(elements)));
+            return ParseList(statement, "vn", s => float.Parse(s), elements => state.Normals.Add(ToVector(elements)));
         }
 
         #endregion
@@ -309,23 +350,16 @@ namespace Mini.Engine.Content
             return elements;
         }
 
-        private static Vector2 ToVector2(float[] elements)
+        private static Vector4 ToVector(float[] elements)
         {
-            if (elements.Length != 2)
-            {
-                throw new ArgumentException($"Could not convert an array with {elements.Length} elements to a Vector2");
-            }
-            return new Vector2(elements[0], elements[1]);
-        }
+            var vector = Vector4.Zero;
+            vector.X = elements.Length > 0 ? elements[0] : 0;
+            vector.Y = elements.Length > 1 ? elements[1] : 0;
+            vector.Z = elements.Length > 2 ? elements[2] : 0;
+            vector.W = elements.Length > 3 ? elements[3] : 0;
 
-        private static Vector3 ToVector3(float[] elements)
-        {
-            if (elements.Length != 3)
-            {
-                throw new ArgumentException($"Could not convert an array with {elements.Length} elements to a Vector3");
-            }
-            return new Vector3(elements[0], elements[1], elements[2]);
-        }
 
+            return vector;
+        }
     }
 }

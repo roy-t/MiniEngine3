@@ -27,7 +27,8 @@ namespace Mini.Engine.Content
         public Model LoadAsteroid()
         {
             var loader = new ObjModelLoader(this.Logger);
-            var model = new Model(this.Device, this.FileSystem, loader, @"Models\cube\cube.obj");
+            var model = new Model(this.Device, this.FileSystem, loader, @"Models\sponza\sponp.obj");
+            //var model = new Model(this.Device, this.FileSystem, loader, @"Models\cube\cube.obj");
             this.Add(model);
 
             return model;

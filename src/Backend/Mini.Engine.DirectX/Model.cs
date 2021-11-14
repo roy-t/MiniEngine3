@@ -30,7 +30,7 @@ namespace Mini.Engine.DirectX
     }
 
     public readonly record struct Primitive(string Name, int IndexOffset, int IndexCount);
-    public sealed record ModelData(ModelVertex[] Vertices, int[] Indices, Primitive[] Primitives);
+    public sealed record ModelData(string Name, ModelVertex[] Vertices, int[] Indices, Primitive[] Primitives);
 
     public interface IModelLoader
     {
@@ -63,7 +63,7 @@ namespace Mini.Engine.DirectX
                 new Primitive("Below", 3, 3)
             };
 
-            return new ModelData(vertices, indices, primitives);
+            return new ModelData("Diamond", vertices, indices, primitives);
         }
     }
 
