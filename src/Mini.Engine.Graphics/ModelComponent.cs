@@ -2,21 +2,20 @@
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 
-namespace Mini.Engine.Graphics
+namespace Mini.Engine.Graphics;
+
+public sealed class ModelComponent : AComponent, IDisposable
 {
-    public sealed class ModelComponent : AComponent, IDisposable
+    public ModelComponent(Entity entity, Model model)
+        : base(entity)
     {
-        public ModelComponent(Entity entity, Model model)
-            : base(entity)
-        {
-            this.Model = model;
-        }
+        this.Model = model;
+    }
 
-        public Model Model { get; }
+    public Model Model { get; }
 
-        public void Dispose()
-        {
-            this.Model.Dispose();
-        }
+    public void Dispose()
+    {
+        this.Model.Dispose();
     }
 }

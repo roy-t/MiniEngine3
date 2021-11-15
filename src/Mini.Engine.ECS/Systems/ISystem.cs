@@ -1,8 +1,7 @@
-﻿namespace Mini.Engine.ECS.Systems
+﻿namespace Mini.Engine.ECS.Systems;
+
+public interface ISystem : ISystemBindingProvider
 {
-    public interface ISystem : ISystemBindingProvider
-    {
-        public void OnSet();
-        public void OnUnSet();
-    }
+    public void OnSet();
+    public void OnUnSet();
 }

@@ -1,6 +1,5 @@
-﻿namespace Mini.Engine.ECS
+﻿namespace Mini.Engine.ECS;
+
+public interface IEquatable
 {
-    public interface IEquatable
-    {
-    }
 }

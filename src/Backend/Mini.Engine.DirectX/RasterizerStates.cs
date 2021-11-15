@@ -1,82 +1,81 @@
 ﻿using System;
 using Vortice.Direct3D11;
 
-namespace Mini.Engine.DirectX
+namespace Mini.Engine.DirectX;
+
+public sealed class RasterizerState : IDisposable
 {
-    public sealed class RasterizerState : IDisposable
+    internal RasterizerState(ID3D11RasterizerState state, string name)
     {
-        internal RasterizerState(ID3D11RasterizerState state, string name)
-        {
-            this.State = state;
-            this.State.DebugName = name;
-            this.Name = name;
-        }
-
-        public string Name { get; }
-
-        internal ID3D11RasterizerState State { get; }
-
-        public void Dispose()
-        {
-            this.State.Dispose();
-        }
+        this.State = state;
+        this.State.DebugName = name;
+        this.Name = name;
     }
 
-    public sealed class RasterizerStates : IDisposable
+    public string Name { get; }
+
+    internal ID3D11RasterizerState State { get; }
+
+    public void Dispose()
     {
-        internal RasterizerStates(ID3D11Device device)
-        {
-            this.CullNone = Create(device, CullNoneDescription(), nameof(this.CullNone));
-            this.CullCounterClockwise = Create(device, CullCounterClockwiseDescription(), nameof(this.CullCounterClockwise));
-            this.CullClockwise = Create(device, CullClockwiseDescription(), nameof(this.CullClockwise));
-        }
+        this.State.Dispose();
+    }
+}
 
-        public RasterizerState CullNone { get; }
-        public RasterizerState CullCounterClockwise { get; }
-        public RasterizerState CullClockwise { get; }
+public sealed class RasterizerStates : IDisposable
+{
+    internal RasterizerStates(ID3D11Device device)
+    {
+        this.CullNone = Create(device, CullNoneDescription(), nameof(this.CullNone));
+        this.CullCounterClockwise = Create(device, CullCounterClockwiseDescription(), nameof(this.CullCounterClockwise));
+        this.CullClockwise = Create(device, CullClockwiseDescription(), nameof(this.CullClockwise));
+    }
 
-        private static RasterizerState Create(ID3D11Device device, RasterizerDescription description, string name)
-        {
-            var state = device.CreateRasterizerState(description);
-            return new RasterizerState(state, name);
-        }
+    public RasterizerState CullNone { get; }
+    public RasterizerState CullCounterClockwise { get; }
+    public RasterizerState CullClockwise { get; }
 
-        private static RasterizerDescription CullNoneDescription()
-        {
-            return new RasterizerDescription
-            {
-                FillMode = FillMode.Solid,
-                CullMode = CullMode.None,
-                ScissorEnable = true,
-                DepthClipEnable = true
-            };
-        }
+    private static RasterizerState Create(ID3D11Device device, RasterizerDescription description, string name)
+    {
+        var state = device.CreateRasterizerState(description);
+        return new RasterizerState(state, name);
+    }
 
-        private static RasterizerDescription CullCounterClockwiseDescription()
+    private static RasterizerDescription CullNoneDescription()
+    {
+        return new RasterizerDescription
         {
-            return new RasterizerDescription
-            {
-                FillMode = FillMode.Solid,
-                CullMode = CullMode.Back,
-                ScissorEnable = true,
-                DepthClipEnable = true
-            };
-        }
+            FillMode = FillMode.Solid,
+            CullMode = CullMode.None,
+            ScissorEnable = true,
+            DepthClipEnable = true
+        };
+    }
 
-        private static RasterizerDescription CullClockwiseDescription()
+    private static RasterizerDescription CullCounterClockwiseDescription()
+    {
+        return new RasterizerDescription
         {
-            return new RasterizerDescription
-            {
-                FillMode = FillMode.Solid,
-                CullMode = CullMode.Front,
-                ScissorEnable = true,
-                DepthClipEnable = true
-            };
-        }
+            FillMode = FillMode.Solid,
+            CullMode = CullMode.Back,
+            ScissorEnable = true,
+            DepthClipEnable = true
+        };
+    }
 
-        public void Dispose()
+    private static RasterizerDescription CullClockwiseDescription()
+    {
+        return new RasterizerDescription
         {
-            this.CullNone.Dispose();
-        }
+            FillMode = FillMode.Solid,
+            CullMode = CullMode.Front,
+            ScissorEnable = true,
+            DepthClipEnable = true
+        };
+    }
+
+    public void Dispose()
+    {
+        this.CullNone.Dispose();
     }
 }

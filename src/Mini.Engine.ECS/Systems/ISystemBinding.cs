@@ -1,7 +1,6 @@
-﻿namespace Mini.Engine.ECS.Systems
+﻿namespace Mini.Engine.ECS.Systems;
+
+public interface ISystemBinding
 {
-    public interface ISystemBinding
-    {
-        public void Process();
-    }
+    public void Process();
 }

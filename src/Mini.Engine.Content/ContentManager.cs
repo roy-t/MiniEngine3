@@ -7,107 +7,106 @@ using Mini.Engine.DirectX;
 using Mini.Engine.IO;
 using Serilog;
 
-namespace Mini.Engine.Content
+namespace Mini.Engine.Content;
+
+[Service]
+public sealed partial class ContentManager : IDisposable
 {
-    [Service]
-    public sealed partial class ContentManager : IDisposable
+    private readonly ILogger Logger;
+    private readonly Device Device;
+    private readonly Stack<List<IContent>> ContentStack;
+
+    public ContentManager(ILogger logger, Device device, IVirtualFileSystem fileSystem)
     {
-        private readonly ILogger Logger;
-        private readonly Device Device;
-        private readonly Stack<List<IContent>> ContentStack;
+        this.Logger = logger.ForContext<ContentManager>();
+        this.ContentStack = new Stack<List<IContent>>();
+        this.ContentStack.Push(new List<IContent>());
+        this.Device = device;
+        this.FileSystem = fileSystem;
+    }
 
-        public ContentManager(ILogger logger, Device device, IVirtualFileSystem fileSystem)
-        {
-            this.Logger = logger.ForContext<ContentManager>();
-            this.ContentStack = new Stack<List<IContent>>();
-            this.ContentStack.Push(new List<IContent>());
-            this.Device = device;
-            this.FileSystem = fileSystem;
-        }
+    public Model LoadAsteroid()
+    {
+        var loader = new ObjModelLoader(this.Logger);
+        var model = new Model(this.Device, this.FileSystem, loader, @"Models\sponza\sponza.obj");
+        //var model = new Model(this.Device, this.FileSystem, loader, @"Models\cube\cube.obj");
+        this.Add(model);
 
-        public Model LoadAsteroid()
-        {
-            var loader = new ObjModelLoader(this.Logger);
-            var model = new Model(this.Device, this.FileSystem, loader, @"Models\sponza\sponza.obj");
-            //var model = new Model(this.Device, this.FileSystem, loader, @"Models\cube\cube.obj");
-            this.Add(model);
+        return model;
+    }
 
-            return model;
-        }
+    // TODO: make private once models get loaded normally
+    public IVirtualFileSystem FileSystem { get; }
 
-        // TODO: make private once models get loaded normally
-        public IVirtualFileSystem FileSystem { get; }
+    public void Push()
+    {
+        this.ContentStack.Push(new List<IContent>());
+    }
 
-        public void Push()
-        {
-            this.ContentStack.Push(new List<IContent>());
-        }
+    public void Pop()
+    {
+        Dispose(this.ContentStack.Pop());
+    }
 
-        public void Pop()
+    public void Dispose()
+    {
+        while (this.ContentStack.Count > 0)
         {
             Dispose(this.ContentStack.Pop());
         }
+    }
 
-        public void Dispose()
+    [Conditional("DEBUG")]
+    public void ReloadChangedContent()
+    {
+        foreach (var file in this.FileSystem.GetChangedFiles())
         {
-            while (this.ContentStack.Count > 0)
+            try
             {
-                Dispose(this.ContentStack.Pop());
+                this.ReloadContentReferencingFile(file);
+            }
+            catch (Exception ex)
+            {
+                this.Logger.Error(ex, "Failed to reload {@file}", file);
             }
         }
 
-        [Conditional("DEBUG")]
-        public void ReloadChangedContent()
-        {
-            foreach (var file in this.FileSystem.GetChangedFiles())
-            {
-                try
-                {
-                    this.ReloadContentReferencingFile(file);
-                }
-                catch (Exception ex)
-                {
-                    this.Logger.Error(ex, "Failed to reload {@file}", file);
-                }
-            }
+        this.FileSystem.ClearChangedFiles();
+    }
 
-            this.FileSystem.ClearChangedFiles();
-        }
+    private void Add(IContent content)
+    {
+        this.ContentStack.Peek().Add(content);
+        this.Watch(content);
+    }
 
-        private void Add(IContent content)
-        {
-            this.ContentStack.Peek().Add(content);
-            this.Watch(content);
-        }
+    [Conditional("DEBUG")]
+    private void Watch(IContent content)
+    {
+        this.FileSystem.WatchFile(content.FileName);
+        this.Logger.Information("Watching file {@file}", content.FileName);
+    }
 
-        [Conditional("DEBUG")]
-        private void Watch(IContent content)
-        {
-            this.FileSystem.WatchFile(content.FileName);
-            this.Logger.Information("Watching file {@file}", content.FileName);
-        }
-
-        private void ReloadContentReferencingFile(string path)
-        {
-            foreach (var list in this.ContentStack)
-            {
-                foreach (var content in list)
-                {
-                    if (content.FileName.Equals(path, StringComparison.OrdinalIgnoreCase))
-                    {
-                        this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, path);
-                        content.Reload(this.Device, this.FileSystem);
-                    }
-                }
-            }
-        }
-
-        private static void Dispose(List<IContent> list)
+    private void ReloadContentReferencingFile(string path)
+    {
+        foreach (var list in this.ContentStack)
         {
             foreach (var content in list)
             {
-                content.Dispose();
+                if (content.FileName.Equals(path, StringComparison.OrdinalIgnoreCase))
+                {
+                    this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, path);
+                    content.Reload(this.Device, this.FileSystem);
+                }
             }
+        }
+    }
+
+    private static void Dispose(List<IContent> list)
+    {
+        foreach (var content in list)
+        {
+            content.Dispose();
         }
     }
 }

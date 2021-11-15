@@ -3,36 +3,35 @@ using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
 
-namespace Mini.Engine
+namespace Mini.Engine;
+
+[Service]
+internal sealed class RenderPipelineBuilder
 {
-    [Service]
-    internal sealed class RenderPipelineBuilder
+    private readonly PipelineBuilder Builder;
+
+    public RenderPipelineBuilder(PipelineBuilder builder)
     {
-        private readonly PipelineBuilder Builder;
+        this.Builder = builder;
+    }
 
-        public RenderPipelineBuilder(PipelineBuilder builder)
-        {
-            this.Builder = builder;
-        }
-
-        public ParallelPipeline Build()
-        {
-            var pipeline = this.Builder.Builder();
-            return pipeline
-                .System<ComponentFlushSystem>()
-                    .Parallel()
-                    .Produces("Initialization", "Containers")
-                    .Build()
-                .System<ClearGBufferSystem>()
-                    .InSequence()
-                    .Produces("Initialization", "GBuffer")
-                    .Build()
-                .System<ModelSystem>()
-                    .InSequence()
-                    .Requires("Initialization", "GBuffer")
-                    .Produces("Renderer", "Models")
-                    .Build()
-            .Build();
-        }
+    public ParallelPipeline Build()
+    {
+        var pipeline = this.Builder.Builder();
+        return pipeline
+            .System<ComponentFlushSystem>()
+                .Parallel()
+                .Produces("Initialization", "Containers")
+                .Build()
+            .System<ClearGBufferSystem>()
+                .InSequence()
+                .Produces("Initialization", "GBuffer")
+                .Build()
+            .System<ModelSystem>()
+                .InSequence()
+                .Requires("Initialization", "GBuffer")
+                .Produces("Renderer", "Models")
+                .Build()
+        .Build();
     }
 }

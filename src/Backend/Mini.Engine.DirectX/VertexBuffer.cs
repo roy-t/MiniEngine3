@@ -1,24 +1,23 @@
 ﻿using Vortice.Direct3D11;
 
-namespace Mini.Engine.DirectX
+namespace Mini.Engine.DirectX;
+
+public sealed class VertexBuffer<T> : DeviceBuffer<T>
+    where T : unmanaged
 {
-    public sealed class VertexBuffer<T> : DeviceBuffer<T>
-        where T : unmanaged
+    public VertexBuffer(Device device)
+        : base(device) { }
+
+    protected override ID3D11Buffer CreateBuffer(int sizeInBytes)
     {
-        public VertexBuffer(Device device)
-            : base(device) { }
-
-        protected override ID3D11Buffer CreateBuffer(int sizeInBytes)
+        var description = new BufferDescription()
         {
-            var description = new BufferDescription()
-            {
-                Usage = ResourceUsage.Dynamic,
-                SizeInBytes = sizeInBytes,
-                BindFlags = BindFlags.VertexBuffer,
-                CpuAccessFlags = CpuAccessFlags.Write,
-            };
+            Usage = ResourceUsage.Dynamic,
+            SizeInBytes = sizeInBytes,
+            BindFlags = BindFlags.VertexBuffer,
+            CpuAccessFlags = CpuAccessFlags.Write,
+        };
 
-            return this.Device.CreateBuffer(description);
-        }
+        return this.Device.CreateBuffer(description);
     }
 }

@@ -1,61 +1,60 @@
 ﻿using System;
 using Vortice.Direct3D11;
 
-namespace Mini.Engine.DirectX
+namespace Mini.Engine.DirectX;
+
+public sealed class SamplerState : IDisposable
 {
-    public sealed class SamplerState : IDisposable
+    internal SamplerState(ID3D11SamplerState state, string name)
     {
-        internal SamplerState(ID3D11SamplerState state, string name)
-        {
-            this.State = state;
-            this.State.DebugName = name;
-            this.Name = name;
-        }
-
-        public string Name { get; }
-
-        internal ID3D11SamplerState State { get; }
-
-        public void Dispose()
-        {
-            this.State.Dispose();
-        }
+        this.State = state;
+        this.State.DebugName = name;
+        this.Name = name;
     }
 
-    public sealed class SamplerStates : IDisposable
+    public string Name { get; }
+
+    internal ID3D11SamplerState State { get; }
+
+    public void Dispose()
     {
-        internal SamplerStates(ID3D11Device device)
+        this.State.Dispose();
+    }
+}
+
+public sealed class SamplerStates : IDisposable
+{
+    internal SamplerStates(ID3D11Device device)
+    {
+        this.LinearWrap = Create(device, LinearWrapDescription(), nameof(this.LinearWrap));
+    }
+
+    public SamplerState LinearWrap { get; }
+
+
+    private static SamplerState Create(ID3D11Device device, SamplerDescription description, string name)
+    {
+        var state = device.CreateSamplerState(description);
+        return new SamplerState(state, name);
+    }
+
+    private static SamplerDescription LinearWrapDescription()
+    {
+        return new SamplerDescription
         {
-            this.LinearWrap = Create(device, LinearWrapDescription(), nameof(this.LinearWrap));
-        }
+            Filter = Filter.MinMagMipLinear,
+            AddressU = TextureAddressMode.Wrap,
+            AddressV = TextureAddressMode.Wrap,
+            AddressW = TextureAddressMode.Wrap,
+            MipLODBias = 0f,
+            ComparisonFunction = ComparisonFunction.Always,
+            MinLOD = 0f,
+            MaxLOD = 0f
+        };
+    }
 
-        public SamplerState LinearWrap { get; }
-
-
-        private static SamplerState Create(ID3D11Device device, SamplerDescription description, string name)
-        {
-            var state = device.CreateSamplerState(description);
-            return new SamplerState(state, name);
-        }
-
-        private static SamplerDescription LinearWrapDescription()
-        {
-            return new SamplerDescription
-            {
-                Filter = Filter.MinMagMipLinear,
-                AddressU = TextureAddressMode.Wrap,
-                AddressV = TextureAddressMode.Wrap,
-                AddressW = TextureAddressMode.Wrap,
-                MipLODBias = 0f,
-                ComparisonFunction = ComparisonFunction.Always,
-                MinLOD = 0f,
-                MaxLOD = 0f
-            };
-        }
-
-        public void Dispose()
-        {
-            this.LinearWrap.Dispose();
-        }
+    public void Dispose()
+    {
+        this.LinearWrap.Dispose();
     }
 }

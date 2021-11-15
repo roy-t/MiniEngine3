@@ -6,63 +6,62 @@ using Vortice.D3DCompiler;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 
-namespace Mini.Engine.DirectX
+namespace Mini.Engine.DirectX;
+
+public abstract class Shader<TShader> : IContent
+    where TShader : ID3D11DeviceChild
 {
-    public abstract class Shader<TShader> : IContent
-        where TShader : ID3D11DeviceChild
+    private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();
+
+    protected readonly Device Device;
+
+    private Blob blob;
+
+    public Shader(Device device, IVirtualFileSystem fileSystem, string fileName, string entryPoint, string profile)
     {
-        private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();
+        this.Device = device;
+        this.FileName = fileName;
+        this.EntryPoint = entryPoint;
+        this.Profile = profile;
 
-        protected readonly Device Device;
+        this.Reload(device, fileSystem);
+    }
 
-        private Blob blob;
+    internal TShader ID3D11Shader { get; set; } = null!;
 
-        public Shader(Device device, IVirtualFileSystem fileSystem, string fileName, string entryPoint, string profile)
-        {
-            this.Device = device;
-            this.FileName = fileName;
-            this.EntryPoint = entryPoint;
-            this.Profile = profile;
+    public string FileName { get; }
+    public string EntryPoint { get; }
+    public string Profile { get; }
 
-            this.Reload(device, fileSystem);
-        }
+    [MemberNotNull(nameof(blob))]
+    public void Reload(Device device, IVirtualFileSystem fileSystem)
+    {
+        var sourceText = fileSystem.ReadAllText(this.FileName);
+        using var include = new ShaderFileInclude(fileSystem, Path.GetDirectoryName(this.FileName));
 
-        internal TShader ID3D11Shader { get; set; } = null!;
+        Compiler.Compile(sourceText, Defines, include, this.EntryPoint, this.FileName, this.Profile, out var shaderBlob, out var errorBlob);
+        ShaderCompilationErrorFilter.ThrowOnWarningOrError(errorBlob, "X3568");
 
-        public string FileName { get; }
-        public string EntryPoint { get; }
-        public string Profile { get; }
+        this.blob?.Dispose();
+        this.ID3D11Shader?.Dispose();
 
-        [MemberNotNull(nameof(blob))]
-        public void Reload(Device device, IVirtualFileSystem fileSystem)
-        {
-            var sourceText = fileSystem.ReadAllText(this.FileName);
-            using var include = new ShaderFileInclude(fileSystem, Path.GetDirectoryName(this.FileName));
+        this.blob = shaderBlob;
+        this.ID3D11Shader = this.Create(this.blob);
+        this.ID3D11Shader.DebugName = this.FileName;
+    }
 
-            Compiler.Compile(sourceText, Defines, include, this.EntryPoint, this.FileName, this.Profile, out var shaderBlob, out var errorBlob);
-            ShaderCompilationErrorFilter.ThrowOnWarningOrError(errorBlob, "X3568");
+    protected abstract TShader Create(Blob blob);
 
-            this.blob?.Dispose();
-            this.ID3D11Shader?.Dispose();
+    public InputLayout CreateInputLayout(Device device, params InputElementDescription[] elements)
+    {
+        return new(device.ID3D11Device.CreateInputLayout(elements, this.blob));
+    }
 
-            this.blob = shaderBlob;
-            this.ID3D11Shader = this.Create(this.blob);
-            this.ID3D11Shader.DebugName = this.FileName;
-        }
+    public void Dispose()
+    {
+        this.blob?.Dispose();
+        this.ID3D11Shader?.Dispose();
 
-        protected abstract TShader Create(Blob blob);
-
-        public InputLayout CreateInputLayout(Device device, params InputElementDescription[] elements)
-        {
-            return new(device.ID3D11Device.CreateInputLayout(elements, this.blob));
-        }
-
-        public void Dispose()
-        {
-            this.blob?.Dispose();
-            this.ID3D11Shader?.Dispose();
-
-            GC.SuppressFinalize(this);
-        }
+        GC.SuppressFinalize(this);
     }
 }

@@ -1,11 +1,10 @@
 ﻿using System;
 using Mini.Engine.IO;
 
-namespace Mini.Engine.DirectX
+namespace Mini.Engine.DirectX;
+
+public interface IContent : IDisposable
 {
-    public interface IContent : IDisposable
-    {
-        string FileName { get; }
-        void Reload(Device device, IVirtualFileSystem fileSystem);
-    }
+    string FileName { get; }
+    void Reload(Device device, IVirtualFileSystem fileSystem);
 }

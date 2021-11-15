@@ -1,27 +1,26 @@
 ﻿using Vortice.Direct3D11;
 
-namespace Mini.Engine.DirectX
+namespace Mini.Engine.DirectX;
+
+public sealed class ConstantBuffer<T> : DeviceBuffer<T>
+    where T : unmanaged
 {
-    public sealed class ConstantBuffer<T> : DeviceBuffer<T>
-        where T : unmanaged
+    public ConstantBuffer(Device device)
+        : base(device)
     {
-        public ConstantBuffer(Device device)
-            : base(device)
-        {
-            this.EnsureCapacity(1);
-        }
+        this.EnsureCapacity(1);
+    }
 
-        protected override ID3D11Buffer CreateBuffer(int sizeInBytes)
+    protected override ID3D11Buffer CreateBuffer(int sizeInBytes)
+    {
+        var constBufferDesc = new BufferDescription
         {
-            var constBufferDesc = new BufferDescription
-            {
-                Usage = ResourceUsage.Dynamic,
-                SizeInBytes = sizeInBytes,
-                BindFlags = BindFlags.ConstantBuffer,
-                CpuAccessFlags = CpuAccessFlags.Write
-            };
+            Usage = ResourceUsage.Dynamic,
+            SizeInBytes = sizeInBytes,
+            BindFlags = BindFlags.ConstantBuffer,
+            CpuAccessFlags = CpuAccessFlags.Write
+        };
 
-            return this.Device.CreateBuffer(constBufferDesc);
-        }
+        return this.Device.CreateBuffer(constBufferDesc);
     }
 }
