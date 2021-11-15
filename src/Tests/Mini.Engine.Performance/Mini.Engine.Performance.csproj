@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+	<TargetFramework>net6.0-windows</TargetFramework>
+	<Platforms>x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Backend\Mini.Engine.IO\Mini.Engine.IO.csproj" />
+    <ProjectReference Include="..\..\Mini.Engine.Content\Mini.Engine.Content.csproj" />
+  </ItemGroup>
+
+</Project>
