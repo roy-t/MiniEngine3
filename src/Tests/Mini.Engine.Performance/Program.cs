@@ -4,7 +4,7 @@ using Mini.Engine.Content.Models.Obj;
 using Mini.Engine.IO;
 using Serilog.Core;
 
-var summary = BenchmarkRunner.Run<Bench>();
+BenchmarkRunner.Run<Bench>();
 
 public class Bench
 {
@@ -17,7 +17,3 @@ public class Bench
         this.Loader.Load(this.FileSystem, "sponza.obj");
     }
 }
-
-
-
-
