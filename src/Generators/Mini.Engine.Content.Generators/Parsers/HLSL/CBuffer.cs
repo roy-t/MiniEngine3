@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using ShaderTools.CodeAnalysis.Hlsl.Syntax;
 using ShaderTools.CodeAnalysis.Syntax;
@@ -7,6 +9,8 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
 {
     public sealed class CBuffer
     {
+        private static readonly IFormatProvider IntFormat = CultureInfo.InvariantCulture.NumberFormat;
+
         public CBuffer(ConstantBufferSyntax syntax)
         {
             this.Slot = GetRegisterSlot(syntax.Register);
@@ -30,7 +34,7 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
         {
             var digits = location.Register.ValueText.SkipWhile(c => !char.IsDigit(c));
             var text = new string(digits.ToArray());
-            return int.Parse(text);
+            return int.Parse(text, NumberStyles.Integer, IntFormat);
         }
     }
 }
