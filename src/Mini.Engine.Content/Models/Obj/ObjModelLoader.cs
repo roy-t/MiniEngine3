@@ -35,7 +35,7 @@ public sealed class ObjModelLoader : IModelLoader
                 new ObjectParser(),
                 new CommentParser(),
 
-                new MtlLibParser(logger),
+                new MtlLibParser(),
                 new UseMtlParser()
         };
     }
