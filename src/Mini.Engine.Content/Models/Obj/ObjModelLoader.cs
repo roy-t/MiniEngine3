@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Numerics;
+using Mini.Engine.Content.Models.Obj.Models;
 using Mini.Engine.DirectX;
 using Mini.Engine.IO;
 using Serilog;
@@ -16,12 +18,12 @@ namespace Mini.Engine.Content.Models.Obj;
 public sealed class ObjModelLoader : IModelLoader
 {
     private readonly ILogger Logger;
-    private readonly IStatementParser[] Parsers;
+    private readonly ObjStatementParser[] Parsers;
 
     public ObjModelLoader(ILogger logger)
     {
         this.Logger = logger.ForContext<ObjModelLoader>();
-        this.Parsers = new IStatementParser[]
+        this.Parsers = new ObjStatementParser[]
         {
                 new VertexPositionParser(),
                 new VertexTextureParser(),
@@ -33,7 +35,7 @@ public sealed class ObjModelLoader : IModelLoader
                 new ObjectParser(),
                 new CommentParser(),
 
-                new MtlLibParser(),
+                new MtlLibParser(logger),
                 new UseMtlParser()
         };
     }
@@ -43,12 +45,12 @@ public sealed class ObjModelLoader : IModelLoader
         var watch = Stopwatch.StartNew();
         var text = fileSystem.ReadAllText(fileName).AsSpan();
 
-        var state = new ParseState();
+        var state = new ObjParseState(Path.GetDirectoryName(fileName) ?? string.Empty);
         foreach (var line in text.EnumerateLines())
         {
             foreach (var parser in this.Parsers)
             {
-                if (parser.Parse(state, line))
+                if (parser.Parse(state, line, fileSystem))
                 {
                     break;
                 }
@@ -72,7 +74,7 @@ public sealed class ObjModelLoader : IModelLoader
         }
     }
 
-    private ModelData TransformToModelData(ParseState state)
+    private ModelData TransformToModelData(ObjParseState state)
     {
         var watch = Stopwatch.StartNew();
         if (state.Group != null)
