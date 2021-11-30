@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content.Models.Obj;
+using Mini.Engine.Content.Models.Wavefront;
 using Mini.Engine.DirectX;
 using Mini.Engine.IO;
 using Serilog;
@@ -27,7 +27,7 @@ public sealed partial class ContentManager : IDisposable
 
     public Model LoadAsteroid()
     {
-        var loader = new ObjModelLoader(this.Logger);
+        var loader = new WavefrontModelLoader(this.Logger);
         var model = new Model(this.Device, this.FileSystem, loader, @"Models\sponza\sponza.obj");
         //var model = new Model(this.Device, this.FileSystem, loader, @"Models\cube\cube.obj");
         this.Add(model);

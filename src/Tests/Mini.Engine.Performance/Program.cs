@@ -1,6 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
-using Mini.Engine.Content.Models.Obj;
+using Mini.Engine.Content.Models.Wavefront;
 using Mini.Engine.IO;
 using Serilog.Core;
 
@@ -8,7 +8,7 @@ BenchmarkRunner.Run<Bench>();
 
 public class Bench
 {
-    private readonly ObjModelLoader Loader = new(Logger.None);
+    private readonly WavefrontModelLoader Loader = new(Logger.None);
     private readonly IVirtualFileSystem FileSystem = new DiskFileSystem(Logger.None, @"D:\Projects\C#\MiniEngine3\src\Mini.Engine.Content\Models\sponza");
 
     [Benchmark]
