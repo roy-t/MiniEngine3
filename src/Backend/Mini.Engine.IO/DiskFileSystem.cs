@@ -27,6 +27,11 @@ public sealed class DiskFileSystem : IVirtualFileSystem
 
     public string RootDirectory { get; }
 
+    public Stream OpenRead(string path)
+    {
+        return File.OpenRead(this.ToAbsolute(path));
+    }
+
     public string ReadAllText(string path)
     {
         return File.ReadAllText(this.ToAbsolute(path));
