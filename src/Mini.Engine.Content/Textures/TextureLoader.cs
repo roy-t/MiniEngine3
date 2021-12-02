@@ -3,14 +3,13 @@ using Mini.Engine.IO;
 using Serilog;
 using StbImageSharp;
 using Vortice.DXGI;
+using static Mini.Engine.DirectX.ITextureLoader;
 
 namespace Mini.Engine.Content.Textures;
 
-internal class TextureLoader
+internal class TextureLoader : ITextureLoader
 {
     private readonly ILogger Logger;
-    private const Format ByteFormat = Format.R8G8B8A8_UNorm_SRgb;
-    private const Format FloatFormat = Format.R32G32B32A32_Float;
 
     public TextureLoader(ILogger logger)
     {

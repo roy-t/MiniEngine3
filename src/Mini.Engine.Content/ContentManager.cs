@@ -13,7 +13,9 @@ namespace Mini.Engine.Content;
 public sealed partial class ContentManager : IDisposable
 {
     private readonly ILogger Logger;
+    private readonly IVirtualFileSystem FileSystem;
     private readonly Device Device;
+
     private readonly Stack<List<IContent>> ContentStack;
 
     public ContentManager(ILogger logger, Device device, IVirtualFileSystem fileSystem)
@@ -34,9 +36,6 @@ public sealed partial class ContentManager : IDisposable
 
         return model;
     }
-
-    // TODO: make private once models get loaded normally
-    public IVirtualFileSystem FileSystem { get; }
 
     public void Push()
     {

@@ -5,9 +5,6 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX;
 
-public sealed record TextureData<T>(string Name, int Width, int Height, int Pitch, Format Format, T[] Data)
-    where T : unmanaged;
-
 public class Texture2D : IDisposable
 {
     public Texture2D(Device device, int width, int height, Format format, bool generateMipMaps = false, string name = "")
@@ -50,15 +47,6 @@ public class Texture2D : IDisposable
         // Assumes texture is uncompressed and fills the entire buffer
         var pitch = width * format.SizeOfInBytes();
         device.ID3D11DeviceContext.UpdateSubresource(pixels, this.Texture, 0, pitch, 0);
-    }
-
-    public static Texture2D Create<T>(Device device, TextureData<T> data, bool generateMipMaps = false)
-        where T : unmanaged
-    {
-        var texture = new Texture2D(device, data.Width, data.Height, data.Format, generateMipMaps, data.Name);
-        device.ID3D11DeviceContext.UpdateSubresource<T>(data.Data, texture.Texture, 0, data.Pitch, 0);
-
-        return texture;
     }
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
