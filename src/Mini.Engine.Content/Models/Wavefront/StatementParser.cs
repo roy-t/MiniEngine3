@@ -20,7 +20,7 @@ internal abstract class StatementParser<T> : IStatementParser<T>
     {
         if (IsRelevant(this.Key, line))
         {
-            var arguments = line[this.Key.Length..];
+            var arguments = line[(this.Key.Length + 1)..];
             this.ParseArgument(state, arguments, fileSystem);
             this.ParseArguments(state, new SpanTokenEnumerator(arguments), fileSystem);
             return true;

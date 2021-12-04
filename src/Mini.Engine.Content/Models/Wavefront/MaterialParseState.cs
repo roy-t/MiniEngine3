@@ -2,7 +2,7 @@
 
 namespace Mini.Engine.Content.Models.Wavefront;
 
-internal record class Material(string Name, string Albedo, string Metalicness, string Normal, string Roughness, string AmbientOcclusion);
+internal record class Material(string Name, string? Albedo, string? Metalicness, string? Normal, string? Roughness, string? AmbientOcclusion);
 
 internal class MaterialParseState : IParseState
 {
@@ -34,11 +34,11 @@ internal class MaterialParseState : IParseState
         if (this.CurrentMaterial != null)
         {
             this.Materials.Add(new Material(this.CurrentMaterial,
-                this.Albedo ?? "albedo.tga",
-                this.Metalicness ?? "metalicness.tga",
-                this.Normal ?? "normal.tga",
-                this.Roughness ?? "roughness.tga",
-                this.AmbientOcclusion ?? "ao.tga"));
+                this.Albedo,
+                this.Metalicness,
+                this.Normal,
+                this.Roughness,
+                this.AmbientOcclusion));
         }
     }
 }

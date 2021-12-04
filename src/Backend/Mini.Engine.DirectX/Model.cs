@@ -29,7 +29,8 @@ public struct ModelVertex
     };
 }
 
-public readonly record struct Primitive(string Name, int IndexOffset, int IndexCount);
+public sealed record Material(string Name, TextureData<byte> Albedo, TextureData<byte> Metalicness, TextureData<byte> Normal, TextureData<byte> Roughness, TextureData<byte> AmbientOcclusion);
+public sealed record Primitive(string Name, Material Material, int IndexOffset, int IndexCount);
 public sealed record ModelData(string Name, ModelVertex[] Vertices, int[] Indices, Primitive[] Primitives);
 
 public interface IModelLoader
@@ -39,6 +40,13 @@ public interface IModelLoader
 
 public sealed class DummyModelLoader : IModelLoader
 {
+    private readonly Material Material;
+
+    public DummyModelLoader(Material material)
+    {
+        this.Material = material;
+    }
+
     public ModelData Load(IVirtualFileSystem fileSystem, string fileName)
     {
         var e = 1;
@@ -59,8 +67,8 @@ public sealed class DummyModelLoader : IModelLoader
 
         var primitives = new Primitive[]
         {
-                new Primitive("Above", 0, 3),
-                new Primitive("Below", 3, 3)
+                new Primitive("Above", this.Material, 0, 3),
+                new Primitive("Below", this.Material, 3, 3)
         };
 
         return new ModelData("Diamond", vertices, indices, primitives);

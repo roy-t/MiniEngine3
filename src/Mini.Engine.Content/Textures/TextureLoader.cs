@@ -7,7 +7,7 @@ using static Mini.Engine.DirectX.ITextureLoader;
 
 namespace Mini.Engine.Content.Textures;
 
-internal class TextureLoader : ITextureLoader
+public class TextureLoader : ITextureLoader
 {
     private readonly ILogger Logger;
 

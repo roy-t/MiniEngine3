@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Models.Wavefront;
+using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.IO;
 using Serilog;
@@ -12,6 +13,8 @@ namespace Mini.Engine.Content;
 [Service]
 public sealed partial class ContentManager : IDisposable
 {
+    // TODO: prevent double loading of content, instead reference count
+
     private readonly ILogger Logger;
     private readonly IVirtualFileSystem FileSystem;
     private readonly Device Device;
@@ -29,7 +32,7 @@ public sealed partial class ContentManager : IDisposable
 
     public Model LoadAsteroid()
     {
-        var loader = new WavefrontModelLoader(this.Logger);
+        var loader = new WavefrontModelLoader(this.Logger, new TextureLoader(this.Logger));
         var model = new Model(this.Device, this.FileSystem, loader, @"Models\sponza\sponza.obj");
         //var model = new Model(this.Device, this.FileSystem, loader, @"Models\cube\cube.obj");
         this.Add(model);

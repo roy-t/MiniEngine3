@@ -4,7 +4,10 @@ using Vortice.Mathematics;
 
 namespace Mini.Engine.Content.Models.Wavefront;
 
-internal record class Group(string Name, int StartFace, int EndFace);
+internal record class Group(string Name, int StartFace, int EndFace)
+{
+    public Material? Material { get; set; }
+}
 
 internal sealed class ObjectParseState : IParseState
 {
@@ -17,11 +20,12 @@ internal sealed class ObjectParseState : IParseState
         this.Texcoords = new List<Vector4>(100_000);
         this.Faces = new List<Point3[]>(100_000);
         this.Groups = new List<Group>(100);
-        this.Materials = new List<Material>();
+        this.Materials = new Dictionary<string, Material>();
+
+        this.Object = string.Empty;
 
         this.Group = null;
-        this.Object = string.Empty;
-        this.Material = string.Empty;
+        this.Material = null;
     }
 
     public List<Vector4> Vertices { get; }
@@ -30,12 +34,12 @@ internal sealed class ObjectParseState : IParseState
     public List<Point3[]> Faces { get; }
     public List<Group> Groups { get; }
 
-    public List<Material> Materials { get; }
+    public Dictionary<string, Material> Materials { get; }
 
     public string Object { get; set; }
-    public string Material { get; set; }
 
     public Group? Group { get; set; }
+    public Material? Material { get; set; }
 
     public string BasePath { get; }
 
@@ -43,7 +47,10 @@ internal sealed class ObjectParseState : IParseState
     {
         if (this.Group != null)
         {
-            this.Groups.Add(new Group(this.Group.Name, this.Group.StartFace, this.Faces.Count - 1));
+            this.Groups.Add(new Group(this.Group.Name, this.Group.StartFace, this.Faces.Count - 1)
+            {
+                Material = this.Material
+            });
         }
     }
 

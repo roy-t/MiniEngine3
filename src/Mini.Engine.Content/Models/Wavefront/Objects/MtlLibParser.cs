@@ -45,7 +45,12 @@ internal sealed class MtlLibParser : ObjStatementParser
                 }
             }
 
-            state.Materials.AddRange(materialState.Materials);
+            materialState.EndMaterial();
+
+            foreach (var material in materialState.Materials)
+            {
+                state.Materials.Add(material.Name, material);
+            }
         }
     }
 }
