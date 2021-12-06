@@ -1,13 +1,20 @@
 ﻿using System.Collections.Generic;
+using Mini.Engine.DirectX;
 
 namespace Mini.Engine.Content;
+
+internal interface IContentLoader<T>
+    where T : IContent
+{
+    T Load(Device device, string fileName);
+}
 
 // TODO: let TextureLoader implement IContentLoader<T>
 // and then use the cached variant always
 // because there are two kinds of textures we unfortunately need two texture loaders
 // HDR and regular
-internal sealed class ContentCache<T> : IContentLoader<T>
-    where T : IContentData
+internal sealed class ContentCache<T>
+    where T : IContent
 {
     private sealed record Entry(T Item)
     {
@@ -23,9 +30,9 @@ internal sealed class ContentCache<T> : IContentLoader<T>
         this.Loader = loader;
     }
 
-    public T Load(string name)
+    public T Load(Device device, string fileName)
     {
-        var key = name.ToLowerInvariant();
+        var key = fileName.ToLowerInvariant();
 
         if (this.Cache.TryGetValue(key, out var entry))
         {
@@ -33,7 +40,7 @@ internal sealed class ContentCache<T> : IContentLoader<T>
             return entry.Item;
         }
 
-        var data = this.Loader.Load(name);
+        var data = this.Loader.Load(device, fileName);
         this.Cache.Add(key, new Entry(data) { ReferenceCount = 1 });
 
         return data;

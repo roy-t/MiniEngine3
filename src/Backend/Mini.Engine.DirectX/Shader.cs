@@ -14,17 +14,18 @@ public abstract class Shader<TShader> : IContent
     private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();
 
     protected readonly Device Device;
-
+    private readonly IVirtualFileSystem FileSystem;
     private Blob blob;
 
     public Shader(Device device, IVirtualFileSystem fileSystem, string fileName, string entryPoint, string profile)
     {
         this.Device = device;
+        this.FileSystem = fileSystem;
         this.FileName = fileName;
         this.EntryPoint = entryPoint;
         this.Profile = profile;
 
-        this.Reload(device, fileSystem);
+        this.Reload(device);
     }
 
     internal TShader ID3D11Shader { get; set; } = null!;
@@ -34,10 +35,10 @@ public abstract class Shader<TShader> : IContent
     public string Profile { get; }
 
     [MemberNotNull(nameof(blob))]
-    public void Reload(Device device, IVirtualFileSystem fileSystem)
+    public void Reload(Device device)
     {
-        var sourceText = fileSystem.ReadAllText(this.FileName);
-        using var include = new ShaderFileInclude(fileSystem, Path.GetDirectoryName(this.FileName));
+        var sourceText = this.FileSystem.ReadAllText(this.FileName);
+        using var include = new ShaderFileInclude(this.FileSystem, Path.GetDirectoryName(this.FileName));
 
         Compiler.Compile(sourceText, Defines, include, this.EntryPoint, this.FileName, this.Profile, out var shaderBlob, out var errorBlob);
         ShaderCompilationErrorFilter.ThrowOnWarningOrError(errorBlob, "X3568");

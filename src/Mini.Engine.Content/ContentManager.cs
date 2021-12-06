@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content.Models.Wavefront;
+using Mini.Engine.Content.Models;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.IO;
@@ -21,6 +21,9 @@ public sealed partial class ContentManager : IDisposable
 
     private readonly Stack<List<IContent>> ContentStack;
 
+    private readonly IContentLoader<Texture2DContent> TextureLoader;
+    private readonly IContentLoader<ModelContent> ModelLoader;
+
     public ContentManager(ILogger logger, Device device, IVirtualFileSystem fileSystem)
     {
         this.Logger = logger.ForContext<ContentManager>();
@@ -28,13 +31,15 @@ public sealed partial class ContentManager : IDisposable
         this.ContentStack.Push(new List<IContent>());
         this.Device = device;
         this.FileSystem = fileSystem;
+
+
+        this.TextureLoader = new TextureLoader(fileSystem);
+        this.ModelLoader = new ModelLoader(fileSystem, this.TextureLoader);
     }
 
     public Model LoadAsteroid()
     {
-        var loader = new WavefrontModelLoader(this.Logger, new TextureLoader(this.Logger));
-        var model = new Model(this.Device, this.FileSystem, loader, @"Models\sponza\sponza.obj");
-        //var model = new Model(this.Device, this.FileSystem, loader, @"Models\cube\cube.obj");
+        var model = this.ModelLoader.Load(this.Device, @"Models\sponza\sponza.obj");
         this.Add(model);
 
         return model;
@@ -98,7 +103,7 @@ public sealed partial class ContentManager : IDisposable
                 if (content.FileName.Equals(path, StringComparison.OrdinalIgnoreCase))
                 {
                     this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, path);
-                    content.Reload(this.Device, this.FileSystem);
+                    content.Reload(this.Device);
                 }
             }
         }

@@ -1,7 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using Mini.Engine.IO;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -29,85 +28,27 @@ public struct ModelVertex
     };
 }
 
-public sealed record Material(string Name, TextureData<byte> Albedo, TextureData<byte> Metalicness, TextureData<byte> Normal, TextureData<byte> Roughness, TextureData<byte> AmbientOcclusion);
-public sealed record Primitive(string Name, Material Material, int IndexOffset, int IndexCount);
-public sealed record ModelData(string Name, ModelVertex[] Vertices, int[] Indices, Primitive[] Primitives);
+public sealed record Material(string Name, Texture2D Albedo, Texture2D Metalicness, Texture2D Normal, Texture2D Roughness, Texture2D AmbientOcclusion);
+public sealed record Primitive(string Name, int MaterialIndex, int IndexOffset, int IndexCount);
 
-public interface IModelLoader
+public abstract class Model
 {
-    ModelData Load(IVirtualFileSystem fileSystem, string fileName);
-}
-
-public sealed class DummyModelLoader : IModelLoader
-{
-    private readonly Material Material;
-
-    public DummyModelLoader(Material material)
-    {
-        this.Material = material;
-    }
-
-    public ModelData Load(IVirtualFileSystem fileSystem, string fileName)
-    {
-        var e = 1;
-        var z = -5;
-        var vertices = new ModelVertex[]
-        {
-                new ModelVertex(new Vector3(-e, 0, z), Vector2.Zero, new Vector3(1, 0, 0)),
-                new ModelVertex(new Vector3(0, e, z), Vector2.Zero, new Vector3(0, 1, 0)),
-                new ModelVertex(new Vector3(e, 0, z), Vector2.Zero, new Vector3(0, 0, 1)),
-                new ModelVertex(new Vector3(0, -e, z), Vector2.Zero, new Vector3(1, 1, 1)),
-        };
-
-        var indices = new int[]
-        {
-                0, 1, 2,
-                0, 2, 3
-        };
-
-        var primitives = new Primitive[]
-        {
-                new Primitive("Above", this.Material, 0, 3),
-                new Primitive("Below", this.Material, 3, 3)
-        };
-
-        return new ModelData("Diamond", vertices, indices, primitives);
-    }
-}
-
-public sealed class Model : IContent
-{
-    private readonly IModelLoader Loader;
-
-    public Model(Device device, IVirtualFileSystem fileSystem, IModelLoader loader, string fileName)
-    {
-        this.Loader = loader;
-        this.FileName = fileName;
-        this.Reload(device, fileSystem);
-    }
-
-    public string FileName { get; }
-
-    public VertexBuffer<ModelVertex> Vertices { get; private set; }
-    public IndexBuffer<int> Indices { get; private set; }
-    public Primitive[] Primitives { get; private set; }
-
-    public int PrimitiveCount => this.Primitives.Length;
-
-    [MemberNotNull(nameof(Vertices), nameof(Indices), nameof(Primitives))]
-    public void Reload(Device device, IVirtualFileSystem fileSystem)
+    protected Model(Device device)
     {
         this.Indices = new IndexBuffer<int>(device);
         this.Vertices = new VertexBuffer<ModelVertex>(device);
-
-        var data = this.Loader.Load(fileSystem, this.FileName);
-        this.Primitives = data.Primitives;
-
-        this.Vertices.MapData(device.ImmediateContext, data.Vertices);
-        this.Indices.MapData(device.ImmediateContext, data.Indices);
+        this.Primitives = Array.Empty<Primitive>();
+        this.Materials = Array.Empty<Material>();
     }
 
-    public void Dispose()
+    public VertexBuffer<ModelVertex> Vertices { get; protected set; }
+    public IndexBuffer<int> Indices { get; protected set; }
+    public Primitive[] Primitives { get; protected set; }
+    public Material[] Materials { get; protected set; }
+
+    public int PrimitiveCount => this.Primitives.Length;
+
+    public virtual void Dispose()
     {
         this.Indices.Dispose();
         this.Vertices.Dispose();

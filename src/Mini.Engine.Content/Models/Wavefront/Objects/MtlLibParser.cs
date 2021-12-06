@@ -49,7 +49,7 @@ internal sealed class MtlLibParser : ObjStatementParser
 
             foreach (var material in materialState.Materials)
             {
-                state.Materials.Add(material.Name, material);
+                state.Materials.Add(material.FileName, material);
             }
         }
     }

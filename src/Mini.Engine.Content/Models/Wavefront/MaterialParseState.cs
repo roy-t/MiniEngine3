@@ -2,11 +2,11 @@
 
 namespace Mini.Engine.Content.Models.Wavefront;
 
-internal record class Material(string Name, string? Albedo, string? Metalicness, string? Normal, string? Roughness, string? AmbientOcclusion);
-
 internal class MaterialParseState : IParseState
 {
-    public List<Material> Materials { get; }
+    private int NextIndex = 0;
+
+    public List<MaterialData> Materials { get; }
 
     public string? CurrentMaterial { get; internal set; }
 
@@ -18,7 +18,7 @@ internal class MaterialParseState : IParseState
 
     public MaterialParseState()
     {
-        this.Materials = new List<Material>();
+        this.Materials = new List<MaterialData>();
     }
 
     public void NewMaterial(string material)
@@ -33,12 +33,13 @@ internal class MaterialParseState : IParseState
     {
         if (this.CurrentMaterial != null)
         {
-            this.Materials.Add(new Material(this.CurrentMaterial,
-                this.Albedo,
-                this.Metalicness,
-                this.Normal,
-                this.Roughness,
-                this.AmbientOcclusion));
+            this.Materials.Add(new MaterialData(this.CurrentMaterial,
+                this.NextIndex++,
+                this.Albedo ?? string.Empty,
+                this.Metalicness ?? string.Empty,
+                this.Normal ?? string.Empty,
+                this.Roughness ?? string.Empty,
+                this.AmbientOcclusion ?? string.Empty));
         }
     }
 }

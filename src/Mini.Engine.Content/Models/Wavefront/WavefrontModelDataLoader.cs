@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -8,22 +7,19 @@ using System.Numerics;
 using Mini.Engine.Content.Models.Wavefront.Objects;
 using Mini.Engine.DirectX;
 using Mini.Engine.IO;
-using Serilog;
 
 namespace Mini.Engine.Content.Models.Wavefront;
 
 /// <summary>
 /// Specification: http://www.martinreddy.net/gfx/3d/OBJ.spec
 /// </summary>
-public sealed class WavefrontModelLoader : IModelLoader
+internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
 {
-    private readonly ILogger Logger;
     private readonly ObjStatementParser[] Parsers;
-    private readonly ITextureLoader TextureLoader;
+    private readonly IVirtualFileSystem FileSystem;
 
-    public WavefrontModelLoader(ILogger logger, ITextureLoader textureLoader)
+    public WavefrontModelDataLoader(IVirtualFileSystem fileSystem)
     {
-        this.Logger = logger.ForContext<WavefrontModelLoader>();
         this.Parsers = new ObjStatementParser[]
         {
                 new VertexPositionParser(),
@@ -39,28 +35,26 @@ public sealed class WavefrontModelLoader : IModelLoader
                 new MtlLibParser(),
                 new UseMtlParser()
         };
-        this.TextureLoader = textureLoader;
+        this.FileSystem = fileSystem;
     }
 
-    public ModelData Load(IVirtualFileSystem fileSystem, string fileName)
+    public ModelData Load(string fileName)
     {
-        var watch = Stopwatch.StartNew();
-        var text = fileSystem.ReadAllText(fileName).AsSpan();
+        var text = this.FileSystem.ReadAllText(fileName).AsSpan();
 
         var state = new ObjectParseState(Path.GetDirectoryName(fileName) ?? string.Empty);
         foreach (var line in text.EnumerateLines())
         {
             foreach (var parser in this.Parsers)
             {
-                if (parser.Parse(state, line, fileSystem))
+                if (parser.Parse(state, line, this.FileSystem))
                 {
                     break;
                 }
             }
         }
 
-        this.Logger.Information("Parsing model {@milliseconds}", watch.ElapsedMilliseconds);
-        return this.TransformToModelData(fileSystem, fileName, state);
+        return TransformToModelData(this.FileSystem, fileName, state);
     }
 
     private class ModelVertexComparer : IEqualityComparer<ModelVertex>
@@ -76,9 +70,8 @@ public sealed class WavefrontModelLoader : IModelLoader
         }
     }
 
-    private ModelData TransformToModelData(IVirtualFileSystem fileSystem, string fileName, ObjectParseState state)
+    private static ModelData TransformToModelData(IVirtualFileSystem fileSystem, string fileName, ObjectParseState state)
     {
-        var watch = Stopwatch.StartNew();
         if (state.Group != null)
         {
             state.EndPreviousGroup();
@@ -88,8 +81,6 @@ public sealed class WavefrontModelLoader : IModelLoader
         {
             state.Groups.Add(new Group(state.Object, 0, state.Faces.Count - 1));
         }
-
-        var cwd = Path.GetDirectoryName(fileName) ?? string.Empty;
 
         var comparer = new ModelVertexComparer();
         var vertices = new Dictionary<ModelVertex, int>(comparer);
@@ -147,9 +138,8 @@ public sealed class WavefrontModelLoader : IModelLoader
                     throw new Exception($"Face is not a triangle or quad but a polygon with ${face.Length} vertices");
                 }
             }
-
-            var material = this.TransformToMaterial(fileSystem, cwd, group.Material);
-            primitives.Add(new Primitive(group.Name, material, startIndex, indexList.Count - startIndex));
+            var materialIndex = group.Material?.Index ?? throw new Exception();
+            primitives.Add(new Primitive(group.Name, materialIndex, startIndex, indexList.Count - startIndex));
         }
 
         var vertexArray = new ModelVertex[indexList.Max() + 1];
@@ -158,34 +148,12 @@ public sealed class WavefrontModelLoader : IModelLoader
             vertexArray[tuple.Value] = tuple.Key;
         }
 
-        this.Logger.Information("Transforming model took {@milliseconds}", watch.ElapsedMilliseconds);
-        return new ModelData(state.Object, vertexArray, indexList.ToArray(), primitives.ToArray());
-    }
-
-    private DirectX.Material TransformToMaterial(IVirtualFileSystem fileSystem, string searchDirectory, Material? material)
-    {
-        if (material == null)
+        var materials = new MaterialData[state.Materials.Count];
+        foreach (var material in state.Materials.Values)
         {
-            throw new Exception("Cannot transform null to Material");
+            materials[material.Index] = material;
         }
 
-        // TODO: add texture caching here as it loads a ridiculous amount of textures double now!
-        var albedo = this.TextureLoader.Load(fileSystem, GetTexturePath(searchDirectory, material.Albedo, @"Models\albedo.tga"));
-        var metalicness = this.TextureLoader.Load(fileSystem, GetTexturePath(searchDirectory, material.Metalicness, @"Models\metalicness.tga"));
-        var normal = this.TextureLoader.Load(fileSystem, GetTexturePath(searchDirectory, material.Normal, @"Models\normal.tga"));
-        var roughness = this.TextureLoader.Load(fileSystem, GetTexturePath(searchDirectory, material.Roughness, @"Models\roughness.tga"));
-        var ambientOcclusion = this.TextureLoader.Load(fileSystem, GetTexturePath(searchDirectory, material.AmbientOcclusion, @"Models\ao.tga"));
-
-        return new DirectX.Material(material.Name, albedo, metalicness, normal, roughness, ambientOcclusion);
-    }
-
-    private static string GetTexturePath(string searchDirectory, string? name, string fallback)
-    {
-        if (name != null)
-        {
-            return Path.Combine(searchDirectory, name);
-        }
-
-        return fallback;
+        return new ModelData(state.Object, vertexArray, indexList.ToArray(), primitives.ToArray(), materials);
     }
 }

@@ -1,34 +1,31 @@
-﻿using Mini.Engine.DirectX;
+﻿using System;
+using System.IO;
+using Mini.Engine.DirectX;
 using Mini.Engine.IO;
-using Serilog;
-using StbImageSharp;
-using Vortice.DXGI;
-using static Mini.Engine.DirectX.ITextureLoader;
 
 namespace Mini.Engine.Content.Textures;
 
-public class TextureLoader : ITextureLoader
+internal sealed class TextureLoader : IContentLoader<Texture2DContent>
 {
-    private readonly ILogger Logger;
+    private readonly TextureDataLoader TextureDataLoader;
+    private readonly HdrTextureDataLoader HdrTextureDataLoader;
 
-    public TextureLoader(ILogger logger)
+    public TextureLoader(IVirtualFileSystem fileSystem)
     {
-        this.Logger = logger.ForContext<TextureLoader>();
+        this.TextureDataLoader = new TextureDataLoader(fileSystem);
+        this.HdrTextureDataLoader = new HdrTextureDataLoader(fileSystem);
     }
 
-    public TextureData<byte> Load(IVirtualFileSystem fileSystem, string fileName)
+    public Texture2DContent Load(Device device, string fileName)
     {
-        using var stream = fileSystem.OpenRead(fileName);
-        var image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
-        var pitch = image.Width * ByteFormat.SizeOfInBytes();
-        return new TextureData<byte>(fileName, image.Width, image.Height, pitch, ByteFormat, image.Data);
-    }
-
-    public TextureData<float> LoadFloat(IVirtualFileSystem fileSystem, string fileName)
-    {
-        using var stream = fileSystem.OpenRead(fileName);
-        var image = ImageResultFloat.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
-        var pitch = image.Width * ByteFormat.SizeOfInBytes();
-        return new TextureData<float>(fileName, image.Width, image.Height, pitch, FloatFormat, image.Data);
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        IContentDataLoader<TextureData> loader = extension switch
+        {
+            ".hdr" => this.HdrTextureDataLoader,
+            ".jpg" or ".jpeg" or ".png" or ".bmp" or ".tga" or ".psd" or ".gif" => this.TextureDataLoader,
+            _ => throw new NotSupportedException($"Could not load {fileName}. Unsupported image file type: {extension}"),
+        };
+        var data = loader.Load(fileName);
+        return new Texture2DContent(device, loader, data, fileName);
     }
 }

@@ -8,6 +8,7 @@ using Vortice.Mathematics;
 using static Vortice.Direct3D11.D3D11;
 
 [assembly: InternalsVisibleTo("Mini.Engine.Debugging")]
+[assembly: InternalsVisibleTo("Mini.Engine.Content")]
 
 namespace Mini.Engine.DirectX;
 
