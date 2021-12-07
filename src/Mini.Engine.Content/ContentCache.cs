@@ -3,17 +3,7 @@ using Mini.Engine.DirectX;
 
 namespace Mini.Engine.Content;
 
-internal interface IContentLoader<T>
-    where T : IContent
-{
-    T Load(Device device, string fileName);
-}
-
-// TODO: let TextureLoader implement IContentLoader<T>
-// and then use the cached variant always
-// because there are two kinds of textures we unfortunately need two texture loaders
-// HDR and regular
-internal sealed class ContentCache<T>
+internal sealed class ContentCache<T> : IContentLoader<T>
     where T : IContent
 {
     private sealed record Entry(T Item)
@@ -46,4 +36,16 @@ internal sealed class ContentCache<T>
         return data;
     }
 
+    public void Unload(T content)
+    {
+        var key = content.FileName.ToLowerInvariant();
+        var entry = this.Cache[key];
+
+        entry.ReferenceCount--;
+        if (entry.ReferenceCount < 1)
+        {
+            entry.Item.Dispose();
+            this.Cache.Remove(key);
+        }
+    }
 }

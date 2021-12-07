@@ -13,16 +13,14 @@ namespace Mini.Engine.Content;
 [Service]
 public sealed partial class ContentManager : IDisposable
 {
-    // TODO: prevent double loading of content, instead reference count
-
     private readonly ILogger Logger;
     private readonly IVirtualFileSystem FileSystem;
     private readonly Device Device;
 
     private readonly Stack<List<IContent>> ContentStack;
 
-    private readonly IContentLoader<Texture2DContent> TextureLoader;
-    private readonly IContentLoader<ModelContent> ModelLoader;
+    private readonly ContentCache<Texture2DContent> TextureLoader;
+    private readonly ContentCache<ModelContent> ModelLoader;
 
     public ContentManager(ILogger logger, Device device, IVirtualFileSystem fileSystem)
     {
@@ -32,9 +30,8 @@ public sealed partial class ContentManager : IDisposable
         this.Device = device;
         this.FileSystem = fileSystem;
 
-
-        this.TextureLoader = new TextureLoader(fileSystem);
-        this.ModelLoader = new ModelLoader(fileSystem, this.TextureLoader);
+        this.TextureLoader = new ContentCache<Texture2DContent>(new TextureLoader(fileSystem));
+        this.ModelLoader = new ContentCache<ModelContent>(new ModelLoader(fileSystem, this.TextureLoader));
     }
 
     public Model LoadAsteroid()
@@ -52,14 +49,14 @@ public sealed partial class ContentManager : IDisposable
 
     public void Pop()
     {
-        Dispose(this.ContentStack.Pop());
+        this.Dispose(this.ContentStack.Pop());
     }
 
     public void Dispose()
     {
         while (this.ContentStack.Count > 0)
         {
-            Dispose(this.ContentStack.Pop());
+            this.Dispose(this.ContentStack.Pop());
         }
     }
 
@@ -109,11 +106,19 @@ public sealed partial class ContentManager : IDisposable
         }
     }
 
-    private static void Dispose(List<IContent> list)
+    private void Dispose(List<IContent> list)
     {
         foreach (var content in list)
         {
-            content.Dispose();
+            switch (content)
+            {
+                case Texture2DContent texture:
+                    this.TextureLoader.Unload(texture);
+                    break;
+                case ModelContent model:
+                    this.ModelLoader.Unload(model);
+                    break;
+            }
         }
     }
 }
