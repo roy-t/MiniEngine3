@@ -10,9 +10,9 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
             switch (type)
             {
                 case ProgramDirectives.VertexShader:
-                    return "VertexShader";
+                    return "VertexShaderContent";
                 case ProgramDirectives.PixelShader:
-                    return "PixelShader";
+                    return "PixelShaderContent";
                 default:
                     throw new InvalidOperationException($"Cannot get base type for program directive: {type}");
             }

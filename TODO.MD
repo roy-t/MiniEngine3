@@ -1,8 +1,15 @@
 # TODO
 
+Content
+- ShaderContent is now part of Mini.Engine.Content, but doesn't have a content loader (or caching) yet
+- Check if there's still a way to hide the DirectX Shader type
+
+
+
 Transform should not be a struct as its way too big
 
 Continue replacing things in Mini.Engine.Windows with this: https://github.com/microsoft/CsWin32
+
 
 # Notes
 Particle renderer
