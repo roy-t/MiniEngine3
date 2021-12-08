@@ -74,8 +74,6 @@ public sealed partial class ContentManager : IDisposable
                 this.Logger.Error(ex, "Failed to reload {@file}", file);
             }
         }
-
-        this.FileSystem.ClearChangedFiles();
     }
 
     private void Add(IContent content)

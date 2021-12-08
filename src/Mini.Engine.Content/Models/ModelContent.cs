@@ -8,44 +8,6 @@ internal record class MaterialData(string FileName, int Index, string Albedo, st
 internal sealed record ModelData(string FileName, ModelVertex[] Vertices, int[] Indices, Primitive[] Primitives, MaterialData[] Materials)
 : IContentData;
 
-// TODO: remove
-//internal sealed class DummyModelLoader : IContentDataLoader<ModelData>
-//{
-//    private readonly Material Material;
-
-//    public DummyModelLoader(Material material)
-//    {
-//        this.Material = material;
-//    }
-
-//    public ModelData Load(string fileName)
-//    {
-//        var e = 1;
-//        var z = -5;
-//        var vertices = new ModelVertex[]
-//        {
-//                new ModelVertex(new Vector3(-e, 0, z), Vector2.Zero, new Vector3(1, 0, 0)),
-//                new ModelVertex(new Vector3(0, e, z), Vector2.Zero, new Vector3(0, 1, 0)),
-//                new ModelVertex(new Vector3(e, 0, z), Vector2.Zero, new Vector3(0, 0, 1)),
-//                new ModelVertex(new Vector3(0, -e, z), Vector2.Zero, new Vector3(1, 1, 1)),
-//        };
-
-//        var indices = new int[]
-//        {
-//                0, 1, 2,
-//                0, 2, 3
-//        };
-
-//        var primitives = new Primitive[]
-//        {
-//                new Primitive("Above", this.Material, 0, 3),
-//                new Primitive("Below", this.Material, 3, 3)
-//        };
-
-//        return new ModelData("Diamond", vertices, indices, primitives);
-//    }
-//}
-
 internal sealed class ModelContent : Model, IContent
 {
     private readonly IContentDataLoader<ModelData> DataLoader;
@@ -73,6 +35,7 @@ internal sealed class ModelContent : Model, IContent
     {
         this.Primitives = data.Primitives;
         this.Materials = new Material[data.Materials.Length];
+
         for (var i = 0; i < this.Materials.Length; i++)
         {
             var reference = data.Materials[i];

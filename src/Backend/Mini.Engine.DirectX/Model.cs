@@ -28,8 +28,37 @@ public struct ModelVertex
     };
 }
 
-public sealed record Material(string Name, Texture2D Albedo, Texture2D Metalicness, Texture2D Normal, Texture2D Roughness, Texture2D AmbientOcclusion);
 public sealed record Primitive(string Name, int MaterialIndex, int IndexOffset, int IndexCount);
+
+
+public sealed class Material : IDisposable
+{
+    public string Name { get; }
+    public Texture2D Albedo { get; }
+    public Texture2D Metalicness { get; }
+    public Texture2D Normal { get; }
+    public Texture2D Roughness { get; }
+    public Texture2D AmbientOcclusion { get; }
+
+    public Material(string name, Texture2D albedo, Texture2D metalicness, Texture2D normal, Texture2D roughness, Texture2D ambientOcclusion)
+    {
+        this.Name = name;
+        this.Albedo = albedo;
+        this.Metalicness = metalicness;
+        this.Normal = normal;
+        this.Roughness = roughness;
+        this.AmbientOcclusion = ambientOcclusion;
+    }
+
+    public void Dispose()
+    {
+        this.Albedo.Dispose();
+        this.Metalicness.Dispose();
+        this.Normal.Dispose();
+        this.Roughness.Dispose();
+        this.AmbientOcclusion.Dispose();
+    }
+}
 
 public abstract class Model
 {

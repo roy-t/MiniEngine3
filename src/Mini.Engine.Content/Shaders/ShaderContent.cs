@@ -44,4 +44,6 @@ public abstract class ShaderContent<TShader> : Shader<TShader>, IContent
         this.ID3D11Shader = this.Create(this.blob);
         this.ID3D11Shader.DebugName = this.FileName;
     }
+
+    protected abstract TShader Create(Blob blob);
 }

@@ -11,7 +11,7 @@ public sealed class DiskFileSystem : IVirtualFileSystem
     private readonly FileSystemWatcher FileSystemWatcher;
 
     private readonly HashSet<string> ChangedFilesFilter;
-    private readonly HashSet<string> ChangedFiles;
+    private readonly DelayedSet<string> ChangedFiles;
 
     public DiskFileSystem(ILogger logger, string rootDirectory)
     {
@@ -22,24 +22,20 @@ public sealed class DiskFileSystem : IVirtualFileSystem
         this.FileSystemWatcher.Changed += (s, e) => this.OnChange(e.FullPath, "Changed");
 
         this.ChangedFilesFilter = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        this.ChangedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        this.ChangedFiles = new DelayedSet<string>(TimeSpan.FromSeconds(1), StringComparer.OrdinalIgnoreCase);
     }
 
     public string RootDirectory { get; }
 
     public Stream OpenRead(string path)
     {
-        return File.OpenRead(this.ToAbsolute(path));
+        return File.Open(this.ToAbsolute(path), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
     }
 
     public string ReadAllText(string path)
     {
-        return File.ReadAllText(this.ToAbsolute(path));
-    }
-
-    public string[] ReadAllLines(string path)
-    {
-        return File.ReadAllLines(this.ToAbsolute(path));
+        using var stream = this.OpenRead(path);
+        return new StreamReader(stream).ReadToEnd();
     }
 
     public void WatchFile(string path)
@@ -49,12 +45,7 @@ public sealed class DiskFileSystem : IVirtualFileSystem
 
     public IEnumerable<string> GetChangedFiles()
     {
-        return this.ChangedFiles;
-    }
-
-    public void ClearChangedFiles()
-    {
-        this.ChangedFiles.Clear();
+        return this.ChangedFiles.PopAvailable();
     }
 
     private string ToAbsolute(string path)
@@ -92,17 +83,53 @@ public sealed class DiskFileSystem : IVirtualFileSystem
     {
         return new FileSystemWatcher(directory)
         {
-            NotifyFilter = NotifyFilters.Attributes
-                        | NotifyFilters.CreationTime
-                        | NotifyFilters.DirectoryName
-                        | NotifyFilters.FileName
-                        | NotifyFilters.LastAccess
-                        | NotifyFilters.LastWrite
-                        | NotifyFilters.Security
-                        | NotifyFilters.Size,
+            NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite,
             Filter = "*",
             IncludeSubdirectories = true,
             EnableRaisingEvents = true,
         };
+    }
+
+    /// <summary>
+    /// Makes items in the set available a fixed delay after adding them
+    /// </summary>
+    private sealed class DelayedSet<T>
+        where T : notnull
+    {
+        private readonly TimeSpan Delay;
+        private readonly Dictionary<T, DateTime> Entries;
+
+        public DelayedSet(TimeSpan delay, IEqualityComparer<T> comparer)
+        {
+            this.Delay = delay;
+            this.Entries = new Dictionary<T, DateTime>(comparer);
+        }
+
+        public void Add(T data)
+        {
+            if (!this.Entries.ContainsKey(data))
+            {
+                this.Entries.Add(data, DateTime.Now + this.Delay);
+            }
+        }
+
+        public IEnumerable<T> PopAvailable()
+        {
+            var popped = new List<T>();
+            var cutoff = DateTime.Now;
+            foreach (var entry in this.Entries)
+            {
+                if (entry.Value < cutoff)
+                {
+                    popped.Add(entry.Key);
+                    yield return entry.Key;
+                }
+            }
+
+            foreach (var pop in popped)
+            {
+                this.Entries.Remove(pop);
+            }
+        }
     }
 }

@@ -54,7 +54,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
             }
         }
 
-        return TransformToModelData(this.FileSystem, fileName, state);
+        return TransformToModelData(fileName, state);
     }
 
     private class ModelVertexComparer : IEqualityComparer<ModelVertex>
@@ -70,7 +70,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
         }
     }
 
-    private static ModelData TransformToModelData(IVirtualFileSystem fileSystem, string fileName, ObjectParseState state)
+    private static ModelData TransformToModelData(string fileName, ObjectParseState state)
     {
         if (state.Group != null)
         {
@@ -135,7 +135,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
                 }
                 else
                 {
-                    throw new Exception($"Face is not a triangle or quad but a polygon with ${face.Length} vertices");
+                    throw new Exception($"Face is not a triangle or quad but a polygon with {face.Length} vertices");
                 }
             }
             var materialIndex = group.Material?.Index ?? throw new Exception();
@@ -154,6 +154,10 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
             materials[material.Index] = material;
         }
 
-        return new ModelData(state.Object, vertexArray, indexList.ToArray(), primitives.ToArray(), materials);
+        var model = new ModelData(fileName, vertexArray, indexList.ToArray(), primitives.ToArray(), materials);
+        TextureLookup.MakeTexturesPathsRelativeToContentPath(model);
+        TextureLookup.AddFallbackTextures(model);
+
+        return model;
     }
 }

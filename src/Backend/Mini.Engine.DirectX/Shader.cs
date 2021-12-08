@@ -28,7 +28,6 @@ public abstract class Shader<TShader> : IDisposable
     }
 
     public TShader ID3D11Shader { get; set; }
-    protected abstract TShader Create(Blob blob);
 
     public InputLayout CreateInputLayout(Device device, params InputElementDescription[] elements)
     {

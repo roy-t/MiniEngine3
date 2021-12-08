@@ -1,6 +1,7 @@
 # TODO
 
 Content
+- Reloading a model reduces memory usage ???
 - ShaderContent is now part of Mini.Engine.Content, but doesn't have a content loader (or caching) yet
 - Check if there's still a way to hide the DirectX Shader type
 
