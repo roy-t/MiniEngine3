@@ -18,23 +18,23 @@ public abstract class ShaderContent<TShader> : Shader<TShader>, IContent
         : base(device)
     {
         this.FileSystem = fileSystem;
-        this.FileName = fileName;
+        this.Id = fileName;
         this.EntryPoint = entryPoint;
         this.Profile = profile;
 
         this.Reload(device);
     }
 
-    public string FileName { get; }
+    public string Id { get; }
     public string EntryPoint { get; }
     public string Profile { get; }
 
     public void Reload(Device device)
     {
-        var sourceText = this.FileSystem.ReadAllText(this.FileName);
-        using var include = new ShaderFileInclude(this.FileSystem, Path.GetDirectoryName(this.FileName));
+        var sourceText = this.FileSystem.ReadAllText(this.Id);
+        using var include = new ShaderFileInclude(this.FileSystem, Path.GetDirectoryName(this.Id));
 
-        Compiler.Compile(sourceText, Defines, include, this.EntryPoint, this.FileName, this.Profile, out var shaderBlob, out var errorBlob);
+        Compiler.Compile(sourceText, Defines, include, this.EntryPoint, this.Id, this.Profile, out var shaderBlob, out var errorBlob);
         ShaderCompilationErrorFilter.ThrowOnWarningOrError(errorBlob, "X3568");
 
         this.blob?.Dispose();
@@ -42,7 +42,7 @@ public abstract class ShaderContent<TShader> : Shader<TShader>, IContent
 
         this.blob = shaderBlob;
         this.ID3D11Shader = this.Create(this.blob);
-        this.ID3D11Shader.DebugName = this.FileName;
+        this.ID3D11Shader.DebugName = this.Id;
     }
 
     protected abstract TShader Create(Blob blob);

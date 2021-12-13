@@ -23,6 +23,7 @@ public class Texture2D : IDisposable
             OptionFlags = generateMipMaps ? ResourceOptionFlags.GenerateMips : ResourceOptionFlags.None
         };
 
+        // TODO: we can remove the view parameter as by default the Shader Resource View can access everything we say here
         var view = new ShaderResourceViewDescription
         {
             Format = format,

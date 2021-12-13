@@ -85,8 +85,8 @@ public sealed partial class ContentManager : IDisposable
     [Conditional("DEBUG")]
     private void Watch(IContent content)
     {
-        this.FileSystem.WatchFile(content.FileName);
-        this.Logger.Information("Watching file {@file}", content.FileName);
+        this.FileSystem.WatchFile(content.Id);
+        this.Logger.Information("Watching file {@file}", content.Id);
     }
 
     private void ReloadContentReferencingFile(string path)
@@ -95,7 +95,7 @@ public sealed partial class ContentManager : IDisposable
         {
             foreach (var content in list)
             {
-                if (content.FileName.Equals(path, StringComparison.OrdinalIgnoreCase))
+                if (content.Id.Equals(path, StringComparison.OrdinalIgnoreCase))
                 {
                     this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, path);
                     content.Reload(this.Device);

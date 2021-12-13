@@ -7,7 +7,7 @@ using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Models;
 
-internal sealed class ModelLoader : IContentLoader<ModelContent>
+internal sealed class ModelLoader : IContentLoader<Model>
 {
     private readonly WavefrontModelDataLoader WaveFrontDataLoader;
     private readonly IContentLoader<Texture2DContent> TextureLoader;
@@ -18,7 +18,7 @@ internal sealed class ModelLoader : IContentLoader<ModelContent>
         this.TextureLoader = textureLoader;
     }
 
-    public ModelContent Load(Device device, string fileName)
+    public Model Load(Device device, string fileName)
     {
         var extension = Path.GetExtension(fileName).ToLowerInvariant();
         IContentDataLoader<ModelData> loader = extension switch
@@ -29,5 +29,10 @@ internal sealed class ModelLoader : IContentLoader<ModelContent>
 
         var data = loader.Load(fileName);
         return new ModelContent(device, loader, this.TextureLoader, data, fileName);
+    }
+
+    public void Unload(Model content)
+    {
+        content.Dispose();
     }
 }

@@ -2,5 +2,5 @@
 
 internal interface IContentData
 {
-    string FileName { get; }
+    string Id { get; }
 }

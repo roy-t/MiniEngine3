@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
+using Mini.Engine.Content.Materials;
+using Mini.Engine.Content.Parsers;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Content.Models.Wavefront;

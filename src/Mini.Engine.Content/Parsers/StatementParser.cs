@@ -1,7 +1,7 @@
 ﻿using System;
 using Mini.Engine.IO;
 
-namespace Mini.Engine.Content.Models.Wavefront;
+namespace Mini.Engine.Content.Parsers;
 
 internal interface IParseState { }
 

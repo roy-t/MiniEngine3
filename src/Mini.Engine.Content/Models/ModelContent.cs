@@ -1,34 +1,31 @@
-﻿using Mini.Engine.Content.Textures;
-using Mini.Engine.DirectX;
+﻿using Mini.Engine.DirectX;
 
 namespace Mini.Engine.Content.Models;
-
-internal record class MaterialData(string FileName, int Index, string Albedo, string Metalicness, string Normal, string Roughness, string AmbientOcclusion);
-
-internal sealed record ModelData(string FileName, ModelVertex[] Vertices, int[] Indices, Primitive[] Primitives, MaterialData[] Materials)
-: IContentData;
 
 internal sealed class ModelContent : Model, IContent
 {
     private readonly IContentDataLoader<ModelData> DataLoader;
-    private readonly IContentLoader<Texture2DContent> TextureLoader;
+    private readonly IContentLoader<Material> MaterialLoader;
 
-    public ModelContent(Device device, IContentDataLoader<ModelData> loader, IContentLoader<Texture2DContent> textureLoader, ModelData data, string fileName)
+    public ModelContent(Device device, IContentDataLoader<ModelData> loader, IContentLoader<Material> materialLoader, ModelData data, string fileName)
         : base(device)
     {
         this.DataLoader = loader;
-        this.TextureLoader = textureLoader;
-        this.FileName = fileName;
+        this.MaterialLoader = materialLoader;
+        this.Id = fileName;
 
         this.SetData(device, data);
     }
 
-    public string FileName { get; }
+    public string Id { get; }
 
     public void Reload(Device device)
     {
-        var data = this.DataLoader.Load(this.FileName);
-        this.SetData(device, data);
+        for (var i = 0; i < this.Materials.Length; i++)
+        {
+            this.MaterialLoader.Unload(this.Materials[i]);
+        }
+        this.SetData(device, this.DataLoader.Load(this.Id));
     }
 
     private void SetData(Device device, ModelData data)
@@ -38,18 +35,25 @@ internal sealed class ModelContent : Model, IContent
 
         for (var i = 0; i < this.Materials.Length; i++)
         {
+            this.Materials[i] = this.MaterialLoader()
+
             var reference = data.Materials[i];
 
-            var albedo = this.TextureLoader.Load(device, reference.Albedo);
-            var metalicness = this.TextureLoader.Load(device, reference.Metalicness);
-            var normal = this.TextureLoader.Load(device, reference.Normal);
-            var roughness = this.TextureLoader.Load(device, reference.Roughness);
-            var ambientOcclusion = this.TextureLoader.Load(device, reference.AmbientOcclusion);
+            var albedo = this.MaterialLoader.Load(device, reference.Albedo);
+            var metalicness = this.MaterialLoader.Load(device, reference.Metalicness);
+            var normal = this.MaterialLoader.Load(device, reference.Normal);
+            var roughness = this.MaterialLoader.Load(device, reference.Roughness);
+            var ambientOcclusion = this.MaterialLoader.Load(device, reference.AmbientOcclusion);
 
             this.Materials[i] = new Material(reference.FileName, albedo, metalicness, normal, roughness, ambientOcclusion);
         }
 
         this.Vertices.MapData(device.ImmediateContext, data.Vertices);
         this.Indices.MapData(device.ImmediateContext, data.Indices);
+    }
+
+    private void UnloadMaterials()
+    {
+
     }
 }

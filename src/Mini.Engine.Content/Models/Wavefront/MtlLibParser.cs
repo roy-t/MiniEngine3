@@ -32,7 +32,7 @@ internal sealed class MtlLibParser : ObjStatementParser
     {
         foreach (var library in arguments)
         {
-            var materialState = new MaterialParseState();
+            var materialState = new ParseState();
             var text = fileSystem.ReadAllText(Path.Combine(state.BasePath, new string(library))).AsSpan();
             foreach (var line in text.EnumerateLines())
             {

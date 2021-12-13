@@ -38,7 +38,7 @@ internal sealed class ContentCache<T> : IContentLoader<T>
 
     public void Unload(T content)
     {
-        var key = content.FileName.ToLowerInvariant();
+        var key = content.Id.ToLowerInvariant();
         var entry = this.Cache[key];
 
         entry.ReferenceCount--;

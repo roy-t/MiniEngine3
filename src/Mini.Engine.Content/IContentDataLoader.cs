@@ -3,5 +3,5 @@
 internal interface IContentDataLoader<T>
     where T : IContentData
 {
-    T Load(string fileName);
+    T Load(ContentId id);
 }

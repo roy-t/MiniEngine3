@@ -5,7 +5,7 @@ using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Textures;
 
-internal sealed class TextureLoader : IContentLoader<Texture2DContent>
+internal sealed class TextureLoader : IContentLoader<Texture2D>
 {
     private readonly TextureDataLoader TextureDataLoader;
     private readonly HdrTextureDataLoader HdrTextureDataLoader;
@@ -16,7 +16,7 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
         this.HdrTextureDataLoader = new HdrTextureDataLoader(fileSystem);
     }
 
-    public Texture2DContent Load(Device device, string fileName)
+    public Texture2D Load(Device device, string fileName)
     {
         var extension = Path.GetExtension(fileName).ToLowerInvariant();
         IContentDataLoader<TextureData> loader = extension switch
@@ -27,5 +27,10 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
         };
         var data = loader.Load(fileName);
         return new Texture2DContent(device, loader, data, fileName);
+    }
+
+    public void Unload(Texture2D texture)
+    {
+        texture.Dispose();
     }
 }

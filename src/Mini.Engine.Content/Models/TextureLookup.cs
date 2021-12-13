@@ -6,7 +6,7 @@ internal static class TextureLookup
 {
     public static void MakeTexturesPathsRelativeToContentPath(ModelData data)
     {
-        var cwd = Path.GetDirectoryName(data.FileName) ?? string.Empty;
+        var cwd = Path.GetDirectoryName(data.Id) ?? string.Empty;
 
         for (var i = 0; i < data.Materials.Length; i++)
         {

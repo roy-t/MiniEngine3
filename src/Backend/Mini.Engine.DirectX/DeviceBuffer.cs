@@ -75,6 +75,7 @@ public abstract class DeviceBuffer<T> : IDisposable
     public void Dispose()
     {
         this.Buffer?.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     protected abstract ID3D11Buffer CreateBuffer(int sizeInBytes);

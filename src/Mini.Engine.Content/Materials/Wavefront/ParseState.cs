@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using Mini.Engine.Content.Parsers;
 
-namespace Mini.Engine.Content.Models.Wavefront;
+namespace Mini.Engine.Content.Materials.Wavefront;
 
-internal class MaterialParseState : IParseState
+internal class ParseState : IParseState
 {
     private int NextIndex = 0;
 
@@ -16,7 +17,7 @@ internal class MaterialParseState : IParseState
     public string? Roughness { get; internal set; }
     public string? AmbientOcclusion { get; internal set; }
 
-    public MaterialParseState()
+    public ParseState()
     {
         this.Materials = new List<MaterialData>();
     }
