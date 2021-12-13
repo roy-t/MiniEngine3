@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Numerics;
+using Mini.Engine.Content.Materials;
+using Mini.Engine.Content.Materials.Wavefront;
 using Mini.Engine.Content.Models.Wavefront.Objects;
 using Mini.Engine.DirectX;
 using Mini.Engine.IO;
@@ -15,11 +16,13 @@ namespace Mini.Engine.Content.Models.Wavefront;
 /// </summary>
 internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
 {
+    private readonly WavefrontMaterialDataLoader MaterialDataLoader;
     private readonly ObjStatementParser[] Parsers;
     private readonly IVirtualFileSystem FileSystem;
 
     public WavefrontModelDataLoader(IVirtualFileSystem fileSystem)
     {
+        this.MaterialDataLoader = new WavefrontMaterialDataLoader(fileSystem);
         this.Parsers = new ObjStatementParser[]
         {
                 new VertexPositionParser(),
@@ -38,11 +41,11 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
         this.FileSystem = fileSystem;
     }
 
-    public ModelData Load(string fileName)
+    public ModelData Load(ContentId id)
     {
-        var text = this.FileSystem.ReadAllText(fileName).AsSpan();
+        var text = this.FileSystem.ReadAllText(id.Path).AsSpan();
 
-        var state = new ObjectParseState(Path.GetDirectoryName(fileName) ?? string.Empty);
+        var state = new ParseState();
         foreach (var line in text.EnumerateLines())
         {
             foreach (var parser in this.Parsers)
@@ -54,7 +57,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
             }
         }
 
-        return TransformToModelData(fileName, state);
+        return TransformToModelData(id, state);
     }
 
     private class ModelVertexComparer : IEqualityComparer<ModelVertex>
@@ -70,7 +73,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
         }
     }
 
-    private static ModelData TransformToModelData(string fileName, ObjectParseState state)
+    private ModelData TransformToModelData(ContentId id, ParseState state)
     {
         if (state.Group != null)
         {
@@ -85,6 +88,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
         var comparer = new ModelVertexComparer();
         var vertices = new Dictionary<ModelVertex, int>(comparer);
         var primitives = new List<Primitive>();
+        var materials = this.LoadMaterialData(id, state);
         var indexList = new List<int>();
         var nextIndex = 0;
 
@@ -138,7 +142,8 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
                     throw new Exception($"Face is not a triangle or quad but a polygon with {face.Length} vertices");
                 }
             }
-            var materialIndex = group.Material?.Index ?? throw new Exception();
+
+            var materialIndex = GetMaterialIdForGroup(materials, group);
             primitives.Add(new Primitive(group.Name, materialIndex, startIndex, indexList.Count - startIndex));
         }
 
@@ -148,16 +153,39 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
             vertexArray[tuple.Value] = tuple.Key;
         }
 
-        var materials = new MaterialData[state.Materials.Count];
-        foreach (var material in state.Materials.Values)
-        {
-            materials[material.Index] = material;
-        }
-
-        var model = new ModelData(fileName, vertexArray, indexList.ToArray(), primitives.ToArray(), materials);
+        var model = new ModelData(id.ToString(), vertexArray, indexList.ToArray(), primitives.ToArray(), materials);
         TextureLookup.MakeTexturesPathsRelativeToContentPath(model);
         TextureLookup.AddFallbackTextures(model);
 
         return model;
+    }
+
+    private MaterialData[] LoadMaterialData(ContentId id, ParseState state)
+    {
+        var materialKeys = state.Groups.Select(x => x.Material ?? string.Empty).ToHashSet().ToArray();
+        var materials = new MaterialData[materialKeys.Length];
+        for (var i = 0; i < materials.Length; i++)
+        {
+            var materialId = id.RelativeTo(state.MaterialLibrary, materialKeys[i]);
+            materials[i] = this.MaterialDataLoader.Load(materialId);
+        }
+
+        return materials;
+    }
+
+    private static int GetMaterialIdForGroup(MaterialData[] materials, Group group)
+    {
+        var materialIndex = -1;
+        for (var i = 0; i < materials.Length; i++)
+        {
+            if (materials[i].Id.Key == group.Material)
+            {
+                materialIndex = i;
+            }
+        }
+
+        if (materialIndex == -1) { throw new KeyNotFoundException($"Material with key ${group.Material} not found"); }
+
+        return materialIndex;
     }
 }

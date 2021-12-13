@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Mini.Engine.Content.Parsers
+namespace Mini.Engine.Content.Parsers;
 
 internal ref struct SpanTokenEnumerator
 {

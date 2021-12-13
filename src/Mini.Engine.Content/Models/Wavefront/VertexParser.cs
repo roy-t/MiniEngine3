@@ -9,7 +9,7 @@ internal abstract class VertexParser : ObjStatementParser
 {
     private static readonly IFormatProvider FloatFormat = CultureInfo.InvariantCulture.NumberFormat;
 
-    protected override void ParseArguments(ObjectParseState state, SpanTokenEnumerator arguments, IVirtualFileSystem fileSystem)
+    protected override void ParseArguments(ParseState state, SpanTokenEnumerator arguments, IVirtualFileSystem fileSystem)
     {
         var elements = new float[4];
         var index = 0;
@@ -24,5 +24,5 @@ internal abstract class VertexParser : ObjStatementParser
 
     }
 
-    protected abstract void ParseVertex(ObjectParseState state, Vector4 vertex);
+    protected abstract void ParseVertex(ParseState state, Vector4 vertex);
 }

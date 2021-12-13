@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Mini.Engine.Content.Parsers;
 using Mini.Engine.IO;
 using Vortice.Mathematics;
 
@@ -13,7 +14,7 @@ internal sealed class FaceParser : ObjStatementParser
 {
     public override string Key => "f";
 
-    protected override void ParseArguments(ObjectParseState state, SpanTokenEnumerator arguments, IVirtualFileSystem fileSystem)
+    protected override void ParseArguments(ParseState state, SpanTokenEnumerator arguments, IVirtualFileSystem fileSystem)
     {
         var face = new List<Point3>(4);
         foreach (var argument in arguments)

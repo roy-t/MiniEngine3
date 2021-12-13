@@ -10,7 +10,7 @@ internal sealed class VertexTextureParser : VertexParser
 {
     public override string Key => "vt";
 
-    protected override void ParseVertex(ObjectParseState state, Vector4 vertex)
+    protected override void ParseVertex(ParseState state, Vector4 vertex)
     {
         state.Texcoords.Add(vertex);
     }

@@ -16,7 +16,7 @@ internal sealed class ContentId
     public string Path { get; set; }
     public string Key { get; set; }
 
-    public static ContentId Parse(string id)
+    public static ContentId Parse(string? id)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -34,5 +34,21 @@ internal sealed class ContentId
             default:
                 throw new ArgumentException($"String {id} is an invalid content id as it should have the character '{Separator}' at most once ");
         }
+    }
+
+    public ContentId RelativeTo(string path, string key = "")
+    {
+        var fullPath = System.IO.Path.Combine(this.Path, path);
+        return new ContentId(fullPath, key);
+    }
+
+    public override string ToString()
+    {
+        if (string.IsNullOrEmpty(this.Key))
+        {
+            return this.Path;
+        }
+
+        return $"{this.Path}{Separator}{this.Key}";
     }
 }

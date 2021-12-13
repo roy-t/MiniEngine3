@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using Mini.Engine.Content.Models.Wavefront.Materials;
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Models.Wavefront.Objects;
@@ -13,44 +11,8 @@ internal sealed class MtlLibParser : ObjStatementParser
 {
     public override string Key => "mtllib";
 
-    private readonly MtlStatementParser[] Parsers;
-
-    public MtlLibParser()
+    protected override void ParseArgument(ParseState state, ReadOnlySpan<char> argument, IVirtualFileSystem fileSystem)
     {
-        this.Parsers = new MtlStatementParser[]
-        {
-            new NewMtlParser(),
-            new AlbedoParser(),
-            new AmbientOcclusionParser(),
-            new MetalicnessParser(),
-            new NormalParser(),
-            new RoughnessParser()
-        };
-    }
-
-    protected override void ParseArguments(ObjectParseState state, SpanTokenEnumerator arguments, IVirtualFileSystem fileSystem)
-    {
-        foreach (var library in arguments)
-        {
-            var materialState = new ParseState();
-            var text = fileSystem.ReadAllText(Path.Combine(state.BasePath, new string(library))).AsSpan();
-            foreach (var line in text.EnumerateLines())
-            {
-                foreach (var parser in this.Parsers)
-                {
-                    if (parser.Parse(materialState, line, fileSystem))
-                    {
-                        break;
-                    }
-                }
-            }
-
-            materialState.EndMaterial();
-
-            foreach (var material in materialState.Materials)
-            {
-                state.Materials.Add(material.FileName, material);
-            }
-        }
+        state.MaterialLibrary = new string(argument);
     }
 }

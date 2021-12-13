@@ -10,7 +10,7 @@ namespace Mini.Engine.Content.Models.Wavefront.Objects;
 internal sealed class ObjectParser : ObjStatementParser
 {
     public override string Key => "o";
-    protected override void ParseArgument(ObjectParseState state, ReadOnlySpan<char> argument, IVirtualFileSystem fileSystem)
+    protected override void ParseArgument(ParseState state, ReadOnlySpan<char> argument, IVirtualFileSystem fileSystem)
     {
         state.Object = argument.ToString();
     }

@@ -35,17 +35,7 @@ internal sealed class ModelContent : Model, IContent
 
         for (var i = 0; i < this.Materials.Length; i++)
         {
-            this.Materials[i] = this.MaterialLoader()
-
-            var reference = data.Materials[i];
-
-            var albedo = this.MaterialLoader.Load(device, reference.Albedo);
-            var metalicness = this.MaterialLoader.Load(device, reference.Metalicness);
-            var normal = this.MaterialLoader.Load(device, reference.Normal);
-            var roughness = this.MaterialLoader.Load(device, reference.Roughness);
-            var ambientOcclusion = this.MaterialLoader.Load(device, reference.AmbientOcclusion);
-
-            this.Materials[i] = new Material(reference.FileName, albedo, metalicness, normal, roughness, ambientOcclusion);
+            this.Materials[i] = this.MaterialLoader.Load(device, data.Materials[i].Id);
         }
 
         this.Vertices.MapData(device.ImmediateContext, data.Vertices);

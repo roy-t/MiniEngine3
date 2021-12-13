@@ -2,5 +2,5 @@
 
 internal interface IContentData
 {
-    string Id { get; }
+    ContentId Id { get; }
 }

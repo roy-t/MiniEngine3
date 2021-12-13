@@ -10,7 +10,7 @@ internal sealed class VertexPositionParser : VertexParser
 {
     public override string Key => "v";
 
-    protected override void ParseVertex(ObjectParseState state, Vector4 vertex)
+    protected override void ParseVertex(ParseState state, Vector4 vertex)
     {
         state.Vertices.Add(vertex);
     }
