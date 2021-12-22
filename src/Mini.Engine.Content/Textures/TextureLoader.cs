@@ -16,17 +16,17 @@ internal sealed class TextureLoader : IContentLoader<Texture2D>
         this.HdrTextureDataLoader = new HdrTextureDataLoader(fileSystem);
     }
 
-    public Texture2D Load(Device device, string fileName)
+    public Texture2D Load(Device device, ContentId id)
     {
-        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        var extension = Path.GetExtension(id.Path).ToLowerInvariant();
         IContentDataLoader<TextureData> loader = extension switch
         {
             ".hdr" => this.HdrTextureDataLoader,
             ".jpg" or ".jpeg" or ".png" or ".bmp" or ".tga" or ".psd" or ".gif" => this.TextureDataLoader,
-            _ => throw new NotSupportedException($"Could not load {fileName}. Unsupported image file type: {extension}"),
+            _ => throw new NotSupportedException($"Could not load {id}. Unsupported image file type: {extension}"),
         };
-        var data = loader.Load(fileName);
-        return new Texture2DContent(device, loader, data, fileName);
+        var data = loader.Load(id);
+        return new Texture2DContent(id, device, loader, data);
     }
 
     public void Unload(Texture2D texture)

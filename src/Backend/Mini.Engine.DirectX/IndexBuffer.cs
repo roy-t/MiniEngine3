@@ -7,8 +7,8 @@ namespace Mini.Engine.DirectX;
 public sealed class IndexBuffer<T> : DeviceBuffer<T>
     where T : unmanaged
 {
-    public IndexBuffer(Device device)
-        : base(device)
+    public IndexBuffer(Device device, string name)
+        : base(device, name)
     {
         if (this.PrimitiveSizeInBytes == 2)
         {

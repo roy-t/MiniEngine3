@@ -15,12 +15,12 @@ public class TextureDataLoader : IContentDataLoader<TextureData>
         this.FileSystem = fileSystem;
     }
 
-    public TextureData Load(string fileName)
+    public TextureData Load(ContentId id)
     {
-        using var stream = this.FileSystem.OpenRead(fileName);
+        using var stream = this.FileSystem.OpenRead(id.Path);
         var image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
         var pitch = image.Width * FormatSizeInBytes;
 
-        return new TextureData(fileName, image.Width, image.Height, pitch, ColorFormat, image.Data);
+        return new TextureData(id, image.Width, image.Height, pitch, ColorFormat, image.Data);
     }
 }

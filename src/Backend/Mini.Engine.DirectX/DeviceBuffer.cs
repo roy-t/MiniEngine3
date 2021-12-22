@@ -7,11 +7,9 @@ public abstract class DeviceBuffer<T> : IDisposable
     where T : unmanaged
 {
     private static int Counter = 0;
-
     protected readonly ID3D11Device Device;
-    private readonly int Id;
 
-    internal DeviceBuffer(Device device)
+    internal DeviceBuffer(Device device, string name)
     {
         this.Device = device.ID3D11Device;
         unsafe
@@ -19,7 +17,7 @@ public abstract class DeviceBuffer<T> : IDisposable
             this.PrimitiveSizeInBytes = sizeof(T);
         }
 
-        this.Id = ++Counter;
+        this.Name = $"{name}#{++Counter}";
     }
 
     internal int PrimitiveSizeInBytes { get; }
@@ -27,6 +25,8 @@ public abstract class DeviceBuffer<T> : IDisposable
     public int Capacity { get; private set; }
 
     public ID3D11Buffer Buffer { get; private set; } = null!;
+
+    public string Name { get; }
 
     public void EnsureCapacity(int primitiveCount, int reserveExtra = 0)
     {
@@ -36,7 +36,7 @@ public abstract class DeviceBuffer<T> : IDisposable
             this.Capacity = primitiveCount + reserveExtra;
             this.Buffer = this.CreateBuffer(this.Capacity * this.PrimitiveSizeInBytes);
 #if DEBUG
-            this.Buffer.DebugName = $"{this.GetType().Name}[{this.Capacity}]_{this.Id}";
+            this.Buffer.DebugName = this.Name;
 #endif
         }
     }

@@ -4,6 +4,6 @@ namespace Mini.Engine.Content;
 
 internal interface IContentLoader<T>
 {
-    T Load(Device device, string fileName);
+    T Load(Device device, ContentId id);
     void Unload(T content);
 }

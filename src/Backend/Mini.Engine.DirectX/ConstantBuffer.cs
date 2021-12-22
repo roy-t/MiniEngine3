@@ -5,8 +5,8 @@ namespace Mini.Engine.DirectX;
 public sealed class ConstantBuffer<T> : DeviceBuffer<T>
     where T : unmanaged
 {
-    public ConstantBuffer(Device device)
-        : base(device)
+    public ConstantBuffer(Device device, string name)
+        : base(device, name)
     {
         this.EnsureCapacity(1);
     }

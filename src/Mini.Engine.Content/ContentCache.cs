@@ -11,41 +11,38 @@ internal sealed class ContentCache<T> : IContentLoader<T>
         public int ReferenceCount { get; set; }
     }
 
-    private readonly Dictionary<string, Entry> Cache;
+    private readonly Dictionary<ContentId, Entry> Cache;
     private readonly IContentLoader<T> Loader;
 
     public ContentCache(IContentLoader<T> loader)
     {
-        this.Cache = new Dictionary<string, Entry>();
+        this.Cache = new Dictionary<ContentId, Entry>();
         this.Loader = loader;
     }
 
-    public T Load(Device device, string fileName)
+    public T Load(Device device, ContentId id)
     {
-        var key = fileName.ToLowerInvariant();
-
-        if (this.Cache.TryGetValue(key, out var entry))
+        if (this.Cache.TryGetValue(id, out var entry))
         {
             entry.ReferenceCount++;
             return entry.Item;
         }
 
-        var data = this.Loader.Load(device, fileName);
-        this.Cache.Add(key, new Entry(data) { ReferenceCount = 1 });
+        var data = this.Loader.Load(device, id);
+        this.Cache.Add(id, new Entry(data) { ReferenceCount = 1 });
 
         return data;
     }
 
     public void Unload(T content)
     {
-        var key = content.Id.ToLowerInvariant();
-        var entry = this.Cache[key];
+        var entry = this.Cache[content.Id];
 
         entry.ReferenceCount--;
         if (entry.ReferenceCount < 1)
         {
             entry.Item.Dispose();
-            this.Cache.Remove(key);
+            this.Cache.Remove(content.Id);
         }
     }
 }

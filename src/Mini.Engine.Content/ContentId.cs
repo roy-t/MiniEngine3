@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Mini.Engine.Content;
 
-internal sealed class ContentId
+public sealed class ContentId : IEquatable<ContentId>
 {
     private const char Separator = '#';
 
@@ -51,4 +51,24 @@ internal sealed class ContentId
 
         return $"{this.Path}{Separator}{this.Key}";
     }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(this.Path, this.Key);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return this.Equals(obj as ContentId);
+    }
+
+    public bool Equals(ContentId? other)
+    {
+        return other != null &&
+            string.Equals(other.Path == this.Path, StringComparison.InvariantCultureIgnoreCase) &&
+            string.Equals(other.Key == this.Key, StringComparison.InvariantCultureIgnoreCase);
+    }
+
+    public static bool operator ==(ContentId? left, ContentId? right) => left != null && left.Equals(right);
+    public static bool operator !=(ContentId? left, ContentId? right) => !(left == right);
 }

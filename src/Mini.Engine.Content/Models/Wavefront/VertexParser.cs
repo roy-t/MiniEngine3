@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Numerics;
+using Mini.Engine.Content.Parsers;
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Models.Wavefront.Objects;

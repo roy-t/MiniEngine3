@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Mini.Engine.Content.Textures;
+using Mini.Engine.DirectX;
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Materials.Wavefront;
@@ -7,9 +9,11 @@ namespace Mini.Engine.Content.Materials.Wavefront;
 internal sealed class WavefrontMaterialDataLoader : IContentDataLoader<MaterialData>
 {
     private readonly MtlStatementParser[] Parsers;
+    private readonly Device Device;
+    private readonly IContentLoader<Texture2DContent> TextureLoader;
     private readonly IVirtualFileSystem FileSystem;
 
-    public WavefrontMaterialDataLoader(IVirtualFileSystem fileSystem)
+    public WavefrontMaterialDataLoader(Device device, IContentLoader<Texture2DContent> textureLoader, IVirtualFileSystem fileSystem)
     {
         this.Parsers = new MtlStatementParser[]
         {
@@ -20,6 +24,8 @@ internal sealed class WavefrontMaterialDataLoader : IContentDataLoader<MaterialD
             new NormalParser(),
             new RoughnessParser()
         };
+        this.Device = device;
+        this.TextureLoader = textureLoader;
         this.FileSystem = fileSystem;
     }
 
@@ -39,14 +45,21 @@ internal sealed class WavefrontMaterialDataLoader : IContentDataLoader<MaterialD
         }
 
         state.EndMaterial();
-        return TransformToMaterialData(id, state);
+        var record = GetRecord(id, state);
+
+        return new MaterialData(id,
+            this.TextureLoader.Load(this.Device, id.RelativeTo(record.Albedo)),
+            this.TextureLoader.Load(this.Device, id.RelativeTo(record.Metalicness)),
+            this.TextureLoader.Load(this.Device, id.RelativeTo(record.Normal)),
+            this.TextureLoader.Load(this.Device, id.RelativeTo(record.Roughness)),
+            this.TextureLoader.Load(this.Device, id.RelativeTo(record.AmbientOcclusion)));
     }
 
-    private static MaterialData TransformToMaterialData(ContentId id, ParseState state)
+    private static MaterialRecords GetRecord(ContentId id, ParseState state)
     {
-        var match = state.Materials.Find(m => m.Id.Equals(id.Key, StringComparison.InvariantCultureIgnoreCase))
+        var match = state.Materials.Find(m => id.Key.Equals(m.Key, StringComparison.InvariantCultureIgnoreCase))
             ?? throw new KeyNotFoundException($"Could not find material {id.Key} in material library {id.Path}");
 
-        return match with { Id = id.ToString() };
+        return match;
     }
 }

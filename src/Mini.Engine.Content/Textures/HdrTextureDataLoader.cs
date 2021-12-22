@@ -17,15 +17,15 @@ public sealed class HdrTextureDataLoader : IContentDataLoader<TextureData>
         this.FileSystem = fileSystem;
     }
 
-    public TextureData Load(string fileName)
+    public TextureData Load(ContentId id)
     {
-        using var stream = this.FileSystem.OpenRead(fileName);
+        using var stream = this.FileSystem.OpenRead(id.Path);
         var image = ImageResultFloat.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
         var pitch = image.Width * FormatSizeInBytes;
 
         var bytes = new byte[FormatSizeInBytes * image.Data.Length];
         Buffer.BlockCopy(image.Data, 0, bytes, 0, bytes.Length);
 
-        return new TextureData(fileName, image.Width, image.Height, pitch, HdrFormat, bytes);
+        return new TextureData(id, image.Width, image.Height, pitch, HdrFormat, bytes);
     }
 }

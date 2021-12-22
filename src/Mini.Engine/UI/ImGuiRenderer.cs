@@ -39,9 +39,9 @@ internal sealed class ImGuiRenderer
         this.ImmediateContext = device.ImmediateContext;
         this.DeferredContext = device.CreateDeferredContextFor<ImGuiRenderer>();
 
-        this.VertexBuffer = new VertexBuffer<ImDrawVert>(device);
-        this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device);
-        this.ConstantBuffer = new ConstantBuffer<CBuffer0>(device);
+        this.VertexBuffer = new VertexBuffer<ImDrawVert>(device, "vertices_imgui");
+        this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device, "indices_imgui");
+        this.ConstantBuffer = new ConstantBuffer<CBuffer0>(device, "constants_imgui");
 
         this.VertexShader = content.LoadImmediateShaderVs();
         this.PixelShader = content.LoadImmediateShaderPs();

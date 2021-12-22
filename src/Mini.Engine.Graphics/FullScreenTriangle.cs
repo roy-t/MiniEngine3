@@ -36,8 +36,8 @@ public sealed class FullScreenTriangle : IDisposable
 
     public FullScreenTriangle(Device device)
     {
-        this.Vertices = new VertexBuffer<PostProcessVertex>(device);
-        this.Indices = new IndexBuffer<short>(device);
+        this.Vertices = new VertexBuffer<PostProcessVertex>(device, "vertices_fullscreentriangle");
+        this.Indices = new IndexBuffer<short>(device, "indices_fullscreentriangle");
 
         var vertices = new PostProcessVertex[]
         {

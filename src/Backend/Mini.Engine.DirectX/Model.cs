@@ -30,24 +30,48 @@ public struct ModelVertex
 
 public sealed record Primitive(string Name, int MaterialIndex, int IndexOffset, int IndexCount);
 
-public sealed record Material
-(
-    string Name,
-    Texture2D Albedo,
-    Texture2D Metalicness,
-    Texture2D Normal,
-    Texture2D Roughness,
-    Texture2D AmbientOcclusion
-);
-
-public abstract class Model
+public class Material : IDisposable
 {
-    protected Model(Device device)
+    public Material(string name, Texture2D albedo, Texture2D metalicness, Texture2D normal, Texture2D roughness, Texture2D ambientOcclusion)
     {
-        this.Indices = new IndexBuffer<int>(device);
-        this.Vertices = new VertexBuffer<ModelVertex>(device);
-        this.Primitives = Array.Empty<Primitive>();
-        this.Materials = Array.Empty<Material>();
+        this.Name = name;
+        this.Albedo = albedo;
+        this.Metalicness = metalicness;
+        this.Normal = normal;
+        this.Roughness = roughness;
+        this.AmbientOcclusion = ambientOcclusion;
+    }
+
+    public string Name { get; }
+    public Texture2D Albedo { get; protected set; }
+    public Texture2D Metalicness { get; protected set; }
+    public Texture2D Normal { get; protected set; }
+    public Texture2D Roughness { get; protected set; }
+    public Texture2D AmbientOcclusion { get; protected set; }
+
+    public virtual void Dispose()
+    {
+        this.Albedo.Dispose();
+        this.Metalicness.Dispose();
+        this.Normal.Dispose();
+        this.Roughness.Dispose();
+        this.AmbientOcclusion.Dispose();
+
+        GC.SuppressFinalize(this);
+    }
+}
+
+public class Model : IDisposable
+{
+    public Model(Device device, ModelVertex[] vertices, int[] indices, Primitive[] primitives, Material[] materials, string name)
+    {
+        this.Indices = new IndexBuffer<int>(device, $"indices_{name}");
+        this.Vertices = new VertexBuffer<ModelVertex>(device, $"vertices_{name}");
+
+        this.Primitives = primitives;
+        this.Materials = materials;
+
+        this.MapData(device.ImmediateContext, vertices, indices);
     }
 
     public VertexBuffer<ModelVertex> Vertices { get; protected set; }
@@ -57,9 +81,17 @@ public abstract class Model
 
     public int PrimitiveCount => this.Primitives.Length;
 
+    protected void MapData(DeviceContext context, ModelVertex[] vertices, int[] indices)
+    {
+        this.Vertices.MapData(context, vertices);
+        this.Indices.MapData(context, indices);
+    }
+
     public virtual void Dispose()
     {
         this.Indices.Dispose();
         this.Vertices.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 }

@@ -160,10 +160,10 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
         return model;
     }
 
-    private MaterialData[] LoadMaterialData(ContentId id, ParseState state)
+    private MaterialContent[] LoadMaterialData(ContentId id, ParseState state)
     {
         var materialKeys = state.Groups.Select(x => x.Material ?? string.Empty).ToHashSet().ToArray();
-        var materials = new MaterialData[materialKeys.Length];
+        var materials = new MaterialContent[materialKeys.Length];
         for (var i = 0; i < materials.Length; i++)
         {
             var materialId = id.RelativeTo(state.MaterialLibrary, materialKeys[i]);
@@ -173,7 +173,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
         return materials;
     }
 
-    private static int GetMaterialIdForGroup(MaterialData[] materials, Group group)
+    private static int GetMaterialIdForGroup(MaterialContent[] materials, Group group)
     {
         var materialIndex = -1;
         for (var i = 0; i < materials.Length; i++)

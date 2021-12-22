@@ -4,46 +4,24 @@ namespace Mini.Engine.Content.Models;
 
 internal sealed class ModelContent : Model, IContent
 {
-    private readonly IContentDataLoader<ModelData> DataLoader;
-    private readonly IContentLoader<Material> MaterialLoader;
+    private readonly IContentDataLoader<ModelData> Loader;
 
-    public ModelContent(Device device, IContentDataLoader<ModelData> loader, IContentLoader<Material> materialLoader, ModelData data, string fileName)
-        : base(device)
+    public ModelContent(ContentId id, Device device, IContentDataLoader<ModelData> loader, ModelData data)
+        : base(device, data.Vertices, data.Indices, data.Primitives, data.Materials, id.ToString())
     {
-        this.DataLoader = loader;
-        this.MaterialLoader = materialLoader;
-        this.Id = fileName;
-
-        this.SetData(device, data);
+        this.Loader = loader;
+        this.Id = id;
     }
 
-    public string Id { get; }
+    public ContentId Id { get; }
 
     public void Reload(Device device)
     {
-        for (var i = 0; i < this.Materials.Length; i++)
-        {
-            this.MaterialLoader.Unload(this.Materials[i]);
-        }
-        this.SetData(device, this.DataLoader.Load(this.Id));
-    }
+        var data = this.Loader.Load(this.Id);
 
-    private void SetData(Device device, ModelData data)
-    {
         this.Primitives = data.Primitives;
-        this.Materials = new Material[data.Materials.Length];
+        this.Materials = data.Materials;
 
-        for (var i = 0; i < this.Materials.Length; i++)
-        {
-            this.Materials[i] = this.MaterialLoader.Load(device, data.Materials[i].Id);
-        }
-
-        this.Vertices.MapData(device.ImmediateContext, data.Vertices);
-        this.Indices.MapData(device.ImmediateContext, data.Indices);
-    }
-
-    private void UnloadMaterials()
-    {
-
+        this.MapData(device.ImmediateContext, data.Vertices, data.Indices);
     }
 }
