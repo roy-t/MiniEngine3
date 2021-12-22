@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using Mini.Engine.Content.Materials;
-using Mini.Engine.Content.Materials.Wavefront;
 using Mini.Engine.Content.Models.Wavefront.Objects;
 using Mini.Engine.DirectX;
 using Mini.Engine.IO;
@@ -16,13 +15,12 @@ namespace Mini.Engine.Content.Models.Wavefront;
 /// </summary>
 internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
 {
-    private readonly WavefrontMaterialDataLoader MaterialDataLoader;
     private readonly ObjStatementParser[] Parsers;
     private readonly IVirtualFileSystem FileSystem;
+    private readonly IContentLoader<MaterialContent> MaterialLoader;
 
-    public WavefrontModelDataLoader(IVirtualFileSystem fileSystem)
+    public WavefrontModelDataLoader(IVirtualFileSystem fileSystem, IContentLoader<MaterialContent> materialLoader)
     {
-        this.MaterialDataLoader = new WavefrontMaterialDataLoader(fileSystem);
         this.Parsers = new ObjStatementParser[]
         {
                 new VertexPositionParser(),
@@ -39,9 +37,10 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
                 new UseMtlParser()
         };
         this.FileSystem = fileSystem;
+        this.MaterialLoader = materialLoader;
     }
 
-    public ModelData Load(ContentId id)
+    public ModelData Load(Device device, ContentId id)
     {
         var text = this.FileSystem.ReadAllText(id.Path).AsSpan();
 
@@ -57,7 +56,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
             }
         }
 
-        return TransformToModelData(id, state);
+        return TransformToModelData(device, id, state);
     }
 
     private class ModelVertexComparer : IEqualityComparer<ModelVertex>
@@ -73,7 +72,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
         }
     }
 
-    private ModelData TransformToModelData(ContentId id, ParseState state)
+    private ModelData TransformToModelData(Device device, ContentId id, ParseState state)
     {
         if (state.Group != null)
         {
@@ -88,7 +87,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
         var comparer = new ModelVertexComparer();
         var vertices = new Dictionary<ModelVertex, int>(comparer);
         var primitives = new List<Primitive>();
-        var materials = this.LoadMaterialData(id, state);
+        var materials = this.LoadMaterialData(device, id, state);
         var indexList = new List<int>();
         var nextIndex = 0;
 
@@ -153,21 +152,17 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
             vertexArray[tuple.Value] = tuple.Key;
         }
 
-        var model = new ModelData(id.ToString(), vertexArray, indexList.ToArray(), primitives.ToArray(), materials);
-        TextureLookup.MakeTexturesPathsRelativeToContentPath(model);
-        TextureLookup.AddFallbackTextures(model);
-
-        return model;
+        return new ModelData(id, vertexArray, indexList.ToArray(), primitives.ToArray(), materials);
     }
 
-    private MaterialContent[] LoadMaterialData(ContentId id, ParseState state)
+    private MaterialContent[] LoadMaterialData(Device device, ContentId id, ParseState state)
     {
         var materialKeys = state.Groups.Select(x => x.Material ?? string.Empty).ToHashSet().ToArray();
         var materials = new MaterialContent[materialKeys.Length];
         for (var i = 0; i < materials.Length; i++)
         {
             var materialId = id.RelativeTo(state.MaterialLibrary, materialKeys[i]);
-            materials[i] = this.MaterialDataLoader.Load(materialId);
+            materials[i] = this.MaterialLoader.Load(device, materialId);
         }
 
         return materials;

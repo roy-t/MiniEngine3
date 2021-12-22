@@ -1,21 +1,25 @@
 ﻿using System;
 using System.IO;
+using Mini.Engine.Content.Materials;
 using Mini.Engine.Content.Models.Wavefront;
 using Mini.Engine.DirectX;
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Models;
 
-internal sealed class ModelLoader : IContentLoader<Model>
+internal sealed class ModelLoader : IContentLoader<ModelContent>
 {
     private readonly WavefrontModelDataLoader WaveFrontDataLoader;
 
-    public ModelLoader(IVirtualFileSystem fileSystem)
+    public ModelLoader(IVirtualFileSystem fileSystem, IContentLoader<MaterialContent> materialLoader)
     {
-        this.WaveFrontDataLoader = new WavefrontModelDataLoader(fileSystem);
+        this.WaveFrontDataLoader = new WavefrontModelDataLoader(fileSystem, materialLoader);
+        this.MaterialLoader = materialLoader;
     }
 
-    public Model Load(Device device, ContentId id)
+    public IContentLoader<MaterialContent> MaterialLoader { get; }
+
+    public ModelContent Load(Device device, ContentId id)
     {
         var extension = Path.GetExtension(id.Path).ToLowerInvariant();
         IContentDataLoader<ModelData> loader = extension switch
@@ -24,12 +28,18 @@ internal sealed class ModelLoader : IContentLoader<Model>
             _ => throw new NotSupportedException($"Could not load {id}. Unsupported model file type {extension}")
         };
 
-        var data = loader.Load(id);
+        var data = loader.Load(device, id);
         return new ModelContent(id, device, loader, data);
     }
 
-    public void Unload(Model content)
+    public void Unload(ModelContent content)
     {
+        for (var i = 0; i < content.Materials.Length; i++)
+        {
+            var material = (MaterialContent)content.Materials[i];
+            this.MaterialLoader.Unload(material);
+        }
+
         content.Dispose();
     }
 }

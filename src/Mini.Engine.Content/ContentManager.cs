@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Mini.Engine.Configuration;
+using Mini.Engine.Content.Materials;
 using Mini.Engine.Content.Models;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
@@ -20,6 +21,7 @@ public sealed partial class ContentManager : IDisposable
     private readonly Stack<List<IContent>> ContentStack;
 
     private readonly ContentCache<Texture2DContent> TextureLoader;
+    private readonly ContentCache<MaterialContent> MaterialLoader;
     private readonly ContentCache<ModelContent> ModelLoader;
 
     public ContentManager(ILogger logger, Device device, IVirtualFileSystem fileSystem)
@@ -31,12 +33,13 @@ public sealed partial class ContentManager : IDisposable
         this.FileSystem = fileSystem;
 
         this.TextureLoader = new ContentCache<Texture2DContent>(new TextureLoader(fileSystem));
-        this.ModelLoader = new ContentCache<ModelContent>(new ModelLoader(fileSystem, this.TextureLoader));
+        this.MaterialLoader = new ContentCache<MaterialContent>(new MaterialLoader(fileSystem, this.TextureLoader));
+        this.ModelLoader = new ContentCache<ModelContent>(new ModelLoader(fileSystem, this.MaterialLoader));
     }
 
     public Model LoadAsteroid()
     {
-        var model = this.ModelLoader.Load(this.Device, @"Models\sponza\sponza.obj");
+        var model = this.ModelLoader.Load(this.Device, new ContentId(@"Models\sponza\sponza.obj"));
         this.Add(model);
 
         return model;
@@ -85,17 +88,19 @@ public sealed partial class ContentManager : IDisposable
     [Conditional("DEBUG")]
     private void Watch(IContent content)
     {
-        this.FileSystem.WatchFile(content.Id);
+        // TODO: this should be done by every loader as they know what files are actually accessed!
+        this.FileSystem.WatchFile(content.Id.Path);
         this.Logger.Information("Watching file {@file}", content.Id);
     }
 
     private void ReloadContentReferencingFile(string path)
     {
+        // TODO: this reference should be stored in a N:N dictionary
         foreach (var list in this.ContentStack)
         {
             foreach (var content in list)
             {
-                if (content.Id.Equals(path, StringComparison.OrdinalIgnoreCase))
+                if (content.Id.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
                 {
                     this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, path);
                     content.Reload(this.Device);

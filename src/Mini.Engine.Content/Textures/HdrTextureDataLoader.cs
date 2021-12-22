@@ -1,4 +1,5 @@
 ﻿using System;
+using Mini.Engine.DirectX;
 using Mini.Engine.IO;
 using StbImageSharp;
 using Vortice.DXGI;
@@ -17,7 +18,7 @@ public sealed class HdrTextureDataLoader : IContentDataLoader<TextureData>
         this.FileSystem = fileSystem;
     }
 
-    public TextureData Load(ContentId id)
+    public TextureData Load(Device device, ContentId id)
     {
         using var stream = this.FileSystem.OpenRead(id.Path);
         var image = ImageResultFloat.FromStream(stream, ColorComponents.RedGreenBlueAlpha);

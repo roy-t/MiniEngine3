@@ -21,7 +21,7 @@ internal sealed class MaterialContent : Material, IContent
 
     public void Reload(Device device)
     {
-        var data = this.Loader.Load(this.Id);
+        var data = this.Loader.Load(device, this.Id);
 
         this.Albedo = data.Albedo;
         this.Metalicness = data.Metalicness;

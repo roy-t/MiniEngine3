@@ -12,6 +12,6 @@ internal sealed class UseMtlParser : ObjStatementParser
     public override string Key => "usemtl";
     protected override void ParseArgument(ParseState state, ReadOnlySpan<char> argument, IVirtualFileSystem fileSystem)
     {
-        state.Material = state.Materials[new string(argument)];
+        state.Material = new string(argument);
     }
 }

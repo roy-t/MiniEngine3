@@ -41,7 +41,7 @@ internal sealed class ContentCache<T> : IContentLoader<T>
         entry.ReferenceCount--;
         if (entry.ReferenceCount < 1)
         {
-            entry.Item.Dispose();
+            this.Loader.Unload(content);
             this.Cache.Remove(content.Id);
         }
     }

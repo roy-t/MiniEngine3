@@ -30,7 +30,7 @@ public struct ModelVertex
 
 public sealed record Primitive(string Name, int MaterialIndex, int IndexOffset, int IndexCount);
 
-public class Material : IDisposable
+public class Material
 {
     public Material(string name, Texture2D albedo, Texture2D metalicness, Texture2D normal, Texture2D roughness, Texture2D ambientOcclusion)
     {
@@ -48,17 +48,6 @@ public class Material : IDisposable
     public Texture2D Normal { get; protected set; }
     public Texture2D Roughness { get; protected set; }
     public Texture2D AmbientOcclusion { get; protected set; }
-
-    public virtual void Dispose()
-    {
-        this.Albedo.Dispose();
-        this.Metalicness.Dispose();
-        this.Normal.Dispose();
-        this.Roughness.Dispose();
-        this.AmbientOcclusion.Dispose();
-
-        GC.SuppressFinalize(this);
-    }
 }
 
 public class Model : IDisposable

@@ -1,4 +1,5 @@
-﻿using Mini.Engine.IO;
+﻿using Mini.Engine.DirectX;
+using Mini.Engine.IO;
 using StbImageSharp;
 using Vortice.DXGI;
 
@@ -15,7 +16,7 @@ public class TextureDataLoader : IContentDataLoader<TextureData>
         this.FileSystem = fileSystem;
     }
 
-    public TextureData Load(ContentId id)
+    public TextureData Load(Device device, ContentId id)
     {
         using var stream = this.FileSystem.OpenRead(id.Path);
         var image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);

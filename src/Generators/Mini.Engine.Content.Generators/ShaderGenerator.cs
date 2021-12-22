@@ -67,8 +67,7 @@ namespace Mini.Engine.Content.Generators
                                             .Parameter("Device", "device")
                                             .Parameter("IVirtualFileSystem", "fileSystem")
                                             .BaseConstructorCall("device", "fileSystem",
-                                                SourceUtilities.ToLiteral(shader.FilePath),
-                                                SourceUtilities.ToLiteral(function.Name),
+                                                $"new ContentId({SourceUtilities.ToLiteral(shader.FilePath)},{SourceUtilities.ToLiteral(function.Name)})",
                                                 SourceUtilities.ToLiteral(function.GetProfile()))
                                             .Complete()
                                         .Complete()

@@ -31,7 +31,7 @@ internal sealed class Texture2DContent : Texture2D, IContent
 
     public void Reload(Device device)
     {
-        var data = this.Loader.Load(this.Id);
+        var data = this.Loader.Load(device, this.Id);
         this.Reload(device, data.Width, data.Height, data.Pitch, data.Format, data.Data);
     }
 

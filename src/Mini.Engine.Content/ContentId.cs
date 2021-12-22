@@ -38,7 +38,8 @@ public sealed class ContentId : IEquatable<ContentId>
 
     public ContentId RelativeTo(string path, string key = "")
     {
-        var fullPath = System.IO.Path.Combine(this.Path, path);
+        var directory = System.IO.Path.GetDirectoryName(this.Path) ?? string.Empty;
+        var fullPath = System.IO.Path.Combine(directory, path);
         return new ContentId(fullPath, key);
     }
 
@@ -69,6 +70,19 @@ public sealed class ContentId : IEquatable<ContentId>
             string.Equals(other.Key == this.Key, StringComparison.InvariantCultureIgnoreCase);
     }
 
-    public static bool operator ==(ContentId? left, ContentId? right) => left != null && left.Equals(right);
+    public static bool operator ==(ContentId? left, ContentId? right)
+    {
+        if (object.ReferenceEquals(left, right))
+        {
+            return true;
+        }
+
+        if (left is null)
+        {
+            return false;
+        }
+
+        return Equals(left, right);
+    }
     public static bool operator !=(ContentId? left, ContentId? right) => !(left == right);
 }
