@@ -65,24 +65,13 @@ public sealed class ContentId : IEquatable<ContentId>
 
     public bool Equals(ContentId? other)
     {
-        return other != null &&
-            string.Equals(other.Path == this.Path, StringComparison.InvariantCultureIgnoreCase) &&
-            string.Equals(other.Key == this.Key, StringComparison.InvariantCultureIgnoreCase);
-    }
-
-    public static bool operator ==(ContentId? left, ContentId? right)
-    {
-        if (object.ReferenceEquals(left, right))
+        if (object.ReferenceEquals(this, other))
         {
             return true;
         }
 
-        if (left is null)
-        {
-            return false;
-        }
-
-        return Equals(left, right);
+        return other != null &&
+            string.Equals(other.Path, this.Path, StringComparison.InvariantCultureIgnoreCase) &&
+            string.Equals(other.Key, this.Key, StringComparison.InvariantCultureIgnoreCase);
     }
-    public static bool operator !=(ContentId? left, ContentId? right) => !(left == right);
 }

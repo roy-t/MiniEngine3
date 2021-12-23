@@ -10,10 +10,12 @@ namespace Mini.Engine.Content.Materials;
 internal sealed class MaterialLoader : IContentLoader<MaterialContent>
 {
     private readonly IContentDataLoader<MaterialData> WavefrontMaterialDataLoader;
+    private readonly IVirtualFileSystem FileSystem;
 
     public MaterialLoader(IVirtualFileSystem fileSystem, IContentLoader<Texture2DContent> textureLoader)
     {
         this.WavefrontMaterialDataLoader = new WavefrontMaterialDataLoader(fileSystem, textureLoader);
+        this.FileSystem = fileSystem;
         this.TextureLoader = textureLoader;
     }
 
@@ -28,7 +30,10 @@ internal sealed class MaterialLoader : IContentLoader<MaterialContent>
             _ => throw new NotSupportedException($"Could not load {id}. Unsupported material file extension: {extension}"),
         };
 
+
         var data = loader.Load(device, id);
+
+        this.FileSystem.WatchFile(id.Path);
         return new MaterialContent(id, loader, data);
     }
 

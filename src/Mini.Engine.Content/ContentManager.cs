@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Materials;
 using Mini.Engine.Content.Models;
+using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.IO;
@@ -52,14 +53,14 @@ public sealed partial class ContentManager : IDisposable
 
     public void Pop()
     {
-        this.Dispose(this.ContentStack.Pop());
+        this.Unload(this.ContentStack.Pop());
     }
 
     public void Dispose()
     {
         while (this.ContentStack.Count > 0)
         {
-            this.Dispose(this.ContentStack.Pop());
+            this.Unload(this.ContentStack.Pop());
         }
     }
 
@@ -82,20 +83,10 @@ public sealed partial class ContentManager : IDisposable
     private void Add(IContent content)
     {
         this.ContentStack.Peek().Add(content);
-        this.Watch(content);
-    }
-
-    [Conditional("DEBUG")]
-    private void Watch(IContent content)
-    {
-        // TODO: this should be done by every loader as they know what files are actually accessed!
-        this.FileSystem.WatchFile(content.Id.Path);
-        this.Logger.Information("Watching file {@file}", content.Id);
     }
 
     private void ReloadContentReferencingFile(string path)
     {
-        // TODO: this reference should be stored in a N:N dictionary
         foreach (var list in this.ContentStack)
         {
             foreach (var content in list)
@@ -109,7 +100,7 @@ public sealed partial class ContentManager : IDisposable
         }
     }
 
-    private void Dispose(List<IContent> list)
+    private void Unload(List<IContent> list)
     {
         foreach (var content in list)
         {
@@ -118,9 +109,20 @@ public sealed partial class ContentManager : IDisposable
                 case Texture2DContent texture:
                     this.TextureLoader.Unload(texture);
                     break;
+                case MaterialContent material:
+                    this.MaterialLoader.Unload(material);
+                    break;
                 case ModelContent model:
                     this.ModelLoader.Unload(model);
                     break;
+                case PixelShaderContent ps:
+                    ps.Dispose();
+                    break;
+                case VertexShaderContent vs:
+                    vs.Dispose();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(content), $"Cannot unload {content.Id}, unsupported content type {content.GetType()}");
             }
         }
     }

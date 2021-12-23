@@ -10,10 +10,12 @@ namespace Mini.Engine.Content.Models;
 internal sealed class ModelLoader : IContentLoader<ModelContent>
 {
     private readonly WavefrontModelDataLoader WaveFrontDataLoader;
+    private readonly IVirtualFileSystem FileSystem;
 
     public ModelLoader(IVirtualFileSystem fileSystem, IContentLoader<MaterialContent> materialLoader)
     {
         this.WaveFrontDataLoader = new WavefrontModelDataLoader(fileSystem, materialLoader);
+        this.FileSystem = fileSystem;
         this.MaterialLoader = materialLoader;
     }
 
@@ -29,6 +31,9 @@ internal sealed class ModelLoader : IContentLoader<ModelContent>
         };
 
         var data = loader.Load(device, id);
+
+        this.FileSystem.WatchFile(id.Path);
+
         return new ModelContent(id, device, loader, data);
     }
 
