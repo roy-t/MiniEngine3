@@ -125,16 +125,23 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
                     }
                 }
 
+                // Obj files assume a right-handed coordinate system
+                // invert the triangles to make them work with a left-handed system
                 if (face.Length == 3)
                 {
-                    indexList.AddRange(indices);
+                    indexList.Add(indices[2]);
+                    indexList.Add(indices[1]);
+                    indexList.Add(indices[0]);
                 }
                 else if (face.Length == 4)
                 {
-                    indexList.AddRange(indices[0..3]);
                     indexList.Add(indices[2]);
-                    indexList.Add(indices[3]);
+                    indexList.Add(indices[1]);
                     indexList.Add(indices[0]);
+
+                    indexList.Add(indices[0]);
+                    indexList.Add(indices[3]);
+                    indexList.Add(indices[2]);
                 }
                 else
                 {

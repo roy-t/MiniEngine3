@@ -17,8 +17,8 @@ cbuffer vertexBuffer : register(b0)
     float4x4 WorldViewProjection;
 };
 
-sampler textureSampler : register(s0);
-Texture2D albedo : register(t0);
+sampler TextureSampler : register(s0);
+Texture2D Albedo : register(t0);
 
 #pragma VertexShader
 PS_INPUT VS(VS_INPUT input)
@@ -33,6 +33,7 @@ PS_INPUT VS(VS_INPUT input)
 #pragma PixelShader
 float4 PS(PS_INPUT input) : SV_Target
 {
-    float4 color = albedo.Sample(textureSampler, input.texcoord);
-    return color;
+    float4 albedo = Albedo.Sample(TextureSampler, input.texcoord);
+    clip(albedo.a - 1.0f);
+    return albedo;
 }

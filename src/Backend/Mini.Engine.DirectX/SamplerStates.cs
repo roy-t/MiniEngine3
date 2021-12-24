@@ -27,9 +27,12 @@ public sealed class SamplerStates : IDisposable
     internal SamplerStates(ID3D11Device device)
     {
         this.LinearWrap = Create(device, LinearWrapDescription(), nameof(this.LinearWrap));
+        this.AnisotropicWrap = Create(device, AnisotropicWrapDescription(), nameof(this.AnisotropicWrap));
     }
 
     public SamplerState LinearWrap { get; }
+
+    public SamplerState AnisotropicWrap { get; }
 
 
     private static SamplerState Create(ID3D11Device device, SamplerDescription description, string name)
@@ -49,7 +52,24 @@ public sealed class SamplerStates : IDisposable
             MipLODBias = 0f,
             ComparisonFunction = ComparisonFunction.Always,
             MinLOD = 0f,
-            MaxLOD = 0f
+            MaxLOD = 0f,
+            MaxAnisotropy = 16
+        };
+    }
+
+    private static SamplerDescription AnisotropicWrapDescription()
+    {
+        return new SamplerDescription
+        {
+            Filter = Filter.Anisotropic,
+            AddressU = TextureAddressMode.Wrap,
+            AddressV = TextureAddressMode.Wrap,
+            AddressW = TextureAddressMode.Wrap,
+            MipLODBias = 0f,
+            ComparisonFunction = ComparisonFunction.Always,
+            MinLOD = 0f,
+            MaxLOD = 0f,
+            MaxAnisotropy = 16
         };
     }
 
