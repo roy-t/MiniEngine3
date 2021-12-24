@@ -26,6 +26,7 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
             this.Structures = Structure.FindAll(syntaxTree.Root);
             this.CBuffers = CBuffer.FindAll(syntaxTree.Root);
             this.Functions = Function.FindAll(syntaxTree.Root);
+            this.Variables = Variable.FindAll(syntaxTree.Root);
         }
 
         public string Name { get; }
@@ -34,13 +35,14 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
         public IReadOnlyList<Structure> Structures { get; }
         public IReadOnlyList<CBuffer> CBuffers { get; }
         public IReadOnlyList<Function> Functions { get; }
+        public IReadOnlyList<Variable> Variables { get; }
 
 
         private static string FindRelativePath(string path)
         {
             var relativePath = Path.GetFileName(path);
             var directory = new DirectoryInfo(Path.GetDirectoryName(path));
-            while(directory != null && !directory.EnumerateFiles(".contentroot").Any())
+            while (directory != null && !directory.EnumerateFiles(".contentroot").Any())
             {
                 relativePath = Path.Combine(directory.Name, relativePath);
                 directory = directory.Parent;

@@ -8,7 +8,8 @@ struct VS_INPUT
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
-    float3 normal : TEXCOORD;
+    float2 texcoord : TEXCOORD;
+    float3 normal : NORMAL;
 };
 
 cbuffer vertexBuffer : register(b0)
@@ -16,11 +17,15 @@ cbuffer vertexBuffer : register(b0)
     float4x4 WorldViewProjection;
 };
 
+sampler textureSampler : register(s0);
+Texture2D albedo : register(t0);
+
 #pragma VertexShader
 PS_INPUT VS(VS_INPUT input)
 {
     PS_INPUT output;
     output.position = mul(WorldViewProjection, float4(input.position.xyz, 1.f));
+    output.texcoord = input.texcoord;
     output.normal = input.normal;
     return output;
 }
@@ -28,5 +33,6 @@ PS_INPUT VS(VS_INPUT input)
 #pragma PixelShader
 float4 PS(PS_INPUT input) : SV_Target
 {
-    return float4(1, 1, 1, 1);
+    float4 color = albedo.Sample(textureSampler, input.texcoord);
+    return color;
 }

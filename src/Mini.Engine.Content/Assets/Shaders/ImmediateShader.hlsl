@@ -5,8 +5,8 @@ cbuffer vertexBuffer : register(b0)
     float4x4 ProjectionMatrix;
 };
 
-sampler sampler0;
-Texture2D texture0;
+sampler sampler0 : register(s0);
+Texture2D texture0 : register(t0);
 
 #pragma VertexShader
 PS_INPUT VS(VS_INPUT input)

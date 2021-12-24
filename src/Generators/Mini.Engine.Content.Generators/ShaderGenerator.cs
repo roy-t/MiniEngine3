@@ -52,6 +52,18 @@ namespace Mini.Engine.Content.Generators
                             .Complete()
                         .Complete();
 
+                    var shaderFile = SourceFile.Build($"{shader.Name}.cs")
+                        .Namespace($"Mini.Engine.Content.Shaders.{shader.Name}")
+                            .Class(Naming.ToPascalCase($"{shader.Name}"), "public", "static")
+                                .Fields(shader.Variables
+                                    .Where(v => v.Slot != null)
+                                    .Select(v => Field.Builder("int", Naming.ToPascalCase(v.Name), "public", "const")
+                                    .Value(v.Slot?.ToString() ?? "0")
+                                    .Complete()))
+                                .Complete()
+                            .Complete()
+                        .Complete();
+
                     var classFiles = shader.Functions
                         .Where(f => f.IsProgram())
                         .Select(function =>
@@ -76,7 +88,7 @@ namespace Mini.Engine.Content.Generators
                         });
 
                     contentFiles.AddRange(classFiles);
-                    return classFiles.Append(structuresFile);
+                    return classFiles.Append(structuresFile).Append(shaderFile);
                 });
 
             foreach (var file in generatedFiles)

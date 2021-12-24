@@ -7,6 +7,7 @@ using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Vortice.Direct3D;
 
+
 namespace Mini.Engine.Graphics;
 
 [Service]
@@ -44,10 +45,10 @@ public partial class ModelSystem : ISystem
 
         this.Context.RS.SetViewPort(0, 0, width, height);
         this.Context.RS.SetScissorRect(0, 0, width, height);
-        this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullNone); // TODO
+        this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullNone);
 
         this.Context.PS.SetShader(this.PixelShader);
-        this.Context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
+        this.Context.PS.SetSampler(FlatShader.TextureSampler, this.Device.SamplerStates.LinearWrap);
 
         this.Context.OM.SetRenderTarget(this.FrameService.GBuffer.Albedo);
 
@@ -61,6 +62,7 @@ public partial class ModelSystem : ISystem
         var cBuffer = new CBuffer0()
         {
             WorldViewProjection = System.Numerics.Matrix4x4.CreateScale(0.01f) * this.FrameService.Camera.ViewProjection
+            // TODO: restore true view projection once models get a transform component!
             //WorldViewProjection = this.FrameService.Camera.ViewProjection
         };
         this.ConstantBuffer.MapData(this.Context, cBuffer);
@@ -69,11 +71,13 @@ public partial class ModelSystem : ISystem
         this.Context.IA.SetIndexBuffer(component.Model.Indices);
 
         this.Context.VS.SetConstantBuffer(CBuffer0.Slot, this.ConstantBuffer);
-        // TODO set texture and other shader variables
 
         for (var i = 0; i < component.Model.PrimitiveCount; i++)
         {
             var primitive = component.Model.Primitives[i];
+            var material = component.Model.Materials[primitive.MaterialIndex];
+
+            this.Context.PS.SetShaderResource(FlatShader.Albedo, material.Albedo);
             this.Context.DrawIndexed(primitive.IndexCount, primitive.IndexOffset, 0);
         }
     }

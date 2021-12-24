@@ -36,6 +36,11 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
                 default:
                     throw new NotSupportedException($"Unsupported type {type}");
             };
+
+            if (Register.TryGetSlot(syntax, out var slot))
+            {
+                this.Slot = slot;
+            }
         }
 
         public string Type { get; }
@@ -44,10 +49,11 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
 
         public string Name { get; }
         public int Dimensions { get; }
+        public int? Slot { get; }
 
         public static IReadOnlyList<Variable> FindAll(SyntaxNodeBase startingNode)
         {
-            return startingNode.DescendantNodesAndSelf()
+            return startingNode.ChildNodes
                 .Where(node => node.IsKind(SyntaxKind.VariableDeclarationStatement))
                 .Cast<VariableDeclarationStatementSyntax>()
                 .SelectMany(syntax => FindAll(syntax))

@@ -123,7 +123,7 @@ internal sealed class ImGuiRenderer
 
                     if (this.TextureResources.TryGetValue(cmd.TextureId, out var texture))
                     {
-                        this.DeferredContext.PS.SetShaderResource(0, texture);
+                        this.DeferredContext.PS.SetShaderResource(ImmediateShader.Texture0, texture);
                     }
 
                     this.DeferredContext.DrawIndexed((int)cmd.ElemCount, (int)(cmd.IdxOffset + globalIndexOffset), (int)(cmd.VtxOffset + lobalVertexOffset));
