@@ -45,12 +45,12 @@ public partial class ModelSystem : ISystem
 
         this.Context.RS.SetViewPort(0, 0, width, height);
         this.Context.RS.SetScissorRect(0, 0, width, height);
-        this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullNone);
+        this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullBack);
 
         this.Context.PS.SetShader(this.PixelShader);
         this.Context.PS.SetSampler(FlatShader.TextureSampler, this.Device.SamplerStates.LinearWrap);
 
-        this.Context.OM.SetRenderTarget(this.FrameService.GBuffer.Albedo);
+        this.Context.OM.SetRenderTarget(this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.DepthStencilBuffer);
 
         this.Context.OM.SetBlendState(this.Device.BlendStates.Opaque);
         this.Context.OM.SetDepthStencilState(this.Device.DepthStencilStates.Default);

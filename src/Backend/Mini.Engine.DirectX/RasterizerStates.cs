@@ -27,13 +27,13 @@ public sealed class RasterizerStates : IDisposable
     internal RasterizerStates(ID3D11Device device)
     {
         this.CullNone = Create(device, CullNoneDescription(), nameof(this.CullNone));
-        this.CullCounterClockwise = Create(device, CullCounterClockwiseDescription(), nameof(this.CullCounterClockwise));
-        this.CullClockwise = Create(device, CullClockwiseDescription(), nameof(this.CullClockwise));
+        this.CullBack = Create(device, CullBackDescription(), nameof(this.CullBack));
+        this.CullFront = Create(device, CullFrontDescription(), nameof(this.CullFront));
     }
 
     public RasterizerState CullNone { get; }
-    public RasterizerState CullCounterClockwise { get; }
-    public RasterizerState CullClockwise { get; }
+    public RasterizerState CullBack { get; }
+    public RasterizerState CullFront { get; }
 
     private static RasterizerState Create(ID3D11Device device, RasterizerDescription description, string name)
     {
@@ -52,7 +52,7 @@ public sealed class RasterizerStates : IDisposable
         };
     }
 
-    private static RasterizerDescription CullCounterClockwiseDescription()
+    private static RasterizerDescription CullBackDescription()
     {
         return new RasterizerDescription
         {
@@ -63,7 +63,7 @@ public sealed class RasterizerStates : IDisposable
         };
     }
 
-    private static RasterizerDescription CullClockwiseDescription()
+    private static RasterizerDescription CullFrontDescription()
     {
         return new RasterizerDescription
         {

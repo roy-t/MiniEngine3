@@ -18,9 +18,10 @@ internal abstract class StatementParser<T> : IStatementParser<T>
 
     public bool Parse(T state, ReadOnlySpan<char> line, IVirtualFileSystem fileSystem)
     {
-        if (IsRelevant(this.Key, line))
+        var trimmedLine = line.TrimStart();
+        if (IsRelevant(this.Key, trimmedLine))
         {
-            var arguments = line[(this.Key.Length + 1)..];
+            var arguments = trimmedLine[(this.Key.Length + 1)..];
             this.ParseArgument(state, arguments, fileSystem);
             this.ParseArguments(state, new SpanTokenEnumerator(arguments), fileSystem);
             return true;

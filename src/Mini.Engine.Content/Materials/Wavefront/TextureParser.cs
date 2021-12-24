@@ -11,7 +11,7 @@ internal abstract class TextureParser : MtlStatementParser
     protected TextureParser(string key, Action<ParseState, string> assign)
     {
         this.Assign = assign;
-        this.TextureKey = '\t' + key;
+        this.TextureKey = key;
     }
 
     public override string Key => this.TextureKey;

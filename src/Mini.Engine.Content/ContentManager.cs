@@ -46,6 +46,14 @@ public sealed partial class ContentManager : IDisposable
         return model;
     }
 
+    public Model LoadAsteroid()
+    {
+        var model = this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\AsteroidField\Asteroid001.obj"));
+        this.Add(model);
+
+        return model;
+    }
+
     public void Push()
     {
         this.ContentStack.Push(new List<IContent>());

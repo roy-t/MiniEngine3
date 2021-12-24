@@ -56,7 +56,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
             }
         }
 
-        return TransformToModelData(device, id, state);
+        return this.TransformToModelData(device, id, state);
     }
 
     private class ModelVertexComparer : IEqualityComparer<ModelVertex>
@@ -81,7 +81,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
 
         if (state.Groups.Count == 0)
         {
-            state.Groups.Add(new Group(state.Object, 0, state.Faces.Count - 1));
+            state.Groups.Add(new Group(state.Object, 0, state.Faces.Count - 1) { Material = state.Material});
         }
 
         var comparer = new ModelVertexComparer();
