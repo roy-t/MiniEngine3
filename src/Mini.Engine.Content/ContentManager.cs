@@ -38,9 +38,9 @@ public sealed partial class ContentManager : IDisposable
         this.ModelLoader = new ContentCache<ModelContent>(new ModelLoader(fileSystem, this.MaterialLoader));
     }
 
-    public Model LoadAsteroid()
+    public Model LoadSponza()
     {
-        var model = this.ModelLoader.Load(this.Device, new ContentId(@"Models\sponza\sponza.obj"));
+        var model = this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\sponza\sponza.obj"));
         this.Add(model);
 
         return model;

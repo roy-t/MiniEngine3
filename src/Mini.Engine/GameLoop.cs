@@ -33,7 +33,7 @@ internal sealed class GameLoop : IDisposable
         var entity = entities.Create();
         //var loader = new DummyModelLoader();
         //models.Add(new ModelComponent(entity, new Model(device, content.FileSystem, loader, string.Empty)));
-        models.Add(new ModelComponent(entity, content.LoadAsteroid()));
+        models.Add(new ModelComponent(entity, content.LoadSponza()));
     }
 
     public void Update(float time, float elapsed)

@@ -15,11 +15,11 @@
   </ItemGroup>
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
-    <AdditionalFiles Include=".contentroot" />
-    <AdditionalFiles Include="Shaders\PostProcessShader.hlsl" />
-    <AdditionalFiles Include="Shaders\FlatShader.hlsl" />
-    <AdditionalFiles Include="Shaders\ImmediateShader.hlsl" />
-    <AdditionalFiles Include="Shaders\Include.hlsl" />
+    <AdditionalFiles Include="Assets\.contentroot" />
+    <AdditionalFiles Include="Assets\Shaders\PostProcessShader.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\FlatShader.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\ImmediateShader.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Include.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.11.0-dev-01371" />
