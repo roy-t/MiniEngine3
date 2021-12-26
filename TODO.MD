@@ -1,5 +1,7 @@
 # TODO
 
+Figure out why mipmapping half works, it looks like the mips are generated, but the sampler is not using them? Check in renderdoc? https://gamedev.stackexchange.com/questions/173952/downscaling-texture-via-mipmap
+
 Content
 - Test hot reloading
 - Check if there's still a way to hide the DirectX Shader type

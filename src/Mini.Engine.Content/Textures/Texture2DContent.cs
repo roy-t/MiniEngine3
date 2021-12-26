@@ -21,7 +21,7 @@ internal sealed class Texture2DContent : Texture2D, IContent
         this.Height = data.Height;
         this.Format = data.Format;
 
-        device.ID3D11DeviceContext.UpdateSubresource(data.Data, this.Texture, 0, data.Pitch, 0);
+        this.Upload(device, data.Pitch, data.Data);
     }
 
     public ContentId Id { get; }
@@ -32,15 +32,17 @@ internal sealed class Texture2DContent : Texture2D, IContent
     public void Reload(Device device)
     {
         var data = this.Loader.Load(device, this.Id);
-        this.Reload(device, data.Width, data.Height, data.Pitch, data.Format, data.Data);
-    }
-
-    private void Reload(Device device, int width, int height, int pitch, Format format, byte[] data)
-    {
-        if (width != this.Width || height != this.Height || format != this.Format)
+        if (data.Width != this.Width || data.Height != this.Height || data.Format != this.Format)
         {
             throw new NotSupportedException($"Cannot reload {this.Id}, dimensions or format have changed");
         }
+
+        this.Upload(device, data.Pitch, data.Data);
+    }
+
+    private void Upload(Device device, int pitch, byte[] data)
+    {        
         device.ID3D11DeviceContext.UpdateSubresource(data, this.Texture, 0, pitch, 0);
+        device.ID3D11DeviceContext.GenerateMips(this.ShaderResourceView);
     }
 }
