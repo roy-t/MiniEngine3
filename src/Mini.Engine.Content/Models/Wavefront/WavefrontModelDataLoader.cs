@@ -109,7 +109,8 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
                     var normal = state.Normals[lookup.Z - 1];
 
                     var p = new Vector3(position.X, position.Y, position.Z);
-                    var t = new Vector2(texcoord.X, texcoord.Y);
+                    // obj texture coordinates use {0, 0} as top left
+                    var t = new Vector2(texcoord.X, 1.0f - texcoord.Y);
                     var n = new Vector3(normal.X, normal.Y, normal.Z);
                     var vertex = new ModelVertex(p, t, n);
 

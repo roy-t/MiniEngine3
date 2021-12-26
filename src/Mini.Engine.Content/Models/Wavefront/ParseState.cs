@@ -53,6 +53,7 @@ internal sealed class ParseState : IParseState
     {
         this.EndPreviousGroup();
         this.Group = new Group(name, this.Faces.Count, 0);
+        this.Material = string.Empty;
     }
 }
 
