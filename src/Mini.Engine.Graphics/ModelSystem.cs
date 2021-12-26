@@ -48,7 +48,7 @@ public partial class ModelSystem : ISystem
         this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullBack);
 
         this.Context.PS.SetShader(this.PixelShader);
-        this.Context.PS.SetSampler(FlatShader.TextureSampler, this.Device.SamplerStates.LinearWrap);
+        this.Context.PS.SetSampler(FlatShader.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);
 
         this.Context.OM.SetRenderTarget(this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.DepthStencilBuffer);
 
