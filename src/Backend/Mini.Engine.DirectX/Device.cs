@@ -56,6 +56,7 @@ public sealed class Device : IDisposable
 
     public int Width { get; private set; }
     public int Height { get; private set; }
+    public bool VSync { get; set; }
 
     public SamplerStates SamplerStates { get; }
     public BlendStates BlendStates { get; }
@@ -99,7 +100,14 @@ public sealed class Device : IDisposable
 
     public void Present()
     {
-        this.swapChain.Present(0, PresentFlags.AllowTearing);
+        if (this.VSync)
+        {
+            this.swapChain.Present(1, PresentFlags.None);
+        }
+        else
+        {
+            this.swapChain.Present(0, PresentFlags.AllowTearing);
+        }
     }
 
     public void Resize(int width, int height)
@@ -151,7 +159,7 @@ public sealed class Device : IDisposable
 
         return new SwapChainDescription1()
         {
-            BufferCount = 3,
+            BufferCount = 2,
             Format = this.Format,
             AlphaMode = AlphaMode.Unspecified,
             Height = height,
@@ -159,7 +167,7 @@ public sealed class Device : IDisposable
             Scaling = Scaling.None,
             Stereo = false,
             SampleDescription = new SampleDescription(1, 0),
-            SwapEffect = SwapEffect.FlipSequential,
+            SwapEffect = SwapEffect.FlipDiscard,
             Usage = Usage.RenderTargetOutput,
             Flags = dxgiFactory.PresentAllowTearing ? SwapChainFlags.AllowTearing : SwapChainFlags.None
         };
