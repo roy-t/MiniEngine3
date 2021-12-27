@@ -26,9 +26,9 @@ public sealed class RasterizerStates : IDisposable
 {
     internal RasterizerStates(ID3D11Device device)
     {
-        this.CullNone = Create(device, CullNoneDescription(), nameof(this.CullNone));
-        this.CullBack = Create(device, CullBackDescription(), nameof(this.CullBack));
-        this.CullFront = Create(device, CullFrontDescription(), nameof(this.CullFront));
+        this.CullNone = Create(device, RasterizerDescription.CullNone, nameof(this.CullNone));
+        this.CullBack = Create(device, RasterizerDescription.CullCounterClockwise, nameof(this.CullBack));
+        this.CullFront = Create(device, RasterizerDescription.CullClockwise, nameof(this.CullFront));
     }
 
     public RasterizerState CullNone { get; }
@@ -39,39 +39,6 @@ public sealed class RasterizerStates : IDisposable
     {
         var state = device.CreateRasterizerState(description);
         return new RasterizerState(state, name);
-    }
-
-    private static RasterizerDescription CullNoneDescription()
-    {
-        return new RasterizerDescription
-        {
-            FillMode = FillMode.Solid,
-            CullMode = CullMode.None,
-            ScissorEnable = true,
-            DepthClipEnable = true
-        };
-    }
-
-    private static RasterizerDescription CullBackDescription()
-    {
-        return new RasterizerDescription
-        {
-            FillMode = FillMode.Solid,
-            CullMode = CullMode.Back,
-            ScissorEnable = true,
-            DepthClipEnable = true
-        };
-    }
-
-    private static RasterizerDescription CullFrontDescription()
-    {
-        return new RasterizerDescription
-        {
-            FillMode = FillMode.Solid,
-            CullMode = CullMode.Front,
-            ScissorEnable = true,
-            DepthClipEnable = true
-        };
     }
 
     public void Dispose()
