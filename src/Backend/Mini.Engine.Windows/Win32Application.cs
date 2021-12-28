@@ -47,15 +47,16 @@ public static class Win32Application
 
     public static bool PumpMessages()
     {
-        if (PeekMessage(out var msg, IntPtr.Zero, 0, 0, PM_REMOVE))
+        var @continue = true;
+        while (PeekMessage(out var msg, IntPtr.Zero, 0, 0, PM_REMOVE))
         {
             TranslateMessage(ref msg);
             DispatchMessage(ref msg);
 
-            return msg.Value != (uint)WindowMessage.Quit;
+            @continue = @continue && (msg.Value != (uint)WindowMessage.Quit);
         }
 
-        return true;
+        return @continue;
     }
 
     [UnmanagedCallersOnly]

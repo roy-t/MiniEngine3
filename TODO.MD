@@ -1,7 +1,5 @@
 # TODO
 
-See Gameloop, enabling vsync messes things up?
-
 Content
 - Test hot reloading
 - Check if there's still a way to hide the DirectX Shader type
