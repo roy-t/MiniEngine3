@@ -20,7 +20,7 @@ public sealed class IndexBuffer<T> : DeviceBuffer<T>
         }
         else
         {
-            throw new ArgumentException("Argument <T> should be a type of 2 or 4 bytes to be a valid index type", nameof(T));
+            throw new ArgumentException("Argument <T> should be a type of 2 or 4 bytes to be a valid index type");
         }
     }
 

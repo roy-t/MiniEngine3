@@ -25,7 +25,7 @@ public sealed class Device : IDisposable
         private static readonly DeviceCreationFlags Flags = DeviceCreationFlags.None;
 #endif
 
-    public Device(IntPtr windowHandle, Format format, int width, int height, string name)
+    public Device(IntPtr windowHandle, Format format, int width, int height)
     {
         this.WindowHandle = windowHandle;
         this.Format = format;
@@ -36,7 +36,6 @@ public sealed class Device : IDisposable
         _ = D3D11CreateDevice(null, DriverType.Hardware, Flags, null, out var device, out var context);
 #nullable restore
         this.ID3D11Device = device;
-        this.ID3D11Device.SetName(name);
 #if DEBUG
         this.ID3D11Debug = device.QueryInterface<ID3D11Debug>();
 #endif

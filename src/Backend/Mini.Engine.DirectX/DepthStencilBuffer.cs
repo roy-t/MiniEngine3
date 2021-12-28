@@ -32,17 +32,10 @@ public sealed class DepthStencilBuffer : IDisposable
             OptionFlags = ResourceOptionFlags.None
         };
 
-        var view = new DepthStencilViewDescription
-        {
-            Format = format,
-            ViewDimension = DepthStencilViewDimension.Texture2D,
-            Texture2D = new Texture2DDepthStencilView() { MipSlice = 0 }
-        };
-
         this.Texture = device.ID3D11Device.CreateTexture2D(description);
         this.Texture.DebugName = nameof(DepthStencilBuffer);
 
-        this.DepthStencilView = device.ID3D11Device.CreateDepthStencilView(this.Texture, view);
+        this.DepthStencilView = device.ID3D11Device.CreateDepthStencilView(this.Texture);
     }
 
     internal ID3D11Texture2D Texture { get; }

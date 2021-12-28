@@ -166,7 +166,7 @@ internal sealed class ImGuiRenderer
         context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
 
         context.OM.SetRenderTargetToBackBuffer();
-        context.OM.SetBlendState(this.Device.BlendStates.AlphaBlend);
+        context.OM.SetBlendState(this.Device.BlendStates.NonPreMultiplied);
         context.OM.SetDepthStencilState(this.Device.DepthStencilStates.None);
     }
 

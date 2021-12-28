@@ -41,7 +41,7 @@ public sealed class GameBootstrapper : IDisposable
 
         this.LoadRenderDoc();
 
-        this.Device = new Device(this.Window.Handle, Format.R8G8B8A8_UNorm, this.Window.Width, this.Window.Height, "Device");
+        this.Device = new Device(this.Window.Handle, Format.R8G8B8A8_UNorm, this.Window.Width, this.Window.Height);
         this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
 
         this.InputService = new InputService(this.Window);

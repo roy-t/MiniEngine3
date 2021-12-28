@@ -26,10 +26,12 @@ public sealed class BlendStates : IDisposable
 {
     internal BlendStates(ID3D11Device device)
     {
-        this.AlphaBlend = Create(device, AlphaBlendDescription(), nameof(this.AlphaBlend));
-        this.Opaque = Create(device, OpaqueBlendDescription(), nameof(this.Opaque));
+        this.NonPreMultiplied = Create(device, BlendDescription.NonPremultiplied, nameof(this.NonPreMultiplied));
+        this.AlphaBlend = Create(device, BlendDescription.AlphaBlend, nameof(this.AlphaBlend));
+        this.Opaque = Create(device, BlendDescription.Opaque, nameof(this.Opaque));
     }
 
+    public BlendState NonPreMultiplied { get; }
     public BlendState AlphaBlend { get; }
     public BlendState Opaque { get; }
 
@@ -39,46 +41,9 @@ public sealed class BlendStates : IDisposable
         return new BlendState(state, name);
     }
 
-    private static BlendDescription AlphaBlendDescription()
-    {
-        var blendDesc = new BlendDescription
-        {
-            AlphaToCoverageEnable = false
-        };
-
-        blendDesc.RenderTarget[0] = new RenderTargetBlendDescription
-        {
-            IsBlendEnabled = true,
-            SourceBlend = Blend.SourceAlpha,
-            DestinationBlend = Blend.InverseSourceAlpha,
-            BlendOperation = BlendOperation.Add,
-            SourceBlendAlpha = Blend.InverseSourceAlpha,
-            DestinationBlendAlpha = Blend.Zero,
-            BlendOperationAlpha = BlendOperation.Add,
-            RenderTargetWriteMask = ColorWriteEnable.All
-        };
-
-        return blendDesc;
-    }
-
-    private static BlendDescription OpaqueBlendDescription()
-    {
-        var blendDesc = new BlendDescription
-        {
-            AlphaToCoverageEnable = false
-        };
-
-        blendDesc.RenderTarget[0] = new RenderTargetBlendDescription
-        {
-            IsBlendEnabled = false,
-            RenderTargetWriteMask = ColorWriteEnable.All
-        };
-
-        return blendDesc;
-    }
-
     public void Dispose()
     {
+        this.NonPreMultiplied.Dispose();
         this.AlphaBlend.Dispose();
         this.Opaque.Dispose();
     }

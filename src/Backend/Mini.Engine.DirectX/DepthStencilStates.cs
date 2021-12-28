@@ -44,5 +44,7 @@ public sealed class DepthStencilStates : IDisposable
     public void Dispose()
     {
         this.None.Dispose();
+        this.Default.Dispose();
+        this.ReadOnly.Dispose();
     }
 }

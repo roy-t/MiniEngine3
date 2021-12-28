@@ -148,7 +148,7 @@ public abstract class DeviceContext : IDisposable
     {
         this.Device = device;
         this.ID3D11DeviceContext = context;
-        this.ID3D11DeviceContext.SetName(name);
+        this.ID3D11DeviceContext.DebugName = name;
 
         this.IA = new InputAssemblerContext(this);
         this.VS = new VertexShaderContext(this);

@@ -24,7 +24,7 @@ public abstract class DeviceBuffer<T> : IDisposable
 
     public int Capacity { get; private set; }
 
-    public ID3D11Buffer Buffer { get; private set; } = null!;
+    internal ID3D11Buffer Buffer { get; private set; } = null!;
 
     public string Name { get; }
 
