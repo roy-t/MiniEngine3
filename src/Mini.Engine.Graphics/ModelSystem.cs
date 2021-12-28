@@ -45,7 +45,7 @@ public partial class ModelSystem : ISystem
 
         this.Context.RS.SetViewPort(0, 0, width, height);
         this.Context.RS.SetScissorRect(0, 0, width, height);
-        this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullBack);
+        this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
 
         this.Context.PS.SetShader(this.PixelShader);
         this.Context.PS.SetSampler(FlatShader.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);

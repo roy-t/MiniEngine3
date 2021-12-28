@@ -17,7 +17,7 @@ public class Texture2D : IDisposable
             levels = (int)(1 + Math.Floor(Math.Log2(Math.Max(width, height))));
             options = ResourceOptionFlags.GenerateMips;
         }
-
+        
         var description = new Texture2DDescription
         {
             Width = width,
@@ -31,14 +31,6 @@ public class Texture2D : IDisposable
             CpuAccessFlags = CpuAccessFlags.None,
             OptionFlags = options
         };
-
-        // TODO: we can remove the view parameter as by default the Shader Resource View can access everything we say here
-        //var view = new ShaderResourceViewDescription
-        //{
-        //    Format = format,
-        //    ViewDimension = ShaderResourceViewDimension.Texture2D,
-        //    Texture2D = new Texture2DShaderResourceView { MipLevels = -1 }
-        //};
 
         this.Texture = device.ID3D11Device.CreateTexture2D(description);
         this.Texture.DebugName = name;

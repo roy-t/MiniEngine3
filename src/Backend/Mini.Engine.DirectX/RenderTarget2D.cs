@@ -5,8 +5,8 @@ namespace Mini.Engine.DirectX;
 
 public sealed class RenderTarget2D : Texture2D
 {
-    public RenderTarget2D(Device device, int width, int height, Format format, bool generateMipMaps, string name)
-        : base(device, width, height, format, generateMipMaps, name)
+    public RenderTarget2D(Device device, int width, int height, Format format, string name)
+        : base(device, width, height, format, false, name)
     {
         this.ID3D11RenderTargetView = device.ID3D11Device.CreateRenderTargetView(this.Texture);
         this.ID3D11RenderTargetView.DebugName = $"{name}_RenderTargetView";

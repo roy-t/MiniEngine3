@@ -7,7 +7,7 @@ public sealed class GBuffer
 {
     public GBuffer(Device device, DepthStencilFormat depthStencilFormat)
     {
-        this.Albedo = new RenderTarget2D(device, device.Width, device.Height, Format.B8G8R8A8_UNorm_SRgb, false, "GBuffer_Albedo");
+        this.Albedo = new RenderTarget2D(device, device.Width, device.Height, Format.B8G8R8A8_UNorm_SRgb, "GBuffer_Albedo");
         this.DepthStencilBuffer = new DepthStencilBuffer(device, depthStencilFormat, device.Width, device.Height);
 
         this.Width = device.Width;

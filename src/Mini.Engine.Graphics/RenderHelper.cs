@@ -48,7 +48,7 @@ public class RenderHelper
 
         context.RS.SetViewPort(0, 0, width, height);
         context.RS.SetScissorRect(0, 0, width, height);
-        context.RS.SetRasterizerState(this.Device.RasterizerStates.CullBack);
+        context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
 
         context.PS.SetShader(this.PixelShader);
         context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
