@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Mini.Engine.ECS.Components;
 
 public sealed class SortedComponentList<T> : IEnumerable<T>
-    where T : AComponent
+    where T : Component
 {
     private const int DefaultCapacity = 4;
     private const int GrowthFactor = 2;

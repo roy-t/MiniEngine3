@@ -1,7 +1,8 @@
 ﻿using System;
+using Mini.Engine.DirectX.Contexts;
 using Vortice.Direct3D11;
 
-namespace Mini.Engine.DirectX;
+namespace Mini.Engine.DirectX.Buffers;
 
 public abstract class DeviceBuffer<T> : IDisposable
     where T : unmanaged

@@ -1,6 +1,6 @@
 ﻿using Vortice.Direct3D11;
 
-namespace Mini.Engine.DirectX;
+namespace Mini.Engine.DirectX.Buffers;
 
 public sealed class ConstantBuffer<T> : DeviceBuffer<T>
     where T : unmanaged

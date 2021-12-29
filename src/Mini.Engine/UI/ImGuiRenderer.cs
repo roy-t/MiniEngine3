@@ -6,6 +6,8 @@ using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.ImmediateShader;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Buffers;
+using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;

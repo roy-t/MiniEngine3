@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using Mini.Engine.DirectX.Buffers;
+using Mini.Engine.DirectX.Contexts;
+using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;

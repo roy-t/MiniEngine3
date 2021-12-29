@@ -1,5 +1,6 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Buffers;
 
 namespace Mini.Engine.Graphics;
 
@@ -8,8 +9,7 @@ public class FrameService
 {
     public FrameService(Device device)
     {
-        // TODO: try a 32 bit floating point depth buffer
-        this.GBuffer = new GBuffer(device, DepthStencilFormat.D24_UNorm_S8_UInt);
+        this.GBuffer = new GBuffer(device, DepthStencilFormat.D32_Float);
         this.Camera = new PerspectiveCamera(this.GBuffer.AspectRatio, Transform.Identity);
     }
 

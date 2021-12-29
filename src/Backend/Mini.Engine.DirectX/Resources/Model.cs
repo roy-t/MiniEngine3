@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Mini.Engine.DirectX.Buffers;
 
 namespace Mini.Engine.DirectX.Resources;
 
@@ -20,7 +20,7 @@ public sealed class Model : IModel
 
     public VertexBuffer<ModelVertex> Vertices { get; }
     public IndexBuffer<int> Indices { get; }
-    public Primitive[] Primitives { get;  }
+    public Primitive[] Primitives { get; }
     public IMaterial[] Materials { get; }
 
     public void Dispose()

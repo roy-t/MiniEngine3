@@ -23,7 +23,7 @@ public sealed class ContainerStore
     }
 
     public IComponentContainer<T> GetContainer<T>()
-        where T : AComponent
+        where T : Component
     {
         var key = typeof(T);
         return (IComponentContainer<T>)this.ContainersByType[key];

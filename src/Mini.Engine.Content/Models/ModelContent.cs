@@ -1,6 +1,6 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
 
 namespace Mini.Engine.Content.Models;

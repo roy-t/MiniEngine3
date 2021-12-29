@@ -1,7 +1,7 @@
 ﻿using System;
 using Vortice.Direct3D11;
 
-namespace Mini.Engine.DirectX;
+namespace Mini.Engine.DirectX.Contexts.States;
 
 public sealed class RasterizerState : IDisposable
 {

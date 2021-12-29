@@ -4,7 +4,7 @@ using Mini.Engine.ECS;
 
 namespace Mini.Engine.Graphics;
 
-public sealed class ModelComponent : AComponent, IDisposable
+public sealed class ModelComponent : Component, IDisposable
 {
     public ModelComponent(Entity entity, IModel model)
         : base(entity)

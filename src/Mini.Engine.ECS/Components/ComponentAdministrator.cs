@@ -14,23 +14,23 @@ public sealed class ComponentAdministrator
     }
 
     public void Add<T>(T component)
-        where T : AComponent
+        where T : Component
     {
         this.ContainerStore.GetContainer<T>().Add(component);
     }
 
     public void Add<T, U>(T componentA, U componentB)
-        where T : AComponent
-        where U : AComponent
+        where T : Component
+        where U : Component
     {
         this.ContainerStore.GetContainer<T>().Add(componentA);
         this.ContainerStore.GetContainer<U>().Add(componentB);
     }
 
     public void Add<T, U, V>(T componentA, U componentB, V componentC)
-        where T : AComponent
-        where U : AComponent
-        where V : AComponent
+        where T : Component
+        where U : Component
+        where V : Component
     {
         this.ContainerStore.GetContainer<T>().Add(componentA);
         this.ContainerStore.GetContainer<U>().Add(componentB);
@@ -38,10 +38,10 @@ public sealed class ComponentAdministrator
     }
 
     public void Add<T, U, V, W>(T componentA, U componentB, V componentC, W componentD)
-        where T : AComponent
-        where U : AComponent
-        where V : AComponent
-        where W : AComponent
+        where T : Component
+        where U : Component
+        where V : Component
+        where W : Component
     {
         this.ContainerStore.GetContainer<T>().Add(componentA);
         this.ContainerStore.GetContainer<U>().Add(componentB);
@@ -50,7 +50,7 @@ public sealed class ComponentAdministrator
     }
 
     public T GetComponent<T>(Entity entity)
-        where T : AComponent
+        where T : Component
     {
         var store = this.ContainerStore.GetContainer<T>();
         var component = store[entity];
@@ -58,9 +58,9 @@ public sealed class ComponentAdministrator
         return component;
     }
 
-    public IReadOnlyList<AComponent> GetComponents(Entity entity)
+    public IReadOnlyList<Component> GetComponents(Entity entity)
     {
-        var components = new List<AComponent>();
+        var components = new List<Component>();
 
         var containers = this.ContainerStore.GetAllContainers();
         for (var i = 0; i < containers.Count; i++)
@@ -76,7 +76,7 @@ public sealed class ComponentAdministrator
     }
 
     public IReadOnlyList<T> GetComponents<T>()
-        where T : AComponent
+        where T : Component
     {
         var components = new List<T>();
 

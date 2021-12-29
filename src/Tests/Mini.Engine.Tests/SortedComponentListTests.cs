@@ -7,7 +7,7 @@ namespace Mini.Engine.Tests;
 
 public class SortedComponentListTests
 {
-    private sealed class Component : AComponent
+    private sealed class Component : ECS.Component
     {
         public Component(int id) : base(new Entity(id)) { }
     }

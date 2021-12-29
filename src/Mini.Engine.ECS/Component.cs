@@ -4,9 +4,9 @@ using Mini.Engine.ECS.Components;
 namespace Mini.Engine.ECS;
 
 [Component]
-public abstract class AComponent
+public abstract class Component
 {
-    protected AComponent(Entity entity)
+    protected Component(Entity entity)
     {
         this.Entity = entity;
         this.ChangeState = ComponentChangeState.NewComponent();

@@ -7,14 +7,14 @@ public interface IComponentContainer
 {
     Type ComponentType { get; }
     int Count { get; }
-    AComponent Get(Entity entity);
+    Component Get(Entity entity);
     bool Contains(Entity entity);
     void Flush();
     void MarkForRemoval(Entity entity);
 }
 
 public interface IComponentContainer<T> : IComponentContainer
-    where T : AComponent
+    where T : Component
 {
     void Add(T component);
     T this[Entity entity] { get; }
@@ -26,7 +26,7 @@ public interface IComponentContainer<T> : IComponentContainer
 }
 
 public sealed class ComponentContainer<T> : IComponentContainer<T>
-    where T : AComponent
+    where T : Component
 {
     private readonly SortedComponentList<T> Items;
 
@@ -40,7 +40,7 @@ public sealed class ComponentContainer<T> : IComponentContainer<T>
         this.Items.Add(component);
     }
 
-    public AComponent Get(Entity entity)
+    public Component Get(Entity entity)
     {
         return this.Items[entity];
     }

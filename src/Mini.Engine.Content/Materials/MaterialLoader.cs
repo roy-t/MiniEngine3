@@ -34,6 +34,7 @@ internal sealed class MaterialLoader : IContentLoader<MaterialContent>
         return content;
     }
 
-    // Material is a composition of resources, so it doesn't need to unload anything itself
+    // The texture loader makes sure to dispose of any textures, there are no other
+    // disposable resource types in a material that we need to take care of manually
     public void Unload(MaterialContent content) { }
 }

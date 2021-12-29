@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Buffers;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 

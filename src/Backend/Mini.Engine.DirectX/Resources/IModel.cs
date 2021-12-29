@@ -1,4 +1,5 @@
 ﻿using System;
+using Mini.Engine.DirectX.Buffers;
 
 namespace Mini.Engine.DirectX.Resources;
 
