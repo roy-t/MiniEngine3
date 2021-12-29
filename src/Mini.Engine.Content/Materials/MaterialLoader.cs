@@ -3,6 +3,7 @@ using System.IO;
 using Mini.Engine.Content.Materials.Wavefront;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Materials;
@@ -10,12 +11,12 @@ namespace Mini.Engine.Content.Materials;
 internal sealed class MaterialLoader : IContentLoader<MaterialContent>
 {
     private readonly IContentDataLoader<MaterialData> WavefrontMaterialDataLoader;
-    private readonly IVirtualFileSystem FileSystem;
+    private readonly ContentManager Content;
 
-    public MaterialLoader(IVirtualFileSystem fileSystem, IContentLoader<Texture2DContent> textureLoader)
+    public MaterialLoader(ContentManager content, IVirtualFileSystem fileSystem, IContentLoader<Texture2DContent> textureLoader)
     {
         this.WavefrontMaterialDataLoader = new WavefrontMaterialDataLoader(fileSystem, textureLoader);
-        this.FileSystem = fileSystem;
+        this.Content = content;
         this.TextureLoader = textureLoader;
     }
 
@@ -30,19 +31,30 @@ internal sealed class MaterialLoader : IContentLoader<MaterialContent>
             _ => throw new NotSupportedException($"Could not load {id}. Unsupported material file extension: {extension}"),
         };
 
+        var content = new MaterialContent(id, device, loader);
+        this.Content.Add(content);
 
-        var data = loader.Load(device, id);
-
-        this.FileSystem.WatchFile(id.Path);
-        return new MaterialContent(id, loader, data);
+        return content;
     }
 
     public void Unload(MaterialContent content)
     {
-        this.TextureLoader.Unload((Texture2DContent)content.Albedo);
-        this.TextureLoader.Unload((Texture2DContent)content.Metalicness);
-        this.TextureLoader.Unload((Texture2DContent)content.Normal);
-        this.TextureLoader.Unload((Texture2DContent)content.Roughness);
-        this.TextureLoader.Unload((Texture2DContent)content.AmbientOcclusion);
+        this.Unload(content.Albedo);
+        this.Unload(content.Metalicness);
+        this.Unload(content.Normal);
+        this.Unload(content.Roughness);
+        this.Unload(content.AmbientOcclusion);
+    }
+
+    private void Unload(ITexture2D texture)
+    {
+        if (texture is Texture2DContent content)
+        {
+            this.TextureLoader.Unload(content);
+        }
+        else
+        {
+            texture.Dispose();
+        }
     }
 }

@@ -70,6 +70,7 @@ namespace Mini.Engine.Content.Generators
                         {
                             return SourceFile.Build($"{shader.Name}{function.Name}.cs")
                                 .Using("Mini.Engine.DirectX")
+                                .Using("Mini.Engine.DirectX.Resources")
                                 .Using("Mini.Engine.IO")
                                 .Using("System.Runtime.InteropServices")
                                 .Namespace("Mini.Engine.Content.Shaders")

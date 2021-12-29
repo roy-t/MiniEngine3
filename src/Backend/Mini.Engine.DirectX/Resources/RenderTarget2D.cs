@@ -1,7 +1,8 @@
-﻿using Vortice.Direct3D11;
+﻿using Mini.Engine.DirectX.Resources;
+using Vortice.Direct3D11;
 using Vortice.DXGI;
 
-namespace Mini.Engine.DirectX;
+namespace Mini.Engine.DirectX.Resources;
 
 public sealed class RenderTarget2D : Texture2D
 {

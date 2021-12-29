@@ -3,7 +3,7 @@ using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
-namespace Mini.Engine.DirectX;
+namespace Mini.Engine.DirectX.Resources;
 
 public class Texture2D : ITexture2D
 {

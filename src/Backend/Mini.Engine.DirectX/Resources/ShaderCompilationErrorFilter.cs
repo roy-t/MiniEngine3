@@ -2,7 +2,7 @@
 using System.Text;
 using Vortice.Direct3D;
 
-namespace Mini.Engine.DirectX;
+namespace Mini.Engine.DirectX.Resources;
 
 public static class ShaderCompilationErrorFilter
 {

@@ -1,4 +1,5 @@
 ﻿using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources;
 
 namespace Mini.Engine.Content.Models;
 

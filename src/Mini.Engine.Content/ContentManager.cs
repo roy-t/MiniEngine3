@@ -7,6 +7,7 @@ using Mini.Engine.Content.Models;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
 using Serilog;
 
@@ -34,7 +35,7 @@ public sealed partial class ContentManager : IDisposable
         this.FileSystem = fileSystem;
 
         this.TextureLoader = new ContentCache<Texture2DContent>(new TextureLoader(this, fileSystem));
-        this.MaterialLoader = new ContentCache<MaterialContent>(new MaterialLoader(fileSystem, this.TextureLoader));
+        this.MaterialLoader = new ContentCache<MaterialContent>(new MaterialLoader(this, fileSystem, this.TextureLoader));
         this.ModelLoader = new ContentCache<ModelContent>(new ModelLoader(fileSystem, this.MaterialLoader));
     }
 

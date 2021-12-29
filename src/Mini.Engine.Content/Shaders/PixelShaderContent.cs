@@ -1,4 +1,5 @@
 ﻿using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;

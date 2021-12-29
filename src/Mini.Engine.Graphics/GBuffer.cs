@@ -1,4 +1,5 @@
 ﻿using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources;
 using Vortice.DXGI;
 
 namespace Mini.Engine.Graphics;

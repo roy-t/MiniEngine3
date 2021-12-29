@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D11;
@@ -13,7 +12,7 @@ internal sealed record TextureData(ContentId Id, int Width, int Height, int Pitc
 internal sealed class Texture2DContent : ITexture2D, IContent
 {
     private readonly IContentDataLoader<TextureData> Loader;
-    private Texture2D Texture;
+    private Texture2D texture;
 
     public Texture2DContent(ContentId id, Device device, IContentDataLoader<TextureData> loader)
     {
@@ -25,20 +24,20 @@ internal sealed class Texture2DContent : ITexture2D, IContent
 
     public ContentId Id { get; }
 
-    ID3D11ShaderResourceView ITexture2D.ShaderResourceView => this.Texture.ShaderResourceView;
-    ID3D11Texture2D ITexture2D.Texture => this.Texture.Texture;
+    ID3D11ShaderResourceView ITexture2D.ShaderResourceView => this.texture.ShaderResourceView;
+    ID3D11Texture2D ITexture2D.Texture => this.texture.Texture;
 
-    [MemberNotNull(nameof(Texture))]
+    [MemberNotNull(nameof(texture))]
     public void Reload(Device device)
     {
-        this.Texture?.Dispose();
+        this.texture?.Dispose();
 
         var data = this.Loader.Load(device, this.Id);
-        this.Texture = new Texture2D(device, data.Data, data.Width, data.Height, data.Format, true, data.Id.ToString());
+        this.texture = new Texture2D(device, data.Data, data.Width, data.Height, data.Format, true, data.Id.ToString());
     }
 
     public void Dispose()
     {
-        this.Texture.Dispose();
+        this.texture.Dispose();
     }
 }
