@@ -1,9 +1,10 @@
 ﻿using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources;
 
 namespace Mini.Engine.Content.Materials;
 
-internal record class MaterialData(ContentId Id, Texture2DContent Albedo, Texture2DContent Metalicness, Texture2DContent Normal, Texture2DContent Roughness, Texture2DContent AmbientOcclusion)
+internal record class MaterialData(ContentId Id, ITexture2D Albedo, ITexture2D Metalicness, ITexture2D Normal, ITexture2D Roughness, ITexture2D AmbientOcclusion)
     : IContentData;
 
 internal sealed class MaterialContent : Material, IContent

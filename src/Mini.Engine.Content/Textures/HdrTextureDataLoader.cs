@@ -6,7 +6,7 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.Content.Textures;
 
-public sealed class HdrTextureDataLoader : IContentDataLoader<TextureData>
+internal sealed class HdrTextureDataLoader : IContentDataLoader<TextureData>
 {
     private const Format HdrFormat = Format.R32G32B32A32_Float;
     private static readonly int FormatSizeInBytes = HdrFormat.SizeOfInBytes();

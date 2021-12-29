@@ -6,6 +6,7 @@ using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.ImmediateShader;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
@@ -17,7 +18,7 @@ internal sealed class ImGuiRenderer
 {
     private int textureCounter;
 
-    private readonly Dictionary<IntPtr, Texture2D> TextureResources;
+    private readonly Dictionary<IntPtr, ITexture2D> TextureResources;
 
     // Borrowed resources
     private readonly Device Device;
@@ -27,7 +28,7 @@ internal sealed class ImGuiRenderer
     private readonly DeferredDeviceContext DeferredContext;
     private readonly ImmediateShaderVs VertexShader;
     private readonly ImmediateShaderPs PixelShader;
-    private readonly Texture2D FontTexture;
+    private readonly ITexture2D FontTexture;
     private readonly InputLayout InputLayout;
     private readonly VertexBuffer<ImDrawVert> VertexBuffer;
     private readonly IndexBuffer<ImDrawIdx> IndexBuffer;
@@ -54,7 +55,7 @@ internal sealed class ImGuiRenderer
             new InputElementDescription("COLOR", 0, Format.R8G8B8A8_UNorm, 16, 0, InputClassification.PerVertexData, 0)
         );
 
-        this.TextureResources = new Dictionary<IntPtr, Texture2D>();
+        this.TextureResources = new Dictionary<IntPtr, ITexture2D>();
         this.FontTexture = CreateFontsTexture(device);
 
         var io = ImGui.GetIO();
@@ -170,7 +171,7 @@ internal sealed class ImGuiRenderer
         context.OM.SetDepthStencilState(this.Device.DepthStencilStates.None);
     }
 
-    private IntPtr RegisterTexture(Texture2D texture)
+    private IntPtr RegisterTexture(ITexture2D texture)
     {
         var id = (IntPtr)this.textureCounter++;
         this.TextureResources.Add(id, texture);
@@ -178,7 +179,7 @@ internal sealed class ImGuiRenderer
         return id;
     }
 
-    private static Texture2D CreateFontsTexture(Device device)
+    private static ITexture2D CreateFontsTexture(Device device)
     {
         var io = ImGui.GetIO();
         unsafe

@@ -1,48 +1,44 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources;
+using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.Content.Textures;
 
-public sealed record TextureData(ContentId Id, int Width, int Height, int Pitch, Format Format, byte[] Data)
+internal sealed record TextureData(ContentId Id, int Width, int Height, int Pitch, Format Format, byte[] Data)
     : IContentData;
 
-internal sealed class Texture2DContent : Texture2D, IContent
+internal sealed class Texture2DContent : ITexture2D, IContent
 {
     private readonly IContentDataLoader<TextureData> Loader;
+    private Texture2D Texture;
 
-    public Texture2DContent(ContentId id, Device device, IContentDataLoader<TextureData> loader, TextureData data)
-        : base(device, data.Width, data.Height, data.Format, true, id.ToString())
+    public Texture2DContent(ContentId id, Device device, IContentDataLoader<TextureData> loader)
     {
-        this.Loader = loader;
         this.Id = id;
+        this.Loader = loader;
 
-        this.Width = data.Width;
-        this.Height = data.Height;
-        this.Format = data.Format;
-
-        this.Upload(device, data.Pitch, data.Data);
+        this.Reload(device);
     }
 
     public ContentId Id { get; }
-    public int Width { get; }
-    public int Height { get; }
-    public Format Format { get; }
 
+    ID3D11ShaderResourceView ITexture2D.ShaderResourceView => this.Texture.ShaderResourceView;
+    ID3D11Texture2D ITexture2D.Texture => this.Texture.Texture;
+
+    [MemberNotNull(nameof(Texture))]
     public void Reload(Device device)
     {
-        var data = this.Loader.Load(device, this.Id);
-        if (data.Width != this.Width || data.Height != this.Height || data.Format != this.Format)
-        {
-            throw new NotSupportedException($"Cannot reload {this.Id}, dimensions or format have changed");
-        }
+        this.Texture?.Dispose();
 
-        this.Upload(device, data.Pitch, data.Data);
+        var data = this.Loader.Load(device, this.Id);
+        this.Texture = new Texture2D(device, data.Data, data.Width, data.Height, data.Format, true, data.Id.ToString());
     }
 
-    private void Upload(Device device, int pitch, byte[] data)
-    {        
-        device.ID3D11DeviceContext.UpdateSubresource(data, this.Texture, 0, pitch, 0);
-        device.ID3D11DeviceContext.GenerateMips(this.ShaderResourceView);
+    public void Dispose()
+    {
+        this.Texture.Dispose();
     }
 }

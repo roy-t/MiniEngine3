@@ -1,4 +1,5 @@
 ﻿using System;
+using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 
@@ -89,7 +90,7 @@ public sealed class PixelShaderContext : DeviceContextPart
         this.ID3D11DeviceContext.PSSetShader(shader.ID3D11Shader);
     }
 
-    public void SetShaderResource(int slot, Texture2D texture)
+    public void SetShaderResource(int slot, ITexture2D texture)
     {
         this.ID3D11DeviceContext.PSSetShaderResource(slot, texture.ShaderResourceView);
     }

@@ -1,35 +1,26 @@
 ﻿using System;
-using Vortice.Direct3D;
+using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX;
 
-public class Texture2D : IDisposable
+public class Texture2D : ITexture2D
 {
     public Texture2D(Device device, int width, int height, Format format, bool generateMipMaps = false, string name = "")
     {
-        var levels = 0;
-        var options = ResourceOptionFlags.None;
-
-        if (generateMipMaps)
-        {
-            levels = (int)(1 + Math.Floor(Math.Log2(Math.Max(width, height))));
-            options = ResourceOptionFlags.GenerateMips;
-        }
-        
         var description = new Texture2DDescription
         {
             Width = width,
             Height = height,
-            MipLevels = levels,
+            MipLevels = generateMipMaps ? 0 : 1,
             ArraySize = 1,
             Format = format,
             SampleDescription = new SampleDescription(1, 0),
             Usage = ResourceUsage.Default,
             BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
             CpuAccessFlags = CpuAccessFlags.None,
-            OptionFlags = options
+            OptionFlags = generateMipMaps ? ResourceOptionFlags.GenerateMips : ResourceOptionFlags.None
         };
 
         this.Texture = device.ID3D11Device.CreateTexture2D(description);
@@ -58,6 +49,9 @@ public class Texture2D : IDisposable
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }
+
+    ID3D11ShaderResourceView ITexture2D.ShaderResourceView => this.ShaderResourceView;
+    ID3D11Texture2D ITexture2D.Texture => this.Texture;
 
     public virtual void Dispose()
     {

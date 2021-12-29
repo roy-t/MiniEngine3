@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -32,7 +33,7 @@ public sealed record Primitive(string Name, int MaterialIndex, int IndexOffset, 
 
 public class Material
 {
-    public Material(string name, Texture2D albedo, Texture2D metalicness, Texture2D normal, Texture2D roughness, Texture2D ambientOcclusion)
+    public Material(string name, ITexture2D albedo, ITexture2D metalicness, ITexture2D normal, ITexture2D roughness, ITexture2D ambientOcclusion)
     {
         this.Name = name;
         this.Albedo = albedo;
@@ -43,11 +44,11 @@ public class Material
     }
 
     public string Name { get; }
-    public Texture2D Albedo { get; protected set; }
-    public Texture2D Metalicness { get; protected set; }
-    public Texture2D Normal { get; protected set; }
-    public Texture2D Roughness { get; protected set; }
-    public Texture2D AmbientOcclusion { get; protected set; }
+    public ITexture2D Albedo { get; protected set; }
+    public ITexture2D Metalicness { get; protected set; }
+    public ITexture2D Normal { get; protected set; }
+    public ITexture2D Roughness { get; protected set; }
+    public ITexture2D AmbientOcclusion { get; protected set; }
 }
 
 public class Model : IDisposable

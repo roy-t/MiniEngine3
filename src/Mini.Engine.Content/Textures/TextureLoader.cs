@@ -27,11 +27,9 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
             ".jpg" or ".jpeg" or ".png" or ".bmp" or ".tga" or ".psd" or ".gif" => this.TextureDataLoader,
             _ => throw new NotSupportedException($"Could not load {id}. Unsupported image file type: {extension}"),
         };
-        var data = loader.Load(device, id);
 
         this.FileSystem.WatchFile(id.Path);
-
-        return new Texture2DContent(id, device, loader, data);
+        return new Texture2DContent(id, device, loader);
     }
 
     public void Unload(Texture2DContent texture)

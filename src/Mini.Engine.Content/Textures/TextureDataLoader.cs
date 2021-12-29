@@ -5,7 +5,7 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.Content.Textures;
 
-public class TextureDataLoader : IContentDataLoader<TextureData>
+internal sealed class TextureDataLoader : IContentDataLoader<TextureData>
 {
     private const Format ColorFormat = Format.R8G8B8A8_UNorm_SRgb;
     private static readonly int FormatSizeInBytes = ColorFormat.SizeOfInBytes();

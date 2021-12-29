@@ -2,6 +2,7 @@
 using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D;
 namespace Mini.Engine.Graphics;
 
@@ -24,19 +25,19 @@ public class RenderHelper
         this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
     }
 
-    public void RenderToViewPort(DeviceContext context, Texture2D texture)
+    public void RenderToViewPort(DeviceContext context, ITexture2D texture)
     {
         context.OM.SetRenderTargetToBackBuffer();
         this.Render(context, texture);
     }
 
-    public void RenderToRenderTarget(DeviceContext context, RenderTarget2D renderTarget, Texture2D texture)
+    public void RenderToRenderTarget(DeviceContext context, RenderTarget2D renderTarget, ITexture2D texture)
     {
         context.OM.SetRenderTarget(renderTarget);
         this.Render(context, texture);
     }
 
-    private void Render(DeviceContext context, Texture2D texture)
+    private void Render(DeviceContext context, ITexture2D texture)
     {
         var width = this.Device.Width;
         var height = this.Device.Height;
