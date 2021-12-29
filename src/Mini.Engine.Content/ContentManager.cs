@@ -33,25 +33,19 @@ public sealed partial class ContentManager : IDisposable
         this.Device = device;
         this.FileSystem = fileSystem;
 
-        this.TextureLoader = new ContentCache<Texture2DContent>(new TextureLoader(fileSystem));
+        this.TextureLoader = new ContentCache<Texture2DContent>(new TextureLoader(this, fileSystem));
         this.MaterialLoader = new ContentCache<MaterialContent>(new MaterialLoader(fileSystem, this.TextureLoader));
         this.ModelLoader = new ContentCache<ModelContent>(new ModelLoader(fileSystem, this.MaterialLoader));
     }
 
     public Model LoadSponza()
     {
-        var model = this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\sponza\sponza.obj"));
-        this.Add(model);
-
-        return model;
+        return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\sponza\sponza.obj"));
     }
 
     public Model LoadAsteroid()
     {
-        var model = this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\AsteroidField\Asteroid001.obj"));
-        this.Add(model);
-
-        return model;
+        return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\AsteroidField\Asteroid001.obj"));
     }
 
     public void Push()
@@ -72,6 +66,18 @@ public sealed partial class ContentManager : IDisposable
         }
     }
 
+    internal void Add(IContent content)
+    {
+        this.Track(content);
+        this.ContentStack.Peek().Add(content);
+    }
+
+    [Conditional("DEBUG")]
+    internal void Track(IContent content)
+    {
+        this.FileSystem.WatchFile(content.Id.Path);
+    }
+
     [Conditional("DEBUG")]
     public void ReloadChangedContent()
     {
@@ -86,11 +92,6 @@ public sealed partial class ContentManager : IDisposable
                 this.Logger.Error(ex, "Failed to reload {@file}", file);
             }
         }
-    }
-
-    private void Add(IContent content)
-    {
-        this.ContentStack.Peek().Add(content);
     }
 
     private void ReloadContentReferencingFile(string path)

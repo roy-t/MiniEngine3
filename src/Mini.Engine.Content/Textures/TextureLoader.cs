@@ -9,12 +9,15 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
 {
     private readonly TextureDataLoader TextureDataLoader;
     private readonly HdrTextureDataLoader HdrTextureDataLoader;
+
+    private readonly ContentManager Content;
     private readonly IVirtualFileSystem FileSystem;
 
-    public TextureLoader(IVirtualFileSystem fileSystem)
+    public TextureLoader(ContentManager content, IVirtualFileSystem fileSystem)
     {
         this.TextureDataLoader = new TextureDataLoader(fileSystem);
         this.HdrTextureDataLoader = new HdrTextureDataLoader(fileSystem);
+        this.Content = content;
         this.FileSystem = fileSystem;
     }
 
@@ -28,8 +31,9 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
             _ => throw new NotSupportedException($"Could not load {id}. Unsupported image file type: {extension}"),
         };
 
-        this.FileSystem.WatchFile(id.Path);
-        return new Texture2DContent(id, device, loader);
+        var content = new Texture2DContent(id, device, loader);
+        this.Content.Add(content);
+        return content;
     }
 
     public void Unload(Texture2DContent texture)
