@@ -73,7 +73,7 @@ public partial class ModelSystem : ISystem
 
         this.Context.VS.SetConstantBuffer(CBuffer0.Slot, this.ConstantBuffer);
 
-        for (var i = 0; i < component.Model.PrimitiveCount; i++)
+        for (var i = 0; i < component.Model.Primitives.Length; i++)
         {
             var primitive = component.Model.Primitives[i];
             var material = component.Model.Materials[primitive.MaterialIndex];

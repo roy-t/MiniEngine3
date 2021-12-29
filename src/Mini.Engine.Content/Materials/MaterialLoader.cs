@@ -17,10 +17,7 @@ internal sealed class MaterialLoader : IContentLoader<MaterialContent>
     {
         this.WavefrontMaterialDataLoader = new WavefrontMaterialDataLoader(fileSystem, textureLoader);
         this.Content = content;
-        this.TextureLoader = textureLoader;
     }
-
-    public IContentLoader<Texture2DContent> TextureLoader { get; }
 
     public MaterialContent Load(Device device, ContentId id)
     {
@@ -37,24 +34,6 @@ internal sealed class MaterialLoader : IContentLoader<MaterialContent>
         return content;
     }
 
-    public void Unload(MaterialContent content)
-    {
-        this.Unload(content.Albedo);
-        this.Unload(content.Metalicness);
-        this.Unload(content.Normal);
-        this.Unload(content.Roughness);
-        this.Unload(content.AmbientOcclusion);
-    }
-
-    private void Unload(ITexture2D texture)
-    {
-        if (texture is Texture2DContent content)
-        {
-            this.TextureLoader.Unload(content);
-        }
-        else
-        {
-            texture.Dispose();
-        }
-    }
+    // Material is a composition of resources, so it doesn't need to unload anything itself
+    public void Unload(MaterialContent content) { }
 }

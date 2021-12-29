@@ -2,7 +2,7 @@
 
 namespace Mini.Engine.DirectX.Resources;
 
-public interface IMaterial : IDisposable
+public interface IMaterial
 {
     public ITexture2D Albedo { get; }
     public ITexture2D Metalicness { get; }

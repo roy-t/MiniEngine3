@@ -12,7 +12,7 @@ internal sealed record TextureData(ContentId Id, int Width, int Height, int Pitc
 internal sealed class Texture2DContent : ITexture2D, IContent
 {
     private readonly IContentDataLoader<TextureData> Loader;
-    private Texture2D texture;
+    private ITexture2D texture;
 
     public Texture2DContent(ContentId id, Device device, IContentDataLoader<TextureData> loader)
     {

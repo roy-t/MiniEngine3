@@ -36,15 +36,15 @@ public sealed partial class ContentManager : IDisposable
 
         this.TextureLoader = new ContentCache<Texture2DContent>(new TextureLoader(this, fileSystem));
         this.MaterialLoader = new ContentCache<MaterialContent>(new MaterialLoader(this, fileSystem, this.TextureLoader));
-        this.ModelLoader = new ContentCache<ModelContent>(new ModelLoader(fileSystem, this.MaterialLoader));
+        this.ModelLoader = new ContentCache<ModelContent>(new ModelLoader(this, fileSystem, this.MaterialLoader));
     }
 
-    public Model LoadSponza()
+    public IModel LoadSponza()
     {
         return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\sponza\sponza.obj"));
     }
 
-    public Model LoadAsteroid()
+    public IModel LoadAsteroid()
     {
         return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\AsteroidField\Asteroid001.obj"));
     }

@@ -4,7 +4,7 @@ namespace Mini.Engine.DirectX.Resources;
 
 public sealed record Primitive(string Name, int MaterialIndex, int IndexOffset, int IndexCount);
 
-public class Model : IDisposable
+public sealed class Model : IModel
 {
     public Model(Device device, ModelVertex[] vertices, int[] indices, Primitive[] primitives, IMaterial[] materials, string name)
     {
@@ -14,27 +14,18 @@ public class Model : IDisposable
         this.Primitives = primitives;
         this.Materials = materials;
 
-        this.MapData(device.ImmediateContext, vertices, indices);
+        this.Vertices.MapData(device.ImmediateContext, vertices);
+        this.Indices.MapData(device.ImmediateContext, indices);
     }
 
-    public VertexBuffer<ModelVertex> Vertices { get; protected set; }
-    public IndexBuffer<int> Indices { get; protected set; }
-    public Primitive[] Primitives { get; protected set; }
-    public IMaterial[] Materials { get; protected set; }
+    public VertexBuffer<ModelVertex> Vertices { get; }
+    public IndexBuffer<int> Indices { get; }
+    public Primitive[] Primitives { get;  }
+    public IMaterial[] Materials { get; }
 
-    public int PrimitiveCount => this.Primitives.Length;
-
-    protected void MapData(DeviceContext context, ModelVertex[] vertices, int[] indices)
-    {
-        this.Vertices.MapData(context, vertices);
-        this.Indices.MapData(context, indices);
-    }
-
-    public virtual void Dispose()
+    public void Dispose()
     {
         this.Indices.Dispose();
         this.Vertices.Dispose();
-
-        GC.SuppressFinalize(this);
     }
 }

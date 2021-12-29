@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Textures;
@@ -36,11 +35,6 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
     }
 
     public void Unload(Texture2DContent texture)
-    {
-        texture.Dispose();
-    }
-
-    public void Unload(ITexture2D texture)
     {
         texture.Dispose();
     }

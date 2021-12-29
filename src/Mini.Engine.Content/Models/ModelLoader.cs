@@ -9,17 +9,13 @@ namespace Mini.Engine.Content.Models;
 
 internal sealed class ModelLoader : IContentLoader<ModelContent>
 {
-    private readonly WavefrontModelDataLoader WaveFrontDataLoader;
-    private readonly IVirtualFileSystem FileSystem;
-
-    public ModelLoader(IVirtualFileSystem fileSystem, IContentLoader<MaterialContent> materialLoader)
+    private readonly IContentDataLoader<ModelData> WaveFrontDataLoader;
+    private readonly ContentManager Content;
+    public ModelLoader(ContentManager content, IVirtualFileSystem fileSystem, IContentLoader<MaterialContent> materialLoader)
     {
         this.WaveFrontDataLoader = new WavefrontModelDataLoader(fileSystem, materialLoader);
-        this.FileSystem = fileSystem;
-        this.MaterialLoader = materialLoader;
+        this.Content = content;
     }
-
-    public IContentLoader<MaterialContent> MaterialLoader { get; }
 
     public ModelContent Load(Device device, ContentId id)
     {
@@ -30,21 +26,15 @@ internal sealed class ModelLoader : IContentLoader<ModelContent>
             _ => throw new NotSupportedException($"Could not load {id}. Unsupported model file type {extension}")
         };
 
-        var data = loader.Load(device, id);
 
-        this.FileSystem.WatchFile(id.Path);
+        var content = new ModelContent(id, device, loader);
+        this.Content.Add(content);
 
-        return new ModelContent(id, device, loader, data);
+        return content;
     }
 
     public void Unload(ModelContent content)
     {
-        for (var i = 0; i < content.Materials.Length; i++)
-        {
-            var material = (MaterialContent)content.Materials[i];
-            this.MaterialLoader.Unload(material);
-        }
-
         content.Dispose();
     }
 }
