@@ -1,7 +1,6 @@
-﻿using Mini.Engine.Configuration;
+﻿using System.Numerics;
+using Mini.Engine.Configuration;
 using Mini.Engine.Content;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.FlatShader;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
@@ -9,7 +8,8 @@ using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Vortice.Direct3D;
-
+using Mini.Engine.Content.Shaders;
+using Mini.Engine.Content.Shaders.FlatShader;
 
 namespace Mini.Engine.Graphics;
 
@@ -53,7 +53,8 @@ public partial class ModelSystem : ISystem
         this.Context.PS.SetShader(this.PixelShader);
         this.Context.PS.SetSampler(FlatShader.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);
 
-        this.Context.OM.SetRenderTarget(this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.DepthStencilBuffer);
+        //this.Context.OM.SetRenderTarget(this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.DepthStencilBuffer);
+        this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Depth, this.FrameService.GBuffer.Normal);
 
         this.Context.OM.SetBlendState(this.Device.BlendStates.Opaque);
         this.Context.OM.SetDepthStencilState(this.Device.DepthStencilStates.Default);
@@ -62,11 +63,12 @@ public partial class ModelSystem : ISystem
     [Process(Query = ProcessQuery.All)]
     public void DrawModel(ModelComponent component)
     {
+        var world = Matrix4x4.CreateScale(0.01f); // TODO: Should become transform component's world
         var cBuffer = new CBuffer0()
         {
-            WorldViewProjection = System.Numerics.Matrix4x4.CreateScale(0.01f) * this.FrameService.Camera.ViewProjection
-            // TODO: restore true view projection once models get a transform component!
-            //WorldViewProjection = this.FrameService.Camera.ViewProjection
+            WorldViewProjection = world * this.FrameService.Camera.ViewProjection,
+            World = world, 
+            CameraPosition = this.FrameService.Camera.Transform.Position
         };
         this.ConstantBuffer.MapData(this.Context, cBuffer);
 
@@ -81,6 +83,10 @@ public partial class ModelSystem : ISystem
             var material = component.Model.Materials[primitive.MaterialIndex];
 
             this.Context.PS.SetShaderResource(FlatShader.Albedo, material.Albedo);
+            this.Context.PS.SetShaderResource(FlatShader.Normal, material.Normal);
+            this.Context.PS.SetShaderResource(FlatShader.Metalicness, material.Metalicness);
+            this.Context.PS.SetShaderResource(FlatShader.Roughness, material.Roughness);
+            this.Context.PS.SetShaderResource(FlatShader.AmbientOcclusion, material.AmbientOcclusion);
             this.Context.DrawIndexed(primitive.IndexCount, primitive.IndexOffset, 0);
         }
     }

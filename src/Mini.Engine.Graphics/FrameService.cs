@@ -1,11 +1,12 @@
-﻿using Mini.Engine.Configuration;
+﻿using System;
+using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 
 namespace Mini.Engine.Graphics;
 
 [Service]
-public class FrameService
+public sealed class FrameService : IDisposable
 {
     public FrameService(Device device)
     {
@@ -21,4 +22,9 @@ public class FrameService
     public GBuffer GBuffer { get; }
 
     public PerspectiveCamera Camera;
+
+    public void Dispose()
+    {
+        this.GBuffer.Dispose();
+    }
 }
