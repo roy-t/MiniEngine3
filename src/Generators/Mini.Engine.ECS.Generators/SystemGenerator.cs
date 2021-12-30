@@ -88,7 +88,7 @@ namespace Mini.Engine.ECS.Generators
             {
                 var component = components[i];
                 block.Text.WriteLine($"if (!this.{component}Container.Contains(p0.Entity)) {{ continue; }}");
-                block.Text.WriteLine($"var p{i} = this.{component}Container.Get(p0.Entity);");
+                block.Text.WriteLine($"var p{i} = this.{component}Container[p0.Entity];");
             }
 
             var argumentList = string.Join(", ", Enumerable.Range(0, components.Count).Select(i => $"p{i}"));

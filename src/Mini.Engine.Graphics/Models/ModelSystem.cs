@@ -1,17 +1,17 @@
-﻿using System.Numerics;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content;
+using Mini.Engine.Content.Shaders;
+using Mini.Engine.Content.Shaders.FlatShader;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
+using Mini.Engine.Graphics.Transforms;
 using Vortice.Direct3D;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.FlatShader;
 
-namespace Mini.Engine.Graphics;
+namespace Mini.Engine.Graphics.Models;
 
 [Service]
 public partial class ModelSystem : ISystem
@@ -53,7 +53,6 @@ public partial class ModelSystem : ISystem
         this.Context.PS.SetShader(this.PixelShader);
         this.Context.PS.SetSampler(FlatShader.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);
 
-        //this.Context.OM.SetRenderTarget(this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.DepthStencilBuffer);
         this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Depth, this.FrameService.GBuffer.Normal);
 
         this.Context.OM.SetBlendState(this.Device.BlendStates.Opaque);
@@ -61,13 +60,13 @@ public partial class ModelSystem : ISystem
     }
 
     [Process(Query = ProcessQuery.All)]
-    public void DrawModel(ModelComponent component)
+    public void DrawModel(ModelComponent component, TransformComponent transform)
     {
-        var world = Matrix4x4.CreateScale(0.01f); // TODO: Should become transform component's world
+        var world = transform.AsMatrix();
         var cBuffer = new CBuffer0()
         {
             WorldViewProjection = world * this.FrameService.Camera.ViewProjection,
-            World = world, 
+            World = world,
             CameraPosition = this.FrameService.Camera.Transform.Position
         };
         this.ConstantBuffer.MapData(this.Context, cBuffer);

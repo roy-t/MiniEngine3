@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine.Graphics;
 
@@ -23,9 +24,10 @@ public sealed class PerspectiveCamera : ITransformable<PerspectiveCamera>
 
     public Transform Transform { get; }
 
-    public void OnTransform()
+    public PerspectiveCamera OnTransform()
     {
         this.ComputeMatrices();
+        return this;
     }
 
     private void ComputeMatrices()

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
 using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;

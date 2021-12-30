@@ -2,6 +2,7 @@
 using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Graphics;
+using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Windows;
 using Vortice.Win32;
 

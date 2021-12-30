@@ -2,7 +2,7 @@
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS;
 
-namespace Mini.Engine.Graphics;
+namespace Mini.Engine.Graphics.Models;
 
 public sealed class ModelComponent : Component, IDisposable
 {

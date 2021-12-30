@@ -7,6 +7,8 @@ using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Entities;
 using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
+using Mini.Engine.Graphics.Models;
+using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine;
 
@@ -20,7 +22,7 @@ internal sealed class GameLoop : IDisposable
     private readonly ContentManager Content;
     private readonly ParallelPipeline Pipeline;
 
-    public GameLoop(Device device, RenderHelper helper, FrameService frameService, CameraController cameraController, RenderPipelineBuilder builder, ContentManager content, EntityAdministrator entities, IComponentContainer<ModelComponent> models)
+    public GameLoop(Device device, RenderHelper helper, FrameService frameService, CameraController cameraController, RenderPipelineBuilder builder, ContentManager content, EntityAdministrator entities, IComponentContainer<ModelComponent> models, IComponentContainer<TransformComponent> transforms)
     {
         this.Device = device;
         this.Helper = helper;
@@ -32,6 +34,7 @@ internal sealed class GameLoop : IDisposable
         // TODO: move to scene
         var entity = entities.Create();
         models.Add(new ModelComponent(entity, content.LoadSponza()));
+        transforms.Add(new TransformComponent(entity).SetScale(0.01f));
         //models.Add(new ModelComponent(entity, content.LoadAsteroid()));
     }
 
