@@ -15,29 +15,29 @@ public sealed class PipelineBuilder
 
     private readonly ILogger Logger;
 
-    private readonly Resolve ResolveDelegate;
+    private readonly Services Services;
     private readonly ContainerStore ContainerStore;
 
-    public PipelineBuilder(Resolve resolveDelegate, ContainerStore containerStore, ILogger logger)
+    public PipelineBuilder(Services services, ContainerStore containerStore, ILogger logger)
     {
-        this.ResolveDelegate = resolveDelegate;
+        this.Services = services;
         this.ContainerStore = containerStore;
         this.Logger = logger.ForContext<PipelineBuilder>();
     }
 
-    public PipelineSpecifier Builder() => new(this.ResolveDelegate, this.ContainerStore, this.Logger);
+    public PipelineSpecifier Builder() => new(this.Services, this.ContainerStore, this.Logger);
 
     public class PipelineSpecifier
     {
-        private readonly Resolve ResolveDelegate;
+        private readonly Services Services;
         private readonly ContainerStore ContainerStore;
         private readonly ILogger Logger;
         private readonly List<SystemSpec> SystemSpecs;
 
-        public PipelineSpecifier(Resolve resolveDelegate, ContainerStore containerStore, ILogger logger)
+        public PipelineSpecifier(Services services, ContainerStore containerStore, ILogger logger)
         {
             this.SystemSpecs = new List<SystemSpec>();
-            this.ResolveDelegate = resolveDelegate;
+            this.Services = services;
             this.ContainerStore = containerStore;
             this.Logger = logger.ForContext<PipelineSpecifier>();
         }
@@ -63,7 +63,7 @@ public sealed class PipelineBuilder
                 for (var j = 0; j < stage.Count; j++)
                 {
                     var systemSpec = stage[j];
-                    var system = (ISystem)this.ResolveDelegate(systemSpec.SystemType);
+                    var system = this.Services.Resolve<ISystem>(systemSpec.SystemType);
                     systemBindings.Add(system.Bind(this.ContainerStore));
                 }
 

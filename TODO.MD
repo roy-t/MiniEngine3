@@ -2,9 +2,6 @@
 
 Content
 - Test hot reloading
-- Check if there's still a way to hide the DirectX Shader type
-
-Transform should not be a struct as its way too big
 
 Continue replacing things in Mini.Engine.Windows with this: https://github.com/microsoft/CsWin32
 

@@ -7,13 +7,6 @@ using LightInject;
 using Serilog;
 
 namespace Mini.Engine.Configuration;
-
-public delegate object Resolve(Type type);
-
-public delegate void Register(object instance);
-
-public delegate void RegisterAs(object instance, Type type);
-
 public sealed class Injector : IDisposable
 {
     private static readonly string[] IgnoredAssemblies = new[]
@@ -37,16 +30,9 @@ public sealed class Injector : IDisposable
 
         this.Container = new ServiceContainer();
 
-        // TODO: replace resolve and register(as) with a type so it can be done typesafe
-        Resolve resolveDelegate = type => this.Container.GetInstance(type);
-        Register registerDelegate = o => this.Container.RegisterInstance(o.GetType(), o);
-        RegisterAs registerAsDelgate = (o, t) => this.Container.RegisterInstance(t, o);
-
         _ = this.Container.SetDefaultLifetime<PerContainerLifetime>()
             .RegisterInstance(Log.Logger)
-            .RegisterInstance(resolveDelegate)
-            .RegisterInstance(registerDelegate)
-            .RegisterInstance(registerAsDelgate);
+            .RegisterInstance(new Services(this.Container));
 
         this.ComponentTypes = new List<Type>();
         this.RegisterTypesFromAssembliesInWorkingDirectory();
@@ -70,8 +56,8 @@ public sealed class Injector : IDisposable
         {
             _ = this.Container.RegisterAssembly(assembly, (serviceType, concreteType) =>
             {
-                    // Do not register services as an implementation of an abstract class or interface
-                    if (serviceType != concreteType)
+                // Do not register services as an implementation of an abstract class or interface
+                if (serviceType != concreteType)
                 {
                     return false;
                 }

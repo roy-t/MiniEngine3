@@ -19,7 +19,7 @@ public sealed class GameBootstrapper : IDisposable
 
     private readonly Win32Window Window;
     private readonly Device Device;
-    private readonly IVirtualFileSystem FileSystem;
+    private readonly DiskFileSystem FileSystem;
 
     private readonly DebugLayerLogger DebugLayerLogger;
     private readonly UserInterface UI;
@@ -31,7 +31,7 @@ public sealed class GameBootstrapper : IDisposable
     private readonly InputService InputService;
     private readonly Keyboard Keyboard;
 
-    public GameBootstrapper(ILogger logger, Register register, RegisterAs registerAs, Resolve resolve)
+    public GameBootstrapper(ILogger logger, Services services)
     {
         this.Logger = logger.ForContext<GameBootstrapper>();
 
@@ -47,14 +47,14 @@ public sealed class GameBootstrapper : IDisposable
         this.Keyboard = new Keyboard();
 
         // Handle ownership/lifetime control over to LightInject
-        register(this.Device);
-        register(this.InputService);
-        register(this.Window);
-        registerAs(this.FileSystem, typeof(IVirtualFileSystem));
+        services.Register(this.Device);
+        services.Register(this.InputService);
+        services.Register(this.Window);
+        services.RegisterAs<DiskFileSystem, IVirtualFileSystem>(this.FileSystem);
 
-        this.DebugLayerLogger = (DebugLayerLogger)resolve(typeof(DebugLayerLogger));
-        this.GameLoop = (GameLoop)resolve(typeof(GameLoop));
-        this.UI = (UserInterface)resolve(typeof(UserInterface));
+        this.DebugLayerLogger = services.Resolve<DebugLayerLogger>();
+        this.GameLoop = services.Resolve<GameLoop>();
+        this.UI = services.Resolve<UserInterface>();
     }
 
     public void Run()
