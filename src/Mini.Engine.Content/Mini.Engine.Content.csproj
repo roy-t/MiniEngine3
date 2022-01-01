@@ -27,6 +27,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.11.0-dev-01371" />
-    <PackageReference Include="StbImageSharp" Version="2.22.6" />
+    <PackageReference Include="StbImageSharp" Version="2.27.7" />
   </ItemGroup>
 </Project>
