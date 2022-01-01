@@ -171,7 +171,7 @@ public sealed class Device : IDisposable
             Stereo = false,
             SampleDescription = new SampleDescription(1, 0),
             SwapEffect = SwapEffect.FlipDiscard,
-            Usage = Usage.RenderTargetOutput,
+            BufferUsage = Usage.RenderTargetOutput,
             Flags = dxgiFactory.PresentAllowTearing ? SwapChainFlags.AllowTearing : SwapChainFlags.None
         };
     }

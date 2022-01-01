@@ -39,11 +39,12 @@ internal sealed class ShaderFileInclude : CallbackBase, Include
         return stream;
     }
 
-    protected override void Dispose(bool disposing)
+    protected override void DisposeCore(bool disposing)
     {
-        this.Disposables.ForEach(d => d.Dispose());
-        this.Disposables.Clear();
-
-        base.Dispose(disposing);
+        if (disposing)
+        {
+            this.Disposables.ForEach(d => d.Dispose());
+            this.Disposables.Clear();
+        }        
     }
 }
