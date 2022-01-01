@@ -1,7 +1,7 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.FlatShader;
+using Mini.Engine.Content.Shaders.GeometryShader;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
@@ -19,8 +19,8 @@ public partial class ModelSystem : ISystem
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
-    private readonly FlatShaderVs VertexShader;
-    private readonly FlatShaderPs PixelShader;
+    private readonly GeometryShaderVs VertexShader;
+    private readonly GeometryShaderPs PixelShader;
     private readonly InputLayout InputLayout;
     private readonly ConstantBuffer<CBuffer0> ConstantBuffer;
 
@@ -30,8 +30,8 @@ public partial class ModelSystem : ISystem
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<ModelSystem>();
         this.FrameService = frameService;
-        this.VertexShader = content.LoadFlatShaderVs();
-        this.PixelShader = content.LoadFlatShaderPs();
+        this.VertexShader = content.LoadGeometryShaderVs();
+        this.PixelShader = content.LoadGeometryShaderPs();
         this.InputLayout = this.VertexShader.CreateInputLayout(device, ModelVertex.Elements);
         this.ConstantBuffer = new ConstantBuffer<CBuffer0>(device, "constants_modelsystem");
     }
@@ -51,7 +51,7 @@ public partial class ModelSystem : ISystem
         this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
 
         this.Context.PS.SetShader(this.PixelShader);
-        this.Context.PS.SetSampler(FlatShader.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);
+        this.Context.PS.SetSampler(GeometryShader.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);
 
         this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Depth, this.FrameService.GBuffer.Normal);
 
@@ -81,11 +81,11 @@ public partial class ModelSystem : ISystem
             var primitive = component.Model.Primitives[i];
             var material = component.Model.Materials[primitive.MaterialIndex];
 
-            this.Context.PS.SetShaderResource(FlatShader.Albedo, material.Albedo);
-            this.Context.PS.SetShaderResource(FlatShader.Normal, material.Normal);
-            this.Context.PS.SetShaderResource(FlatShader.Metalicness, material.Metalicness);
-            this.Context.PS.SetShaderResource(FlatShader.Roughness, material.Roughness);
-            this.Context.PS.SetShaderResource(FlatShader.AmbientOcclusion, material.AmbientOcclusion);
+            this.Context.PS.SetShaderResource(GeometryShader.Albedo, material.Albedo);
+            this.Context.PS.SetShaderResource(GeometryShader.Normal, material.Normal);
+            this.Context.PS.SetShaderResource(GeometryShader.Metalicness, material.Metalicness);
+            this.Context.PS.SetShaderResource(GeometryShader.Roughness, material.Roughness);
+            this.Context.PS.SetShaderResource(GeometryShader.AmbientOcclusion, material.AmbientOcclusion);
             this.Context.DrawIndexed(primitive.IndexCount, primitive.IndexOffset, 0);
         }
     }

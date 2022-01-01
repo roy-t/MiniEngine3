@@ -26,6 +26,7 @@ internal abstract class TextureParser : MtlStatementParser
 // TODO: give up on mapping PBR materials to OBJ and invent our own keywords
 // See also: http://scylardor.fr/2021/05/21/coercing-assimp-into-reading-obj-pbr-materials/
 // See also: http://www.paulbourke.net/dataformats/mtl/
+// Or alternatively use this rarely used standard: https://en.wikipedia.org/wiki/Wavefront_.obj_file#Physically-based_Rendering
 
 internal class AlbedoParser : TextureParser
 {

@@ -20,6 +20,7 @@ namespace Mini.Engine.Content.Generators
 
         public void Execute(GeneratorExecutionContext context)
         {
+            //System.Diagnostics.Debugger.Launch();
             var contentFiles = new List<SourceFile>();
 
             var generatedFiles = context.AdditionalFiles

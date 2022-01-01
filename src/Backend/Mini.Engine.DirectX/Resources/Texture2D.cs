@@ -27,6 +27,7 @@ public class Texture2D : ITexture2D
         this.Texture.DebugName = name;
 
         this.ShaderResourceView = device.ID3D11Device.CreateShaderResourceView(this.Texture);
+        this.ShaderResourceView.DebugName = $"{name}_SRV";
     }
 
     public Texture2D(Device device, Span<byte> pixels, int width, int height, Format format, bool generateMipMaps = false, string name = "")

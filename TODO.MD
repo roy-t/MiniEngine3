@@ -9,7 +9,7 @@ Continue replacing things in Mini.Engine.Windows with this: https://github.com/m
 Particle renderer
 https://miketuritzin.com/post/rendering-particles-with-compute-shaders/
 
-Tips on handling raw memory using a shared pool `IMemoryOwner<char> owner = MemoryPool<char>.Shared.Rent();
+Tips on handling raw memory using a shared pool `IMemoryOwner<char> owner = MemoryPool<char>.Shared.Rent();`
 https://docs.microsoft.com/en-us/dotnet/standard/memory-and-spans/memory-t-usage-guidelines
 
 Rendering with command lists could speed things up IFF we adhere to all the ideas in that slideshow.

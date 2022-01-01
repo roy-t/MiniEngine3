@@ -1,6 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
     <None Remove=".contentroot" />
+    <None Remove="Assets\Shaders\GeometryShader.hlsl" />
+    <None Remove="Assets\Shaders\PBR\BRDF.hlsl" />
+    <None Remove="Assets\Shaders\PBR\BrdfLutGenerator.hlsl" />
     <None Remove="Shaders\FlatShader.hlsl" />
     <None Remove="Shaders\PostProcessShader.hlsl" />
   </ItemGroup> 
@@ -16,10 +19,11 @@
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
+    <AdditionalFiles Include="Assets\Shaders\GeometryShader.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\PBR\BRDF.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\PBR\BrdfLutGenerator.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\PostProcessShader.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\FlatShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\ImmediateShader.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\Include.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.11.0-dev-01371" />

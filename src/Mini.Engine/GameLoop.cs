@@ -21,7 +21,6 @@ internal sealed class GameLoop : IDisposable
     private readonly CameraController CameraController;
     private readonly ContentManager Content;
     private readonly ParallelPipeline Pipeline;
-
     public GameLoop(Device device, RenderHelper helper, FrameService frameService, CameraController cameraController, RenderPipelineBuilder builder, ContentManager content, EntityAdministrator entities, IComponentContainer<ModelComponent> models, IComponentContainer<TransformComponent> transforms)
     {
         this.Device = device;
@@ -35,7 +34,7 @@ internal sealed class GameLoop : IDisposable
         var entity = entities.Create();
         models.Add(new ModelComponent(entity, content.LoadSponza()));
         transforms.Add(new TransformComponent(entity).SetScale(0.01f));
-        //models.Add(new ModelComponent(entity, content.LoadAsteroid()));
+        //models.Add(new ModelComponent(entity, content.LoadAsteroid()));       
     }
 
     public void Update(float time, float elapsed)

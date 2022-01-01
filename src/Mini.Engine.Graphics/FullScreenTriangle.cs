@@ -23,8 +23,8 @@ public struct PostProcessVertex
 
     public static readonly InputElementDescription[] Elements = new InputElementDescription[]
     {
-            new InputElementDescription("POSITION", 0, Format.R32G32B32_Float,  sizeof(float) * 0, 0, InputClassification.PerVertexData, 0),
-            new InputElementDescription("TEXTURE", 0, Format.R32G32_Float,      sizeof(float) * 3, 0, InputClassification.PerVertexData, 0)
+        new InputElementDescription("POSITION", 0, Format.R32G32B32_Float,  sizeof(float) * 0, 0, InputClassification.PerVertexData, 0),
+        new InputElementDescription("TEXCOORD", 0, Format.R32G32_Float, sizeof(float) * 3, 0, InputClassification.PerVertexData, 0)
     };
 }
 
