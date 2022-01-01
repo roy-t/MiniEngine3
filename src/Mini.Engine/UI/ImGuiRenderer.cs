@@ -4,7 +4,7 @@ using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.ImmediateShader;
+using Mini.Engine.Content.Shaders.Simple;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
@@ -28,8 +28,8 @@ internal sealed class ImGuiRenderer
 
     // Created resources
     private readonly DeferredDeviceContext DeferredContext;
-    private readonly ImmediateShaderVs VertexShader;
-    private readonly ImmediateShaderPs PixelShader;
+    private readonly SimpleVs VertexShader;
+    private readonly SimplePs PixelShader;
     private readonly ITexture2D FontTexture;
     private readonly InputLayout InputLayout;
     private readonly VertexBuffer<ImDrawVert> VertexBuffer;
@@ -46,8 +46,8 @@ internal sealed class ImGuiRenderer
         this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device, "indices_imgui");
         this.ConstantBuffer = new ConstantBuffer<CBuffer0>(device, "constants_imgui");
 
-        this.VertexShader = content.LoadImmediateShaderVs();
-        this.PixelShader = content.LoadImmediateShaderPs();
+        this.VertexShader = content.LoadSimpleVs();
+        this.PixelShader = content.LoadSimplePs();
 
         this.InputLayout = this.VertexShader.CreateInputLayout
         (
@@ -126,7 +126,7 @@ internal sealed class ImGuiRenderer
 
                     if (this.TextureResources.TryGetValue(cmd.TextureId, out var texture))
                     {
-                        this.DeferredContext.PS.SetShaderResource(ImmediateShader.Texture0, texture);
+                        this.DeferredContext.PS.SetShaderResource(Simple.Texture0, texture);
                     }
 
                     this.DeferredContext.DrawIndexed((int)cmd.ElemCount, (int)(cmd.IdxOffset + globalIndexOffset), (int)(cmd.VtxOffset + lobalVertexOffset));

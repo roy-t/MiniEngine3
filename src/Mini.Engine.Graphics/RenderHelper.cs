@@ -12,8 +12,8 @@ namespace Mini.Engine.Graphics;
 public class RenderHelper
 {
     private readonly Device Device;
-    private readonly PostProcessShaderPs PixelShader;
-    private readonly PostProcessShaderVs VertexShader;
+    private readonly PostProcessPs PixelShader;
+    private readonly PostProcessVs VertexShader;
     private readonly FullScreenTriangle FullScreenTriangle;
     private readonly InputLayout InputLayout;
 
@@ -21,8 +21,8 @@ public class RenderHelper
     {
         this.Device = device;
         this.FullScreenTriangle = fullScreenTriangle;
-        this.PixelShader = content.LoadPostProcessShaderPs();
-        this.VertexShader = content.LoadPostProcessShaderVs();
+        this.PixelShader = content.LoadPostProcessPs();
+        this.VertexShader = content.LoadPostProcessVs();
 
         this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
     }
