@@ -10,14 +10,14 @@ struct PS_INPUT
     float2 tex : TEXCOORD;
 };
 
-sampler sampler0;
-Texture2D texture0;
+sampler TextureSampler : register(s0);
+Texture2D Texture : register(t0);
 
 #pragma VertexShader
 PS_INPUT VS(VS_INPUT input)
 {
     PS_INPUT output;
-    output.pos = float4(input.pos.xyz, 1.f);
+    output.pos = float4(input.pos.xyz, 1.0f);
     output.tex = input.tex;
 
     return output;
@@ -26,5 +26,5 @@ PS_INPUT VS(VS_INPUT input)
 #pragma PixelShader
 float4 PS(PS_INPUT input) : SV_Target
 {
-    return texture0.Sample(sampler0, input.tex);
+    return Texture.Sample(TextureSampler, input.tex);
 }

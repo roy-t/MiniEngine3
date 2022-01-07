@@ -5,6 +5,7 @@ using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.Content.Shaders.PostProcess;
 using Vortice.Direct3D;
 namespace Mini.Engine.Graphics;
 
@@ -54,7 +55,7 @@ public class RenderHelper
         context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
 
         context.PS.SetShader(this.PixelShader);
-        context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
+        context.PS.SetSampler(PostProcess.Texture, this.Device.SamplerStates.LinearWrap);
 
 
         context.OM.SetBlendState(this.Device.BlendStates.Opaque);

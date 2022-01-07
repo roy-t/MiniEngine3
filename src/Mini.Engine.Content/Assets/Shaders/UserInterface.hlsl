@@ -17,8 +17,8 @@ cbuffer vertexBuffer : register(b0)
     float4x4 ProjectionMatrix;
 };
 
-sampler sampler0 : register(s0);
-Texture2D texture0 : register(t0);
+sampler TextureSampler : register(s0);
+Texture2D Texture : register(t0);
 
 #pragma VertexShader
 PS_INPUT VS(VS_INPUT input)
@@ -33,6 +33,6 @@ PS_INPUT VS(VS_INPUT input)
 #pragma PixelShader
 float4 PS(PS_INPUT input) : SV_Target
 {
-    float4 out_col = input.col * texture0.Sample(sampler0, input.uv);
+    float4 out_col = input.col * Texture.Sample(TextureSampler, input.uv);
     return out_col;
 }
