@@ -8,6 +8,7 @@ using Mini.Engine.ECS.Entities;
 using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Models;
+using Mini.Engine.Graphics.Models.Generators;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine;
@@ -28,13 +29,26 @@ internal sealed class GameLoop : IDisposable
         this.FrameService = frameService;
         this.CameraController = cameraController;
         this.Content = content;
+
+        content.Push("RenderPipeline");
         this.Pipeline = builder.Build();
 
+        SetScene(device, content, entities, models, transforms);
+    }
+
+    private static void SetScene(Device device, ContentManager content, EntityAdministrator entities, IComponentContainer<ModelComponent> models, IComponentContainer<TransformComponent> transforms)
+    {
+        content.Push("Scene");
         // TODO: move to scene
         var entity = entities.Create();
         models.Add(new ModelComponent(entity, content.LoadSponza()));
         transforms.Add(new TransformComponent(entity).SetScale(0.01f));
-        //models.Add(new ModelComponent(entity, content.LoadAsteroid()));       
+        //models.Add(new ModelComponent(entity, content.LoadAsteroid()));
+
+
+        var sphere = entities.Create();
+        models.Add(new ModelComponent(sphere, SphereGenerator.Generate(device, 3, content.LoadDefaultMaterial(), "Sphere")));
+        transforms.Add(new TransformComponent(sphere));
     }
 
     public void Update(float time, float elapsed)

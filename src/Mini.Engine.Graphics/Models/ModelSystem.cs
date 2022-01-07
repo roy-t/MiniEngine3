@@ -70,12 +70,11 @@ public partial class ModelSystem : ISystem
             CameraPosition = this.FrameService.Camera.Transform.Position
         };
         this.ConstantBuffer.MapData(this.Context, cBuffer);
+        this.Context.VS.SetConstantBuffer(CBuffer0.Slot, this.ConstantBuffer);
 
         this.Context.IA.SetVertexBuffer(component.Model.Vertices);
         this.Context.IA.SetIndexBuffer(component.Model.Indices);
-
-        this.Context.VS.SetConstantBuffer(CBuffer0.Slot, this.ConstantBuffer);
-
+        
         for (var i = 0; i < component.Model.Primitives.Length; i++)
         {
             var primitive = component.Model.Primitives[i];

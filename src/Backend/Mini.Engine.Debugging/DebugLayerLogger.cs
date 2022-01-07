@@ -6,6 +6,7 @@ using Vortice.DXGI.Debug;
 using Vortice.Direct3D11;
 using Vortice.Direct3D11.Debug;
 using Mini.Engine.Configuration;
+using System;
 
 namespace Mini.Engine.Debugging;
 
@@ -48,10 +49,16 @@ public sealed class DebugLayerLogger
         for (ulong i = 0; i < stored; i++)
         {
             var message = this.DebugInfoQueue.GetMessage(i);
+            var level = SeverityToLevel(message.Severity);            
             this.Logger.Write(
-                SeverityToLevel(message.Severity),
+                level,
                 "[{@category}:{@id}] {@description}",
                 message.Id.ToString(), message.Category.ToString(), UnterminateString(message.Description));
+
+           if (level != LogEventLevel.Information)
+            {
+                throw new Exception($"[{message.Id}:{message.Category}] {UnterminateString(message.Description)}");
+            }
         }
 
         this.DebugInfoQueue.ClearStoredMessages();

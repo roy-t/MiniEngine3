@@ -6,9 +6,9 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.Graphics;
 
-public sealed class GBuffer : IDisposable
+public sealed class GeometryBuffer : IDisposable
 {
-    public GBuffer(Device device, DepthStencilFormat depthStencilFormat)
+    public GeometryBuffer(Device device, DepthStencilFormat depthStencilFormat)
     {
         this.Albedo = new RenderTarget2D(device, device.Width, device.Height, Format.B8G8R8A8_UNorm_SRgb, "GBuffer_Albedo");
         this.Material = new RenderTarget2D(device, device.Width, device.Height, Format.B8G8R8A8_UNorm, "GBuffer_Material");

@@ -16,11 +16,16 @@ namespace Mini.Engine.Content;
 [Service]
 public sealed partial class ContentManager : IDisposable
 {
+    private sealed record Frame(string Name, List<IContent> Content)
+    {
+        public Frame(string name) : this(name, new List<IContent>()) { }
+    }
+
     private readonly ILogger Logger;
     private readonly IVirtualFileSystem FileSystem;
     private readonly Device Device;
 
-    private readonly Stack<List<IContent>> ContentStack;
+    private readonly Stack<Frame> ContentStack;
 
     private readonly ContentCache<Texture2DContent> TextureLoader;
     private readonly ContentCache<MaterialContent> MaterialLoader;
@@ -29,8 +34,8 @@ public sealed partial class ContentManager : IDisposable
     public ContentManager(ILogger logger, Device device, IVirtualFileSystem fileSystem)
     {
         this.Logger = logger.ForContext<ContentManager>();
-        this.ContentStack = new Stack<List<IContent>>();
-        this.ContentStack.Push(new List<IContent>());
+        this.ContentStack = new Stack<Frame>();
+        this.ContentStack.Push(new Frame("Root"));
         this.Device = device;
         this.FileSystem = fileSystem;
 
@@ -49,9 +54,20 @@ public sealed partial class ContentManager : IDisposable
         return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\AsteroidField\Asteroid001.obj"));
     }
 
-    public void Push()
+    public IMaterial LoadDefaultMaterial()
     {
-        this.ContentStack.Push(new List<IContent>());
+        var albedo = this.TextureLoader.Load(this.Device, new ContentId("albedo.tga"));
+        var ambientOccclusion = this.TextureLoader.Load(this.Device, new ContentId("ao.tga"));
+        var metalicness = this.TextureLoader.Load(this.Device, new ContentId("metalicness.tga"));
+        var roughness = this.TextureLoader.Load(this.Device, new ContentId("roughness.tga"));
+        var normal = this.TextureLoader.Load(this.Device, new ContentId("normal.tga"));
+        return new Material(albedo, metalicness, normal, roughness, ambientOccclusion, "Default");
+    }
+
+    public void Push(string name)
+    {
+        this.Logger.Information("Creating content stack frame {@frame}", name);
+        this.ContentStack.Push(new Frame(name));
     }
 
     public void Pop()
@@ -70,7 +86,7 @@ public sealed partial class ContentManager : IDisposable
     internal void Add(IContent content)
     {
         this.Track(content);
-        this.ContentStack.Peek().Add(content);
+        this.ContentStack.Peek().Content.Add(content);
     }
 
     [Conditional("DEBUG")]
@@ -97,9 +113,9 @@ public sealed partial class ContentManager : IDisposable
 
     private void ReloadContentReferencingFile(string path)
     {
-        foreach (var list in this.ContentStack)
+        foreach (var frame in this.ContentStack)
         {
-            foreach (var content in list)
+            foreach (var content in frame.Content)
             {
                 if (content.Id.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
                 {
@@ -110,9 +126,10 @@ public sealed partial class ContentManager : IDisposable
         }
     }
 
-    private void Unload(List<IContent> list)
+    private void Unload(Frame frame)
     {
-        foreach (var content in list)
+        this.Logger.Information("Unload content stack frame {@frame}", frame.Name);
+        foreach (var content in frame.Content)
         {
             switch (content)
             {

@@ -34,4 +34,9 @@ internal sealed class MaterialContent : IMaterial, IContent
         var data = this.Loader.Load(device, this.Id);
         this.material = new Material(data.Albedo, data.Metalicness, data.Normal, data.Roughness, data.AmbientOcclusion, this.Id.ToString());
     }
+
+    public override string ToString()
+    {
+        return $"Material: {this.Id}";
+    }
 }

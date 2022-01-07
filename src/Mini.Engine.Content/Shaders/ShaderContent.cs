@@ -45,4 +45,9 @@ public abstract class ShaderContent<TShader> : Shader<TShader>, IContent
     }
 
     protected abstract TShader Create(Blob blob);
+
+    public override string ToString()
+    {
+        return $"Shader: {this.Id}";
+    }
 }

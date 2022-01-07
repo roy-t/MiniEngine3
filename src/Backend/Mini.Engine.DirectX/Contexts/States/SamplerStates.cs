@@ -28,11 +28,13 @@ public sealed class SamplerStates : IDisposable
     {
         this.PointWrap = Create(device, SamplerDescription.PointWrap, nameof(this.PointWrap));
         this.LinearWrap = Create(device, SamplerDescription.LinearWrap, nameof(this.LinearWrap));
+        this.LinearClamp = Create(device, SamplerDescription.LinearClamp, nameof(this.LinearClamp));
         this.AnisotropicWrap = Create(device, SamplerDescription.AnisotropicWrap, nameof(this.AnisotropicWrap));
     }
 
     public SamplerState PointWrap { get; }
     public SamplerState LinearWrap { get; }
+    public SamplerState LinearClamp { get; }
     public SamplerState AnisotropicWrap { get; }
 
     private static SamplerState Create(ID3D11Device device, SamplerDescription description, string name)

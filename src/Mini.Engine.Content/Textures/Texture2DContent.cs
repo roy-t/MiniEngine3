@@ -40,4 +40,9 @@ internal sealed class Texture2DContent : ITexture2D, IContent
     {
         this.texture.Dispose();
     }
+
+    public override string ToString()
+    {
+        return $"Texture2D: {this.Id}";
+    }
 }

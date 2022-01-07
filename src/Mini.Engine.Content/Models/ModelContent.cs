@@ -41,4 +41,9 @@ internal sealed class ModelContent : IModel, IContent
     {
         this.model.Dispose();
     }
+
+    public override string ToString()
+    {
+        return $"Model: {this.Id}";
+    }
 }
