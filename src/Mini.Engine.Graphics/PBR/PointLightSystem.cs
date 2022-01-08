@@ -72,7 +72,7 @@ public partial class PointLightSystem : ISystem
     [Process(Query = ProcessQuery.All)]
     public void DrawPointLight(PointLightComponent component, TransformComponent transform)
     {
-        var camera = this.FrameService.Camera;                
+        var camera = this.FrameService.Camera;
         var isInside = Vector3.Distance(camera.Transform.Position, transform.Transform.Position) < component.RadiusOfInfluence;
         if (isInside)
         {
@@ -81,7 +81,7 @@ public partial class PointLightSystem : ISystem
         else
         {
             this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
-        }
+        }        
 
         var world = Matrix4x4.CreateScale(component.RadiusOfInfluence) * transform.AsMatrix();
         Matrix4x4.Invert(camera.ViewProjection, out var inverseViewProjection);

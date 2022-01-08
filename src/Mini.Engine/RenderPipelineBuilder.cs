@@ -25,7 +25,7 @@ internal sealed class RenderPipelineBuilder
                 .Parallel()
                 .Produces("Initialization", "Containers")
                 .Build()
-            .System<ClearGBufferSystem>()
+            .System<ClearBuffersSystem>()
                 .InSequence()
                 .Produces("Initialization", "GBuffer")
                 .Build()

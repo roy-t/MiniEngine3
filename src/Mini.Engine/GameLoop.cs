@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Controllers;
@@ -9,6 +10,7 @@ using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Models.Generators;
+using Mini.Engine.Graphics.PBR;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine;
@@ -22,7 +24,7 @@ internal sealed class GameLoop : IDisposable
     private readonly CameraController CameraController;
     private readonly ContentManager Content;
     private readonly ParallelPipeline Pipeline;
-    public GameLoop(Device device, RenderHelper helper, FrameService frameService, CameraController cameraController, RenderPipelineBuilder builder, ContentManager content, EntityAdministrator entities, IComponentContainer<ModelComponent> models, IComponentContainer<TransformComponent> transforms)
+    public GameLoop(Device device, RenderHelper helper, FrameService frameService, CameraController cameraController, RenderPipelineBuilder builder, ContentManager content, EntityAdministrator entities, ComponentAdministrator components)
     {
         this.Device = device;
         this.Helper = helper;
@@ -33,22 +35,23 @@ internal sealed class GameLoop : IDisposable
         content.Push("RenderPipeline");
         this.Pipeline = builder.Build();
 
-        SetScene(device, content, entities, models, transforms);
+        SetScene(content, entities, components);
     }
 
-    private static void SetScene(Device device, ContentManager content, EntityAdministrator entities, IComponentContainer<ModelComponent> models, IComponentContainer<TransformComponent> transforms)
+    private static void SetScene(ContentManager content, EntityAdministrator entities, ComponentAdministrator components)
     {
         content.Push("Scene");
         // TODO: move to scene
         var entity = entities.Create();
-        models.Add(new ModelComponent(entity, content.LoadSponza()));
-        transforms.Add(new TransformComponent(entity).SetScale(0.01f));
+        components.Add(new ModelComponent(entity, content.LoadSponza()));
+        components.Add(new TransformComponent(entity).SetScale(0.01f));
         //models.Add(new ModelComponent(entity, content.LoadAsteroid()));
 
 
         var sphere = entities.Create();
-        models.Add(new ModelComponent(sphere, SphereGenerator.Generate(device, 3, content.LoadDefaultMaterial(), "Sphere")));
-        transforms.Add(new TransformComponent(sphere));
+        //models.Add(new ModelComponent(sphere, SphereGenerator.Generate(device, 3, content.LoadDefaultMaterial(), "Sphere")));
+        components.Add(new PointLightComponent(entity, Vector4.One, 1.0f));
+        components.Add(new TransformComponent(sphere));        
     }
 
     public void Update(float time, float elapsed)
@@ -62,7 +65,13 @@ internal sealed class GameLoop : IDisposable
         this.FrameService.Alpha = alpha;
         this.Pipeline.Frame();
 
-        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Albedo);
+        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Albedo, 0, 0, this.Device.Width, this.Device.Height);
+        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Material, this.Device.Width / 4, 0, this.Device.Width / 4, this.Device.Height / 4);
+        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Normal, this.Device.Width / 2, 0, this.Device.Width / 4, this.Device.Height / 4);
+        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Depth, (this.Device.Width / 4) * 3, 0, this.Device.Width / 4, this.Device.Height / 4);
+        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width / 4, this.Device.Height / 4);
+
+        //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width, this.Device.Height);
     }
 
     public void Dispose()
