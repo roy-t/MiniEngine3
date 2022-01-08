@@ -20,7 +20,7 @@ struct OUTPUT
     float4 Light : SV_TARGET;
 };
 
-cbuffer vertexBuffer : register(b0)
+cbuffer cVertexData : register(b0)
 {
     float4x4 InverseViewProjection;
     float4x4 WorldViewProjection;

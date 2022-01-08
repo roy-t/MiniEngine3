@@ -24,7 +24,7 @@ struct OUTPUT
     float4 normal : SV_Target3;
 };
 
-cbuffer vertexBuffer : register(b0)
+cbuffer cVertexData : register(b0)
 {
     float4x4 WorldViewProjection;
     float4x4 World;

@@ -25,7 +25,7 @@ public partial class PointLightSystem : ISystem
     private readonly PointLightVs VertexShader;
     private readonly PointLightPs PixelShader;
     private readonly InputLayout InputLayout;
-    private readonly ConstantBuffer<CBuffer0> ConstantBuffer;
+    private readonly ConstantBuffer<CVertexData> ConstantBuffer;
     private readonly IModel Sphere;
 
     public PointLightSystem(Device device, FrameService frameService, ContentManager content)
@@ -36,7 +36,7 @@ public partial class PointLightSystem : ISystem
         this.VertexShader = content.LoadPointLightVs();
         this.PixelShader = content.LoadPointLightPs();
         this.InputLayout = this.VertexShader.CreateInputLayout(device, ModelVertex.Elements);
-        this.ConstantBuffer = new ConstantBuffer<CBuffer0>(device, "constants_pointlightsystem");
+        this.ConstantBuffer = new ConstantBuffer<CVertexData>(device, "constants_pointlightsystem");
 
         this.Sphere = SphereGenerator.Generate(device, 3, content.LoadDefaultMaterial(), "PointLight");
     }
@@ -84,7 +84,7 @@ public partial class PointLightSystem : ISystem
 
         var world = Matrix4x4.CreateScale(component.RadiusOfInfluence) * transform.AsMatrix();
         Matrix4x4.Invert(camera.ViewProjection, out var inverseViewProjection);
-        var cBuffer = new CBuffer0()
+        var cBuffer = new CVertexData()
         {
             InverseViewProjection = inverseViewProjection,
             WorldViewProjection = world * camera.ViewProjection,            
@@ -94,8 +94,8 @@ public partial class PointLightSystem : ISystem
             Strength = component.Strength,
         };
         this.ConstantBuffer.MapData(this.Context, cBuffer);
-        this.Context.VS.SetConstantBuffer(CBuffer0.Slot, this.ConstantBuffer);
-        this.Context.PS.SetConstantBuffer(CBuffer0.Slot, this.ConstantBuffer);
+        this.Context.VS.SetConstantBuffer(CVertexData.Slot, this.ConstantBuffer);
+        this.Context.PS.SetConstantBuffer(CVertexData.Slot, this.ConstantBuffer);
 
         this.Context.IA.SetVertexBuffer(this.Sphere.Vertices);
         this.Context.IA.SetIndexBuffer(this.Sphere.Indices);

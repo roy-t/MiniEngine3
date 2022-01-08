@@ -22,7 +22,7 @@ public partial class ModelSystem : ISystem
     private readonly GeometryVs VertexShader;
     private readonly GeometryPs PixelShader;
     private readonly InputLayout InputLayout;
-    private readonly ConstantBuffer<CBuffer0> ConstantBuffer;
+    private readonly ConstantBuffer<CVertexData> ConstantBuffer;
 
 
     public ModelSystem(Device device, FrameService frameService, ContentManager content)
@@ -33,7 +33,7 @@ public partial class ModelSystem : ISystem
         this.VertexShader = content.LoadGeometryVs();
         this.PixelShader = content.LoadGeometryPs();
         this.InputLayout = this.VertexShader.CreateInputLayout(device, ModelVertex.Elements);
-        this.ConstantBuffer = new ConstantBuffer<CBuffer0>(device, "constants_modelsystem");
+        this.ConstantBuffer = new ConstantBuffer<CVertexData>(device, "constants_modelsystem");
     }
 
     public void OnSet()
@@ -63,14 +63,14 @@ public partial class ModelSystem : ISystem
     public void DrawModel(ModelComponent component, TransformComponent transform)
     {
         var world = transform.AsMatrix();
-        var cBuffer = new CBuffer0()
+        var cBuffer = new CVertexData()
         {
             WorldViewProjection = world * this.FrameService.Camera.ViewProjection,
             World = world,
             CameraPosition = this.FrameService.Camera.Transform.Position
         };
         this.ConstantBuffer.MapData(this.Context, cBuffer);
-        this.Context.VS.SetConstantBuffer(CBuffer0.Slot, this.ConstantBuffer);
+        this.Context.VS.SetConstantBuffer(CVertexData.Slot, this.ConstantBuffer);
 
         this.Context.IA.SetVertexBuffer(component.Model.Vertices);
         this.Context.IA.SetIndexBuffer(component.Model.Indices);
