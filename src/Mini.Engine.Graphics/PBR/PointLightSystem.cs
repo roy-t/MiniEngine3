@@ -13,7 +13,6 @@ using Mini.Engine.Graphics.Models.Generators;
 using Mini.Engine.Graphics.Transforms;
 using Vortice.Direct3D;
 
-
 namespace Mini.Engine.Graphics.PBR;
 
 [Service]
@@ -89,13 +88,14 @@ public partial class PointLightSystem : ISystem
         {
             InverseViewProjection = inverseViewProjection,
             WorldViewProjection = world * camera.ViewProjection,            
-            CameraPosition = camera.Transform.Position,
-            LightPosition = transform.Transform.Position,
+            CameraPosition = new Vector4(camera.Transform.Position, 1.0f),
+            LightPosition = new Vector4(transform.Transform.Position, 1.0f),
             Color = component.Color,
             Strength = component.Strength,
         };
         this.ConstantBuffer.MapData(this.Context, cBuffer);
         this.Context.VS.SetConstantBuffer(CBuffer0.Slot, this.ConstantBuffer);
+        this.Context.PS.SetConstantBuffer(CBuffer0.Slot, this.ConstantBuffer);
 
         this.Context.IA.SetVertexBuffer(this.Sphere.Vertices);
         this.Context.IA.SetIndexBuffer(this.Sphere.Indices);

@@ -24,11 +24,11 @@ cbuffer vertexBuffer : register(b0)
 {
     float4x4 InverseViewProjection;
     float4x4 WorldViewProjection;
-    float3 CameraPosition;
-    float3 LightPosition;
+    float4 CameraPosition;
+    float4 LightPosition;
     float4 Color;
     float Strength;
-    float unused0;
+    float3 unused0;
 };
 
 sampler TextureSampler : register(s0);
@@ -55,17 +55,26 @@ OUTPUT PS(PS_INPUT input)
     OUTPUT output;
 
     float3 albedo = ReadAlbedo(Albedo, TextureSampler, input.texcoord);
-    //float3 normal = ReadNormal(Normal, TextureSampler, input.texcoord);
-    //float3 position = ReadPosition(Depth, TextureSampler, input.texcoord, InverseViewProjection);
-    //Mat material = ReadMaterial(Material, TextureSampler, input.texcoord);
+    float3 normal = ReadNormal(Normal, TextureSampler, input.texcoord);
+    float3 position = ReadPosition(Depth, TextureSampler, input.texcoord, InverseViewProjection);
+    Mat material = ReadMaterial(Material, TextureSampler, input.texcoord);
 
-    //float3 L = normalize(LightPosition - position);
-    //float3 Lo = ComputeLight(albedo, normal, material, position, CameraPosition, L, Color, Strength);
-    //Lo *= Attenuation(LightPosition, position);
+    float3 L = normalize(LightPosition.xyz - position);
+    //float3 Lo = ComputeLight(albedo, normal, material, position, CameraPosition.xyz, L, Color, Strength);
+    //Lo *= Attenuation(LightPosition.xyz, position);
+
+    // TODO: position has a NAN?
+    float f = 1.0f;//Strength;
+    // if (isnan(position.x))
+    // {
+    //     f = 1.0f;
+    // }
+
+    // f = Color.y;
 
     //output.Light = float4(Lo, 1.0f);
-    output.Light = float4(albedo, 1.0f);
-    output.Light = float4(1, 1, 0, 0) ;
+    output.Light = float4(f, 0.0f, 0.0f, 1.0f);
+    //output.Light = float4(1, 1, 0, 0) ;
 
     return output;
 }

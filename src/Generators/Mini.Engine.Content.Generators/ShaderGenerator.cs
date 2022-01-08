@@ -42,7 +42,7 @@ namespace Mini.Engine.Content.Generators
                             }))
                             .Types(shader.CBuffers.Select(cBuffer =>
                             {
-                                return Struct.Builder($"CBuffer{cBuffer.Slot}", "public")
+                                return Struct.Builder(Naming.ToPascalCase(cBuffer.Name), "public")
                                     .Attribute("StructLayout", "LayoutKind.Sequential", "Pack = 4")
                                     .Field("int", "Slot", "public", "const")
                                         .Value($"{cBuffer.Slot}")

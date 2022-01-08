@@ -9,9 +9,12 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
     {
         public CBuffer(ConstantBufferSyntax syntax)
         {
+            this.Name = syntax.Name.ValueText;
             this.Slot = Register.GetSlot(syntax.Register);
             this.Variables = Variable.FindAll(syntax);
         }
+
+        public string Name { get; }
 
         public int Slot { get; }
 
@@ -25,7 +28,5 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
                 .Select(syntax => new CBuffer(syntax))
                 .ToList();
         }
-
-
     }
 }

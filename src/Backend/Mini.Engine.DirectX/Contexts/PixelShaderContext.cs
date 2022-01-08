@@ -1,4 +1,5 @@
-﻿using Mini.Engine.DirectX.Contexts.States;
+﻿using Mini.Engine.DirectX.Buffers;
+using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D11;
 
@@ -33,5 +34,11 @@ public sealed class PixelShaderContext : DeviceContextPart
     public void SetShaderResource(int slot, ITexture2D texture)
     {
         this.ID3D11DeviceContext.PSSetShaderResource(slot, texture.ShaderResourceView);
+    }
+
+    public void SetConstantBuffer<T>(int slot, ConstantBuffer<T> buffer)
+        where T : unmanaged
+    {
+        this.ID3D11DeviceContext.PSSetConstantBuffer(slot, buffer.Buffer);
     }
 }
