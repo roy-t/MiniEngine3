@@ -54,7 +54,7 @@ OUTPUT PS(PS_INPUT input)
 {
     OUTPUT output;
 
-    //float3 albedo = ReadAlbedo(Albedo, TextureSampler, input.texcoord);
+    float3 albedo = ReadAlbedo(Albedo, TextureSampler, input.texcoord);
     //float3 normal = ReadNormal(Normal, TextureSampler, input.texcoord);
     //float3 position = ReadPosition(Depth, TextureSampler, input.texcoord, InverseViewProjection);
     //Mat material = ReadMaterial(Material, TextureSampler, input.texcoord);
@@ -64,7 +64,8 @@ OUTPUT PS(PS_INPUT input)
     //Lo *= Attenuation(LightPosition, position);
 
     //output.Light = float4(Lo, 1.0f);
-    output.Light = float4(1, 0, 0, 0);
+    output.Light = float4(albedo, 1.0f);
+    output.Light = float4(1, 1, 0, 0) ;
 
     return output;
 }

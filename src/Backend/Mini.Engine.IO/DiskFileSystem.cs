@@ -19,7 +19,8 @@ public sealed class DiskFileSystem : IVirtualFileSystem
         this.RootDirectory = Path.GetFullPath(rootDirectory);
 
         this.FileSystemWatcher = CreateWatcher(this.RootDirectory);
-        this.FileSystemWatcher.Changed += (s, e) => this.OnChange(e.FullPath, "Changed");
+        this.FileSystemWatcher.Changed += (s, e) => this.OnChange(e.FullPath, e.ChangeType.ToString());
+        this.FileSystemWatcher.Renamed += (s, e) => this.OnChange(e.FullPath, e.ChangeType.ToString());
 
         this.ChangedFilesFilter = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         this.ChangedFiles = new DelayedSet<string>(TimeSpan.FromSeconds(1), StringComparer.OrdinalIgnoreCase);
@@ -82,8 +83,8 @@ public sealed class DiskFileSystem : IVirtualFileSystem
     private static FileSystemWatcher CreateWatcher(string directory)
     {
         return new FileSystemWatcher(directory)
-        {
-            NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite,
+        {            
+            NotifyFilter = NotifyFilters.LastWrite| NotifyFilters.FileName,
             Filter = "*",
             IncludeSubdirectories = true,
             EnableRaisingEvents = true,
