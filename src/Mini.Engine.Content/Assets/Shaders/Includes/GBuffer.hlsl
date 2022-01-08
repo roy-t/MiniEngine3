@@ -15,7 +15,7 @@ float3 ReadAlbedo(Texture2D albedo, sampler samp, float2 texcoord)
 float3 ReadNormal(Texture2D normal, sampler samp, float2 texcoord)
 {
     float3 N = normal.Sample(samp, texcoord).xyz;
-    return UnpackNormal(N);
+    return UnpackNormal(N).xyz;
 }
 
 Mat ReadMaterial(Texture2D material, sampler samp, float2 texcoord)

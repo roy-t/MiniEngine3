@@ -28,6 +28,7 @@ cbuffer vertexBuffer : register(b0)
     float3 LightPosition;
     float4 Color;
     float Strength;
+    float unused0;
 };
 
 sampler TextureSampler : register(s0);
