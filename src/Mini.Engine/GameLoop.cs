@@ -50,7 +50,7 @@ internal sealed class GameLoop : IDisposable
 
         var sphere = entities.Create();
         //models.Add(new ModelComponent(sphere, SphereGenerator.Generate(device, 3, content.LoadDefaultMaterial(), "Sphere")));
-        components.Add(new PointLightComponent(entity, Vector4.One, 1.0f));
+        components.Add(new PointLightComponent(entity, Vector4.One, 10.0f));
         components.Add(new TransformComponent(sphere));        
     }
 

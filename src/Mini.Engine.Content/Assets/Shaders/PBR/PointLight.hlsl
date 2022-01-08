@@ -60,21 +60,9 @@ OUTPUT PS(PS_INPUT input)
     Mat material = ReadMaterial(Material, TextureSampler, input.texcoord);
 
     float3 L = normalize(LightPosition.xyz - position);
-    //float3 Lo = ComputeLight(albedo, normal, material, position, CameraPosition.xyz, L, Color, Strength);
-    //Lo *= Attenuation(LightPosition.xyz, position);
-
-    // TODO: position has a NAN?
-    float f = 1.0f;//Strength;
-    // if (isnan(position.x))
-    // {
-    //     f = 1.0f;
-    // }
-
-    // f = Color.y;
-
-    //output.Light = float4(Lo, 1.0f);
-    output.Light = float4(f, 0.0f, 0.0f, 1.0f);
-    //output.Light = float4(1, 1, 0, 0) ;
+    float3 Lo = ComputeLight(albedo, normal, material, position, CameraPosition.xyz, L, Color, Strength);
+    Lo *= Attenuation(LightPosition.xyz, position);
+    output.Light = float4(Lo, 1.0f);
 
     return output;
 }
