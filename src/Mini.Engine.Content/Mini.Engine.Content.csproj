@@ -3,11 +3,14 @@
     <None Remove=".contentroot" />
     <None Remove="Assets\Shaders\Gamma.hlsl" />
     <None Remove="Assets\Shaders\Geometry.hlsl" />
+    <None Remove="Assets\Shaders\Includes\Coordinates.hlsl" />
+    <None Remove="Assets\Shaders\Includes\GBuffer.hlsl" />
     <None Remove="Assets\Shaders\Normals.hlsl" />
     <None Remove="Assets\Shaders\PBR\BRDF.hlsl" />
     <None Remove="Assets\Shaders\PBR\BrdfLutGenerator.hlsl" />
     <None Remove="Assets\Shaders\PBR\Lights.hlsl" />
     <None Remove="Assets\Shaders\PBR\Material.hlsl" />
+    <None Remove="Assets\Shaders\PBR\PointLight.hlsl" />
     <None Remove="Shaders\FlatShader.hlsl" />
     <None Remove="Shaders\PostProcessShader.hlsl" />
   </ItemGroup> 
@@ -23,11 +26,14 @@
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
+    <AdditionalFiles Include="Assets\Shaders\Includes\GBuffer.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Includes\Coordinates.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Normals.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Gamma.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Geometry.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Defines.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\PBR\Includes\Material.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\PBR\PointLight.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Includes\Material.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\PBR\Includes\Lights.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\PBR\Includes\BRDF.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\PBR\BrdfLutGenerator.hlsl" />

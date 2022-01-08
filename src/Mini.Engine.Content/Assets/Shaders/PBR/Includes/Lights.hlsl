@@ -1,7 +1,7 @@
 ﻿#ifndef __LIGHTS
 #define __LIGHTS
 
-#include "Material.hlsl"
+#include "../../Includes/Material.hlsl"
 #include "../../Includes/Defines.hlsl"
 #include "../../Includes/Gamma.hlsl"
 

@@ -29,11 +29,13 @@ public sealed class BlendStates : IDisposable
         this.NonPreMultiplied = Create(device, BlendDescription.NonPremultiplied, nameof(this.NonPreMultiplied));
         this.AlphaBlend = Create(device, BlendDescription.AlphaBlend, nameof(this.AlphaBlend));
         this.Opaque = Create(device, BlendDescription.Opaque, nameof(this.Opaque));
+        this.Additive = Create(device, BlendDescription.Additive, nameof(this.Additive));
     }
 
     public BlendState NonPreMultiplied { get; }
     public BlendState AlphaBlend { get; }
     public BlendState Opaque { get; }
+    public BlendState Additive { get; }
 
     private static BlendState Create(ID3D11Device device, BlendDescription description, string name)
     {
@@ -46,5 +48,6 @@ public sealed class BlendStates : IDisposable
         this.NonPreMultiplied.Dispose();
         this.AlphaBlend.Dispose();
         this.Opaque.Dispose();
+        this.Additive.Dispose();
     }
 }

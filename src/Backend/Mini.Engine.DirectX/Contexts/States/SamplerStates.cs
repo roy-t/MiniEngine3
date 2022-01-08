@@ -47,6 +47,7 @@ public sealed class SamplerStates : IDisposable
     {
         this.PointWrap.Dispose();
         this.LinearWrap.Dispose();
+        this.LinearClamp.Dispose();
         this.AnisotropicWrap.Dispose();
     }
 }
