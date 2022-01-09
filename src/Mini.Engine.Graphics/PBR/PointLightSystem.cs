@@ -64,7 +64,7 @@ public partial class PointLightSystem : ISystem
 
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
-        this.Context.OM.SetBlendState(this.Device.BlendStates.Opaque);
+        this.Context.OM.SetBlendState(this.Device.BlendStates.Additive);
         this.Context.OM.SetDepthStencilState(this.Device.DepthStencilStates.None);
     }
 
@@ -75,11 +75,11 @@ public partial class PointLightSystem : ISystem
         var isInside = Vector3.Distance(camera.Transform.Position, transform.Transform.Position) < component.RadiusOfInfluence;
         if (isInside)
         {
-            this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullClockwise);
+            this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwiseNoDepthClip);
         }
         else
         {
-            this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
+            this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwiseNoDepthClip);
         }        
 
         var world = Matrix4x4.CreateScale(component.RadiusOfInfluence) * transform.AsMatrix();
@@ -101,6 +101,7 @@ public partial class PointLightSystem : ISystem
         this.Context.IA.SetIndexBuffer(this.Sphere.Indices);
 
         this.Context.DrawIndexed(this.Sphere.Primitives[0].IndexCount, this.Sphere.Primitives[0].IndexOffset, 0);
+        // TODO: create a separate cbuffer for the PS so we need less updates
     }
 
     public void OnUnSet()

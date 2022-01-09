@@ -9,13 +9,8 @@ float2 ScreenToTexture(float2 screenPosition)
 }
 
 float2 TextureToScreen(float2 texcoord)
-{
-    // TODO: simplify as above
-    float2 position;
-    position.x = texcoord.x * 2.0f - 1.0f;
-    position.y = -(texcoord.y * 2.0f - 1.0f);
-
-    return position;
+{    
+    return float2(texcoord.x * 2.0f - 1.0f, -(texcoord.y * 2.0f - 1.0f));
 }
 float2 WorldToSpherical(float3 position)
 {

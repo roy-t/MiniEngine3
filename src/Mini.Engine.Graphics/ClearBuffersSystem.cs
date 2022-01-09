@@ -15,10 +15,10 @@ public partial class ClearBuffersSystem : ISystem
     private readonly FrameService FrameService;
 
     private static readonly Color4 NeutralAlbedo = new Color4(0, 0, 0, 0);
-    private static readonly Color4 NeutralMaterial = new Color4(0, 0, 0, 1.0f);
+    private static readonly Color4 NeutralMaterial = new Color4(0, 0, 0, 0.0f);
     private static readonly Color4 NeutralDepth = new Color4(1, 1, 1, 1);
-    private static readonly Color4 NeutralNormal = new Color4(0.5f, 0.5f, 0.5f, 1.0f);
-    private static readonly Color4 NeutralLight = new Color4(0, 0, 0, 1.0f);
+    private static readonly Color4 NeutralNormal = new Color4(0.5f, 0.5f, 0.5f, 0.0f);
+    private static readonly Color4 NeutralLight = new Color4(0, 0, 0, 0.0f);
 
     public ClearBuffersSystem(Device device, FrameService frameService)
     {

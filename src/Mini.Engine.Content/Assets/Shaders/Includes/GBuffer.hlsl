@@ -48,7 +48,7 @@ float3 ComputePosition(float2 texcoord, float depth, float4x4 inverseViewProject
     position.w = 1.0f;
 
     // Transform to world space
-    position = mul(position, inverseViewProjection);
+    position = mul(inverseViewProjection, position);
     position /= position.w;
 
     return position.xyz;

@@ -12,7 +12,7 @@ struct VS_INPUT
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
-    noperspective float2 texcoord : TEXCOORD;
+    float2 texcoord : TEXCOORD;
 };
 
 struct OUTPUT
