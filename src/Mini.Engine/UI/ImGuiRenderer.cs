@@ -34,7 +34,7 @@ internal sealed class ImGuiRenderer
     private readonly InputLayout InputLayout;
     private readonly VertexBuffer<ImDrawVert> VertexBuffer;
     private readonly IndexBuffer<ImDrawIdx> IndexBuffer;
-    private readonly ConstantBuffer<CVertexData> ConstantBuffer;
+    private readonly ConstantBuffer<Constants> ConstantBuffer;
 
     public ImGuiRenderer(Device device, ContentManager content)
     {
@@ -44,7 +44,7 @@ internal sealed class ImGuiRenderer
 
         this.VertexBuffer = new VertexBuffer<ImDrawVert>(device, "vertices_imgui");
         this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device, "indices_imgui");
-        this.ConstantBuffer = new ConstantBuffer<CVertexData>(device, "constants_imgui");
+        this.ConstantBuffer = new ConstantBuffer<Constants>(device, "constants_imgui");
 
         this.VertexShader = content.LoadUserInterfaceVs();
         this.PixelShader = content.LoadUserInterfacePs();
@@ -96,7 +96,7 @@ internal sealed class ImGuiRenderer
         }
 
         // Setup orthographic projection matrix into our constant buffer
-        var cBufferData = new CVertexData() { ProjectionMatrix = Matrix4x4.CreateOrthographicOffCenter(0, data.DisplaySize.X, data.DisplaySize.Y, 0, -1.0f, 1.0f) };
+        var cBufferData = new Constants() { ProjectionMatrix = Matrix4x4.CreateOrthographicOffCenter(0, data.DisplaySize.X, data.DisplaySize.Y, 0, -1.0f, 1.0f) };
         this.ConstantBuffer.MapData(this.DeferredContext, cBufferData);
 
         this.SetupRenderState(data, this.DeferredContext);
@@ -160,7 +160,7 @@ internal sealed class ImGuiRenderer
         context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
 
         context.VS.SetShader(this.VertexShader);
-        context.VS.SetConstantBuffer(CVertexData.Slot, this.ConstantBuffer);
+        context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
 
         context.RS.SetViewPort(0, 0, drawData.DisplaySize.X, drawData.DisplaySize.Y);
         context.RS.SetRasterizerState(this.Device.RasterizerStates.CullNone);

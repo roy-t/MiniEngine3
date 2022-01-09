@@ -24,12 +24,12 @@ struct OUTPUT
     float4 normal : SV_Target3;
 };
 
-cbuffer cVertexData : register(b0)
+cbuffer Constants : register(b0)
 {
     float4x4 WorldViewProjection;
     float4x4 World;
     float3 CameraPosition;
-    float unused0;
+    float Unused;
 };
 
 sampler TextureSampler : register(s0);

@@ -1,8 +1,4 @@
 # TODO
-
-Content
-- Test hot reloading
-
 Continue replacing things in Mini.Engine.Windows with this: https://github.com/microsoft/CsWin32
 
 # Notes
@@ -17,3 +13,6 @@ https://developer.nvidia.com/sites/default/files/akamai/gamedev/docs/GDC_2013_DU
 
 Due to the new flip mode and tearing support users need at least Windows 10 Anniversary edition (2016)
 See: https://docs.microsoft.com/en-us/windows/win32/direct3ddxgi/variable-refresh-rate-displays
+
+Ideas for terain rendering without repeats (stochastic texturing), blog contains other tips about terrains
+https://medium.com/@jasonbooth_86226/stochastic-texturing-3c2e58d76a14

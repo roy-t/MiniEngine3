@@ -25,7 +25,8 @@ public partial class PointLightSystem : ISystem
     private readonly PointLightVs VertexShader;
     private readonly PointLightPs PixelShader;
     private readonly InputLayout InputLayout;
-    private readonly ConstantBuffer<CVertexData> ConstantBuffer;
+    private readonly ConstantBuffer<Constants> ConstantBuffer;
+    private readonly ConstantBuffer<PerLightConstants> PerLightConstantBuffer;
     private readonly IModel Sphere;
 
     public PointLightSystem(Device device, FrameService frameService, ContentManager content)
@@ -36,7 +37,8 @@ public partial class PointLightSystem : ISystem
         this.VertexShader = content.LoadPointLightVs();
         this.PixelShader = content.LoadPointLightPs();
         this.InputLayout = this.VertexShader.CreateInputLayout(device, ModelVertex.Elements);
-        this.ConstantBuffer = new ConstantBuffer<CVertexData>(device, "constants_pointlightsystem");
+        this.ConstantBuffer = new ConstantBuffer<Constants>(device, "PointLightSystem_Constants");
+        this.PerLightConstantBuffer = new ConstantBuffer<PerLightConstants>(device, "PointLightSystem_PerLightConstants");
 
         this.Sphere = SphereGenerator.Generate(device, 3, content.LoadDefaultMaterial(), "PointLight");
     }
@@ -66,6 +68,17 @@ public partial class PointLightSystem : ISystem
 
         this.Context.OM.SetBlendState(this.Device.BlendStates.Additive);
         this.Context.OM.SetDepthStencilState(this.Device.DepthStencilStates.None);
+
+        var camera = this.FrameService.Camera;
+        Matrix4x4.Invert(camera.ViewProjection, out var inverseViewProjection);
+        var cBuffer = new Constants()
+        {
+            InverseViewProjection = inverseViewProjection,
+            CameraPosition = camera.Transform.Position
+        };
+        this.ConstantBuffer.MapData(this.Context, cBuffer);
+        this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+        this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
     }
 
     [Process(Query = ProcessQuery.All)]
@@ -83,19 +96,17 @@ public partial class PointLightSystem : ISystem
         }        
 
         var world = Matrix4x4.CreateScale(component.RadiusOfInfluence) * transform.AsMatrix();
-        Matrix4x4.Invert(camera.ViewProjection, out var inverseViewProjection);
-        var cBuffer = new CVertexData()
-        {
-            InverseViewProjection = inverseViewProjection,
-            WorldViewProjection = world * camera.ViewProjection,            
-            CameraPosition = new Vector4(camera.Transform.Position, 1.0f),
-            LightPosition = new Vector4(transform.Transform.Position, 1.0f),
+        
+        var cBuffer = new PerLightConstants()
+        {            
+            WorldViewProjection = world * camera.ViewProjection,                        
+            LightPosition = transform.Transform.Position,
             Color = component.Color,
             Strength = component.Strength,
         };
-        this.ConstantBuffer.MapData(this.Context, cBuffer);
-        this.Context.VS.SetConstantBuffer(CVertexData.Slot, this.ConstantBuffer);
-        this.Context.PS.SetConstantBuffer(CVertexData.Slot, this.ConstantBuffer);
+        this.PerLightConstantBuffer.MapData(this.Context, cBuffer);
+        this.Context.VS.SetConstantBuffer(PerLightConstants.Slot, this.PerLightConstantBuffer);
+        this.Context.PS.SetConstantBuffer(PerLightConstants.Slot, this.PerLightConstantBuffer);
 
         this.Context.IA.SetVertexBuffer(this.Sphere.Vertices);
         this.Context.IA.SetIndexBuffer(this.Sphere.Indices);

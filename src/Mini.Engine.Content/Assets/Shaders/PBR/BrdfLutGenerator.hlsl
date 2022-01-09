@@ -1,4 +1,5 @@
 ﻿#include "Includes/BRDF.hlsl"
+#include "Includes/Lights.hlsl"
 
 struct VS_INPUT
 {

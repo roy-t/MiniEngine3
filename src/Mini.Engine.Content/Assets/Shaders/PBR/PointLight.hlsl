@@ -20,16 +20,20 @@ struct OUTPUT
     float4 Light : SV_TARGET;
 };
 
-cbuffer cVertexData : register(b0)
+cbuffer Constants : register(b0)
 {
-    float4x4 InverseViewProjection;
-    float4x4 WorldViewProjection;
-    float4 CameraPosition;
-    float4 LightPosition;
-    float4 Color;
-    float Strength;
-    float3 unused0;
+    float4x4 InverseViewProjection;    
+    float3 CameraPosition;
+    float Unused;
 };
+
+cbuffer PerLightConstants : register(b1)
+{
+    float4x4 WorldViewProjection;
+    float3 LightPosition;
+    float Strength;
+    float4 Color;    
+}
 
 sampler TextureSampler : register(s0);
 Texture2D Albedo : register(t0);
@@ -59,8 +63,8 @@ OUTPUT PS(PS_INPUT input)
     float3 position = ReadPosition(Depth, TextureSampler, input.texcoord, InverseViewProjection);
     Mat material = ReadMaterial(Material, TextureSampler, input.texcoord);
 
-    float3 L = normalize(LightPosition.xyz - position);
-    float3 Lo = ComputeLight(albedo, normal, material, position, CameraPosition.xyz, L, Color, Strength);
+    float3 L = normalize(LightPosition - position);
+    float3 Lo = ComputeLight(albedo, normal, material, position, CameraPosition, L, Color, Strength);
     Lo *= Attenuation(LightPosition.xyz, position);
     output.Light = float4(Lo, 1.0f);
 

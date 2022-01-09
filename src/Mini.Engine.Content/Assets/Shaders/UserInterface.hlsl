@@ -12,7 +12,7 @@ struct PS_INPUT
     float2 uv : TEXCOORD0;
 };
 
-cbuffer cVertexData : register(b0)
+cbuffer Constants : register(b0)
 {
     float4x4 ProjectionMatrix;
 };
