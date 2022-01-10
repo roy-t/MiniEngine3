@@ -9,7 +9,6 @@ using Mini.Engine.ECS.Entities;
 using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Models;
-using Mini.Engine.Graphics.Models.Generators;
 using Mini.Engine.Graphics.PBR;
 using Mini.Engine.Graphics.Transforms;
 
@@ -50,7 +49,7 @@ internal sealed class GameLoop : IDisposable
 
         var sphere = entities.Create();
         //models.Add(new ModelComponent(sphere, SphereGenerator.Generate(device, 3, content.LoadDefaultMaterial(), "Sphere")));
-        components.Add(new PointLightComponent(sphere, Vector4.One, 10.0f));
+        components.Add(new PointLightComponent(sphere, Vector4.One, 100.0f));
         components.Add(new TransformComponent(sphere));
     }
 
@@ -65,11 +64,13 @@ internal sealed class GameLoop : IDisposable
         this.FrameService.Alpha = alpha;
         this.Pipeline.Frame();
 
-        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Albedo, 0, 0, this.Device.Width, this.Device.Height);
-        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Material, this.Device.Width / 4, 0, this.Device.Width / 4, this.Device.Height / 4);
-        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Normal, this.Device.Width / 2, 0, this.Device.Width / 4, this.Device.Height / 4);
-        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Depth, (this.Device.Width / 4) * 3, 0, this.Device.Width / 4, this.Device.Height / 4);
-        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width / 4, this.Device.Height / 4);
+        // TODO: check if the colours match with MiniEngin.vNext to see if we did linear colours right!
+        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width, this.Device.Height);
+        //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Albedo, 0, 0, this.Device.Width, this.Device.Height);
+        //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Material, this.Device.Width / 4, 0, this.Device.Width / 4, this.Device.Height / 4);
+        //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Normal, this.Device.Width / 2, 0, this.Device.Width / 4, this.Device.Height / 4);
+        //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Depth, (this.Device.Width / 4) * 3, 0, this.Device.Width / 4, this.Device.Height / 4);
+        //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width / 4, this.Device.Height / 4);
 
         //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width, this.Device.Height);
     }

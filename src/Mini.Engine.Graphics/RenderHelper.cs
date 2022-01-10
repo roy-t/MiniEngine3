@@ -30,16 +30,16 @@ public class RenderHelper
         this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
     }
 
+    public void RenderToViewPort(DeviceContext context, ITexture2D texture)
+    {
+        context.OM.SetRenderTargetToBackBuffer();
+        this.Render(context, texture, 0, 0, this.Device.Width, this.Device.Height);
+    }
+
     public void RenderToViewPort(DeviceContext context, ITexture2D texture, int x, int y, int width, int height)
     {
         context.OM.SetRenderTargetToBackBuffer();
         this.Render(context, texture, x, y, width, height);
-    }
-
-    public void RenderToRenderTarget(DeviceContext context, RenderTarget2D renderTarget, ITexture2D texture)
-    {
-        context.OM.SetRenderTarget(renderTarget);
-        this.Render(context, texture, 0, 0, this.Device.Width, this.Device.Height);
     }
 
     private void Render(DeviceContext context, ITexture2D texture, int x, int y, int width, int height)

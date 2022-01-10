@@ -12,17 +12,11 @@ struct VS_INPUT
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
-    float2 texcoord : TEXCOORD;
+    noperspective float2 texcoord : TEXCOORD;
 };
-
-struct OUTPUT
-{
-    float4 Light : SV_TARGET;
-};
-
 cbuffer Constants : register(b0)
 {
-    float4x4 InverseViewProjection;    
+    float4x4 InverseViewProjection;
     float3 CameraPosition;
     float Unused;
 };
@@ -32,7 +26,7 @@ cbuffer PerLightConstants : register(b1)
     float4x4 WorldViewProjection;
     float3 LightPosition;
     float Strength;
-    float4 Color;    
+    float4 Color;
 }
 
 sampler TextureSampler : register(s0);
@@ -54,10 +48,8 @@ PS_INPUT VS(VS_INPUT input)
 }
 
 #pragma PixelShader
-OUTPUT PS(PS_INPUT input)
+float4 PS(PS_INPUT input) : SV_TARGET
 {
-    OUTPUT output;
-
     float3 albedo = ReadAlbedo(Albedo, TextureSampler, input.texcoord);
     float3 normal = ReadNormal(Normal, TextureSampler, input.texcoord);
     float3 position = ReadPosition(Depth, TextureSampler, input.texcoord, InverseViewProjection);
@@ -66,7 +58,6 @@ OUTPUT PS(PS_INPUT input)
     float3 L = normalize(LightPosition - position);
     float3 Lo = ComputeLight(albedo, normal, material, position, CameraPosition, L, Color, Strength);
     Lo *= Attenuation(LightPosition.xyz, position);
-    output.Light = float4(Lo, 1.0f);
-
-    return output;
+    
+    return float4(Lo, 1.0f);
 }
