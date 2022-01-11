@@ -1,3 +1,5 @@
+#include "Includes/Gamma.hlsl"
+
 struct VS_INPUT
 {
     float3 pos : POSITION;

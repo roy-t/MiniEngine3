@@ -18,8 +18,10 @@ namespace Mini.Engine.DirectX;
 
 public sealed class Device : IDisposable
 {
+    private const Format BackBufferFormat = Format.R8G8B8A8_UNorm;
+    private const Format RenderTargetViewFormat = Format.R8G8B8A8_UNorm_SRgb;
+
     private readonly IntPtr WindowHandle;
-    private readonly Format Format;
 
     private IDXGISwapChain swapChain = null!;
 
@@ -29,10 +31,9 @@ public sealed class Device : IDisposable
         private static readonly DeviceCreationFlags Flags = DeviceCreationFlags.None;
 #endif
 
-    public Device(IntPtr windowHandle, Format format, int width, int height)
+    public Device(IntPtr windowHandle, int width, int height)
     {
         this.WindowHandle = windowHandle;
-        this.Format = format;
         this.Width = width;
         this.Height = height;
 
@@ -134,7 +135,11 @@ public sealed class Device : IDisposable
     private void CreateBackBuffer()
     {
         this.BackBuffer = this.swapChain.GetBuffer<ID3D11Texture2D1>(0);
-        this.BackBufferView = this.ID3D11Device.CreateRenderTargetView(this.BackBuffer);
+
+        // Explicitly set the RTV to a format with SRGB while the actual backbuffer is a format without SRGB to properly
+        // let the output window be gamma corrected. See: https://docs.microsoft.com/en-us/windows/win32/direct3ddxgi/converting-data-color-space
+        var view = new RenderTargetViewDescription(this.BackBuffer, RenderTargetViewDimension.Texture2D, RenderTargetViewFormat);
+        this.BackBufferView = this.ID3D11Device.CreateRenderTargetView(this.BackBuffer, view);
         this.BackBufferView.DebugName = "BackBufferView";
     }
 
@@ -163,7 +168,7 @@ public sealed class Device : IDisposable
         return new SwapChainDescription1()
         {
             BufferCount = 2,
-            Format = this.Format,
+            Format = BackBufferFormat,
             AlphaMode = AlphaMode.Unspecified,
             Height = height,
             Width = width,

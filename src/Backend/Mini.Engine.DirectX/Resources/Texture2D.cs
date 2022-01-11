@@ -1,5 +1,5 @@
 ﻿using System;
-using Mini.Engine.DirectX.Resources;
+using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -26,7 +26,8 @@ public class Texture2D : ITexture2D
         this.Texture = device.ID3D11Device.CreateTexture2D(description);
         this.Texture.DebugName = name;
 
-        this.ShaderResourceView = device.ID3D11Device.CreateShaderResourceView(this.Texture);
+        var view = new ShaderResourceViewDescription(this.Texture, ShaderResourceViewDimension.Texture2D, format);
+        this.ShaderResourceView = device.ID3D11Device.CreateShaderResourceView(this.Texture, view);
         this.ShaderResourceView.DebugName = $"{name}_SRV";
     }
 
