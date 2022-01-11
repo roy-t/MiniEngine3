@@ -1,6 +1,8 @@
 # TODO
 Continue replacing things in Mini.Engine.Windows with this: https://github.com/microsoft/CsWin32
 
+Normal/Material/AO textures are gamma corrected which leads to wrong data!
+
 # Notes
 Particle renderer
 https://miketuritzin.com/post/rendering-particles-with-compute-shaders/

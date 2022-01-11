@@ -71,6 +71,7 @@ public partial class ModelSystem : ISystem
         };
         this.ConstantBuffer.MapData(this.Context, cBuffer);
         this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+        this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
 
         this.Context.IA.SetVertexBuffer(component.Model.Vertices);
         this.Context.IA.SetIndexBuffer(component.Model.Indices);

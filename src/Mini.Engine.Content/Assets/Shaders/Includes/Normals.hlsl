@@ -1,14 +1,14 @@
 ﻿#ifndef __NORMALS
 #define __NORMALS
 
-float4 PackNormal(float3 normal)
+float3 PackNormal(float3 normal)
 {
-    return float4(0.5f * (normalize(normal) + 1.0f), 1.0f);
+    return float3(0.5f * (normalize(normal) + 1.0f));
 }
 
-float4 UnpackNormal(float3 normal)
+float3 UnpackNormal(float3 normal)
 {
-    return float4(normalize((2.0f * normal) - 1.0f), 1.0f);
+    return float3(normalize((2.0f * normal) - 1.0f));
 }
 
 // Normal mapping as described by Christian Schüler in
@@ -34,7 +34,7 @@ float3x3 CotangentFrame(float3 N, float3 p, float2 uv)
 
 float3 PerturbNormal(Texture2D tex, sampler samp, float3 normal, float3 view, float2 uv)
 {
-    float3 map = UnpackNormal(tex.Sample(samp, uv).xyz).xyz;
+    float3 map = UnpackNormal(tex.Sample(samp, uv).xyz);
     float3x3 tbn = CotangentFrame(normal, -view, uv);
     return mul(map, tbn);
 }
