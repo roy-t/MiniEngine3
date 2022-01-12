@@ -1,5 +1,3 @@
-#include "Includes/Gamma.hlsl"
-
 struct VS_INPUT
 {
     float3 pos : POSITION;
@@ -266,4 +264,5 @@ float4 PS(PS_INPUT input) : SV_Target
     color = color / (color + float3(1.0f, 1.0f, 1.0f));
 
     return float4(color, 1.0f);
+    //return Texture.Sample(TextureSampler, input.tex);
 }

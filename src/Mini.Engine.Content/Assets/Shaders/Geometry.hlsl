@@ -1,4 +1,6 @@
-//#include "Includes/Normals.hlsl"
+#include "Includes/Gamma.hlsl"
+//#include "Includes/Normals.hlsl" // TODO: move back once SRGB issue is solved!
+
 float3 PackNormal(float3 normal)
 {
     return 0.5f * (normalize(normal) + 1.0f);
@@ -31,10 +33,15 @@ float3x3 CotangentFrame(float3 N, float3 p, float2 uv)
 }
 
 float3 PerturbNormal(Texture2D tex, sampler samp, float3 normal, float3 view, float2 uv)
-{
-    float3 map = UnpackNormal(tex.Sample(samp, uv).xyz);
+{    
+    //float3 map = UnpackNormal(float3(0.5f, 0.5f, 1.0f));
+    // TODO: because normal maps are marked as SRGB textures
+    // DirectX automatically converts them to linear color space
+    // this is incorrect so we undo it here, but ideally we 
+    // would mark these textures correctly!
+    float3 map = UnpackNormal(ToGamma(tex.Sample(samp, uv)).xyz);
     float3x3 tbn = CotangentFrame(normal, -view, uv);
-    return mul(map, tbn);
+    return normalize(mul(map, tbn));
 }
 
 struct VS_INPUT
@@ -47,10 +54,10 @@ struct VS_INPUT
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
+    float4 screen : SCREEN;
+    float3 world :  WORLD;
     float2 texcoord : TEXCOORD;
     float3 normal : NORMAL;
-    float3 world :  WORLD;
-    float4 screen : SCREEN;
 };
 
 struct OUTPUT
@@ -81,8 +88,10 @@ PS_INPUT VS(VS_INPUT input)
 {
     PS_INPUT output;
 
+    // TODO: might need to transpose world before taking the rotation matrix
+    // and then swap the arguments to mul!
     float3x3 rotation = (float3x3)World;
-    float4 position = float4(input.position.xyz, 1.0f);
+    float4 position = float4(input.position, 1.0f);
 
     output.position = mul(WorldViewProjection, position);
     output.world = mul(World, position).xyz;
@@ -111,8 +120,19 @@ OUTPUT PS(PS_INPUT input)
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
     output.depth = input.screen.z / input.screen.w;
     output.normal = float4(PackNormal(normal), 1.0f);
+    
+    //output.normal = float4(Normal.Sample(TextureSampler, input.texcoord).xyz, 1); 
+    //output.normal = float4(PackNormal(input.normal), 1.0f);
+    //output.normal = float4(V, 1);
 
-    //output.normal = float4(V, 1.0f);
+    // Checked
+    // - input.normal & Packing
+    // - CameraPosition
+    // - input.world
+    // - V
+    // - Normal and TextureSampler
+
+    // !!! its how the texture is read !!! Double gamma?
 
     return output;
 }

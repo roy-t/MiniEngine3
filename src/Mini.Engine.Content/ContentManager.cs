@@ -54,6 +54,11 @@ public sealed partial class ContentManager : IDisposable
         return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\AsteroidField\Asteroid001.obj"));
     }
 
+    public IModel LoadCube()
+    {
+        return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\cube\cube.obj"));
+    }
+
     public IMaterial LoadDefaultMaterial()
     {
         var albedo = this.TextureLoader.Load(this.Device, new ContentId("albedo.tga"));

@@ -60,7 +60,7 @@ public sealed class Device : IDisposable
 
     public int Width { get; private set; }
     public int Height { get; private set; }
-    public bool VSync { get; set; }
+    public bool VSync { get; set; } = true;
 
     public SamplerStates SamplerStates { get; }
     public BlendStates BlendStates { get; }

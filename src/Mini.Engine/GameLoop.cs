@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
@@ -42,6 +43,8 @@ internal sealed class GameLoop : IDisposable
         content.Push("Scene");
         // TODO: move to scene
         var entity = entities.Create();
+        //components.Add(new ModelComponent(entity, content.LoadCube()));
+        //components.Add(new TransformComponent(entity).SetScale(1.0f));
         components.Add(new ModelComponent(entity, content.LoadSponza()));
         components.Add(new TransformComponent(entity).SetScale(0.01f));
         //models.Add(new ModelComponent(entity, content.LoadAsteroid()));
@@ -50,13 +53,20 @@ internal sealed class GameLoop : IDisposable
         var sphere = entities.Create();
         //models.Add(new ModelComponent(sphere, SphereGenerator.Generate(device, 3, content.LoadDefaultMaterial(), "Sphere")));
         components.Add(new PointLightComponent(sphere, Vector4.One, 100.0f));
-        components.Add(new TransformComponent(sphere));
+        components.Add(new TransformComponent(sphere));//.ApplyTranslation(Vector3.One * 10));
     }
 
+    int i = 0;
     public void Update(float time, float elapsed)
     {
         this.Content.ReloadChangedContent();
         this.CameraController.Update(this.FrameService.Camera, elapsed);
+
+        if (i == 0)
+        {
+            Debug.WriteLine($"{this.FrameService.Camera.Transform.Position}");                        
+        }
+        i = (i + 1) % 10;
     }
 
     public void Draw(float alpha)
@@ -68,7 +78,10 @@ internal sealed class GameLoop : IDisposable
         this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width, this.Device.Height);
         //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Albedo, 0, 0, this.Device.Width, this.Device.Height);
         //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Material, this.Device.Width / 4, 0, this.Device.Width / 4, this.Device.Height / 4);
-        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Normal, this.Device.Width / 2, 0, this.Device.Width / 4, this.Device.Height / 4);
+
+
+        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Normal, this.Device.Width /2 , this.Device.Height / 2, this.Device.Width / 2, this.Device.Height / 2);
+
         //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Depth, (this.Device.Width / 4) * 3, 0, this.Device.Width / 4, this.Device.Height / 4);
         //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width / 4, this.Device.Height / 4);
 

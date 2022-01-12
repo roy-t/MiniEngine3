@@ -62,7 +62,7 @@ public class RenderHelper
 
         context.IA.SetVertexBuffer(this.FullScreenTriangle.Vertices);
         context.IA.SetIndexBuffer(this.FullScreenTriangle.Indices);
-        context.PS.SetShaderResource(0, texture);
+        context.PS.SetShaderResource(PostProcess.Texture, texture);
         context.DrawIndexed(FullScreenTriangle.PrimitiveCount, FullScreenTriangle.PrimitiveOffset, FullScreenTriangle.VertexOffset);
     }
 }
