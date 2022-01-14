@@ -10,13 +10,14 @@ internal record class MaterialData(ContentId Id, ITexture2D Albedo, ITexture2D M
 internal sealed class MaterialContent : IMaterial, IContent
 {
     private readonly IContentDataLoader<MaterialData> Loader;
+    private readonly ILoaderSettings Settings;
     private IMaterial material;
 
-    public MaterialContent(ContentId id, Device device, IContentDataLoader<MaterialData> loader)
+    public MaterialContent(ContentId id, Device device, IContentDataLoader<MaterialData> loader, ILoaderSettings settings)
     {
         this.Id = id;
         this.Loader = loader;
-
+        this.Settings = settings;
         this.Reload(device);
     }
 
@@ -31,7 +32,7 @@ internal sealed class MaterialContent : IMaterial, IContent
     [MemberNotNull(nameof(material))]
     public void Reload(Device device)
     {
-        var data = this.Loader.Load(device, this.Id);
+        var data = this.Loader.Load(device, this.Id, this.Settings);
         this.material = new Material(data.Albedo, data.Metalicness, data.Normal, data.Roughness, data.AmbientOcclusion, this.Id.ToString());
     }
 

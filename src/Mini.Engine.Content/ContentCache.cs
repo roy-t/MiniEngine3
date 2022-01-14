@@ -20,7 +20,7 @@ internal sealed class ContentCache<T> : IContentLoader<T>
         this.Loader = loader;
     }
 
-    public T Load(Device device, ContentId id)
+    public T Load(Device device, ContentId id, ILoaderSettings settings)
     {
         if (this.Cache.TryGetValue(id, out var entry))
         {
@@ -28,7 +28,7 @@ internal sealed class ContentCache<T> : IContentLoader<T>
             return entry.Item;
         }
 
-        var data = this.Loader.Load(device, id);
+        var data = this.Loader.Load(device, id, settings);
         this.Cache.Add(id, new Entry(data) { ReferenceCount = 1 });
 
         return data;

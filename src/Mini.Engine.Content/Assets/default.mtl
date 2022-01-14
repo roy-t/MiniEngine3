@@ -1,0 +1,6 @@
+newmtl default
+map_Kd albedo.tga
+map_Ka metalicness.tga
+map_bump normal.tga
+map_Ns roughness.tga
+map_Ke ao.tga

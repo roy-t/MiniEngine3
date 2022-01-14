@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.IO;
+using Vortice.DXGI;
 
 namespace Mini.Engine.Content.Materials.Wavefront;
 
@@ -33,7 +34,7 @@ internal sealed partial class WavefrontMaterialDataLoader : IContentDataLoader<M
         this.FileSystem = fileSystem;
     }
 
-    public MaterialData Load(Device device, ContentId id)
+    public MaterialData Load(Device device, ContentId id, ILoaderSettings settings)
     {
         var state = new ParseState();
         var text = this.FileSystem.ReadAllText(id.Path).AsSpan();
@@ -51,12 +52,26 @@ internal sealed partial class WavefrontMaterialDataLoader : IContentDataLoader<M
         state.EndMaterial();
         var record = GetRecord(id, state);
 
+        Format? albedoFormat = null;
+        Format? metalicnessFormat = null;
+        Format? normalFormat = null;
+        Format? roughnessFormat = null;
+        Format? ambientOcclusionFormat = null;
+        if (settings is MaterialLoaderSettings materialSettings)
+        {
+            albedoFormat = materialSettings.AlbedoFormat;
+            metalicnessFormat = materialSettings.MetalicnessFormat;
+            normalFormat = materialSettings.NormalFormat;
+            roughnessFormat = materialSettings.RoughnessFormat;
+            ambientOcclusionFormat = materialSettings.AmbientOcclusionFormat;
+        }
+
         return new MaterialData(id,
-            this.TextureLoader.Load(device, GetIdOrFallback(id, MaterialType.Albedo, record.Albedo)),
-            this.TextureLoader.Load(device, GetIdOrFallback(id, MaterialType.Metalicness, record.Metalicness)),
-            this.TextureLoader.Load(device, GetIdOrFallback(id, MaterialType.Normal, record.Normal)),
-            this.TextureLoader.Load(device, GetIdOrFallback(id, MaterialType.Roughness, record.Roughness)),
-            this.TextureLoader.Load(device, GetIdOrFallback(id, MaterialType.AmbientOcclusion, record.AmbientOcclusion)));
+            this.TextureLoader.Load(device, GetIdOrFallback(id, MaterialType.Albedo, record.Albedo), new TextureLoaderSettings(albedoFormat)),
+            this.TextureLoader.Load(device, GetIdOrFallback(id, MaterialType.Metalicness, record.Metalicness), new TextureLoaderSettings(metalicnessFormat)),
+            this.TextureLoader.Load(device, GetIdOrFallback(id, MaterialType.Normal, record.Normal), new TextureLoaderSettings(normalFormat)),
+            this.TextureLoader.Load(device, GetIdOrFallback(id, MaterialType.Roughness, record.Roughness), new TextureLoaderSettings(roughnessFormat)),
+            this.TextureLoader.Load(device, GetIdOrFallback(id, MaterialType.AmbientOcclusion, record.AmbientOcclusion), new TextureLoaderSettings(ambientOcclusionFormat)));
     }
 
     private static MaterialRecords GetRecord(ContentId id, ParseState state)
@@ -83,5 +98,5 @@ internal sealed partial class WavefrontMaterialDataLoader : IContentDataLoader<M
         }
 
         return parent.RelativeTo(path);
-    }
+    }   
 }

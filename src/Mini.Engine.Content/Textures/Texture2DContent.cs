@@ -12,13 +12,14 @@ internal sealed record TextureData(ContentId Id, int Width, int Height, int Pitc
 internal sealed class Texture2DContent : ITexture2D, IContent
 {
     private readonly IContentDataLoader<TextureData> Loader;
+    private readonly ILoaderSettings Settings;
     private ITexture2D texture;
 
-    public Texture2DContent(ContentId id, Device device, IContentDataLoader<TextureData> loader)
+    public Texture2DContent(ContentId id, Device device, IContentDataLoader<TextureData> loader, ILoaderSettings settings)
     {
         this.Id = id;
         this.Loader = loader;
-
+        this.Settings = settings;
         this.Reload(device);
     }
 
@@ -32,7 +33,7 @@ internal sealed class Texture2DContent : ITexture2D, IContent
     {
         this.texture?.Dispose();
 
-        var data = this.Loader.Load(device, this.Id);
+        var data = this.Loader.Load(device, this.Id, this.Settings);
         this.texture = new Texture2D(device, data.Data, data.Width, data.Height, data.Format, true, data.Id.ToString());
     }
 

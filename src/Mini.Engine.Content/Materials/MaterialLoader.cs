@@ -5,11 +5,12 @@ using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
+using Vortice.DXGI;
 
 namespace Mini.Engine.Content.Materials;
 
 internal sealed class MaterialLoader : IContentLoader<MaterialContent>
-{
+{    
     private readonly IContentDataLoader<MaterialData> WavefrontMaterialDataLoader;
     private readonly ContentManager Content;
 
@@ -19,7 +20,7 @@ internal sealed class MaterialLoader : IContentLoader<MaterialContent>
         this.Content = content;
     }
 
-    public MaterialContent Load(Device device, ContentId id)
+    public MaterialContent Load(Device device, ContentId id, ILoaderSettings settings)
     {
         var extension = Path.GetExtension(id.Path).ToLowerInvariant();
         IContentDataLoader<MaterialData> loader = extension switch
@@ -28,7 +29,7 @@ internal sealed class MaterialLoader : IContentLoader<MaterialContent>
             _ => throw new NotSupportedException($"Could not load {id}. Unsupported material file extension: {extension}"),
         };
 
-        var content = new MaterialContent(id, device, loader);
+        var content = new MaterialContent(id, device, loader, settings);
         this.Content.Add(content);
 
         return content;

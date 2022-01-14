@@ -18,7 +18,7 @@ internal sealed class HdrTextureDataLoader : IContentDataLoader<TextureData>
         this.FileSystem = fileSystem;
     }
 
-    public TextureData Load(Device device, ContentId id)
+    public TextureData Load(Device device, ContentId id, ILoaderSettings settings)
     {
         using var stream = this.FileSystem.OpenRead(id.Path);
         var image = ImageResultFloat.FromStream(stream, ColorComponents.RedGreenBlueAlpha);

@@ -17,7 +17,7 @@ internal sealed class ModelLoader : IContentLoader<ModelContent>
         this.Content = content;
     }
 
-    public ModelContent Load(Device device, ContentId id)
+    public ModelContent Load(Device device, ContentId id, ILoaderSettings settings)
     {
         var extension = Path.GetExtension(id.Path).ToLowerInvariant();
         IContentDataLoader<ModelData> loader = extension switch
@@ -27,7 +27,7 @@ internal sealed class ModelLoader : IContentLoader<ModelContent>
         };
 
 
-        var content = new ModelContent(id, device, loader);
+        var content = new ModelContent(id, device, loader, settings);
         this.Content.Add(content);
 
         return content;

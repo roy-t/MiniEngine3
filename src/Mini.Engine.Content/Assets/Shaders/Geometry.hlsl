@@ -34,12 +34,7 @@ float3x3 CotangentFrame(float3 N, float3 p, float2 uv)
 
 float3 PerturbNormal(Texture2D tex, sampler samp, float3 normal, float3 view, float2 uv)
 {    
-    //float3 map = UnpackNormal(float3(0.5f, 0.5f, 1.0f));
-    // TODO: because normal maps are marked as SRGB textures
-    // DirectX automatically converts them to linear color space
-    // this is incorrect so we undo it here, but ideally we 
-    // would mark these textures correctly!
-    float3 map = UnpackNormal(ToGamma(tex.Sample(samp, uv)).xyz);
+    float3 map = UnpackNormal(tex.Sample(samp, uv).xyz);
     float3x3 tbn = CotangentFrame(normal, -view, uv);
     return normalize(mul(map, tbn));
 }

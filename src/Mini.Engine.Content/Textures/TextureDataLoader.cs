@@ -16,12 +16,19 @@ internal sealed class TextureDataLoader : IContentDataLoader<TextureData>
         this.FileSystem = fileSystem;
     }
 
-    public TextureData Load(Device device, ContentId id)
+    public TextureData Load(Device device, ContentId id, ILoaderSettings settings)
     {
         using var stream = this.FileSystem.OpenRead(id.Path);
         var image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
         var pitch = image.Width * FormatSizeInBytes;
 
-        return new TextureData(id, image.Width, image.Height, pitch, ColorFormat, image.Data);
+
+        var format = ColorFormat;
+        if (settings is TextureLoaderSettings textureLoaderSettings)
+        {
+            format = textureLoaderSettings.PreferredFormat ?? format;
+        }
+
+        return new TextureData(id, image.Width, image.Height, pitch, format, image.Data);
     }
 }

@@ -11,13 +11,14 @@ internal sealed record ModelData(ContentId Id, ModelVertex[] Vertices, int[] Ind
 internal sealed class ModelContent : IModel, IContent
 {
     private readonly IContentDataLoader<ModelData> Loader;
+    private readonly ILoaderSettings Settings;
     private IModel model;
 
-    public ModelContent(ContentId id, Device device, IContentDataLoader<ModelData> loader)
+    public ModelContent(ContentId id, Device device, IContentDataLoader<ModelData> loader, ILoaderSettings settings)
     {
         this.Id = id;
         this.Loader = loader;
-
+        this.Settings = settings;
         this.Reload(device);
     }
 
@@ -33,7 +34,7 @@ internal sealed class ModelContent : IModel, IContent
     {
         this.model?.Dispose();
 
-        var data = this.Loader.Load(device, this.Id);
+        var data = this.Loader.Load(device, this.Id, this.Settings);
         this.model = new Model(device, data.Vertices, data.Indices, data.Primitives, data.Materials, data.Id.ToString());
     }
 

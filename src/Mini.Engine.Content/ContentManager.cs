@@ -46,27 +46,22 @@ public sealed partial class ContentManager : IDisposable
 
     public IModel LoadSponza()
     {
-        return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\sponza\sponza.obj"));
+        return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\sponza\sponza.obj"), ModelLoaderSettings.Default);
     }
 
     public IModel LoadAsteroid()
     {
-        return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\AsteroidField\Asteroid001.obj"));
+        return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\AsteroidField\Asteroid001.obj"), ModelLoaderSettings.Default);
     }
 
     public IModel LoadCube()
     {
-        return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\cube\cube.obj"));
+        return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\cube\cube.obj"), ModelLoaderSettings.Default);
     }
 
     public IMaterial LoadDefaultMaterial()
     {
-        var albedo = this.TextureLoader.Load(this.Device, new ContentId("albedo.tga"));
-        var ambientOccclusion = this.TextureLoader.Load(this.Device, new ContentId("ao.tga"));
-        var metalicness = this.TextureLoader.Load(this.Device, new ContentId("metalicness.tga"));
-        var roughness = this.TextureLoader.Load(this.Device, new ContentId("roughness.tga"));
-        var normal = this.TextureLoader.Load(this.Device, new ContentId("normal.tga"));
-        return new Material(albedo, metalicness, normal, roughness, ambientOccclusion, "Default");
+        return this.MaterialLoader.Load(this.Device, new ContentId("default.mtl", "default"), MaterialLoaderSettings.Default);
     }
 
     public void Push(string name)

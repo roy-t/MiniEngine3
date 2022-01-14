@@ -19,7 +19,7 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
         this.Content = content;
     }
 
-    public Texture2DContent Load(Device device, ContentId id)
+    public Texture2DContent Load(Device device, ContentId id, ILoaderSettings settings)
     {
         var extension = Path.GetExtension(id.Path).ToLowerInvariant();
         IContentDataLoader<TextureData> loader = extension switch
@@ -29,7 +29,7 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
             _ => throw new NotSupportedException($"Could not load {id}. Unsupported image file type: {extension}"),
         };
 
-        var content = new Texture2DContent(id, device, loader);
+        var content = new Texture2DContent(id, device, loader, settings);
         this.Content.Add(content);
         return content;
     }

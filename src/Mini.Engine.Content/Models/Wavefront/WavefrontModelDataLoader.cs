@@ -41,7 +41,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
         this.MaterialLoader = materialLoader;
     }
 
-    public ModelData Load(Device device, ContentId id)
+    public ModelData Load(Device device, ContentId id, ILoaderSettings settings)
     {
         var text = this.FileSystem.ReadAllText(id.Path).AsSpan();
 
@@ -57,7 +57,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
             }
         }
 
-        return this.TransformToModelData(device, id, state);
+        return this.TransformToModelData(device, id, state, settings);
     }
 
     private class ModelVertexComparer : IEqualityComparer<ModelVertex>
@@ -73,7 +73,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
         }
     }
 
-    private ModelData TransformToModelData(Device device, ContentId id, ParseState state)
+    private ModelData TransformToModelData(Device device, ContentId id, ParseState state, ILoaderSettings settings)
     {
         if (state.Group != null)
         {
@@ -88,7 +88,7 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
         var comparer = new ModelVertexComparer();
         var vertices = new Dictionary<ModelVertex, int>(comparer);
         var primitives = new List<Primitive>();
-        var materials = this.LoadMaterialData(device, id, state);
+        var materials = this.LoadMaterialData(device, id, state, settings);
         var indexList = new List<int>();
         var nextIndex = 0;
 
@@ -164,14 +164,14 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
         return new ModelData(id, vertexArray, indexList.ToArray(), primitives.ToArray(), materials);
     }
 
-    private MaterialContent[] LoadMaterialData(Device device, ContentId id, ParseState state)
+    private MaterialContent[] LoadMaterialData(Device device, ContentId id, ParseState state, ILoaderSettings settings)
     {
         var materialKeys = state.Groups.Select(x => x.Material ?? string.Empty).ToHashSet().ToArray();
         var materials = new MaterialContent[materialKeys.Length];
         for (var i = 0; i < materials.Length; i++)
         {
             var materialId = id.RelativeTo(state.MaterialLibrary, materialKeys[i]);
-            materials[i] = this.MaterialLoader.Load(device, materialId);
+            materials[i] = this.MaterialLoader.Load(device, materialId, ((ModelLoaderSettings)settings).MaterialSettings);
         }
 
         return materials;
