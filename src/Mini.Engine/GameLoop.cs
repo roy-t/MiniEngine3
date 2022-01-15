@@ -46,6 +46,7 @@ internal sealed class GameLoop : IDisposable
         //components.Add(new ModelComponent(entity, content.LoadCube()));
         //components.Add(new TransformComponent(entity).SetScale(1.0f));
         components.Add(new ModelComponent(entity, content.LoadSponza()));
+
         components.Add(new TransformComponent(entity).SetScale(0.01f));
         //models.Add(new ModelComponent(entity, content.LoadAsteroid()));
 
@@ -75,7 +76,7 @@ internal sealed class GameLoop : IDisposable
         this.Pipeline.Frame();
 
         this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width, this.Device.Height);
-        //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Normal, this.Device.Width /2 , this.Device.Height / 2, this.Device.Width / 2, this.Device.Height / 2);
+        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Normal, this.Device.Width /2 , this.Device.Height / 2, this.Device.Width / 2, this.Device.Height / 2);
     }
 
     public void Dispose()
