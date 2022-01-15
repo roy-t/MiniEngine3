@@ -16,6 +16,7 @@ namespace Mini.Engine;
 public sealed class GameBootstrapper : IDisposable
 {
     private static readonly ushort Escape = InputService.GetScanCode(VK.ESCAPE);
+    private static readonly ushort F12 = InputService.GetScanCode(VK.F12);
 
     private readonly Win32Window Window;
     private readonly Device Device;
@@ -35,7 +36,7 @@ public sealed class GameBootstrapper : IDisposable
     {
         this.Logger = logger.ForContext<GameBootstrapper>();
 
-        this.Window = Win32Application.Initialize("Mini.Engine", 1280, 720);
+        this.Window = Win32Application.Initialize("Mini.Engine", 1920, 1080);
         this.Window.Show();
 
         this.LoadRenderDoc();
@@ -85,6 +86,11 @@ public sealed class GameBootstrapper : IDisposable
                     if (this.Keyboard.Pressed(Escape))
                     {
                         this.Window.Dispose();
+                    }
+
+                    if(this.Keyboard.Pressed(F12))
+                    {
+                        this.Device.VSync = !this.Device.VSync;
                     }
                 }
 

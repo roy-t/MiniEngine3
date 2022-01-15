@@ -79,9 +79,9 @@ public sealed class CameraController
         while (this.InputController.ProcessEvents(this.Mouse))
         {
             movement += this.Mouse.Movement;
-            scrolledUp = this.Mouse.ScrolledUp;
-            scrolledDown = this.Mouse.ScrolledDown;
-            rightButtonDown = this.Mouse.Held(MouseButtons.Right);
+            scrolledUp |= this.Mouse.ScrolledUp;
+            scrolledDown |= this.Mouse.ScrolledDown;
+            rightButtonDown |= this.Mouse.Held(MouseButtons.Right);
         }
 
         if (movement.LengthSquared() > 0 && rightButtonDown)

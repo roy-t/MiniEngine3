@@ -74,18 +74,8 @@ internal sealed class GameLoop : IDisposable
         this.FrameService.Alpha = alpha;
         this.Pipeline.Frame();
 
-        // TODO: check if the colours match with MiniEngin.vNext to see if we did linear colours right!
         this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width, this.Device.Height);
-        //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Albedo, 0, 0, this.Device.Width, this.Device.Height);
-        //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Material, this.Device.Width / 4, 0, this.Device.Width / 4, this.Device.Height / 4);
-
-
-        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Normal, this.Device.Width /2 , this.Device.Height / 2, this.Device.Width / 2, this.Device.Height / 2);
-
-        //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Depth, (this.Device.Width / 4) * 3, 0, this.Device.Width / 4, this.Device.Height / 4);
-        //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width / 4, this.Device.Height / 4);
-
-        //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width, this.Device.Height);
+        //this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Normal, this.Device.Width /2 , this.Device.Height / 2, this.Device.Width / 2, this.Device.Height / 2);
     }
 
     public void Dispose()
