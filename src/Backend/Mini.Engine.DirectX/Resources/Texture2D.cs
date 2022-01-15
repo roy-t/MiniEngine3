@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
@@ -9,6 +10,9 @@ public class Texture2D : ITexture2D
 {
     public Texture2D(Device device, int width, int height, Format format, bool generateMipMaps = false, string name = "")
     {
+        this.Dimensions = new Vector2(width, height);
+        this.Format = format;
+
         var description = new Texture2DDescription
         {
             Width = width,
@@ -48,6 +52,9 @@ public class Texture2D : ITexture2D
             device.ID3D11DeviceContext.GenerateMips(this.ShaderResourceView);
         }
     }
+
+    public Vector2 Dimensions { get; }
+    public Format Format { get; }
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }

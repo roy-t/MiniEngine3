@@ -17,6 +17,12 @@ public sealed class Services
         return this.Container.GetInstance<T>();
     }
 
+    public bool TryResolve<T>(out T instance)
+    {
+        instance = this.Container.TryGetInstance<T>();
+        return instance != null;
+    }
+
     public T Resolve<T>(Type subType)
     {
         return (T)this.Container.GetInstance(subType);

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
@@ -8,7 +7,6 @@ using Mini.Engine.IO;
 using Mini.Engine.UI;
 using Mini.Engine.Windows;
 using Serilog;
-using Vortice.DXGI;
 using Vortice.Win32;
 
 namespace Mini.Engine;
@@ -16,7 +14,7 @@ namespace Mini.Engine;
 public sealed class GameBootstrapper : IDisposable
 {
     private static readonly ushort Escape = InputService.GetScanCode(VK.ESCAPE);
-    private static readonly ushort F12 = InputService.GetScanCode(VK.F12);
+    private static readonly ushort F1 = InputService.GetScanCode(VK.F1);
 
     private readonly Win32Window Window;
     private readonly Device Device;
@@ -27,10 +25,10 @@ public sealed class GameBootstrapper : IDisposable
     private readonly GameLoop GameLoop;
     private readonly ILogger Logger;
 
-    private RenderDoc? renderDoc;
-
     private readonly InputService InputService;
     private readonly Keyboard Keyboard;
+
+    private bool EnableUI = true;
 
     public GameBootstrapper(ILogger logger, Services services)
     {
@@ -39,7 +37,7 @@ public sealed class GameBootstrapper : IDisposable
         this.Window = Win32Application.Initialize("Mini.Engine", 1920, 1080);
         this.Window.Show();
 
-        this.LoadRenderDoc();
+        this.LoadRenderDoc(services);
 
         this.Device = new Device(this.Window.Handle, this.Window.Width, this.Window.Height);
         this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
@@ -75,7 +73,10 @@ public sealed class GameBootstrapper : IDisposable
             elapsed = Math.Min(elapsed, 0.25);
             accumulator += elapsed;
 
-            this.UI.NewFrame((float)elapsed);
+            if (this.EnableUI)
+            {
+                this.UI.NewFrame((float)elapsed);
+            }
             this.DebugLayerLogger.LogMessages();
 
             while (accumulator >= dt)
@@ -88,9 +89,9 @@ public sealed class GameBootstrapper : IDisposable
                         this.Window.Dispose();
                     }
 
-                    if(this.Keyboard.Pressed(F12))
+                    if(this.Keyboard.Pressed(F1))
                     {
-                        this.Device.VSync = !this.Device.VSync;
+                        this.EnableUI = !this.EnableUI;
                     }
                 }
 
@@ -103,11 +104,11 @@ public sealed class GameBootstrapper : IDisposable
 
             var alpha = accumulator / dt;
             this.Device.ClearBackBuffer();
-            this.GameLoop.Draw((float)alpha); // alpha signifies how much to lerp betwen current and future state
-#if DEBUG
-            this.ShowRenderDocUI();
-#endif
-            this.UI.Render();
+            this.GameLoop.Draw((float)alpha); // alpha signifies how much to lerp between current and future state
+            if (this.EnableUI)
+            {
+                this.UI.Render();
+            }
             this.Device.Present();
 
         }
@@ -118,35 +119,14 @@ public sealed class GameBootstrapper : IDisposable
         this.UI.Dispose();
     }
 
-    private void ShowRenderDocUI()
-    {
-        if (this.renderDoc is RenderDoc renderDoc)
-        {
-            if (ImGui.Begin("RenderDoc"))
-            {
-                if (ImGui.MenuItem("Capture"))
-                {
-                    renderDoc.TriggerCapture();
-                }
-
-                if (ImGui.MenuItem("Open Last Capture", renderDoc.GetNumCaptures() > 0))
-                {
-                    var path = renderDoc.GetCapture(renderDoc.GetNumCaptures() - 1);
-                    renderDoc.LaunchReplayUI(path);
-                }
-                ImGui.End();
-            }
-        }
-    }
-
-    private void LoadRenderDoc()
+    private void LoadRenderDoc(Services services)
     {
         if (StartupArguments.EnableRenderDoc)
         {
             var loaded = RenderDoc.Load(out var renderDoc);
             if (loaded)
             {
-                this.renderDoc = renderDoc;
+                services.Register(renderDoc);
                 this.Logger.Information("Started RenderDoc");
             }
             else

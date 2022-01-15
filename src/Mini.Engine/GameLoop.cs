@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
@@ -56,18 +55,11 @@ internal sealed class GameLoop : IDisposable
         components.Add(new PointLightComponent(sphere, Vector4.One, 100.0f));
         components.Add(new TransformComponent(sphere));//.ApplyTranslation(Vector3.One * 10));
     }
-
-    int i = 0;
+    
     public void Update(float time, float elapsed)
     {
         this.Content.ReloadChangedContent();
         this.CameraController.Update(this.FrameService.Camera, elapsed);
-
-        if (i == 0)
-        {
-            Debug.WriteLine($"{this.FrameService.Camera.Transform.Position}");                        
-        }
-        i = (i + 1) % 10;
     }
 
     public void Draw(float alpha)
@@ -75,8 +67,7 @@ internal sealed class GameLoop : IDisposable
         this.FrameService.Alpha = alpha;
         this.Pipeline.Frame();
 
-        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width, this.Device.Height);
-        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.GBuffer.Normal, this.Device.Width /2 , this.Device.Height / 2, this.Device.Width / 2, this.Device.Height / 2);
+        this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width, this.Device.Height);     
     }
 
     public void Dispose()
