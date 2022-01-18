@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D11;
@@ -20,10 +21,11 @@ internal sealed class Texture2DContent : ITexture2D, IContent
         this.Id = id;
         this.Loader = loader;
         this.Settings = settings;
-        this.Reload(device);
+        this.Reload(device);        
     }
 
     public ContentId Id { get; }
+    public Vector2 Dimensions => this.texture.Dimensions;
 
     ID3D11ShaderResourceView ITexture2D.ShaderResourceView => this.texture.ShaderResourceView;
     ID3D11Texture2D ITexture2D.Texture => this.texture.Texture;

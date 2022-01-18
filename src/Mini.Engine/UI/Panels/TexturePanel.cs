@@ -11,46 +11,49 @@ namespace Mini.Engine.UI.Panels;
 [Service]
 internal sealed class TexturePanel : IPanel
 {
-    private string[] RenderTargetNames;
-    private RenderTarget2D[] RenderTargets;
-    private IntPtr[] RenderTargetIds;
-    private int selectedRenderTarget;
+    private readonly string[] Names;
+    private readonly ITexture2D[] Textures;
+    private readonly IntPtr[] Ids;
+    private int selected;
 
     public TexturePanel(FrameService frameService, UITextureRegistry textureRegistry)
     {
-        this.RenderTargetNames = new string[]
+        this.Names = new string[]
         {
             nameof(frameService.GBuffer.Albedo),
             nameof(frameService.GBuffer.Material),
             nameof(frameService.GBuffer.Normal),
             nameof(frameService.GBuffer.Depth),
-            nameof(frameService.LBuffer.Light)
+            nameof(frameService.LBuffer.Light),
+            nameof(frameService.GBuffer.DepthStencilBuffer)
         };
 
-        this.RenderTargets = new RenderTarget2D[]
+        this.Textures = new ITexture2D[]
         {
             frameService.GBuffer.Albedo,
             frameService.GBuffer.Material,
             frameService.GBuffer.Normal,
             frameService.GBuffer.Depth,
             frameService.LBuffer.Light,
+            frameService.GBuffer.DepthStencilBuffer
+
         };
 
-        this.RenderTargetIds = this.RenderTargets.Select(rt => textureRegistry.Register(rt)).ToArray();
+        this.Ids = this.Textures.Select(rt => textureRegistry.Register(rt)).ToArray();
     }
 
     public string Title => "Textures";
 
     public void Update(float elapsed)
     {
-        if (ImGui.BeginCombo("Render Targets", this.RenderTargetNames[this.selectedRenderTarget]))
+        if (ImGui.BeginCombo("Render Targets", this.Names[this.selected]))
         {
-            for (var i = 0; i < this.RenderTargetNames.Length; i++)
+            for (var i = 0; i < this.Names.Length; i++)
             {
-                var isSelected = i == this.selectedRenderTarget;
-                if (ImGui.Selectable(this.RenderTargetNames[i], isSelected))
+                var isSelected = i == this.selected;
+                if (ImGui.Selectable(this.Names[i], isSelected))
                 {
-                    this.selectedRenderTarget = i;
+                    this.selected = i;
                 }
 
                 if (isSelected)
@@ -61,12 +64,12 @@ internal sealed class TexturePanel : IPanel
             ImGui.EndCombo();
         }
 
-        var selected = this.RenderTargets[this.selectedRenderTarget];
-        ImGui.Image(this.RenderTargetIds[this.selectedRenderTarget], Fit(selected, ImGui.GetWindowContentRegionWidth()));
+        var selected = this.Textures[this.selected];
+        ImGui.Image(this.Ids[this.selected], Fit(selected, ImGui.GetWindowContentRegionWidth()));
     }
 
 
-    private static Vector2 Fit(Texture2D texture, float maxWidth)
+    private static Vector2 Fit(ITexture2D texture, float maxWidth)
     {
         var factor = Math.Min(1, maxWidth / texture.Dimensions.X);
         return texture.Dimensions * factor;

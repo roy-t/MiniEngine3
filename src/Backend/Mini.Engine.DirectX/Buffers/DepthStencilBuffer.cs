@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Numerics;
+using System.Xml.Linq;
+using Mini.Engine.DirectX.Resources;
+using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -12,11 +16,11 @@ public enum DepthStencilFormat
     D32_Float_S8X24_UInt
 }
 
-public sealed class DepthStencilBuffer : IDisposable
+public sealed class DepthStencilBuffer : ITexture2D
 {
-    public DepthStencilBuffer(Device device, DepthStencilFormat depthStencilFormat, int width, int height)
+    public DepthStencilBuffer(Device device, DepthStencilFormat format, int width, int height)
     {
-        var format = ToFormat(depthStencilFormat);
+        this.Dimensions = new Vector2(width, height);
 
         var description = new Texture2DDescription
         {
@@ -24,10 +28,10 @@ public sealed class DepthStencilBuffer : IDisposable
             Height = height,
             MipLevels = 1,
             ArraySize = 1,
-            Format = format,
+            Format = ToTextureFormat(format),
             SampleDescription = new SampleDescription(1, 0),
             Usage = ResourceUsage.Default,
-            BindFlags = BindFlags.DepthStencil,
+            BindFlags = BindFlags.DepthStencil | BindFlags.ShaderResource,
             CpuAccessFlags = CpuAccessFlags.None,
             OptionFlags = ResourceOptionFlags.None
         };
@@ -35,13 +39,25 @@ public sealed class DepthStencilBuffer : IDisposable
         this.Texture = device.ID3D11Device.CreateTexture2D(description);
         this.Texture.DebugName = nameof(DepthStencilBuffer);
 
-        this.DepthStencilView = device.ID3D11Device.CreateDepthStencilView(this.Texture);
+        var depthView = new DepthStencilViewDescription(DepthStencilViewDimension.Texture2D, ToDepthViewFormat(format));
+        this.DepthStencilView = device.ID3D11Device.CreateDepthStencilView(this.Texture, depthView);
+        this.DepthStencilView.DebugName = $"{nameof(DepthStencilBuffer)}_DSV";
+
+        var view = new ShaderResourceViewDescription(this.Texture, ShaderResourceViewDimension.Texture2D, ToShaderResourceViewFormat(format));
+        this.ShaderResourceView = device.ID3D11Device.CreateShaderResourceView(this.Texture, view);
+        this.ShaderResourceView.DebugName = $"{nameof(DepthStencilBuffer)}_SRV";        
     }
 
+    public Vector2 Dimensions { get; }
+
     internal ID3D11Texture2D Texture { get; }
+    internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11DepthStencilView DepthStencilView { get; }
 
-    private static Format ToFormat(DepthStencilFormat format)
+    ID3D11ShaderResourceView ITexture2D.ShaderResourceView => this.ShaderResourceView;
+    ID3D11Texture2D ITexture2D.Texture => this.Texture;
+
+    private static Format ToDepthViewFormat(DepthStencilFormat format)
     {
         return format switch
         {
@@ -53,8 +69,34 @@ public sealed class DepthStencilBuffer : IDisposable
         };
     }
 
+
+    private static Format ToTextureFormat(DepthStencilFormat format)
+    {
+        return format switch
+        {
+            DepthStencilFormat.D16_UNorm => Format.R16_Typeless,
+            DepthStencilFormat.D24_UNorm_S8_UInt => Format.R24G8_Typeless,
+            DepthStencilFormat.D32_Float => Format.R32_Typeless,
+            DepthStencilFormat.D32_Float_S8X24_UInt => Format.R32G8X24_Typeless,
+            _ => throw new ArgumentOutOfRangeException(nameof(format)),
+        };
+    }
+
+    private static Format ToShaderResourceViewFormat(DepthStencilFormat format)
+    {
+        return format switch
+        {
+            DepthStencilFormat.D16_UNorm => Format.R16_UNorm,
+            DepthStencilFormat.D24_UNorm_S8_UInt => Format.R24_UNorm_X8_Typeless,
+            DepthStencilFormat.D32_Float => Format.R32_Float,
+            DepthStencilFormat.D32_Float_S8X24_UInt => Format.R32_Float_X8X24_Typeless,
+            _ => throw new ArgumentOutOfRangeException(nameof(format)),
+        };
+    }
+
     public void Dispose()
     {
+        this.ShaderResourceView.Dispose();
         this.DepthStencilView.Dispose();
         this.Texture.Dispose();
     }
