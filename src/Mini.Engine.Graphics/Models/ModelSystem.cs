@@ -53,7 +53,7 @@ public partial class ModelSystem : ISystem
         this.Context.PS.SetShader(this.PixelShader);
         this.Context.PS.SetSampler(Geometry.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);
 
-        this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Depth, this.FrameService.GBuffer.Normal);
+        this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal);
 
         this.Context.OM.SetBlendState(this.Device.BlendStates.Opaque);
         this.Context.OM.SetDepthStencilState(this.Device.DepthStencilStates.Default);

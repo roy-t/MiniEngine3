@@ -61,7 +61,7 @@ public partial class PointLightSystem : ISystem
         this.Context.PS.SetSampler(0, this.Device.SamplerStates.LinearClamp);
         this.Context.PS.SetShaderResource(PointLight.Albedo, this.FrameService.GBuffer.Albedo);
         this.Context.PS.SetShaderResource(PointLight.Normal, this.FrameService.GBuffer.Normal);
-        this.Context.PS.SetShaderResource(PointLight.Depth, this.FrameService.GBuffer.Depth);
+        this.Context.PS.SetShaderResource(PointLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
         this.Context.PS.SetShaderResource(PointLight.Material, this.FrameService.GBuffer.Material);
 
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);

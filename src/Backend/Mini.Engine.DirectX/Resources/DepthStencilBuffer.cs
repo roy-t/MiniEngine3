@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Numerics;
-using System.Xml.Linq;
-using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
-namespace Mini.Engine.DirectX.Buffers;
+namespace Mini.Engine.DirectX.Resources;
 
 public enum DepthStencilFormat
 {
@@ -68,7 +66,6 @@ public sealed class DepthStencilBuffer : ITexture2D
             _ => throw new ArgumentOutOfRangeException(nameof(format)),
         };
     }
-
 
     private static Format ToTextureFormat(DepthStencilFormat format)
     {

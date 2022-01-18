@@ -20,8 +20,7 @@ struct OUTPUT
 {
     float4 albedo : SV_Target0;
     float4 material : SV_Target1;
-    float depth : SV_Target2;
-    float4 normal : SV_Target3;
+    float4 normal : SV_Target2;
 };
 
 cbuffer Constants : register(b0)
@@ -72,7 +71,6 @@ OUTPUT PS(PS_INPUT input)
     OUTPUT output;
     output.albedo = albedo;
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
-    output.depth = input.screen.z / input.screen.w;
     output.normal = float4(PackNormal(normal), 1.0f);
 
     return output;

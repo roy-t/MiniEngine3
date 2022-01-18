@@ -1,7 +1,6 @@
 ﻿using System;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.Graphics.PBR;
 
 namespace Mini.Engine.Graphics;
@@ -11,7 +10,7 @@ public sealed class FrameService : IDisposable
 {
     public FrameService(Device device)
     {
-        this.GBuffer = new GeometryBuffer(device, DepthStencilFormat.D32_Float);
+        this.GBuffer = new GeometryBuffer(device);
         this.LBuffer = new LightBuffer(device);
         this.Camera = new PerspectiveCamera(this.GBuffer.AspectRatio, Transform.Identity);
     }

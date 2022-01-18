@@ -9,21 +9,20 @@ using Mini.Engine.Graphics;
 namespace Mini.Engine.UI.Panels;
 
 [Service]
-internal sealed class TexturePanel : IPanel
+internal sealed class ShaderResourcePanel : IPanel
 {
     private readonly string[] Names;
     private readonly ITexture2D[] Textures;
     private readonly IntPtr[] Ids;
     private int selected;
 
-    public TexturePanel(FrameService frameService, UITextureRegistry textureRegistry)
+    public ShaderResourcePanel(FrameService frameService, UITextureRegistry textureRegistry)
     {
         this.Names = new string[]
         {
             nameof(frameService.GBuffer.Albedo),
             nameof(frameService.GBuffer.Material),
             nameof(frameService.GBuffer.Normal),
-            nameof(frameService.GBuffer.Depth),
             nameof(frameService.LBuffer.Light),
             nameof(frameService.GBuffer.DepthStencilBuffer)
         };
@@ -33,7 +32,6 @@ internal sealed class TexturePanel : IPanel
             frameService.GBuffer.Albedo,
             frameService.GBuffer.Material,
             frameService.GBuffer.Normal,
-            frameService.GBuffer.Depth,
             frameService.LBuffer.Light,
             frameService.GBuffer.DepthStencilBuffer
 
@@ -42,11 +40,11 @@ internal sealed class TexturePanel : IPanel
         this.Ids = this.Textures.Select(rt => textureRegistry.Register(rt)).ToArray();
     }
 
-    public string Title => "Textures";
+    public string Title => "Shader Resources";
 
     public void Update(float elapsed)
     {
-        if (ImGui.BeginCombo("Render Targets", this.Names[this.selected]))
+        if (ImGui.BeginCombo("Shader Resources", this.Names[this.selected]))
         {
             for (var i = 0; i < this.Names.Length; i++)
             {

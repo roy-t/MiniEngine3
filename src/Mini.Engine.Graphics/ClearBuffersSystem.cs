@@ -15,8 +15,7 @@ public partial class ClearBuffersSystem : ISystem
     private readonly FrameService FrameService;
 
     private static readonly Color4 NeutralAlbedo = new Color4(0, 0, 0, 0);
-    private static readonly Color4 NeutralMaterial = new Color4(0, 0, 0, 0.0f);
-    private static readonly Color4 NeutralDepth = new Color4(1, 1, 1, 1);
+    private static readonly Color4 NeutralMaterial = new Color4(0, 0, 0, 0.0f);    
     private static readonly Color4 NeutralNormal = new Color4(0.0f, 0.0f, 0.0f, 0.0f);
     private static readonly Color4 NeutralLight = new Color4(0, 0, 0, 0.0f);
 
@@ -38,8 +37,7 @@ public partial class ClearBuffersSystem : ISystem
     {
         // GBuffer
         this.Device.Clear(this.FrameService.GBuffer.Albedo, NeutralAlbedo);
-        this.Device.Clear(this.FrameService.GBuffer.Material, NeutralMaterial);
-        this.Device.Clear(this.FrameService.GBuffer.Depth, NeutralDepth);
+        this.Device.Clear(this.FrameService.GBuffer.Material, NeutralMaterial);        
         this.Device.Clear(this.FrameService.GBuffer.Normal, NeutralNormal);
 
         this.Device.Clear(this.FrameService.GBuffer.DepthStencilBuffer,
