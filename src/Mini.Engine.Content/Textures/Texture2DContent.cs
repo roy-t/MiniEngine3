@@ -25,7 +25,8 @@ internal sealed class Texture2DContent : ITexture2D, IContent
     }
 
     public ContentId Id { get; }
-    public Vector2 Dimensions => this.texture.Dimensions;
+    public int Width => this.texture.Width;
+    public int Height => this.texture.Height;
     public Format Format => this.texture.Format;
 
     ID3D11ShaderResourceView ITexture2D.ShaderResourceView => this.texture.ShaderResourceView;

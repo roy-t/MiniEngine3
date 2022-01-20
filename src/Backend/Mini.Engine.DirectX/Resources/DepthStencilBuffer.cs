@@ -17,10 +17,11 @@ public sealed class DepthStencilBuffer : ITexture2D
 {
     public DepthStencilBuffer(Device device, DepthStencilFormat format, int width, int height)
     {
-        this.Dimensions = new Vector2(width, height);
+        this.Width = width;
+        this.Height = height;
         this.Format = ToTextureFormat(format);
 
-        this.Texture = Textures.Create(device, width, height, ToTextureFormat(format), BindFlags.DepthStencil | BindFlags.ShaderResource, 1, false, nameof(DepthStencilBuffer));
+        this.Texture = Textures.Create(device, width, height, ToTextureFormat(format), BindFlags.DepthStencil | BindFlags.ShaderResource, ResourceOptionFlags.None, 1, false, nameof(DepthStencilBuffer));
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, ToShaderResourceViewFormat(format), nameof(DepthStencilBuffer));
 
         var depthView = new DepthStencilViewDescription(DepthStencilViewDimension.Texture2D, ToDepthViewFormat(format));
@@ -28,7 +29,8 @@ public sealed class DepthStencilBuffer : ITexture2D
         this.DepthStencilView.DebugName = $"{nameof(DepthStencilBuffer)}_DSV";        
     }
 
-    public Vector2 Dimensions { get; }
+    public int Width { get; }
+    public int Height { get; }
     public Format Format { get; }
     
     internal ID3D11Texture2D Texture { get; }

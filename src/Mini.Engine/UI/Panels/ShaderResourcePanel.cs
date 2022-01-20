@@ -69,7 +69,8 @@ internal sealed class ShaderResourcePanel : IPanel
 
     private static Vector2 Fit(ITexture2D texture, float maxWidth)
     {
-        var factor = Math.Min(1, maxWidth / texture.Dimensions.X);
-        return texture.Dimensions * factor;
+        var dimensions = new Vector2(texture.Width, texture.Height);
+        var factor = Math.Min(1, maxWidth / dimensions.X);
+        return dimensions * factor;
     }
 }

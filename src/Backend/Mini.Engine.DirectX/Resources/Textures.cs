@@ -17,10 +17,10 @@ internal static class Textures
 
     internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, int arraySize, bool generateMipMaps, string name)
     {
-        return Create(device, width, height, format, BindFlags.ShaderResource | BindFlags.RenderTarget, arraySize, generateMipMaps, name);        
+        return Create(device, width, height, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.None, arraySize, generateMipMaps, name);        
     }
 
-    internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, BindFlags bindFlags, int arraySize, bool generateMipMaps, string name)
+    internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, BindFlags bindFlags, ResourceOptionFlags optionFlags, int arraySize, bool generateMipMaps, string name)
     {
         var description = new Texture2DDescription
         {
@@ -33,7 +33,7 @@ internal static class Textures
             Usage = ResourceUsage.Default,
             BindFlags = bindFlags,
             CpuAccessFlags = CpuAccessFlags.None,
-            OptionFlags = generateMipMaps ? ResourceOptionFlags.GenerateMips : ResourceOptionFlags.None
+            OptionFlags = (generateMipMaps ? ResourceOptionFlags.GenerateMips : ResourceOptionFlags.None) | optionFlags
         };
 
         var texture = device.ID3D11Device.CreateTexture2D(description);

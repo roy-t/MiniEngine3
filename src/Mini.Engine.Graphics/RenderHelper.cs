@@ -54,7 +54,7 @@ public class RenderHelper
         context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
 
         context.PS.SetShader(this.PixelShader);
-        context.PS.SetSampler(PostProcess.Texture, this.Device.SamplerStates.LinearWrap);
+        context.PS.SetSampler(PostProcess.TextureSampler, this.Device.SamplerStates.LinearWrap);
 
 
         context.OM.SetBlendState(this.Device.BlendStates.Opaque);

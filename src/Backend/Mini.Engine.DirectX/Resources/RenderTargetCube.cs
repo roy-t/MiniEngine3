@@ -1,15 +1,12 @@
-﻿using System.Numerics;
-using Vortice.Direct3D;
+﻿using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
 
-// TODO: see D:\Projects\C#\MiniRTS\src\MiniEngine.Graphics\Utilities\CubeMapUtilities.cs
-// make a simple as possible cube texture and then try to render an equirectangular in there
-public sealed class TextureCube : ITexture2D
+public sealed class RenderTargetCube : ITexture2D
 {
-    public TextureCube(Device device, int resolution, Format format, bool generateMipMaps, string name)
+    public RenderTargetCube(Device device, int resolution, Format format, bool generateMipMaps, string name)
     {
         this.Width = resolution;
         this.Height = resolution;
@@ -17,9 +14,14 @@ public sealed class TextureCube : ITexture2D
 
         this.Texture = Textures.Create(device, resolution, resolution, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.TextureCube, 6, generateMipMaps, name);
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, ShaderResourceViewDimension.TextureCube, name);
+
+        this.FaceRenderTargetViews = new ID3D11RenderTargetView[TextureCube.Faces];
+        for (var i = 0; i < TextureCube.Faces; i++)
+        {
+            this.FaceRenderTargetViews[i] = RenderTargetViews.Create(device, this.Texture, format, i, name);
+        }
     }
 
-    public const int Faces = 6;
     public int Width { get; }
     public int Height { get; }
     public Format Format { get; }
@@ -30,8 +32,15 @@ public sealed class TextureCube : ITexture2D
     ID3D11ShaderResourceView ITexture2D.ShaderResourceView => this.ShaderResourceView;
     ID3D11Texture2D ITexture2D.Texture => this.Texture;
 
+    internal ID3D11RenderTargetView[] FaceRenderTargetViews { get; }
+
     public void Dispose()
     {
+        for (var i = 0; i < TextureCube.Faces; i++)
+        {
+            this.FaceRenderTargetViews[i].Dispose();
+        }
+        
         this.ShaderResourceView.Dispose();
         this.Texture.Dispose();
     }

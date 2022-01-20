@@ -7,10 +7,8 @@ using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Models.Generators;
 
-public static class SphereGenerator
+public static partial class SphereGenerator
 {
-    private readonly record struct CoordinateSystem(Vector3 UnitX, Vector3 UnitY, Vector3 UnitZ);
-    private readonly record struct Quad(int TopLeftIndex, int TopRightIndex, int BottomRightIndex, int BottomLeftIndex);
 
     public static IModel Generate(Device device, int subdivisions, IMaterial material, string name)
     {

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Numerics;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -9,6 +8,7 @@ public interface ITexture2D : IDisposable
 {
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }
-    public Vector2 Dimensions { get; } // TODO change to width and height, integers?
+    public int Width { get; }
+    public int Height { get; }
     public Format Format { get; }
 }
