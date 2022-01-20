@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Numerics;
-using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -19,35 +18,19 @@ public sealed class DepthStencilBuffer : ITexture2D
     public DepthStencilBuffer(Device device, DepthStencilFormat format, int width, int height)
     {
         this.Dimensions = new Vector2(width, height);
+        this.Format = ToTextureFormat(format);
 
-        var description = new Texture2DDescription
-        {
-            Width = width,
-            Height = height,
-            MipLevels = 1,
-            ArraySize = 1,
-            Format = ToTextureFormat(format),
-            SampleDescription = new SampleDescription(1, 0),
-            Usage = ResourceUsage.Default,
-            BindFlags = BindFlags.DepthStencil | BindFlags.ShaderResource,
-            CpuAccessFlags = CpuAccessFlags.None,
-            OptionFlags = ResourceOptionFlags.None
-        };
-
-        this.Texture = device.ID3D11Device.CreateTexture2D(description);
-        this.Texture.DebugName = nameof(DepthStencilBuffer);
+        this.Texture = Textures.Create(device, width, height, ToTextureFormat(format), BindFlags.DepthStencil | BindFlags.ShaderResource, 1, false, nameof(DepthStencilBuffer));
+        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, ToShaderResourceViewFormat(format), nameof(DepthStencilBuffer));
 
         var depthView = new DepthStencilViewDescription(DepthStencilViewDimension.Texture2D, ToDepthViewFormat(format));
         this.DepthStencilView = device.ID3D11Device.CreateDepthStencilView(this.Texture, depthView);
-        this.DepthStencilView.DebugName = $"{nameof(DepthStencilBuffer)}_DSV";
-
-        var view = new ShaderResourceViewDescription(this.Texture, ShaderResourceViewDimension.Texture2D, ToShaderResourceViewFormat(format));
-        this.ShaderResourceView = device.ID3D11Device.CreateShaderResourceView(this.Texture, view);
-        this.ShaderResourceView.DebugName = $"{nameof(DepthStencilBuffer)}_SRV";        
+        this.DepthStencilView.DebugName = $"{nameof(DepthStencilBuffer)}_DSV";        
     }
 
     public Vector2 Dimensions { get; }
-
+    public Format Format { get; }
+    
     internal ID3D11Texture2D Texture { get; }
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11DepthStencilView DepthStencilView { get; }

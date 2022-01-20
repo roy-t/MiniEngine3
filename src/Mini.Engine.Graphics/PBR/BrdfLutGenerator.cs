@@ -33,7 +33,7 @@ public sealed class BrdfLutGenerator : IDisposable
         this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
     }
 
-    public Texture2D Generate()
+    public ITexture2D Generate()
     {
         var context = this.Device.ImmediateContext;
 
