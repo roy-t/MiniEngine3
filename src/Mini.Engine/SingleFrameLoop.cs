@@ -3,6 +3,7 @@ using Mini.Engine.Content;
 using Mini.Engine.Debugging;
 using Mini.Engine.Graphics.Textures.Generators;
 using Mini.Engine.Windows;
+using Vortice.DXGI;
 
 namespace Mini.Engine;
 

@@ -5,6 +5,16 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
 
+public enum CubeMapFace
+{
+    PositiveX = 0,
+    NegativeX = 1,
+    PositiveY = 2,
+    NegativeY = 3,
+    PositiveZ = 4,
+    NegativeZ = 5
+}
+
 // TODO: see D:\Projects\C#\MiniRTS\src\MiniEngine.Graphics\Utilities\CubeMapUtilities.cs
 // make a simple as possible cube texture and then try to render an equirectangular in there
 public sealed class TextureCube : ITexture2D

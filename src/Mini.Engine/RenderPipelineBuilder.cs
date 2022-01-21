@@ -39,6 +39,12 @@ internal sealed class RenderPipelineBuilder
                 .Requires("Renderer", "Models")
                 .Produces("Renderer", "PointLights")
                 .Build()
+            .System<SkyboxSystem>()
+                .InSequence()
+                .Requires("Renderer", "Models")
+                .Requires("Renderer", "PointLights")
+                .Produces("Renderer", "Skybox")
+                .Build()
         .Build();
     }
 }

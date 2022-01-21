@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
     <None Remove=".contentroot" />
+    <None Remove="Assets\Shaders\EquilateralToCubeMap.hlsl" />
     <None Remove="Assets\Shaders\Gamma.hlsl" />
     <None Remove="Assets\Shaders\Geometry.hlsl" />
     <None Remove="Assets\Shaders\Includes\Coordinates.hlsl" />
@@ -11,6 +12,7 @@
     <None Remove="Assets\Shaders\PBR\Lights.hlsl" />
     <None Remove="Assets\Shaders\PBR\Material.hlsl" />
     <None Remove="Assets\Shaders\PBR\PointLight.hlsl" />
+    <None Remove="Assets\Shaders\Skybox.hlsl" />
     <None Remove="Shaders\FlatShader.hlsl" />
     <None Remove="Shaders\PostProcessShader.hlsl" />
   </ItemGroup> 
@@ -26,6 +28,7 @@
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
+    <AdditionalFiles Include="Assets\Shaders\Skybox.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\GBuffer.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Coordinates.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Normals.hlsl" />
@@ -37,6 +40,7 @@
     <AdditionalFiles Include="Assets\Shaders\PBR\Includes\Lights.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\PBR\Includes\BRDF.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\PBR\BrdfLutGenerator.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\EquilateralToCubeMap.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\PostProcess.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\UserInterface.hlsl" />
   </ItemGroup>

@@ -29,9 +29,9 @@ public sealed class OutputMergerContext : DeviceContextPart
         this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetView, depthStencilBuffer?.DepthStencilView);
     }
 
-    public void SetRenderTarget(RenderTargetCube renderTarget, int index, DepthStencilBuffer? depthStencilBuffer = null)
+    public void SetRenderTarget(RenderTargetCube renderTarget, CubeMapFace face, DepthStencilBuffer? depthStencilBuffer = null)
     {
-        this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.FaceRenderTargetViews[index], depthStencilBuffer?.DepthStencilView);
+        this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.FaceRenderTargetViews[(int)face], depthStencilBuffer?.DepthStencilView);
     }
 
     public void SetRenderTargets(DepthStencilBuffer? depthStencilBuffer, params RenderTarget2D[] renderTargets)
