@@ -28,6 +28,12 @@ internal sealed class SingleFrameLoop : IGameLoop
         }
     }
 
+    private void DrawExperiment()
+    {
+        var texture = this.Content.LoadTexture(@"Skyboxes\testgrid.jpg");
+        using var cube = this.Generator.Generate(texture, false, "CUBECUBE");
+    }
+
     public void Update(float time, float elapsed) { }
 
     public void Draw(float alpha)
@@ -39,15 +45,13 @@ internal sealed class SingleFrameLoop : IGameLoop
 
         if (this.drawCalls == 1)
         {
-            var texture = this.Content.LoadTexture(@"Skyboxes\testgrid.jpg");
-            using var cube = this.Generator.Generate(texture, false, "CUBECUBE");
-            
+            this.DrawExperiment();
             this.Window.Dispose(); // TODO: find nicer way to quit            
         }
 
         this.drawCalls++;
     }
-
+    
     public void Dispose()
     {
         if (this.RenderDoc != null)

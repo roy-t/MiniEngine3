@@ -59,12 +59,12 @@ public class CubeMapGenerator
 
         for (var i = 0; i < TextureCube.Faces; i++)
         {
-            //context.OM.SetRenderTarget(cube, i);
+            context.OM.SetRenderTarget(cube, i);
 
             // TODO: set constant buffer properties and proper shader and draw! See CubeMapGenerator in old project!
 
-            //context.DrawIndexed(FullScreenTriangle.PrimitiveCount, FullScreenTriangle.PrimitiveOffset, FullScreenTriangle.VertexOffset);
-            this.Device.Clear(cube, i, Vortice.Mathematics.Color4.CornflowerBlue);
+            context.DrawIndexed(FullScreenTriangle.PrimitiveCount, FullScreenTriangle.PrimitiveOffset, FullScreenTriangle.VertexOffset);
+            //this.Device.Clear(cube, i, Vortice.Mathematics.Color4.CornflowerBlue);
         }
 
         return cube;

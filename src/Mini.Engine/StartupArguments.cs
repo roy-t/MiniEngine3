@@ -7,6 +7,8 @@ public static class StartupArguments
 {
     public static bool EnableRenderDoc => IsPresent("--renderdoc");
 
+    public static bool NoUi => IsPresent("--no-ui");
+
     public static string ContentRoot => GetArgumentValue("--content");
 
     public static string GameLoopType => GetArgumentValueOrDefault("--gameloop", "Mini.Engine.GameLoop");

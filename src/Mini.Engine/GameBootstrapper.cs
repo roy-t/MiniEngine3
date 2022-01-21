@@ -53,6 +53,7 @@ public sealed class GameBootstrapper : IDisposable
 
         this.DebugLayerLogger = services.Resolve<DebugLayerLogger>();
         this.UI = services.Resolve<UserInterface>();
+        this.enableUI = !StartupArguments.NoUi;
 
         var gameLoopType = StartupArguments.GameLoopType;
         this.GameLoop = services.Resolve<IGameLoop>(Type.GetType(gameLoopType, true, true)!);        
