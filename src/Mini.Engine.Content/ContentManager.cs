@@ -44,24 +44,39 @@ public sealed partial class ContentManager : IDisposable
         this.ModelLoader = new ContentCache<ModelContent>(new ModelLoader(this, fileSystem, this.MaterialLoader));
     }
 
+    public ITexture2D LoadTexture(string path, string key = "")
+    {
+        return this.TextureLoader.Load(this.Device, new ContentId(path, key), TextureLoaderSettings.Default);
+    }
+
+    public IMaterial LoadMaterial(string path, string key = "")
+    {
+        return this.MaterialLoader.Load(this.Device, new ContentId(path, key), MaterialLoaderSettings.Default);
+    }
+
+    public IModel LoadModel(string path, string key = "")
+    {
+        return this.ModelLoader.Load(this.Device, new ContentId(path, key), ModelLoaderSettings.Default);
+    }
+
     public IModel LoadSponza()
     {
-        return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\sponza\sponza.obj"), ModelLoaderSettings.Default);
+        return this.LoadModel(@"Scenes\sponza\sponza.obj");        
     }
 
     public IModel LoadAsteroid()
     {
-        return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\AsteroidField\Asteroid001.obj"), ModelLoaderSettings.Default);
+        return this.LoadModel(@"Scenes\AsteroidField\Asteroid001.obj");
     }
 
     public IModel LoadCube()
     {
-        return this.ModelLoader.Load(this.Device, new ContentId(@"Scenes\cube\cube.obj"), ModelLoaderSettings.Default);
+        return this.LoadModel(@"Scenes\cube\cube.obj");
     }
 
     public IMaterial LoadDefaultMaterial()
     {
-        return this.MaterialLoader.Load(this.Device, new ContentId("default.mtl", "default"), MaterialLoaderSettings.Default);
+        return this.LoadMaterial("default.mtl", "default");
     }
 
     public void Push(string name)

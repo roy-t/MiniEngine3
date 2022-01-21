@@ -61,7 +61,7 @@ public class CubeMapGenerator
         {
             //context.OM.SetRenderTarget(cube, i);
 
-            // TODO: set constant buffer properties and proper shader and draw!
+            // TODO: set constant buffer properties and proper shader and draw! See CubeMapGenerator in old project!
 
             //context.DrawIndexed(FullScreenTriangle.PrimitiveCount, FullScreenTriangle.PrimitiveOffset, FullScreenTriangle.VertexOffset);
             this.Device.Clear(cube, i, Vortice.Mathematics.Color4.CornflowerBlue);

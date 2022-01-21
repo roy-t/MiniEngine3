@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Numerics;
-using System.Reflection.Metadata;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Controllers;
@@ -11,25 +10,23 @@ using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.PBR;
-using Mini.Engine.Graphics.Textures.Generators;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine;
 
 [Service]
-internal sealed class GameLoop : IDisposable
+internal sealed class GameLoop : IGameLoop
 {
     private readonly Device Device;
-    private readonly CubeMapGenerator cubeGen; // TODO remove
+
     private readonly RenderHelper Helper;
     private readonly FrameService FrameService;
     private readonly CameraController CameraController;
     private readonly ContentManager Content;
     private readonly ParallelPipeline Pipeline;
-    public GameLoop(Device device, CubeMapGenerator cubeGen, RenderHelper helper, FrameService frameService, CameraController cameraController, RenderPipelineBuilder builder, ContentManager content, EntityAdministrator entities, ComponentAdministrator components)
+    public GameLoop(Device device, RenderHelper helper, FrameService frameService, CameraController cameraController, RenderPipelineBuilder builder, ContentManager content, EntityAdministrator entities, ComponentAdministrator components)
     {
         this.Device = device;
-        this.cubeGen = cubeGen;
         this.Helper = helper;
         this.FrameService = frameService;
         this.CameraController = cameraController;
@@ -59,7 +56,7 @@ internal sealed class GameLoop : IDisposable
         components.Add(new PointLightComponent(sphere, Vector4.One, 100.0f));
         components.Add(new TransformComponent(sphere));//.ApplyTranslation(Vector3.One * 10));
     }
-    
+
     public void Update(float time, float elapsed)
     {
         this.Content.ReloadChangedContent();
@@ -72,11 +69,6 @@ internal sealed class GameLoop : IDisposable
         this.Pipeline.Frame();
 
         this.Helper.RenderToViewPort(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width, this.Device.Height);
-
-
-
-        var texture = this.Content.LoadDefaultMaterial().Albedo;
-        this.cubeGen.Generate(texture, false, "CUBECUBE");
     }
 
     public void Dispose()

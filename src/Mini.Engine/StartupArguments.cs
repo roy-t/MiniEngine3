@@ -9,10 +9,23 @@ public static class StartupArguments
 
     public static string ContentRoot => GetArgumentValue("--content");
 
+    public static string GameLoopType => GetArgumentValueOrDefault("--gameloop", "Mini.Engine.GameLoop");
+
     private static bool IsPresent(string argument)
     {
         var args = Environment.GetCommandLineArgs();
         return args.Any(a => a.Equals(argument, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string GetArgumentValueOrDefault(string argument, string def)
+    {
+        var value = GetArgumentValue(argument);
+        if (string.IsNullOrEmpty(value))
+        {
+            return def;
+        }
+
+        return value;
     }
 
     private static string GetArgumentValue(string argument)

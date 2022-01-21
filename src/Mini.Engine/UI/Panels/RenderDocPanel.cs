@@ -11,8 +11,7 @@ internal sealed class RenderDocPanel : IPanel
 
     public RenderDocPanel(Services services)
     {
-        RenderDoc? instance;
-        if (services.TryResolve<RenderDoc>(out instance))
+        if (services.TryResolve<RenderDoc>(out var instance))
         {
             this.renderDoc = instance;
         }

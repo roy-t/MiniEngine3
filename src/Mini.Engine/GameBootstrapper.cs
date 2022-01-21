@@ -22,13 +22,13 @@ public sealed class GameBootstrapper : IDisposable
 
     private readonly DebugLayerLogger DebugLayerLogger;
     private readonly UserInterface UI;
-    private readonly GameLoop GameLoop;
+    private readonly IGameLoop GameLoop;
     private readonly ILogger Logger;
 
     private readonly InputService InputService;
     private readonly Keyboard Keyboard;
 
-    private bool EnableUI = true;
+    private bool enableUI = true;
 
     public GameBootstrapper(ILogger logger, Services services)
     {
@@ -52,8 +52,10 @@ public sealed class GameBootstrapper : IDisposable
         services.RegisterAs<DiskFileSystem, IVirtualFileSystem>(this.FileSystem);
 
         this.DebugLayerLogger = services.Resolve<DebugLayerLogger>();
-        this.GameLoop = services.Resolve<GameLoop>();
         this.UI = services.Resolve<UserInterface>();
+
+        var gameLoopType = StartupArguments.GameLoopType;
+        this.GameLoop = services.Resolve<IGameLoop>(Type.GetType(gameLoopType, true, true)!);        
     }
 
     public void Run()
@@ -73,7 +75,7 @@ public sealed class GameBootstrapper : IDisposable
             elapsed = Math.Min(elapsed, 0.25);
             accumulator += elapsed;
 
-            if (this.EnableUI)
+            if (this.enableUI)
             {
                 this.UI.NewFrame((float)elapsed);
             }
@@ -91,7 +93,7 @@ public sealed class GameBootstrapper : IDisposable
 
                     if(this.Keyboard.Pressed(F1))
                     {
-                        this.EnableUI = !this.EnableUI;
+                        this.enableUI = !this.enableUI;
                     }
                 }
 
@@ -105,12 +107,11 @@ public sealed class GameBootstrapper : IDisposable
             var alpha = accumulator / dt;
             this.Device.ClearBackBuffer();
             this.GameLoop.Draw((float)alpha); // alpha signifies how much to lerp between current and future state
-            if (this.EnableUI)
+            if (this.enableUI)
             {
                 this.UI.Render();
             }
             this.Device.Present();
-
         }
     }
 
