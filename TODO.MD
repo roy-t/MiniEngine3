@@ -1,4 +1,6 @@
 # TODO
+Fix rotation matrix for the Skybox, almost there, it must be something silly!
+
 Continue replacing things in Mini.Engine.Windows with this: https://github.com/microsoft/CsWin32
 
 # Notes

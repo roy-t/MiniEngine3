@@ -15,8 +15,6 @@ public enum CubeMapFace
     NegativeZ = 5
 }
 
-// TODO: see D:\Projects\C#\MiniRTS\src\MiniEngine.Graphics\Utilities\CubeMapUtilities.cs
-// make a simple as possible cube texture and then try to render an equirectangular in there
 public sealed class TextureCube : ITexture2D
 {
     public TextureCube(Device device, int resolution, Format format, bool generateMipMaps, string name)

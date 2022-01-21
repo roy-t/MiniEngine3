@@ -112,7 +112,6 @@ public partial class PointLightSystem : ISystem
         this.Context.IA.SetIndexBuffer(this.Sphere.Indices);
 
         this.Context.DrawIndexed(this.Sphere.Primitives[0].IndexCount, this.Sphere.Primitives[0].IndexOffset, 0);
-        // TODO: create a separate cbuffer for the PS so we need less updates
     }
 
     public void OnUnSet()

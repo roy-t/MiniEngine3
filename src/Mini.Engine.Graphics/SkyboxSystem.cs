@@ -1,17 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.Skybox;
 using Mini.Engine.ECS.Systems;
-using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Generators.Shared;
-using System.Collections;
 using Vortice.Direct3D;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.Content;
@@ -25,7 +19,7 @@ namespace Mini.Engine.Graphics;
 public partial class SkyboxSystem : ISystem
 {
     private readonly Device Device;
-    private readonly ImmediateDeviceContext Context;
+    private readonly DeferredDeviceContext Context;
     private readonly SkyboxVs VertexShader;
     private readonly SkyboxPs PixelShader;
     private readonly FullScreenTriangle FullScreenTriangle;
@@ -38,7 +32,7 @@ public partial class SkyboxSystem : ISystem
     public SkyboxSystem(Device device, ContentManager content, CubeMapGenerator cubeMapGenerator, FullScreenTriangle fullScreenTriangle, FrameService frameService)
     {
         this.Device = device;
-        this.Context = device.ImmediateContext;
+        this.Context = device.CreateDeferredContextFor<SkyboxSystem>();
         this.VertexShader = content.LoadSkyboxVs();
         this.PixelShader = content.LoadSkyboxPs();
         this.FullScreenTriangle = fullScreenTriangle;
@@ -98,8 +92,7 @@ public partial class SkyboxSystem : ISystem
 
     public void OnUnSet()
     {
-        
-    }
-
-    
+        using var commandList = this.Context.FinishCommandList();
+        this.Device.ImmediateContext.ExecuteCommandList(commandList);
+    }    
 }
