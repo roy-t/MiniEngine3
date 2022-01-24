@@ -1,5 +1,9 @@
 # TODO
-Fix rotation matrix for the Skybox, almost there, it must be something silly!
+
+- Use Texture.Load() instead of Sampling using the point sampling for a tiny perf boost where we don't need sampling
+
+- For some reason the cube map generator smears the textures on the poles a bit, while the original one made them 'pointy'
+- It also looks like the HDR images are too light?
 
 Continue replacing things in Mini.Engine.Windows with this: https://github.com/microsoft/CsWin32
 

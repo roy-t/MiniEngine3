@@ -24,8 +24,8 @@ internal sealed class HdrTextureDataLoader : IContentDataLoader<TextureData>
         var image = ImageResultFloat.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
         var pitch = image.Width * FormatSizeInBytes;
 
-        var bytes = new byte[FormatSizeInBytes * image.Data.Length];
-        Buffer.BlockCopy(image.Data, 0, bytes, 0, bytes.Length);
+        var bytes = new byte[image.Data.Length * sizeof(float)];
+        Buffer.BlockCopy(image.Data, 0, bytes, 0, image.Data.Length * sizeof(float));
 
         var format = HdrFormat;
         if (settings is TextureLoaderSettings textureLoaderSettings)

@@ -64,10 +64,10 @@ public class CubeMapGenerator
         {
             var view = GetViewMatrixForFace(face);
             var worldViewProjection = view * projection;
-
+            Matrix4x4.Invert(worldViewProjection, out var inverse);
             var constants = new Constants()
             {
-                WorldViewProjection = worldViewProjection,
+                InverseWorldViewProjection = inverse
             };
             this.ConstantBuffer.MapData(context, constants);
 

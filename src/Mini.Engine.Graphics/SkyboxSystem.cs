@@ -40,7 +40,7 @@ public partial class SkyboxSystem : ISystem
         this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, "constants_skyboxsystem");
 
-        var texture = content.LoadTexture(@"Skyboxes\testgrid.jpg");
+        var texture = content.LoadTexture(@"Skyboxes\circus.hdr");
         this.CubeMap = cubeMapGenerator.Generate(texture, false, "CUBECUBE");
     }   
 
@@ -76,16 +76,18 @@ public partial class SkyboxSystem : ISystem
     {
         var camera = this.FrameService.Camera;
 
-        var view = Matrix4x4.CreateLookAt(Vector3.Zero, camera.Transform.Forward, Vector3.UnitY);
+        //var view = Matrix4x4.CreateLookAt(Vector3.Zero, camera.Transform.Forward, camera.Transform.Up);
+        var view = Matrix4x4.CreateLookAt(Vector3.Zero, Vector3.Zero + camera.Transform.Forward, camera.Transform.Up);
         var projection = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 2.0f, camera.AspectRatio, 0.1f, 1.5f);
         var worldViewProjection = view * projection;
+        Matrix4x4.Invert(worldViewProjection, out var inverse);
 
         var constants = new Constants()
         {
-            WorldViewProjection = worldViewProjection
+            InverseWorldViewProjection = inverse
         };
         this.ConstantBuffer.MapData(this.Context, constants);
-        this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+        this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
 
         this.Context.DrawIndexed(FullScreenTriangle.PrimitiveCount, FullScreenTriangle.PrimitiveOffset, FullScreenTriangle.VertexOffset);
     }

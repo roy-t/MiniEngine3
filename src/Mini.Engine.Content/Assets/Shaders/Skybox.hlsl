@@ -11,7 +11,7 @@ struct PS_INPUT
 
 cbuffer Constants : register(b0)
 {
-    float4x4 WorldViewProjection;
+    float4x4 InverseWorldViewProjection;
 };
 
 sampler TextureSampler : register(s0);
@@ -21,9 +21,9 @@ TextureCube CubeMap : register(t0);
 PS_INPUT VS(VS_INPUT input)
 {
     PS_INPUT output;
-            
+
     output.position = float4(input.position.xy, 1, 1);
-    output.world = input.position + float3(0, 0, 1);
+    output.world = mul(InverseWorldViewProjection, float4(input.position, 1.0f)).xyz;
     
     return output;
 }
@@ -31,6 +31,5 @@ PS_INPUT VS(VS_INPUT input)
 #pragma PixelShader
 float4 PS(PS_INPUT input) : SV_TARGET
 {
-    float3 world = mul(WorldViewProjection, float4(input.world, 1.0f)).xyz;
-    return CubeMap.Sample(TextureSampler, world);
+    return CubeMap.Sample(TextureSampler, input.world);
 }
