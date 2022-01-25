@@ -9,8 +9,7 @@ namespace Mini.Engine.Graphics.Models.Generators;
 
 public static partial class SphereGenerator
 {
-
-    public static IModel Generate(Device device, int subdivisions, IMaterial material, string name)
+    public static (int[], ModelVertex[]) Generate(int subdivisions)
     {
         var vertices = new List<ModelVertex>();
         var indices = new List<int>();
@@ -40,14 +39,20 @@ public static partial class SphereGenerator
         // Botom
         GenerateFace(new CoordinateSystem(right, backward, down), subdivisions, vertices, indices);
 
+        return (indices.ToArray(), vertices.ToArray());
+    }
+
+    public static IModel Generate(Device device, int subdivisions, IMaterial material, string name)
+    {
+        (var indices, var vertices) = Generate(subdivisions);
 
         var primitives = new Primitive[]
         {
-            new Primitive("Sphere", 0, 0, indices.Count)
+            new Primitive("Sphere", 0, 0, indices.Length)
         };
 
         var materials = new IMaterial[] { material };
-        return new Model(device, vertices.ToArray(), indices.ToArray(), primitives, materials, name);
+        return new Model(device, vertices, indices, primitives, materials, name);
     }
 
     private static void GenerateFace(CoordinateSystem coordinateSystem, int subdivisions, List<ModelVertex> vertices, List<int> indices)

@@ -12,6 +12,7 @@ float2 TextureToScreen(float2 texcoord)
 {    
     return float2(texcoord.x * 2.0f - 1.0f, -(texcoord.y * 2.0f - 1.0f));
 }
+
 float2 WorldToSpherical(float3 position)
 {
     float azimuth = atan2(position.x, position.z);

@@ -40,7 +40,7 @@ public partial class SkyboxSystem : ISystem
         this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, "constants_skyboxsystem");
 
-        var texture = content.LoadTexture(@"Skyboxes\circus.hdr");
+        var texture = content.LoadTexture(@"Skyboxes\industrial.hdr");
         this.CubeMap = cubeMapGenerator.Generate(texture, false, "CUBECUBE");
     }   
 

@@ -17,7 +17,7 @@ public sealed class RasterizerContext : DeviceContextPart
         this.ID3D11DeviceContext.RSSetScissorRect(x, y, width, height);
     }
 
-    public void SetViewPort(int x, int y, float width, float height)
+    public void SetViewPort(float x, float y, float width, float height)
     {
         this.ID3D11DeviceContext.RSSetViewport(x, y, width, height);
     }

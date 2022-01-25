@@ -8,6 +8,8 @@ using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.EquilateralToCubeMap;
 using System;
 using System.Numerics;
+using Mini.Engine.Graphics.Models.Generators;
+using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Textures.Generators;
 
@@ -33,6 +35,13 @@ public class CubeMapGenerator
 
     public ITexture2D Generate(ITexture2D equirectangular, bool generateMipMaps, string name)
     {
+        (var indices, var vertices) = CubeGenerator.Generate();
+        using var indexBuffer = new IndexBuffer<int>(this.Device, $"{nameof(CubeGenerator)}_cube_indices");
+        indexBuffer.MapData(this.Device.ImmediateContext, indices);
+
+        using var vertexBuffer = new VertexBuffer<ModelVertex>(this.Device, $"{nameof(CubeGenerator)}_cube_vertices");
+        vertexBuffer.MapData(this.Device.ImmediateContext, vertices);
+
         var resolution = equirectangular.Height / 2;
         var texture = new RenderTargetCube(this.Device, resolution, equirectangular.Format, generateMipMaps, name);
 
@@ -40,41 +49,37 @@ public class CubeMapGenerator
 
         context.IA.SetInputLayout(this.InputLayout);
         context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
+        context.IA.SetVertexBuffer(vertexBuffer);
+        context.IA.SetIndexBuffer(indexBuffer);
 
         context.VS.SetShader(this.VertexShader);
 
         context.RS.SetViewPort(0, 0, resolution, resolution);
         context.RS.SetScissorRect(0, 0, resolution, resolution);
-        context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
+        context.RS.SetRasterizerState(this.Device.RasterizerStates.CullClockwise);
 
         context.PS.SetShader(this.PixelShader);
         context.PS.SetSampler(EquilateralToCubeMap.TextureSampler, this.Device.SamplerStates.LinearClamp);
+        context.PS.SetShaderResource(EquilateralToCubeMap.Texture, equirectangular);
 
         context.OM.SetBlendState(this.Device.BlendStates.Opaque);
         context.OM.SetDepthStencilState(this.Device.DepthStencilStates.None);
-
-        context.IA.SetVertexBuffer(this.FullScreenTriangle.Vertices);
-        context.IA.SetIndexBuffer(this.FullScreenTriangle.Indices);
-
-        context.PS.SetShaderResource(EquilateralToCubeMap.Texture, equirectangular);
 
         var projection = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 2.0f, 1.0f, 0.1f, 1.5f);
 
         foreach (var face in Enum.GetValues<CubeMapFace>())
         {
             var view = GetViewMatrixForFace(face);
-            var worldViewProjection = view * projection;
-            Matrix4x4.Invert(worldViewProjection, out var inverse);
+            var worldViewProjection = view * projection;            
             var constants = new Constants()
             {
-                InverseWorldViewProjection = inverse
+                WorldViewProjection = worldViewProjection
             };
             this.ConstantBuffer.MapData(context, constants);
 
-            context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+            context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);            
             context.OM.SetRenderTarget(texture, face);
-
-            context.DrawIndexed(FullScreenTriangle.PrimitiveCount, FullScreenTriangle.PrimitiveOffset, FullScreenTriangle.VertexOffset);
+            context.DrawIndexed(indices.Length, 0, 0);
         }
 
         return texture;

@@ -7,7 +7,7 @@ namespace Mini.Engine.Graphics.Models.Generators;
 
 public static class CubeGenerator
 {
-    public static IModel Generate(Device device, IMaterial material, string name)
+    public static (int[], ModelVertex[]) Generate()
     {
         var vertices = new List<ModelVertex>(4 * 6);
         var indices = new List<int>(6 * 6);
@@ -37,20 +37,27 @@ public static class CubeGenerator
         // Botom
         GenerateFace(new CoordinateSystem(right, backward, down), vertices, indices);
 
+        return (indices.ToArray(), vertices.ToArray());
+    }
+
+    public static IModel Generate(Device device, IMaterial material, string name)
+    {
+        (var indices, var vertices) = Generate();
+
         var primitives = new Primitive[]
         {
-            new Primitive("Cube", 0, 0, indices.Count)
+            new Primitive("Cube", 0, 0, indices.Length)
         };
 
         var materials = new IMaterial[] { material };
-        return new Model(device, vertices.ToArray(), indices.ToArray(), primitives, materials, name);
+        return new Model(device, vertices, indices, primitives, materials, name);
     }
 
     private static void GenerateFace(CoordinateSystem coordinateSystem, List<ModelVertex> vertices, List<int> indices)
     {
-        var maxX = coordinateSystem.UnitX / 2.0f;
-        var maxY = coordinateSystem.UnitY / 2.0f;
-        var maxZ = coordinateSystem.UnitZ / 2.0f;
+        var maxX = coordinateSystem.UnitX;
+        var maxY = coordinateSystem.UnitY;
+        var maxZ = coordinateSystem.UnitZ;
         var normal = Vector3.Normalize(maxZ);
 
         var topLeft = -maxX + maxY + maxZ;
