@@ -8,8 +8,6 @@ using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.EquilateralToCubeMap;
 using System;
 using System.Numerics;
-using Mini.Engine.Graphics.Models.Generators;
-using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Textures.Generators;
 
@@ -35,13 +33,6 @@ public class CubeMapGenerator
 
     public ITexture2D Generate(ITexture2D equirectangular, bool generateMipMaps, string name)
     {
-        (var indices, var vertices) = CubeGenerator.Generate();
-        using var indexBuffer = new IndexBuffer<int>(this.Device, $"{nameof(CubeGenerator)}_cube_indices");
-        indexBuffer.MapData(this.Device.ImmediateContext, indices);
-
-        using var vertexBuffer = new VertexBuffer<ModelVertex>(this.Device, $"{nameof(CubeGenerator)}_cube_vertices");
-        vertexBuffer.MapData(this.Device.ImmediateContext, vertices);
-
         var resolution = equirectangular.Height / 2;
         var texture = new RenderTargetCube(this.Device, resolution, equirectangular.Format, generateMipMaps, name);
 
@@ -49,14 +40,14 @@ public class CubeMapGenerator
 
         context.IA.SetInputLayout(this.InputLayout);
         context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
-        context.IA.SetVertexBuffer(vertexBuffer);
-        context.IA.SetIndexBuffer(indexBuffer);
+        context.IA.SetVertexBuffer(this.FullScreenTriangle.Vertices);
+        context.IA.SetIndexBuffer(this.FullScreenTriangle.Indices);
 
         context.VS.SetShader(this.VertexShader);
 
         context.RS.SetViewPort(0, 0, resolution, resolution);
         context.RS.SetScissorRect(0, 0, resolution, resolution);
-        context.RS.SetRasterizerState(this.Device.RasterizerStates.CullClockwise);
+        context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
 
         context.PS.SetShader(this.PixelShader);
         context.PS.SetSampler(EquilateralToCubeMap.TextureSampler, this.Device.SamplerStates.LinearClamp);
@@ -70,23 +61,25 @@ public class CubeMapGenerator
         foreach (var face in Enum.GetValues<CubeMapFace>())
         {
             var view = GetViewMatrixForFace(face);
-            var worldViewProjection = view * projection;            
+            var worldViewProjection = view * projection;
+            Matrix4x4.Invert(worldViewProjection, out var inverse);
             var constants = new Constants()
             {
-                WorldViewProjection = worldViewProjection
+                InverseWorldViewProjection = inverse
             };
             this.ConstantBuffer.MapData(context, constants);
 
             context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);            
             context.OM.SetRenderTarget(texture, face);
-            context.DrawIndexed(indices.Length, 0, 0);
+
+            context.DrawIndexed(FullScreenTriangle.PrimitiveCount, FullScreenTriangle.PrimitiveOffset, FullScreenTriangle.VertexOffset);
         }
 
         return texture;
     }
 
     public static Matrix4x4 GetViewMatrixForFace(CubeMapFace face)
-    {
+    {        
         return face switch
         {
             CubeMapFace.PositiveX => Matrix4x4.CreateLookAt(Vector3.Zero, Vector3.UnitX, Vector3.UnitY),

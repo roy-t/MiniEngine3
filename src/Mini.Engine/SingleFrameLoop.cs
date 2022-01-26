@@ -3,7 +3,6 @@ using Mini.Engine.Content;
 using Mini.Engine.Debugging;
 using Mini.Engine.Graphics.Textures.Generators;
 using Mini.Engine.Windows;
-using Vortice.DXGI;
 
 namespace Mini.Engine;
 
@@ -32,7 +31,7 @@ internal sealed class SingleFrameLoop : IGameLoop
     private void DrawExperiment()
     {
         var texture = this.Content.LoadTexture(@"Skyboxes\testgrid.jpg");
-        using var cube = this.Generator.Generate(texture, false, "CUBECUBE");
+        using var cube = this.Generator.Generate(texture, false, "CubeMap_TestGrid");
     }
 
     public void Update(float time, float elapsed) { }

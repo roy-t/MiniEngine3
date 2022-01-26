@@ -41,7 +41,7 @@ public partial class SkyboxSystem : ISystem
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, "constants_skyboxsystem");
 
         var texture = content.LoadTexture(@"Skyboxes\industrial.hdr");
-        this.CubeMap = cubeMapGenerator.Generate(texture, false, "CUBECUBE");
+        this.CubeMap = cubeMapGenerator.Generate(texture, false, "Skybox_Albedo_CubeMap_Industrial");
     }   
 
     public void OnSet()
@@ -76,8 +76,7 @@ public partial class SkyboxSystem : ISystem
     {
         var camera = this.FrameService.Camera;
 
-        //var view = Matrix4x4.CreateLookAt(Vector3.Zero, camera.Transform.Forward, camera.Transform.Up);
-        var view = Matrix4x4.CreateLookAt(Vector3.Zero, Vector3.Zero + camera.Transform.Forward, camera.Transform.Up);
+        var view = Matrix4x4.CreateLookAt(Vector3.Zero, camera.Transform.Forward, camera.Transform.Up);        
         var projection = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 2.0f, camera.AspectRatio, 0.1f, 1.5f);
         var worldViewProjection = view * projection;
         Matrix4x4.Invert(worldViewProjection, out var inverse);
