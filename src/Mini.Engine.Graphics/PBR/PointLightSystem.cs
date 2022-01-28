@@ -37,8 +37,8 @@ public partial class PointLightSystem : ISystem
         this.VertexShader = content.LoadPointLightVs();
         this.PixelShader = content.LoadPointLightPs();
         this.InputLayout = this.VertexShader.CreateInputLayout(device, ModelVertex.Elements);
-        this.ConstantBuffer = new ConstantBuffer<Constants>(device, "PointLightSystem_Constants");
-        this.PerLightConstantBuffer = new ConstantBuffer<PerLightConstants>(device, "PointLightSystem_PerLightConstants");
+        this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(PointLightSystem)}_CB");
+        this.PerLightConstantBuffer = new ConstantBuffer<PerLightConstants>(device, $"{nameof(PointLightSystem)}_per_light_CB");
 
         this.Sphere = SphereGenerator.Generate(device, 3, content.LoadDefaultMaterial(), "PointLight");
     }

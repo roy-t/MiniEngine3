@@ -41,8 +41,8 @@ public sealed class Texture2D : ITexture2D
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }
 
-    ID3D11ShaderResourceView ITexture2D.ShaderResourceView => this.ShaderResourceView;
-    ID3D11Texture2D ITexture2D.Texture => this.Texture;
+    ID3D11ShaderResourceView ITexture.ShaderResourceView => this.ShaderResourceView;
+    ID3D11Texture2D ITexture.Texture => this.Texture;
 
     public void Dispose()
     {

@@ -2,6 +2,7 @@
   <ItemGroup>
     <None Remove=".contentroot" />
     <None Remove="Assets\Shaders\EquilateralToCubeMap.hlsl" />
+    <None Remove="Assets\Shaders\EquilateralToIrradianceMap.hlsl" />
     <None Remove="Assets\Shaders\Gamma.hlsl" />
     <None Remove="Assets\Shaders\Geometry.hlsl" />
     <None Remove="Assets\Shaders\Includes\Coordinates.hlsl" />
@@ -28,6 +29,7 @@
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
+    <AdditionalFiles Include="Assets\Shaders\EquilateralToIrradianceMap.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Skybox.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\GBuffer.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Coordinates.hlsl" />

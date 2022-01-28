@@ -4,12 +4,11 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
 
-public sealed class RenderTargetCube : ITexture2D
+public sealed class RenderTargetCube : ITextureCube
 {
     public RenderTargetCube(Device device, int resolution, Format format, bool generateMipMaps, string name)
     {
-        this.Width = resolution;
-        this.Height = resolution;
+        this.Resolution = resolution;
         this.Format = format;
 
         this.Texture = Textures.Create(device, resolution, resolution, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.TextureCube, 6, generateMipMaps, name);
@@ -22,15 +21,14 @@ public sealed class RenderTargetCube : ITexture2D
         }
     }
 
-    public int Width { get; }
-    public int Height { get; }
+    public int Resolution { get; }
     public Format Format { get; }
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }
 
-    ID3D11ShaderResourceView ITexture2D.ShaderResourceView => this.ShaderResourceView;
-    ID3D11Texture2D ITexture2D.Texture => this.Texture;
+    ID3D11ShaderResourceView ITexture.ShaderResourceView => this.ShaderResourceView;
+    ID3D11Texture2D ITexture.Texture => this.Texture;
 
     internal ID3D11RenderTargetView[] FaceRenderTargetViews { get; }
 

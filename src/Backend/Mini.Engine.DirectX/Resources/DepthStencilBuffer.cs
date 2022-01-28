@@ -37,8 +37,8 @@ public sealed class DepthStencilBuffer : ITexture2D
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11DepthStencilView DepthStencilView { get; }
 
-    ID3D11ShaderResourceView ITexture2D.ShaderResourceView => this.ShaderResourceView;
-    ID3D11Texture2D ITexture2D.Texture => this.Texture;
+    ID3D11ShaderResourceView ITexture.ShaderResourceView => this.ShaderResourceView;
+    ID3D11Texture2D ITexture.Texture => this.Texture;
 
     private static Format ToDepthViewFormat(DepthStencilFormat format)
     {

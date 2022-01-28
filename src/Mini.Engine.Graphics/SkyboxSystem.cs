@@ -6,7 +6,6 @@ using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.Skybox;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.ECS.Generators.Shared;
-using Vortice.Direct3D;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.Content;
 using Mini.Engine.Graphics.Textures.Generators;
@@ -27,7 +26,7 @@ public partial class SkyboxSystem : ISystem
     private readonly InputLayout InputLayout;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
 
-    private readonly ITexture2D CubeMap;
+    private readonly ITextureCube CubeMap;
 
     public SkyboxSystem(Device device, ContentManager content, CubeMapGenerator cubeMapGenerator, FullScreenTriangle fullScreenTriangle, FrameService frameService)
     {
@@ -38,7 +37,7 @@ public partial class SkyboxSystem : ISystem
         this.FullScreenTriangle = fullScreenTriangle;
         this.FrameService = frameService;
         this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
-        this.ConstantBuffer = new ConstantBuffer<Constants>(device, "constants_skyboxsystem");
+        this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(SkyboxSystem)}_CB");
 
         var texture = content.LoadTexture(@"Skyboxes\industrial.hdr");
         this.CubeMap = cubeMapGenerator.Generate(texture, false, "Skybox_Albedo_CubeMap_Industrial");
@@ -48,27 +47,17 @@ public partial class SkyboxSystem : ISystem
     {
         var width = this.FrameService.GBuffer.Width;
         var height = this.FrameService.GBuffer.Height;
-
-        this.Context.IA.SetInputLayout(this.InputLayout);
-        this.Context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
-
-        this.Context.VS.SetShader(this.VertexShader);
-
-        this.Context.RS.SetViewPort(0, 0, width, height);
-        this.Context.RS.SetScissorRect(0, 0, width, height);
-        this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
-
-        this.Context.PS.SetShader(this.PixelShader);
-        this.Context.PS.SetSampler(Skybox.TextureSampler, this.Device.SamplerStates.LinearClamp);
-
-        this.Context.OM.SetBlendState(this.Device.BlendStates.Opaque);
-        this.Context.OM.SetDepthStencilState(this.Device.DepthStencilStates.ReadOnly);
-        this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.LBuffer.Light);
+        var blend = this.Device.BlendStates.Opaque;
+        var depth = this.Device.DepthStencilStates.ReadOnly;
+        this.Context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, blend, depth, width, height);
 
         this.Context.IA.SetVertexBuffer(this.FullScreenTriangle.Vertices);
         this.Context.IA.SetIndexBuffer(this.FullScreenTriangle.Indices);
 
-        this.Context.PS.SetShaderResource(Skybox.CubeMap, this.CubeMap);        
+        this.Context.PS.SetSampler(Skybox.TextureSampler, this.Device.SamplerStates.LinearClamp);
+        this.Context.PS.SetShaderResource(Skybox.CubeMap, this.CubeMap);
+
+        this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.LBuffer.Light);
     }
 
     [Process(Query = ProcessQuery.None)]
