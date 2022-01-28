@@ -63,7 +63,7 @@ public sealed class CubeMapGenerator
         var depth = this.Device.DepthStencilStates.None;
 
         var context = this.Device.ImmediateContext;
-        context.Setup(this.InputLayout, this.VertexShader, this.AlbedoPs, blend, depth, resolution, resolution);
+        context.Setup(this.InputLayout, this.VertexShader, this.IrradiancePs, blend, depth, resolution, resolution);
         context.PS.SetSampler(EquilateralToIrradiance.TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(EquilateralToIrradiance.Texture, equirectangular);
 
