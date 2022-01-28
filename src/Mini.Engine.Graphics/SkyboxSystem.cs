@@ -40,7 +40,7 @@ public partial class SkyboxSystem : ISystem
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(SkyboxSystem)}_CB");
 
         var texture = content.LoadTexture(@"Skyboxes\industrial.hdr");
-        this.CubeMap = cubeMapGenerator.Generate(texture, false, "Skybox_Albedo_CubeMap_Industrial");
+        this.CubeMap = cubeMapGenerator.GenerateAlbedo(texture, false, "Skybox_Albedo_CubeMap_Industrial");
     }   
 
     public void OnSet()

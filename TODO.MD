@@ -1,9 +1,10 @@
 # TODO
 
+- TODO: I refactored and now irradiance looks weird???
+
 - Use Texture.Load() instead of Sampling using the point sampling for a tiny perf boost where we don't need sampling
 
-- For some reason the cube map generator smears the textures on the poles a bit, while the original one made them 'pointy'
-- It also looks like the HDR images are too light?
+- The irradiance generator produces a lot lighter textures, this is probably correct compared to the old renderer as there HDR images were not treated correctly. But still somehting to keep an eye on!
 
 Continue replacing things in Mini.Engine.Windows with this: https://github.com/microsoft/CsWin32
 

@@ -11,12 +11,12 @@ internal sealed class SingleFrameLoop : IGameLoop
 {
     private int drawCalls;
     private readonly Win32Window Window;
-    private readonly IrradianceGenerator Generator;
+    private readonly CubeMapGenerator Generator;
     private readonly ContentManager Content;
 
     private readonly RenderDoc? RenderDoc;
 
-    public SingleFrameLoop(Win32Window window, IrradianceGenerator generator, ContentManager content, Services services)
+    public SingleFrameLoop(Win32Window window, CubeMapGenerator generator, ContentManager content, Services services)
     {
         this.Window = window;
         this.Generator = generator;
@@ -31,7 +31,7 @@ internal sealed class SingleFrameLoop : IGameLoop
     private void DrawExperiment()
     {
         var texture = this.Content.LoadTexture(@"Skyboxes\industrial.hdr");
-        using var cube = this.Generator.Generate(texture, "CubeMap");
+        using var cube = this.Generator.GenerateIrradiance(texture, "CubeMap");
     }
 
     public void Update(float time, float elapsed) { }
