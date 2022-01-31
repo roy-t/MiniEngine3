@@ -8,9 +8,9 @@ using Mini.Engine.ECS.Systems;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.Content;
-using Mini.Engine.Graphics.Textures.Generators;
 using Mini.Engine.DirectX.Resources;
 using System.Numerics;
+using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 namespace Mini.Engine.Graphics;
 

@@ -1,7 +1,7 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Debugging;
-using Mini.Engine.Graphics.Textures.Generators;
+using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Windows;
 
 namespace Mini.Engine;
@@ -31,7 +31,7 @@ internal sealed class SingleFrameLoop : IGameLoop
     private void DrawExperiment()
     {
         var texture = this.Content.LoadTexture(@"Skyboxes\industrial.hdr");
-        using var cube = this.Generator.GenerateIrradiance(texture, "CubeMap");
+        using var cube = this.Generator.GenerateEnvironment(texture, "CubeMap");
     }
 
     public void Update(float time, float elapsed) { }

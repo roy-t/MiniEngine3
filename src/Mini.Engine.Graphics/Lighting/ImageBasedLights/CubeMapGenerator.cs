@@ -5,36 +5,44 @@ using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.CubeMapGenerator;
-using Mini.Engine.Content.Shaders.EquilateralToAlbedo;
-using Mini.Engine.Content.Shaders.EquilateralToIrradiance;
 using System.Numerics;
 using System;
 
-namespace Mini.Engine.Graphics.Textures.Generators;
+namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 [Service]
 public sealed class CubeMapGenerator
 {
     private const int IrradianceResolution = 32;
+    private const int EnvironmentResolution = 512;
+
+    private const int TextureSampler = Mini.Engine.Content.Shaders.CubeMapGenerator.CubeMapGenerator.TextureSampler;
+    private const int Texture = Mini.Engine.Content.Shaders.CubeMapGenerator.CubeMapGenerator.Texture;
+
     private static readonly CubeMapFace[] Faces = Enum.GetValues<CubeMapFace>();
 
     private readonly Device Device;
     private readonly CubeMapGeneratorVs VertexShader;
-    private readonly EquilateralToAlbedoPs AlbedoPs;
-    private readonly EquilateralToIrradiancePs IrradiancePs;
+    private readonly CubeMapGeneratorAlbedoPs AlbedoPs;
+    private readonly CubeMapGeneratorIrradiancePs IrradiancePs;
+    private readonly CubeMapGeneratorEnvironmentPs EnvironmentPs;
     private readonly FullScreenTriangle FullScreenTriangle;
     private readonly InputLayout InputLayout;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
+    private readonly ConstantBuffer<EnvironmentConstants> EnvironmentConstantBuffer;
 
     public CubeMapGenerator(Device device, FullScreenTriangle fullScreenTriangle, ContentManager content)
     {
         this.Device = device;
         this.FullScreenTriangle = fullScreenTriangle;
         this.VertexShader = content.LoadCubeMapGeneratorVs();
-        this.AlbedoPs = content.LoadEquilateralToAlbedoPs();
-        this.IrradiancePs = content.LoadEquilateralToIrradiancePs();
+        this.AlbedoPs = content.LoadCubeMapGeneratorAlbedoPs();
+        this.IrradiancePs = content.LoadCubeMapGeneratorIrradiancePs();
+        this.EnvironmentPs = content.LoadCubeMapGeneratorEnvironmentPs();
+
         this.InputLayout = this.VertexShader.CreateInputLayout(device, ModelVertex.Elements);
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(CubeMapGenerator)}_CB");
+        this.EnvironmentConstantBuffer = new ConstantBuffer<EnvironmentConstants>(device, $"{nameof(CubeMapGenerator)}_Environment_CB");
     }
 
     public ITextureCube GenerateAlbedo(ITexture2D equirectangular, bool generateMipMaps, string name)
@@ -47,8 +55,8 @@ public sealed class CubeMapGenerator
 
         var context = this.Device.ImmediateContext;
         context.Setup(this.InputLayout, this.VertexShader, this.AlbedoPs, blend, depth, resolution, resolution);
-        context.PS.SetSampler(EquilateralToAlbedo.TextureSampler, this.Device.SamplerStates.LinearClamp);
-        context.PS.SetShaderResource(EquilateralToAlbedo.Texture, equirectangular);
+        context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
+        context.PS.SetShaderResource(Texture, equirectangular);
 
         this.RenderFaces(texture);
         
@@ -64,15 +72,49 @@ public sealed class CubeMapGenerator
 
         var context = this.Device.ImmediateContext;
         context.Setup(this.InputLayout, this.VertexShader, this.IrradiancePs, blend, depth, resolution, resolution);
-        context.PS.SetSampler(EquilateralToIrradiance.TextureSampler, this.Device.SamplerStates.LinearClamp);
-        context.PS.SetShaderResource(EquilateralToIrradiance.Texture, equirectangular);
+        context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
+        context.PS.SetShaderResource(Texture, equirectangular);
 
         this.RenderFaces(texture);
 
         return texture;
     }
+
+    public ITextureCube GenerateEnvironment(ITexture2D equirectangular, string name, int resolution = EnvironmentResolution)
+    {
+        var texture = new RenderTargetCube(this.Device, resolution, equirectangular.Format, true, name);
+
+        var blend = this.Device.BlendStates.Opaque;
+        var depth = this.Device.DepthStencilStates.None;
+
+        var context = this.Device.ImmediateContext;
+        context.Setup(this.InputLayout, this.VertexShader, this.EnvironmentPs, blend, depth, resolution, resolution);
+        context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
+        context.PS.SetShaderResource(Texture, equirectangular);
+
+        var levelCount = Textures.MipLevels(resolution); // TODO: DOUBLE CHECK
+        for (var level = 0; level < levelCount; level++)
+        {
+            var roughness = level / (levelCount - 1.0f);
+
+            var constants = new EnvironmentConstants()
+            {
+                Roughness = roughness
+            };
+            this.EnvironmentConstantBuffer.MapData(context, constants);
+            context.PS.SetConstantBuffer(EnvironmentConstants.Slot, this.EnvironmentConstantBuffer);
+
+
+            // TODO this sort of looks correct, but I need a way to make sure we render to the right mipMapLevel in the render target
+            this.RenderFaces(texture, level);
+        }
+
+        
+
+        return texture;
+    }
     
-    private void RenderFaces(RenderTargetCube target)
+    private void RenderFaces(RenderTargetCube target, int mipMapLevel = 0)
     {
         var context = this.Device.ImmediateContext;
 

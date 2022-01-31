@@ -1,7 +1,7 @@
 ﻿using System;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
-using Mini.Engine.Graphics.PBR;
+using Mini.Engine.Graphics.Lighting;
 
 namespace Mini.Engine.Graphics;
 

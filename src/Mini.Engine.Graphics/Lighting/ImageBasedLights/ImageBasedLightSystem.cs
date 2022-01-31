@@ -12,7 +12,7 @@
 //using Mini.Engine.ECS.Generators.Shared;
 //using Vortice.Direct3D;
 
-//namespace Mini.Engine.Graphics.PBR;
+//namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 //[Service]
 //public partial class ImageBasedLightSystem

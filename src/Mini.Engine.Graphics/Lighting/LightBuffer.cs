@@ -3,7 +3,7 @@ using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Vortice.DXGI;
 
-namespace Mini.Engine.Graphics.PBR;
+namespace Mini.Engine.Graphics.Lighting;
 
 public sealed class LightBuffer : IDisposable
 {

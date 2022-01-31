@@ -2,7 +2,7 @@
 using System.Numerics;
 using Mini.Engine.ECS;
 
-namespace Mini.Engine.Graphics.PBR;
+namespace Mini.Engine.Graphics.Lighting.PointLights;
 
 public sealed class PointLightComponent : Component
 {

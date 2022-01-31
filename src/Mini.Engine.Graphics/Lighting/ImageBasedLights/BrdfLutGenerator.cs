@@ -9,7 +9,7 @@ using Vortice.Direct3D;
 using Vortice.DXGI;
 using Vortice.Mathematics;
 
-namespace Mini.Engine.Graphics.PBR;
+namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 [Service]
 public sealed class BrdfLutGenerator : IDisposable

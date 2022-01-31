@@ -8,8 +8,8 @@ using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Entities;
 using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
+using Mini.Engine.Graphics.Lighting.PointLights;
 using Mini.Engine.Graphics.Models;
-using Mini.Engine.Graphics.PBR;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine;

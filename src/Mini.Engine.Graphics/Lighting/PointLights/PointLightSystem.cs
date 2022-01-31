@@ -13,7 +13,7 @@ using Mini.Engine.Graphics.Models.Generators;
 using Mini.Engine.Graphics.Transforms;
 using Vortice.Direct3D;
 
-namespace Mini.Engine.Graphics.PBR;
+namespace Mini.Engine.Graphics.Lighting.PointLights;
 
 [Service]
 public partial class PointLightSystem : ISystem

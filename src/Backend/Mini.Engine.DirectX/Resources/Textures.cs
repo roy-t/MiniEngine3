@@ -1,9 +1,10 @@
-﻿using Vortice.Direct3D11;
+﻿using System;
+using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
 
-internal static class Textures
+public static class Textures
 {
     internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, string name)
     {
@@ -40,5 +41,10 @@ internal static class Textures
         texture.DebugName = name;
 
         return texture;
+    }
+
+    public static int MipLevels(int resolution)
+    {
+        return 1 + (int)MathF.Floor(MathF.Log2(resolution));        
     }
 }

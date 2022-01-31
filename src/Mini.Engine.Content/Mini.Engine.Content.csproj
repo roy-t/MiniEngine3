@@ -7,14 +7,13 @@
     <None Remove="Assets\Shaders\Gamma.hlsl" />
     <None Remove="Assets\Shaders\Geometry.hlsl" />
     <None Remove="Assets\Shaders\Includes\Coordinates.hlsl" />
-    <None Remove="Assets\Shaders\Includes\CubeMapStructures.hlsl" />
     <None Remove="Assets\Shaders\Includes\GBuffer.hlsl" />
     <None Remove="Assets\Shaders\Normals.hlsl" />
-    <None Remove="Assets\Shaders\PBR\BRDF.hlsl" />
-    <None Remove="Assets\Shaders\PBR\BrdfLutGenerator.hlsl" />
-    <None Remove="Assets\Shaders\PBR\Lights.hlsl" />
-    <None Remove="Assets\Shaders\PBR\Material.hlsl" />
-    <None Remove="Assets\Shaders\PBR\PointLight.hlsl" />
+    <None Remove="Assets\Shaders\Lighting\BRDF.hlsl" />
+    <None Remove="Assets\Shaders\Lighting\BrdfLutGenerator.hlsl" />
+    <None Remove="Assets\Shaders\Lighting\Lights.hlsl" />
+    <None Remove="Assets\Shaders\Lighting\Material.hlsl" />
+    <None Remove="Assets\Shaders\Lighting\PointLight.hlsl" />
     <None Remove="Assets\Shaders\Skybox.hlsl" />
     <None Remove="Shaders\FlatShader.hlsl" />
     <None Remove="Shaders\PostProcessShader.hlsl" />
@@ -31,9 +30,7 @@
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
-    <AdditionalFiles Include="Assets\Shaders\CubeMapGenerator.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\EquilateralToIrradiance.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\Includes\CubeMapStructures.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Lighting\CubeMapGenerator.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Skybox.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\GBuffer.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Coordinates.hlsl" />
@@ -41,12 +38,11 @@
     <AdditionalFiles Include="Assets\Shaders\Includes\Gamma.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Geometry.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Defines.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\PBR\PointLight.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Lighting\PointLight.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Material.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\PBR\Includes\Lights.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\PBR\Includes\BRDF.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\PBR\BrdfLutGenerator.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\EquilateralToAlbedo.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Lighting\Includes\Lights.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Lighting\Includes\BRDF.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Lighting\BrdfLutGenerator.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\PostProcess.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\UserInterface.hlsl" />
   </ItemGroup>
