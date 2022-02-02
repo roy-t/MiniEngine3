@@ -1,4 +1,5 @@
-﻿using Mini.Engine.DirectX.Contexts.States;
+﻿using Mini.Engine.Core;
+using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D11;
 
@@ -29,9 +30,10 @@ public sealed class OutputMergerContext : DeviceContextPart
         this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetView, depthStencilBuffer?.DepthStencilView);
     }
 
-    public void SetRenderTarget(RenderTargetCube renderTarget, CubeMapFace face, DepthStencilBuffer? depthStencilBuffer = null)
+    public void SetRenderTarget(RenderTargetCube renderTarget, CubeMapFace face, int mipSlice = 0, DepthStencilBuffer? depthStencilBuffer = null)
     {
-        this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.FaceRenderTargetViews[(int)face], depthStencilBuffer?.DepthStencilView);
+        var slice = Indexes.ToOneDimensional(mipSlice, (int)face, 6);
+        this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.FaceRenderTargetViews[slice], depthStencilBuffer?.DepthStencilView);
     }
 
     public void SetRenderTargets(DepthStencilBuffer? depthStencilBuffer, params RenderTarget2D[] renderTargets)

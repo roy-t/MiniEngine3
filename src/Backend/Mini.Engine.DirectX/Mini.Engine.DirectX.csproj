@@ -4,6 +4,7 @@
     <PackageReference Include="Vortice.Direct3D11" Version="2.1.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Mini.Engine.Core\Mini.Engine.Core.csproj" />
     <ProjectReference Include="..\Mini.Engine.IO\Mini.Engine.IO.csproj" />
   </ItemGroup>
 

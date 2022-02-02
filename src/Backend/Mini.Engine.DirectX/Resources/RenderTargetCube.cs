@@ -1,4 +1,5 @@
-﻿using Vortice.Direct3D;
+﻿using Mini.Engine.Core;
+using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -13,11 +14,16 @@ public sealed class RenderTargetCube : ITextureCube
 
         this.Texture = Textures.Create(device, resolution, resolution, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.TextureCube, 6, generateMipMaps, name);
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, ShaderResourceViewDimension.TextureCube, name);
-
-        this.FaceRenderTargetViews = new ID3D11RenderTargetView[TextureCube.Faces];
-        for (var i = 0; i < TextureCube.Faces; i++)
-        {
-            this.FaceRenderTargetViews[i] = RenderTargetViews.Create(device, this.Texture, format, i, name);
+        
+        var mipSlices = Dimensions.MipSlices(resolution);
+        this.FaceRenderTargetViews = new ID3D11RenderTargetView[TextureCube.Faces * mipSlices];
+        for (var face = 0; face < TextureCube.Faces; face++)
+        {            
+            for (var slice = 0; slice < mipSlices; slice++)
+            {
+                var index = Indexes.ToOneDimensional(slice, face, TextureCube.Faces);
+                this.FaceRenderTargetViews[index] = RenderTargetViews.Create(device, this.Texture, format, face, slice, name);
+            }
         }
     }
 
@@ -34,7 +40,7 @@ public sealed class RenderTargetCube : ITextureCube
 
     public void Dispose()
     {
-        for (var i = 0; i < TextureCube.Faces; i++)
+        for (var i = 0; i < this.FaceRenderTargetViews.Length; i++)
         {
             this.FaceRenderTargetViews[i].Dispose();
         }

@@ -42,9 +42,4 @@ public static class Textures
 
         return texture;
     }
-
-    public static int MipLevels(int resolution)
-    {
-        return 1 + (int)MathF.Floor(MathF.Log2(resolution));        
-    }
 }

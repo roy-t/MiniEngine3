@@ -57,6 +57,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{202FA180
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Performance", "src\Tests\Mini.Engine.Performance\Mini.Engine.Performance.csproj", "{1B6E50EF-79F2-475B-8C91-59AADCAA42A1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mini.Engine.Core", "src\Backend\Mini.Engine.Core\Mini.Engine.Core.csproj", "{F5F27296-66AC-4040-B1E1-6F2080A66C86}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -217,6 +219,14 @@ Global
 		{1B6E50EF-79F2-475B-8C91-59AADCAA42A1}.Release|Any CPU.Build.0 = Release|x64
 		{1B6E50EF-79F2-475B-8C91-59AADCAA42A1}.Release|x64.ActiveCfg = Release|x64
 		{1B6E50EF-79F2-475B-8C91-59AADCAA42A1}.Release|x64.Build.0 = Release|x64
+		{F5F27296-66AC-4040-B1E1-6F2080A66C86}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{F5F27296-66AC-4040-B1E1-6F2080A66C86}.Debug|Any CPU.Build.0 = Debug|x64
+		{F5F27296-66AC-4040-B1E1-6F2080A66C86}.Debug|x64.ActiveCfg = Debug|x64
+		{F5F27296-66AC-4040-B1E1-6F2080A66C86}.Debug|x64.Build.0 = Debug|x64
+		{F5F27296-66AC-4040-B1E1-6F2080A66C86}.Release|Any CPU.ActiveCfg = Release|x64
+		{F5F27296-66AC-4040-B1E1-6F2080A66C86}.Release|Any CPU.Build.0 = Release|x64
+		{F5F27296-66AC-4040-B1E1-6F2080A66C86}.Release|x64.ActiveCfg = Release|x64
+		{F5F27296-66AC-4040-B1E1-6F2080A66C86}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -236,6 +246,7 @@ Global
 		{5CFD85E9-47EF-43A2-9519-EAAC3043532C} = {DC1F1BAE-401D-4710-848C-316561617DCD}
 		{594B191A-5EA3-4461-BEDE-A212CABCB371} = {202FA180-970E-4786-83C0-767A9CDBAF65}
 		{1B6E50EF-79F2-475B-8C91-59AADCAA42A1} = {202FA180-970E-4786-83C0-767A9CDBAF65}
+		{F5F27296-66AC-4040-B1E1-6F2080A66C86} = {DC1F1BAE-401D-4710-848C-316561617DCD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CE662EDF-5575-4B51-82CF-58DF83292B85}

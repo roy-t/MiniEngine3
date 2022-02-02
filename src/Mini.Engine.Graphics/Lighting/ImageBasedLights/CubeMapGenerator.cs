@@ -7,6 +7,7 @@ using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.CubeMapGenerator;
 using System.Numerics;
 using System;
+using Mini.Engine.Core;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
@@ -92,29 +93,27 @@ public sealed class CubeMapGenerator
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, equirectangular);
 
-        var levelCount = Textures.MipLevels(resolution); // TODO: DOUBLE CHECK
-        for (var level = 0; level < levelCount; level++)
+        var mipSlices = Dimensions.MipSlices(resolution);
+        for (var slice = 0; slice < mipSlices; slice++)
         {
-            var roughness = level / (levelCount - 1.0f);
+            var roughness = slice / (mipSlices - 1.0f);
 
             var constants = new EnvironmentConstants()
             {
                 Roughness = roughness
             };
             this.EnvironmentConstantBuffer.MapData(context, constants);
+            context.RS.SetViewPort(0, 0, resolution >> slice , resolution >> slice);
             context.PS.SetConstantBuffer(EnvironmentConstants.Slot, this.EnvironmentConstantBuffer);
-
-
-            // TODO this sort of looks correct, but I need a way to make sure we render to the right mipMapLevel in the render target
-            this.RenderFaces(texture, level);
+        
+            this.RenderFaces(texture, slice);
         }
 
         
-
         return texture;
     }
     
-    private void RenderFaces(RenderTargetCube target, int mipMapLevel = 0)
+    private void RenderFaces(RenderTargetCube target, int mipSlice = 0)
     {
         var context = this.Device.ImmediateContext;
 
@@ -137,7 +136,7 @@ public sealed class CubeMapGenerator
             this.ConstantBuffer.MapData(context, constants);
             context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
 
-            context.OM.SetRenderTarget(target, face);
+            context.OM.SetRenderTarget(target, face, mipSlice);
             context.DrawIndexed(FullScreenTriangle.PrimitiveCount, FullScreenTriangle.PrimitiveOffset, FullScreenTriangle.VertexOffset);
         }
     }

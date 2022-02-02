@@ -30,7 +30,7 @@ internal sealed class SingleFrameLoop : IGameLoop
 
     private void DrawExperiment()
     {
-        var texture = this.Content.LoadTexture(@"Skyboxes\industrial.hdr");
+        var texture = this.Content.LoadTexture(@"Skyboxes\circus.hdr");
         using var cube = this.Generator.GenerateEnvironment(texture, "CubeMap");
     }
 

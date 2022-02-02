@@ -2,6 +2,8 @@
 
 - Use Texture.Load() instead of Sampling using the point sampling for a tiny perf boost where we don't need sampling
 
+- Check RenderTargetViews, ShaderResourceViews of it still makes sense, is there not 1 overload per resource?
+
 - Load all shaders at startup and just inject them
 
 Continue replacing things in Mini.Engine.Windows with this: https://github.com/microsoft/CsWin32

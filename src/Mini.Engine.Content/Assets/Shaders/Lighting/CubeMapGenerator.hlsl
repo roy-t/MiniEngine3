@@ -1,5 +1,6 @@
 #include "../Includes/Defines.hlsl"
 #include "../Includes/Coordinates.hlsl"
+#include "Includes/BRDF.hlsl"
 
 static const float SampleDelta = 0.025f;
 
@@ -80,5 +81,44 @@ float4 IrradiancePs(PS_INPUT input) : SV_Target
 #pragma PixelShader
 float4 EnvironmentPs(PS_INPUT input) : SV_Target
 {
-    return float4(Roughness, 0, 0, 1.0f);
+    float3 N = normalize(input.world);
+    float3 R = N;
+    float3 V = R;
+
+    const uint SAMPLE_COUNT = 1024u;
+    float totalWeight = 0.0f;
+    float3 prefilteredColor = float3(0, 0, 0);
+
+    for (uint i = 0u; i < SAMPLE_COUNT; i++)
+    {
+        float2 Xi = Hammersley(i, SAMPLE_COUNT);
+        float3 H = ImportanceSampleGGX(Xi, N, Roughness);
+        float3 L = normalize(2.0f * dot(V, H) * H - V);
+
+        float NdotL = dot(N, L);
+        if (NdotL > 0.0f)
+        {
+            // Compute the right mip-map level to sample from
+            // to reduce the convolution artefacts
+            float NdotH = max(dot(N, H), 0.0);
+            float HdotV = dot(H, V);
+            float D = DistributionGGX(NdotH, Roughness);
+            float pdf = (D * NdotH / (4.0 * HdotV)) + 0.0001;
+
+            float resolution = 512.0; // resolution of source cubemap (per face)
+            float saTexel = 4.0 * PI / (6.0 * resolution * resolution);
+            float saSample = 1.0 / (float(SAMPLE_COUNT) * pdf + 0.0001);
+
+            float mipLevel = Roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel);
+
+
+            float2 uv = WorldToSpherical(L);
+            float3 color = Texture.SampleLevel(TextureSampler, uv, mipLevel).rgb * NdotL;
+            prefilteredColor += color;
+            totalWeight += NdotL;
+        }
+    }
+    prefilteredColor = prefilteredColor / totalWeight;
+
+    return float4(prefilteredColor, 1.0f);
 }

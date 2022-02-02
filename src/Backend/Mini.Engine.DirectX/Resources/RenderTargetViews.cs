@@ -23,4 +23,14 @@ public static class RenderTargetViews
 
         return rtv;
     }
+
+    public static ID3D11RenderTargetView Create(Device device, ID3D11Texture2D texture, Format format, int arrayIndex, int mipSlice, string textureName)
+    {
+        var description = new RenderTargetViewDescription(texture, RenderTargetViewDimension.Texture2DArray, format, mipSlice, arrayIndex, 1);
+
+        var rtv = device.ID3D11Device.CreateRenderTargetView(texture, description);
+        rtv.DebugName = $"{textureName}[{arrayIndex}]_RTV";
+
+        return rtv;
+    }
 }

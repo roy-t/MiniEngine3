@@ -40,4 +40,18 @@ float3 ImportanceSampleGGX(float2 Xi, float3 N, float roughness)
     float3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
     return normalize(sampleVec);
 }
+
+float DistributionGGX(float NdotH, float roughness)
+{
+    float a = roughness * roughness;
+    float a2 = a * a;
+    
+    float nDotH2 = NdotH * NdotH;
+
+    float num = a2;
+    float denom = (nDotH2 * (a2 - 1.0) + 1.0);
+    denom = 1 / (PI * denom * denom);
+
+    return num * denom;
+}
 #endif
