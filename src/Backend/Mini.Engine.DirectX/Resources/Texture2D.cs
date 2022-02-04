@@ -16,6 +16,8 @@ public sealed class Texture2D : ITexture2D
         this.MipMapSlices = generateMipMaps ? Dimensions.MipSlices(width, height) : 1;
         this.Texture = Textures.Create(device, width, height, format, generateMipMaps, name);
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, name);
+
+        this.Name = name;
     }
 
     public Texture2D(Device device, Span<byte> pixels, int width, int height, Format format, bool generateMipMaps = false, string name = "")
@@ -36,6 +38,7 @@ public sealed class Texture2D : ITexture2D
         }
     }
 
+    public string Name { get; }
     public int Width { get; }
     public int Height { get; }
     public Format Format { get; }

@@ -14,8 +14,11 @@ public sealed class RenderTarget2D : ITexture2D
         this.Texture = Textures.Create(device, width, height, format, name);
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, name);
         this.ID3D11RenderTargetView = RenderTargetViews.Create(device, this.Texture, format, name);
+
+        this.Name = name;
     }
 
+    public string Name { get; }
     public int Width { get; }
     public int Height { get; }
     public Format Format { get; }

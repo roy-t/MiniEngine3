@@ -98,6 +98,12 @@ public sealed partial class ContentManager : IDisposable
         }
     }
 
+    public void Link(IDisposable content, string id)
+    {
+        var wrapper = new ExternalContent(content, id);
+        this.Add(wrapper);
+    }
+
     internal void Add(IContent content)
     {
         this.Track(content);
@@ -143,7 +149,7 @@ public sealed partial class ContentManager : IDisposable
 
     private void Unload(Frame frame)
     {
-        this.Logger.Information("Unload content stack frame {@frame}", frame.Name);
+        this.Logger.Information("Unloading content stack frame {@frame}", frame.Name);
         foreach (var content in frame.Content)
         {
             switch (content)
@@ -163,8 +169,11 @@ public sealed partial class ContentManager : IDisposable
                 case VertexShaderContent vs:
                     vs.Dispose();
                     break;
+                case ExternalContent external:
+                    external.Dispose();
+                    break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(content), $"Cannot unload {content.Id}, unsupported content type {content.GetType()}");
+                    throw new NotSupportedException($"Cannot unload {content.Id}, unsupported content type {content.GetType()}");
             }
         }
     }

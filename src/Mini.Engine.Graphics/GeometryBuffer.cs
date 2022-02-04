@@ -12,7 +12,7 @@ public sealed class GeometryBuffer : IDisposable
         this.Albedo = new RenderTarget2D(device, device.Width, device.Height, Format.R8G8B8A8_UNorm, "GBuffer_Albedo");
         this.Material = new RenderTarget2D(device, device.Width, device.Height, Format.R8G8B8A8_UNorm, "GBuffer_Material");
         this.Normal = new RenderTarget2D(device, device.Width, device.Height, Format.R16G16B16A16_Float, "GBuffer_Normal");
-        this.DepthStencilBuffer = new DepthStencilBuffer(device, DepthStencilFormat.D32_Float, device.Width, device.Height);
+        this.DepthStencilBuffer = new DepthStencilBuffer(device, DepthStencilFormat.D32_Float, device.Width, device.Height, "GBuffer_Depth");
 
         this.Width = device.Width;
         this.Height = device.Height;

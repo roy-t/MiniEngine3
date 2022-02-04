@@ -8,6 +8,7 @@ public interface ITexture : IDisposable
 {
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }
+    public string Name { get; }
     public Format Format { get; }
     public int MipMapSlices { get; }
 }

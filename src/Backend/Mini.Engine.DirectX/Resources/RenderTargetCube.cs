@@ -25,8 +25,11 @@ public sealed class RenderTargetCube : ITextureCube
                 this.FaceRenderTargetViews[index] = RenderTargetViews.Create(device, this.Texture, format, face, slice, name);
             }
         }
+
+        this.Name = name;
     }
 
+    public string Name { get; }
     public int Resolution { get; }
     public Format Format { get; }
     public int MipMapSlices { get; }

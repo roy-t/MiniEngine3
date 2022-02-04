@@ -26,8 +26,11 @@ public sealed class TextureCube : ITextureCube
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, ShaderResourceViewDimension.TextureCube, name);
 
         this.MipMapSlices = generateMipMaps ? Dimensions.MipSlices(resolution) : 1;
+
+        this.Name = name;
     }
 
+    public string Name { get; }
     public const int Faces = 6;
     public int Resolution { get; }    
     public Format Format { get; }

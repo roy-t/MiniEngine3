@@ -23,8 +23,9 @@ internal sealed class Texture2DContent : ITexture2D, IContent
         this.Settings = settings;
         this.Reload(device);        
     }
-
+    
     public ContentId Id { get; }
+    public string Name => this.texture.Name;
     public int Width => this.texture.Width;
     public int Height => this.texture.Height;
     public Format Format => this.texture.Format;

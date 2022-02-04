@@ -14,7 +14,7 @@ public enum DepthStencilFormat
 
 public sealed class DepthStencilBuffer : ITexture2D
 {
-    public DepthStencilBuffer(Device device, DepthStencilFormat format, int width, int height)
+    public DepthStencilBuffer(Device device, DepthStencilFormat format, int width, int height, string name)
     {
         this.Width = width;
         this.Height = height;
@@ -25,9 +25,12 @@ public sealed class DepthStencilBuffer : ITexture2D
 
         var depthView = new DepthStencilViewDescription(DepthStencilViewDimension.Texture2D, ToDepthViewFormat(format));
         this.DepthStencilView = device.ID3D11Device.CreateDepthStencilView(this.Texture, depthView);
-        this.DepthStencilView.DebugName = $"{nameof(DepthStencilBuffer)}_DSV";        
+
+        this.Name = name;
+        this.DepthStencilView.DebugName = $"{this.Name}_DSV";
     }
 
+    public string Name { get; }
     public int Width { get; }
     public int Height { get; }
     public Format Format { get; }

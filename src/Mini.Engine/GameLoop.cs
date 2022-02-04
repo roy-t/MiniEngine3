@@ -66,6 +66,11 @@ internal sealed class GameLoop : IGameLoop
         var irradiance = cubeMapGenerator.GenerateIrradiance(texture, "skybox_irradiance");
         var environment = cubeMapGenerator.GenerateEnvironment(texture, "skybox_environment");
 
+        // Make sure the items are disposed whenever this content frame is
+        content.Link(albedo, albedo.Name);
+        content.Link(irradiance, irradiance.Name);
+        content.Link(environment, environment.Name);
+
         components.Add(new SkyboxComponent(sky, albedo, irradiance, environment, 1.0f));
     }
 
