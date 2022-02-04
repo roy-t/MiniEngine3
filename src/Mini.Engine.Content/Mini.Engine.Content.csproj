@@ -1,25 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
-    <None Remove=".contentroot" />
-    <None Remove="Assets\Shaders\CubeMapGenerator.hlsl" />
-    <None Remove="Assets\Shaders\EquilateralToAlbedo.hlsl" />
-    <None Remove="Assets\Shaders\EquilateralToIrradiance.hlsl" />
-    <None Remove="Assets\Shaders\Gamma.hlsl" />
-    <None Remove="Assets\Shaders\Geometry.hlsl" />
-    <None Remove="Assets\Shaders\Includes\Coordinates.hlsl" />
-    <None Remove="Assets\Shaders\Includes\GBuffer.hlsl" />
-    <None Remove="Assets\Shaders\Lighting\ImageBasedLight.hlsl" />
-    <None Remove="Assets\Shaders\Normals.hlsl" />
-    <None Remove="Assets\Shaders\Lighting\BRDF.hlsl" />
-    <None Remove="Assets\Shaders\Lighting\BrdfLutGenerator.hlsl" />
-    <None Remove="Assets\Shaders\Lighting\Lights.hlsl" />
-    <None Remove="Assets\Shaders\Lighting\Material.hlsl" />
-    <None Remove="Assets\Shaders\Lighting\PointLight.hlsl" />
-    <None Remove="Assets\Shaders\Skybox.hlsl" />
-    <None Remove="Shaders\FlatShader.hlsl" />
-    <None Remove="Shaders\PostProcessShader.hlsl" />
-  </ItemGroup> 
-  <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
     <ProjectReference Include="..\Backend\Mini.Engine.IO\Mini.Engine.IO.csproj" />
     <ProjectReference Include="..\Generators\Mini.Engine.Content.Generators\Mini.Engine.Content.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
