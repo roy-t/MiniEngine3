@@ -9,7 +9,7 @@ using Vortice.Mathematics;
 namespace Mini.Engine.Graphics;
 
 [Service]
-public partial class ClearBuffersSystem : ISystem
+public sealed partial class ClearBuffersSystem : ISystem
 {
     private readonly Device Device;
     private readonly FrameService FrameService;

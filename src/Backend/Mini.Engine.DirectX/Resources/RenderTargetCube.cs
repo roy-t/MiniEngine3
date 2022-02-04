@@ -15,11 +15,11 @@ public sealed class RenderTargetCube : ITextureCube
         this.Texture = Textures.Create(device, resolution, resolution, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.TextureCube, 6, generateMipMaps, name);
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, ShaderResourceViewDimension.TextureCube, name);
         
-        var mipSlices = Dimensions.MipSlices(resolution);
-        this.FaceRenderTargetViews = new ID3D11RenderTargetView[TextureCube.Faces * mipSlices];
+        this.MipMapSlices = generateMipMaps ? Dimensions.MipSlices(resolution) : 1;
+        this.FaceRenderTargetViews = new ID3D11RenderTargetView[TextureCube.Faces * this.MipMapSlices];
         for (var face = 0; face < TextureCube.Faces; face++)
         {            
-            for (var slice = 0; slice < mipSlices; slice++)
+            for (var slice = 0; slice < this.MipMapSlices; slice++)
             {
                 var index = Indexes.ToOneDimensional(slice, face, TextureCube.Faces);
                 this.FaceRenderTargetViews[index] = RenderTargetViews.Create(device, this.Texture, format, face, slice, name);
@@ -29,6 +29,7 @@ public sealed class RenderTargetCube : ITextureCube
 
     public int Resolution { get; }
     public Format Format { get; }
+    public int MipMapSlices { get; }
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }

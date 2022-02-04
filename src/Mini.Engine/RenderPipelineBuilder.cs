@@ -2,6 +2,7 @@
 using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
+using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.PointLights;
 using Mini.Engine.Graphics.Models;
 
@@ -39,10 +40,16 @@ internal sealed class RenderPipelineBuilder
                 .Requires("Renderer", "Models")
                 .Produces("Renderer", "PointLights")
                 .Build()
+            .System<ImageBasedLightSystem>()
+                .InSequence()
+                .Requires("Renderer", "Models")
+                .Produces("Renderer", "ImageBasedLights")
+                .Build()
             .System<SkyboxSystem>()
                 .InSequence()
                 .Requires("Renderer", "Models")
                 .Requires("Renderer", "PointLights")
+                .Requires("Renderer", "ImageBasedLights")
                 .Produces("Renderer", "Skybox")
                 .Build()
         .Build();

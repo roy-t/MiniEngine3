@@ -1,4 +1,5 @@
 ﻿using System;
+using Mini.Engine.Core;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -12,6 +13,7 @@ public sealed class Texture2D : ITexture2D
         this.Height = height;
         this.Format = format;
 
+        this.MipMapSlices = generateMipMaps ? Dimensions.MipSlices(width, height) : 1;
         this.Texture = Textures.Create(device, width, height, format, generateMipMaps, name);
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, name);
     }
@@ -37,6 +39,7 @@ public sealed class Texture2D : ITexture2D
     public int Width { get; }
     public int Height { get; }
     public Format Format { get; }
+    public int MipMapSlices { get; }
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }

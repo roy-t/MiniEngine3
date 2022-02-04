@@ -1,4 +1,5 @@
-﻿using Vortice.Direct3D;
+﻿using Mini.Engine.Core;
+using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -23,17 +24,20 @@ public sealed class TextureCube : ITextureCube
 
         this.Texture = Textures.Create(device, resolution, resolution, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.TextureCube, 6, generateMipMaps, name);
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, ShaderResourceViewDimension.TextureCube, name);
+
+        this.MipMapSlices = generateMipMaps ? Dimensions.MipSlices(resolution) : 1;
     }
 
     public const int Faces = 6;
     public int Resolution { get; }    
     public Format Format { get; }
+    public int MipMapSlices { get; }
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }
 
     ID3D11ShaderResourceView ITexture.ShaderResourceView => this.ShaderResourceView;
-    ID3D11Texture2D ITexture.Texture => this.Texture;
+    ID3D11Texture2D ITexture.Texture => this.Texture;    
 
     public void Dispose()
     {

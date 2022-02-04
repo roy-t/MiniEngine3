@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Numerics;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -32,7 +31,8 @@ public sealed class DepthStencilBuffer : ITexture2D
     public int Width { get; }
     public int Height { get; }
     public Format Format { get; }
-    
+    public int MipMapSlices => 1;
+
     internal ID3D11Texture2D Texture { get; }
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11DepthStencilView DepthStencilView { get; }

@@ -5,11 +5,14 @@ using Mini.Engine.ECS.Systems;
 namespace Mini.Engine.ECS.Components;
 
 [System]
-public partial class ComponentFlushSystem : ISystem
+public sealed partial class ComponentFlushSystem : ISystem
 {
     private readonly ContainerStore ContainerStore;
 
-    public ComponentFlushSystem(ContainerStore containerStore) => this.ContainerStore = containerStore;
+    public ComponentFlushSystem(ContainerStore containerStore)
+    {
+        this.ContainerStore = containerStore;
+    }
 
     public void OnSet()
     {

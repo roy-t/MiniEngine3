@@ -28,9 +28,12 @@ internal sealed class Texture2DContent : ITexture2D, IContent
     public int Width => this.texture.Width;
     public int Height => this.texture.Height;
     public Format Format => this.texture.Format;
+    public int MipMapSlices => this.texture.MipMapSlices;
 
     ID3D11ShaderResourceView ITexture.ShaderResourceView => this.texture.ShaderResourceView;
     ID3D11Texture2D ITexture.Texture => this.texture.Texture;
+
+    
 
     [MemberNotNull(nameof(texture))]
     public void Reload(Device device)

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
@@ -16,7 +17,7 @@ using Vortice.Direct3D;
 namespace Mini.Engine.Graphics.Lighting.PointLights;
 
 [Service]
-public partial class PointLightSystem : ISystem
+public sealed partial class PointLightSystem : ISystem, IDisposable
 {
 
     private readonly Device Device;
@@ -118,5 +119,15 @@ public partial class PointLightSystem : ISystem
     {
         using var commandList = this.Context.FinishCommandList();
         this.Device.ImmediateContext.ExecuteCommandList(commandList);
+    }
+
+    public void Dispose()
+    {
+        this.PerLightConstantBuffer.Dispose();
+        this.ConstantBuffer.Dispose();
+        this.InputLayout.Dispose();
+        this.PixelShader.Dispose();
+        this.VertexShader.Dispose();
+        this.Context.Dispose();
     }
 }

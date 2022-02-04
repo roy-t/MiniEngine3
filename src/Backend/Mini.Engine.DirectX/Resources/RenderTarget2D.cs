@@ -19,6 +19,7 @@ public sealed class RenderTarget2D : ITexture2D
     public int Width { get; }
     public int Height { get; }
     public Format Format { get; }
+    public int MipMapSlices => 1;
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }

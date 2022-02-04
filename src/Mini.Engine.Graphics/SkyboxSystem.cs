@@ -8,14 +8,13 @@ using Mini.Engine.ECS.Systems;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.Content;
-using Mini.Engine.DirectX.Resources;
 using System.Numerics;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 namespace Mini.Engine.Graphics;
 
 [Service]
-public partial class SkyboxSystem : ISystem
+public sealed partial class SkyboxSystem : ISystem, IDisposable
 {
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
@@ -25,8 +24,6 @@ public partial class SkyboxSystem : ISystem
     private readonly FrameService FrameService;
     private readonly InputLayout InputLayout;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
-
-    private readonly ITextureCube CubeMap;
 
     public SkyboxSystem(Device device, ContentManager content, CubeMapGenerator cubeMapGenerator, FullScreenTriangle fullScreenTriangle, FrameService frameService)
     {
@@ -38,9 +35,6 @@ public partial class SkyboxSystem : ISystem
         this.FrameService = frameService;
         this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(SkyboxSystem)}_CB");
-
-        var texture = content.LoadTexture(@"Skyboxes\industrial.hdr");
-        this.CubeMap = cubeMapGenerator.GenerateAlbedo(texture, false, "Skybox_Albedo_CubeMap_Industrial");
     }   
 
     public void OnSet()
@@ -54,14 +48,13 @@ public partial class SkyboxSystem : ISystem
         this.Context.IA.SetVertexBuffer(this.FullScreenTriangle.Vertices);
         this.Context.IA.SetIndexBuffer(this.FullScreenTriangle.Indices);
 
-        this.Context.PS.SetSampler(Skybox.TextureSampler, this.Device.SamplerStates.LinearClamp);
-        this.Context.PS.SetShaderResource(Skybox.CubeMap, this.CubeMap);
+        this.Context.PS.SetSampler(Skybox.TextureSampler, this.Device.SamplerStates.LinearClamp);        
 
         this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.LBuffer.Light);
     }
 
-    [Process(Query = ProcessQuery.None)]
-    public void DrawSkybox()
+    [Process(Query = ProcessQuery.All)]
+    public void DrawSkybox(SkyboxComponent skybox)
     {
         var camera = this.FrameService.Camera;
 
@@ -77,6 +70,7 @@ public partial class SkyboxSystem : ISystem
         this.ConstantBuffer.MapData(this.Context, constants);
         this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
 
+        this.Context.PS.SetShaderResource(Skybox.CubeMap, skybox.Albedo);
         this.Context.DrawIndexed(FullScreenTriangle.PrimitiveCount, FullScreenTriangle.PrimitiveOffset, FullScreenTriangle.VertexOffset);
     }
 
@@ -84,5 +78,14 @@ public partial class SkyboxSystem : ISystem
     {
         using var commandList = this.Context.FinishCommandList();
         this.Device.ImmediateContext.ExecuteCommandList(commandList);
-    }    
+    }
+
+    public void Dispose()
+    {
+        this.ConstantBuffer.Dispose();
+        this.InputLayout.Dispose();
+        this.PixelShader.Dispose();
+        this.VertexShader.Dispose();
+        this.Context.Dispose();
+    }
 }

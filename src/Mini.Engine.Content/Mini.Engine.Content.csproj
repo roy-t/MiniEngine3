@@ -8,6 +8,7 @@
     <None Remove="Assets\Shaders\Geometry.hlsl" />
     <None Remove="Assets\Shaders\Includes\Coordinates.hlsl" />
     <None Remove="Assets\Shaders\Includes\GBuffer.hlsl" />
+    <None Remove="Assets\Shaders\Lighting\ImageBasedLight.hlsl" />
     <None Remove="Assets\Shaders\Normals.hlsl" />
     <None Remove="Assets\Shaders\Lighting\BRDF.hlsl" />
     <None Remove="Assets\Shaders\Lighting\BrdfLutGenerator.hlsl" />
@@ -31,6 +32,7 @@
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\CubeMapGenerator.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Lighting\ImageBasedLight.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Skybox.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\GBuffer.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Coordinates.hlsl" />

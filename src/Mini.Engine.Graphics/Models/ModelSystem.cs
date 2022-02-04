@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Configuration;
+﻿using System;
+using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.Geometry;
@@ -14,7 +15,7 @@ using Vortice.Direct3D;
 namespace Mini.Engine.Graphics.Models;
 
 [Service]
-public partial class ModelSystem : ISystem
+public sealed partial class ModelSystem : ISystem, IDisposable
 {
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
@@ -95,5 +96,14 @@ public partial class ModelSystem : ISystem
         // TODO: is it really useful to do this asynchronously?
         using var commandList = this.Context.FinishCommandList();
         this.Device.ImmediateContext.ExecuteCommandList(commandList);
+    }
+
+    public void Dispose()
+    {
+        this.ConstantBuffer.Dispose();
+        this.InputLayout.Dispose();
+        this.PixelShader.Dispose();
+        this.VertexShader.Dispose();
+        this.Context.Dispose();
     }
 }
