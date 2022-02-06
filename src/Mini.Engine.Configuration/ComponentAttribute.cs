@@ -8,6 +8,6 @@ namespace Mini.Engine.Configuration;
 /// </summary>
 /// <seealso cref="Injector"/>
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class ComponentAttribute : Attribute
+public sealed class ComponentAttribute : InjectableAttribute
 {
 }

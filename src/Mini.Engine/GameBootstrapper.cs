@@ -32,6 +32,10 @@ public sealed class GameBootstrapper : IDisposable
 
     public GameBootstrapper(ILogger logger, Services services)
     {
+        var stopWatch = Stopwatch.StartNew();
+        Load();
+
+
         this.Logger = logger.ForContext<GameBootstrapper>();
 
         this.Window = Win32Application.Initialize("Mini.Engine", 1920, 1080);
@@ -56,7 +60,19 @@ public sealed class GameBootstrapper : IDisposable
         this.enableUI = !StartupArguments.NoUi;
 
         var gameLoopType = StartupArguments.GameLoopType;
-        this.GameLoop = services.Resolve<IGameLoop>(Type.GetType(gameLoopType, true, true)!);        
+        this.GameLoop = services.Resolve<IGameLoop>(Type.GetType(gameLoopType, true, true)!);
+
+        Debug.WriteLine($"Loading took: {stopWatch.ElapsedMilliseconds}ms");
+    }
+
+    private void Load()
+    {
+        var type = Type.GetType(StartupArguments.GameLoopType, true, true)
+            ?? throw new Exception($"Unable to find game loop {StartupArguments.GameLoopType}");
+
+        var graph = DependencyGraph.Build(type);
+
+        graph.ToString();
     }
 
     public void Run()

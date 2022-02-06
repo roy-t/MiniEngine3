@@ -28,7 +28,7 @@ public sealed class Injector : IDisposable
 
         this.Logger = Log.Logger.ForContext<Injector>();
 
-        this.Container = new ServiceContainer();
+        this.Container = new ServiceContainer();        
 
         _ = this.Container.SetDefaultLifetime<PerContainerLifetime>()
             .RegisterInstance(Log.Logger)
