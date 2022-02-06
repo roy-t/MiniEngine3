@@ -53,7 +53,7 @@ public sealed class PipelineBuilder
 
         public ParallelPipeline Build()
         {
-            var stages = CoffmanGrahamOrderer.DivideIntoStages(this.SystemSpecs);
+            var stages = SystemSpecOrderer.DivideIntoStages(this.SystemSpecs);
 
             var pipelineStages = new List<PipelineStage>();
             for (var i = 0; i < stages.Count; i++)

@@ -4,30 +4,33 @@ using System.Linq;
 
 namespace Mini.Engine.Configuration;
 
-
-public interface IRelationDescriber<TConsumer, TConsumable>
+public interface IRelationDescriber<TProducerConsumer, TProduct>
 {
-    IReadOnlyList<TConsumable> GetConstraints(TConsumer item);
-    IReadOnlyList<TConsumable> GetReleases(TConsumer item);
+    IReadOnlyList<TProduct> GetConsumption(TProducerConsumer item);
+    IReadOnlyList<TProduct> GetProduction(TProducerConsumer item);
 }
 
-public sealed class CoffmanGraham<TConsumer, TConsumable>
+/// <summary>
+/// Produces the optimal ordering in which to produce/consume items so that producers/consumers
+/// have to wait as little as possible on each other
+/// </summary>
+public sealed class CoffmanGraham<TProducerConsumer, TProduct>
 {
-    private readonly IRelationDescriber<TConsumer, TConsumable> Relations;
+    private readonly IRelationDescriber<TProducerConsumer, TProduct> Relations;
 
-    public CoffmanGraham(IRelationDescriber<TConsumer, TConsumable> describer)
+    public CoffmanGraham(IRelationDescriber<TProducerConsumer, TProduct> relations)
     {
-        this.Relations = describer;
+        this.Relations = relations;
     }
 
-    public IReadOnlyList<TConsumer> Order(IEnumerable<TConsumer> items)
+    public IReadOnlyList<TProducerConsumer> Order(IEnumerable<TProducerConsumer> items)
     {
-        var ordered = new List<TConsumer>();
-        var unordered = new List<TConsumer>();
+        var ordered = new List<TProducerConsumer>();
+        var unordered = new List<TProducerConsumer>();
 
         foreach (var item in items)
         {
-            var dependencies = this.Relations.GetConstraints(item);
+            var dependencies = this.Relations.GetConsumption(item);
             if (dependencies.Count == 0)
             {
                 ordered.Add(item);
@@ -56,7 +59,7 @@ public sealed class CoffmanGraham<TConsumer, TConsumable>
         return ordered;
     }
 
-    private bool GetNextCandidate(IReadOnlyList<TConsumer> unordered, IReadOnlyList<TConsumer> ordered, out TConsumer candidate)
+    private bool GetNextCandidate(IReadOnlyList<TProducerConsumer> unordered, IReadOnlyList<TProducerConsumer> ordered, out TProducerConsumer candidate)
     {
         var maxDistance = int.MinValue;
         candidate = default!;
@@ -66,7 +69,7 @@ public sealed class CoffmanGraham<TConsumer, TConsumable>
             // The best candidate has the largest distance from the items that produce their
             // requirements so that it does not have to wait long for what it needs.
             var minDistance = int.MaxValue;
-            var dependencies = this.Relations.GetConstraints(item);
+            var dependencies = this.Relations.GetConsumption(item);
             foreach (var dependency in dependencies)
             {
                 if (this.DistanceToRelease(dependency, ordered, out var distance))
@@ -91,12 +94,12 @@ public sealed class CoffmanGraham<TConsumer, TConsumable>
         return maxDistance > int.MinValue;
     }
 
-    private bool DistanceToRelease(TConsumable dependency, IReadOnlyList<TConsumer> ordered, out int distance)
+    private bool DistanceToRelease(TProduct dependency, IReadOnlyList<TProducerConsumer> ordered, out int distance)
     {
         for (var i = 0; i < ordered.Count; i++)
         {
             var item = ordered[i];
-            var releases = this.Relations.GetReleases(item);
+            var releases = this.Relations.GetProduction(item);
             if (releases.Contains(dependency))
             {
                 distance = ordered.Count - i;

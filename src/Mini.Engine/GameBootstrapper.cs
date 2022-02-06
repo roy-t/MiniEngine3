@@ -7,6 +7,7 @@ using Mini.Engine.IO;
 using Mini.Engine.UI;
 using Mini.Engine.Windows;
 using Serilog;
+using Vortice.Mathematics;
 using Vortice.Win32;
 
 namespace Mini.Engine;
@@ -19,22 +20,19 @@ public sealed class GameBootstrapper : IDisposable
     private readonly Win32Window Window;
     private readonly Device Device;
     private readonly DiskFileSystem FileSystem;
+    private readonly ILogger Logger;
 
     private readonly DebugLayerLogger DebugLayerLogger;
     private readonly UserInterface UI;
     private readonly IGameLoop GameLoop;
-    private readonly ILogger Logger;
 
     private readonly InputService InputService;
     private readonly Keyboard Keyboard;
-
     private bool enableUI = true;
 
     public GameBootstrapper(ILogger logger, Services services)
     {
-        var stopWatch = Stopwatch.StartNew();
-        Load();
-
+        var stopWatch = Stopwatch.StartNew();        
 
         this.Logger = logger.ForContext<GameBootstrapper>();
 
@@ -43,17 +41,18 @@ public sealed class GameBootstrapper : IDisposable
 
         this.LoadRenderDoc(services);
 
-        this.Device = new Device(this.Window.Handle, this.Window.Width, this.Window.Height);
-        this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
-
+        this.Device = new Device(this.Window.Handle, this.Window.Width, this.Window.Height);        
         this.InputService = new InputService(this.Window);
         this.Keyboard = new Keyboard();
+        this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
 
         // Handle ownership/lifetime control over to LightInject
         services.Register(this.Device);
         services.Register(this.InputService);
         services.Register(this.Window);
-        services.RegisterAs<DiskFileSystem, IVirtualFileSystem>(this.FileSystem);
+        services.RegisterAs<DiskFileSystem, IVirtualFileSystem>(this.FileSystem);                
+
+        this.LoadGameLoopDependencies(services);
 
         this.DebugLayerLogger = services.Resolve<DebugLayerLogger>();
         this.UI = services.Resolve<UserInterface>();
@@ -62,17 +61,30 @@ public sealed class GameBootstrapper : IDisposable
         var gameLoopType = StartupArguments.GameLoopType;
         this.GameLoop = services.Resolve<IGameLoop>(Type.GetType(gameLoopType, true, true)!);
 
-        Debug.WriteLine($"Loading took: {stopWatch.ElapsedMilliseconds}ms");
+        this.Logger.Information("Bootstrapping {@gameLoop} took: {@milliseconds}ms", gameLoopType, stopWatch.ElapsedMilliseconds);
     }
 
-    private void Load()
+    // TODO: extract this into a loading screen class?
+    private void LoadGameLoopDependencies(Services services)
     {
         var type = Type.GetType(StartupArguments.GameLoopType, true, true)
             ?? throw new Exception($"Unable to find game loop {StartupArguments.GameLoopType}");
+        
+        var order = InjectableDependencies.CreateInitializationOrder(type);
+        var index = 0;
+        
+        var stopwatch = Stopwatch.StartNew();        
+        while (Win32Application.PumpMessages() && index < order.Count)
+        {
+            var elapsed = stopwatch.Elapsed.TotalSeconds;
+            stopwatch.Restart();
 
-        var graph = DependencyGraph.Build(type);
+            var progress = index / (float)order.Count;
+            services.Resolve(order[index++]);
 
-        graph.ToString();
+            this.Device.ClearBackBuffer(new Color4(progress, progress, progress));
+            this.Device.Present();
+        }      
     }
 
     public void Run()

@@ -12,9 +12,19 @@ public sealed class Services
         this.Container = container;
     }
 
+    public object Resolve(Type type)
+    {
+        return this.Container.GetInstance(type);
+    }
+
     public T Resolve<T>()
     {
         return this.Container.GetInstance<T>();
+    }
+
+    public T Resolve<T>(Type subType)
+    {
+        return (T)this.Container.GetInstance(subType);
     }
 
     public bool TryResolve<T>(out T instance)
@@ -23,10 +33,7 @@ public sealed class Services
         return instance != null;
     }
 
-    public T Resolve<T>(Type subType)
-    {
-        return (T)this.Container.GetInstance(subType);
-    }
+    
 
     public void Register<T>(T instance)
     {

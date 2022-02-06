@@ -1,18 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Mini.Engine.Configuration;
 
 namespace Mini.Engine.ECS.Pipeline;
 
 /// <summary>
 /// https://en.wikipedia.org/wiki/Coffman%E2%80%93Graham_algorithm
 /// </summary>
-public static class CoffmanGrahamOrderer
+public static class SystemSpecOrderer
 {
+    private class SystemRelationDescriber : IRelationDescriber<SystemSpec, ResourceState>
+    {
+        public IReadOnlyList<ResourceState> GetConsumption(SystemSpec item)
+        {
+            return item.RequiredResources;
+        }
+
+        public IReadOnlyList<ResourceState> GetProduction(SystemSpec item)
+        {
+            return item.ProducedResources;
+        }
+    }
+
     public static List<List<SystemSpec>> DivideIntoStages(List<SystemSpec> systemSpecs)
     {
         var expanded = ExpandRequirements(systemSpecs);
-        var ordered = Order(expanded);
+
+        var relations = new SystemRelationDescriber();
+        var coffmanGraham = new CoffmanGraham<SystemSpec, ResourceState>(relations);
+        var ordered = coffmanGraham.Order(expanded);
         var stages = CreateStages(ordered);
 
         //return SingleThreaded(stages);
@@ -34,28 +51,7 @@ public static class CoffmanGrahamOrderer
             }
         }
         return single;
-    }
-
-    private static List<SystemSpec> Order(IReadOnlyList<SystemSpec> systemSpecs)
-    {
-        var orderedSystemSpecs = systemSpecs.Where(systemSpec => systemSpec.RequiredResources.Count == 0).ToList();
-        var unorderedSystemSpecs = systemSpecs.Where(systemSpec => systemSpec.RequiredResources.Count > 0).ToList();
-
-        while (unorderedSystemSpecs.Count > 0)
-        {
-            var candidate = GetNextCandidate(unorderedSystemSpecs, orderedSystemSpecs);
-
-            if (candidate == null)
-            {
-                throw new Exception("Unsatisfiable dependency or cycle detected");
-            }
-
-            orderedSystemSpecs.Add(candidate);
-            unorderedSystemSpecs.Remove(candidate);
-        }
-
-        return orderedSystemSpecs;
-    }
+    }   
 
     private static IReadOnlyList<SystemSpec> ExpandRequirements(IReadOnlyList<SystemSpec> systemSpecs)
     {
@@ -76,7 +72,7 @@ public static class CoffmanGrahamOrderer
         return expanded;
     }
 
-    private static List<List<SystemSpec>> CreateStages(List<SystemSpec> orderedSystemSpecs)
+    private static List<List<SystemSpec>> CreateStages(IReadOnlyList<SystemSpec> orderedSystemSpecs)
     {
         var stages = new List<List<SystemSpec>>();
         var produced = new List<ResourceState>();
@@ -99,7 +95,7 @@ public static class CoffmanGrahamOrderer
                 }
                 else
                 {
-                    throw new Exception($"Algorithm error, did you forget to first call {nameof(CoffmanGrahamOrderer)}.{nameof(Order)}?");
+                    throw new Exception("Algorithm error");
                 }
             }
         }
@@ -130,54 +126,12 @@ public static class CoffmanGrahamOrderer
     }
 
     private static bool AllRequirementsHaveBeenProduced(SystemSpec systemSpec, List<ResourceState> produced)
-        => systemSpec.RequiredResources.All(resource => produced.Contains(resource));
-
-    private static List<ResourceState> GetProducedResource(List<SystemSpec> systemSpecs)
-        => systemSpecs.SelectMany(systemSpec => systemSpec.ProducedResources).ToList();
-
-    private static SystemSpec? GetNextCandidate(List<SystemSpec> unorderedSystemSpecs, List<SystemSpec> orderedSystemSpecs)
     {
-        var maxDistance = int.MinValue;
-        SystemSpec? candidate = null;
-
-        foreach (var systemSpec in unorderedSystemSpecs)
-        {
-            // The best candidate has the largest distance from the items that produce their
-            // requirements so that it does not have to wait long for what it needs.
-            var minDistance = int.MaxValue;
-            foreach (var requirement in systemSpec.RequiredResources)
-            {
-                var distance = DistanceToProducer(requirement, orderedSystemSpecs);
-                if (distance == null)
-                {
-                    goto NextCandidate;
-                }
-
-                minDistance = Math.Min(distance.Value, minDistance);
-            }
-
-            if (minDistance > maxDistance)
-            {
-                maxDistance = minDistance;
-                candidate = systemSpec;
-            }
-
-        NextCandidate: { }
-        }
-
-        return candidate;
+        return systemSpec.RequiredResources.All(resource => produced.Contains(resource));
     }
 
-    private static int? DistanceToProducer(ResourceState requirement, List<SystemSpec> orderedSystemSpecs)
+    private static List<ResourceState> GetProducedResource(List<SystemSpec> systemSpecs)
     {
-        var producer = orderedSystemSpecs.Where(systemSpec => systemSpec.ProducedResources.Contains(requirement)).FirstOrDefault();
-
-        if (producer != null)
-        {
-            var insertAt = orderedSystemSpecs.Count;
-            return insertAt - orderedSystemSpecs.IndexOf(producer);
-        }
-
-        return null;
+        return systemSpecs.SelectMany(systemSpec => systemSpec.ProducedResources).ToList();
     }
 }

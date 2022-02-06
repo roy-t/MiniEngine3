@@ -101,12 +101,17 @@ public sealed class Device : IDisposable
 
     public void ClearBackBuffer()
     {
+        this.ClearBackBuffer(new Color4(0, 0, 0));
+    }
+
+    public void ClearBackBuffer(Color4 color)
+    {
         var dc = this.ID3D11DeviceContext;
 
-        dc.ClearRenderTargetView(this.BackBufferView, new Color4(0, 0, 0));
+        dc.ClearRenderTargetView(this.BackBufferView, color);
         dc.OMSetRenderTargets(this.BackBufferView);
         dc.RSSetViewport(0, 0, this.Width, this.Height);
-    }
+    }    
 
     public void Present()
     {
