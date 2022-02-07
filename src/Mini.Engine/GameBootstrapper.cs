@@ -12,7 +12,7 @@ using Vortice.Win32;
 
 namespace Mini.Engine;
 
-public sealed class GameBootstrapper : IDisposable
+public sealed class GameBootstrapper
 {
     private static readonly ushort Escape = InputService.GetScanCode(VK.ESCAPE);
     private static readonly ushort F1 = InputService.GetScanCode(VK.F1);
@@ -23,7 +23,7 @@ public sealed class GameBootstrapper : IDisposable
     private readonly ILogger Logger;
 
     private readonly DebugLayerLogger DebugLayerLogger;
-    private readonly UserInterface UI;
+    private readonly EditorUserInterface UI;
     private readonly IGameLoop GameLoop;
 
     private readonly InputService InputService;
@@ -50,41 +50,21 @@ public sealed class GameBootstrapper : IDisposable
         services.Register(this.Device);
         services.Register(this.InputService);
         services.Register(this.Window);
-        services.RegisterAs<DiskFileSystem, IVirtualFileSystem>(this.FileSystem);                
+        services.RegisterAs<DiskFileSystem, IVirtualFileSystem>(this.FileSystem);
 
-        this.LoadGameLoopDependencies(services);
+        var gameLoopType = Type.GetType(StartupArguments.GameLoopType, true, true)
+            ?? throw new Exception($"Unable to find game loop {StartupArguments.GameLoopType}");
 
+        var loader = services.Resolve<LoadingScreen>();
+        loader.Load(gameLoopType);
+        
         this.DebugLayerLogger = services.Resolve<DebugLayerLogger>();
-        this.UI = services.Resolve<UserInterface>();
+        this.UI = services.Resolve<EditorUserInterface>();
         this.enableUI = !StartupArguments.NoUi;
 
-        var gameLoopType = StartupArguments.GameLoopType;
-        this.GameLoop = services.Resolve<IGameLoop>(Type.GetType(gameLoopType, true, true)!);
+        this.GameLoop = services.Resolve<IGameLoop>(gameLoopType);
 
         this.Logger.Information("Bootstrapping {@gameLoop} took: {@milliseconds}ms", gameLoopType, stopWatch.ElapsedMilliseconds);
-    }
-
-    // TODO: extract this into a loading screen class?
-    private void LoadGameLoopDependencies(Services services)
-    {
-        var type = Type.GetType(StartupArguments.GameLoopType, true, true)
-            ?? throw new Exception($"Unable to find game loop {StartupArguments.GameLoopType}");
-        
-        var order = InjectableDependencies.CreateInitializationOrder(type);
-        var index = 0;
-        
-        var stopwatch = Stopwatch.StartNew();        
-        while (Win32Application.PumpMessages() && index < order.Count)
-        {
-            var elapsed = stopwatch.Elapsed.TotalSeconds;
-            stopwatch.Restart();
-
-            var progress = index / (float)order.Count;
-            services.Resolve(order[index++]);
-
-            this.Device.ClearBackBuffer(new Color4(progress, progress, progress));
-            this.Device.Present();
-        }      
     }
 
     public void Run()
@@ -143,12 +123,7 @@ public sealed class GameBootstrapper : IDisposable
             this.Device.Present();
         }
     }
-
-    public void Dispose()
-    {
-        this.UI.Dispose();
-    }
-
+   
     private void LoadRenderDoc(Services services)
     {
         if (StartupArguments.EnableRenderDoc)

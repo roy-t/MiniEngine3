@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content;
-using Mini.Engine.DirectX;
 using Mini.Engine.UI.Panels;
-using Mini.Engine.Windows;
 
 namespace Mini.Engine.UI;
 
 [Service]
-public sealed class UserInterface : IDisposable
+public sealed class EditorUserInterface
 {
     private sealed class PanelRecord
     {
@@ -33,39 +28,27 @@ public sealed class UserInterface : IDisposable
         }
     }
 
-    private readonly ImGuiRenderer ImGuiRenderer;
-    private readonly ImGuiInputHandler ImguiInputHandler;
-    private readonly ImGuiIOPtr IO;
+    private readonly UICore Core;    
     private readonly MicroBenchmark MicroBenchmark;
-
     private readonly List<PanelRecord> Panels;
 
-    public UserInterface(Win32Window window, Device device, ContentManager content, UITextureRegistry textureRegistry, IEnumerable<IPanel> panels)
+    public EditorUserInterface(UICore core, IEnumerable<IPanel> panels)
     {
-        _ = ImGui.CreateContext();
-        this.IO = ImGui.GetIO();
-        this.ImGuiRenderer = new ImGuiRenderer(device, content, textureRegistry);
-        this.ImguiInputHandler = new ImGuiInputHandler(window.Handle);
+        this.Core = core;
         this.MicroBenchmark = new MicroBenchmark("Perf");
-
         this.Panels = panels.Select(p => new PanelRecord(p.Title, p, true)).ToList();
-
-        this.Resize(window.Width, window.Height);
     }
 
     public void Resize(int width, int height)
     {
-        this.IO.DisplaySize = new Vector2(width, height);
+        this.Core.Resize(width, height);
     }
 
     public void NewFrame(float elapsed)
     {
-        this.IO.DeltaTime = elapsed;
-
-        this.ImguiInputHandler.Update();
+        this.Core.NewFrame(elapsed);        
         this.MicroBenchmark.Update(elapsed);
 
-        ImGui.NewFrame();
         ImGui.DockSpaceOverViewport(ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode);
 
         if (ImGui.BeginMainMenuBar())
@@ -106,12 +89,6 @@ public sealed class UserInterface : IDisposable
 
     public void Render()
     {
-        ImGui.Render();
-        this.ImGuiRenderer.Render(ImGui.GetDrawData());
-    }
-
-    public void Dispose()
-    {
-        this.ImGuiRenderer.Dispose();
+        this.Core.Render();
     }
 }
