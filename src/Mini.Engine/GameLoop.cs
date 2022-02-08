@@ -14,14 +14,16 @@ internal sealed class GameLoop : IGameLoop
     private readonly Device Device;
 
     private readonly RenderHelper Helper;
+    private readonly SceneManager SceneManager;
     private readonly FrameService FrameService;
     private readonly CameraController CameraController;
     private readonly ContentManager Content;
     private readonly ParallelPipeline Pipeline;    
-    public GameLoop(Device device, RenderHelper helper, FrameService frameService, CameraController cameraController, RenderPipelineBuilder builder, ContentManager content, SponzaScene scene)
+    public GameLoop(Device device, RenderHelper helper, SceneManager sceneManager, FrameService frameService, CameraController cameraController, RenderPipelineBuilder builder, ContentManager content)
     {
         this.Device = device;
         this.Helper = helper;
+        this.SceneManager = sceneManager;
         this.FrameService = frameService;
         this.CameraController = cameraController;
         this.Content = content;        
@@ -29,7 +31,7 @@ internal sealed class GameLoop : IGameLoop
         content.Push("RenderPipeline");
         this.Pipeline = builder.Build();
 
-        scene.Load();
+        this.SceneManager.Set(0);
     }
 
     public void Update(float time, float elapsed)

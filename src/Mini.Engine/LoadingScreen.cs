@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using ImGuiNET;
@@ -9,6 +10,8 @@ using Mini.Engine.Windows;
 using Serilog;
 
 namespace Mini.Engine;
+
+public sealed record LoadAction(string Description, Action Load);
 
 [Service]
 public sealed class LoadingScreen
@@ -31,33 +34,44 @@ public sealed class LoadingScreen
     public void Load(Type type)
     {
         var stopwatch = Stopwatch.StartNew();
-                
-        var reportWatch = Stopwatch.StartNew();        
-        var accumulator = 0.0;
-
         var order = InjectableDependencies.CreateInitializationOrder(type);
-        var index = 0;
-        
-        while (Win32Application.PumpMessages() && index < order.Count)
-        {
-            accumulator += reportWatch.Elapsed.TotalSeconds;
-            reportWatch.Restart();
 
-            var progress = index / (float)order.Count;
-            
+        this.Load(order.Count, i => order[i].Name, i => this.Services.Register(order[i]));
+        this.Logger.Information("Loading {@type} and {@count} dependencies took {@ms}ms ", type.FullName, order.Count, stopwatch.ElapsedMilliseconds);
+    }
+
+    public void Load(IReadOnlyList<LoadAction> actions)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        this.Load(actions.Count, i => actions[i].Description, i => actions[i].Load());
+        this.Logger.Information("Loading {@count} items took {@ms}ms ", actions.Count, stopwatch.ElapsedMilliseconds);
+    }
+
+    private void Load(int count, Func<int, string> onDescribe, Action<int> onLoad)
+    {
+        var reportWatch = Stopwatch.StartNew();
+        var accumulator = double.MaxValue;
+        
+        var index = 0;
+
+        while (Win32Application.PumpMessages() && index < count)
+        {
+            var progress = index / (float)count;
+
             if (accumulator >= ReportDelta)
             {
-                var message = $"Loading {order[index].Name}";
+                var message = $"Loading {onDescribe(index)}";
                 this.RenderWindow(message, progress);
                 accumulator = 0.0;
             }
 
-            this.Services.Resolve(order[index++]);
+            accumulator += reportWatch.Elapsed.TotalSeconds;
+            reportWatch.Restart();
+
+            onLoad(index++);
         }
 
-        this.RenderWindow("Done", 1.0f);
-
-        this.Logger.Information("Loading {@type} and {@count} dependencies took {@ms}ms ", type.FullName, order.Count, stopwatch.ElapsedMilliseconds);
+        this.RenderWindow("Completed", 1.0f);        
     }
 
     private void RenderWindow(string message, float progress)
