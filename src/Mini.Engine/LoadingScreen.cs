@@ -29,16 +29,7 @@ public sealed class LoadingScreen
         this.Device = device;
         this.UI = ui;
         this.Services = services;
-    }
-
-    public void Load(Type type)
-    {
-        var stopwatch = Stopwatch.StartNew();
-        var order = InjectableDependencies.CreateInitializationOrder(type);
-
-        this.Load(order.Count, i => order[i].Name, i => this.Services.Register(order[i]));
-        this.Logger.Information("Loading {@type} and {@count} dependencies took {@ms}ms ", type.FullName, order.Count, stopwatch.ElapsedMilliseconds);
-    }
+    }    
 
     public void Load(IReadOnlyList<LoadAction> actions)
     {

@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
@@ -7,7 +10,6 @@ using Mini.Engine.IO;
 using Mini.Engine.UI;
 using Mini.Engine.Windows;
 using Serilog;
-using Vortice.Mathematics;
 using Vortice.Win32;
 
 namespace Mini.Engine;
@@ -22,9 +24,9 @@ public sealed class GameBootstrapper
     private readonly DiskFileSystem FileSystem;
     private readonly ILogger Logger;
 
-    private readonly DebugLayerLogger DebugLayerLogger;
-    private readonly EditorUserInterface UI;
-    private readonly IGameLoop GameLoop;
+    private DebugLayerLogger debugLayerLogger;
+    private EditorUserInterface ui;
+    private IGameLoop gameLoop;
 
     private readonly InputService InputService;
     private readonly Keyboard Keyboard;
@@ -32,7 +34,7 @@ public sealed class GameBootstrapper
 
     public GameBootstrapper(ILogger logger, Services services)
     {
-        var stopWatch = Stopwatch.StartNew();        
+        var stopWatch = Stopwatch.StartNew();
 
         this.Logger = logger.ForContext<GameBootstrapper>();
 
@@ -41,7 +43,7 @@ public sealed class GameBootstrapper
 
         this.LoadRenderDoc(services);
 
-        this.Device = new Device(this.Window.Handle, this.Window.Width, this.Window.Height);        
+        this.Device = new Device(this.Window.Handle, this.Window.Width, this.Window.Height);
         this.InputService = new InputService(this.Window);
         this.Keyboard = new Keyboard();
         this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
@@ -52,19 +54,41 @@ public sealed class GameBootstrapper
         services.Register(this.Window);
         services.RegisterAs<DiskFileSystem, IVirtualFileSystem>(this.FileSystem);
 
+        // Load everything we need to display something, so that
         var gameLoopType = Type.GetType(StartupArguments.GameLoopType, true, true)
             ?? throw new Exception($"Unable to find game loop {StartupArguments.GameLoopType}");
 
-        var loader = services.Resolve<LoadingScreen>();
-        loader.Load(gameLoopType);
-        
-        this.DebugLayerLogger = services.Resolve<DebugLayerLogger>();
-        this.UI = services.Resolve<EditorUserInterface>();
-        this.enableUI = !StartupArguments.NoUi;
-
-        this.GameLoop = services.Resolve<IGameLoop>(gameLoopType);
+        this.RunLoadingScreenAndLoad(gameLoopType, services);
 
         this.Logger.Information("Bootstrapping {@gameLoop} took: {@milliseconds}ms", gameLoopType, stopWatch.ElapsedMilliseconds);
+    }
+
+    [MemberNotNull(nameof(debugLayerLogger), nameof(ui), nameof(gameLoop))]
+    private void RunLoadingScreenAndLoad(Type gameLoopType, Services services)
+    {
+        var loadingScreen = services.Resolve<LoadingScreen>();        
+        var initializationOrder = InjectableDependencies.CreateInitializationOrder(gameLoopType);
+        var serviceActions = initializationOrder.Select(t => new LoadAction(t.Name, () => services.Resolve(t)));
+
+        DebugLayerLogger? debugLayerLogger = null;
+        EditorUserInterface? ui = null;
+        var enableUI = true;
+        IGameLoop? gameLoop = null;
+
+        var actions = new List<LoadAction>(serviceActions)
+        {
+            new LoadAction("foo", () => debugLayerLogger = services.Resolve<DebugLayerLogger>()),
+            new LoadAction("foo", () => ui = services.Resolve<EditorUserInterface>()),
+            new LoadAction("foo", () => enableUI = !StartupArguments.NoUi),
+            new LoadAction("foo", () => gameLoop = services.Resolve<IGameLoop>(gameLoopType)),
+        };
+
+        loadingScreen.Load(actions);
+
+        this.debugLayerLogger = debugLayerLogger!;
+        this.ui = ui!;
+        this.enableUI = enableUI;
+        this.gameLoop = gameLoop!;
     }
 
     public void Run()
@@ -86,9 +110,9 @@ public sealed class GameBootstrapper
 
             if (this.enableUI)
             {
-                this.UI.NewFrame((float)elapsed);
+                this.ui.NewFrame((float)elapsed);
             }
-            this.DebugLayerLogger.LogMessages();
+            this.debugLayerLogger.LogMessages();
 
             while (accumulator >= dt)
             {
@@ -108,17 +132,17 @@ public sealed class GameBootstrapper
 
                 // everything that changes on screen should have a current and future state
                 // updating it moves both one step forward.
-                this.GameLoop.Update((float)t, (float)dt);
+                this.gameLoop.Update((float)t, (float)dt);
                 t += dt;
                 accumulator -= dt;
             }
 
             var alpha = accumulator / dt;
             this.Device.ClearBackBuffer();
-            this.GameLoop.Draw((float)alpha); // alpha signifies how much to lerp between current and future state
+            this.gameLoop.Draw((float)alpha); // alpha signifies how much to lerp between current and future state
             if (this.enableUI)
             {
-                this.UI.Render();
+                this.ui.Render();
             }
             this.Device.Present();
         }
