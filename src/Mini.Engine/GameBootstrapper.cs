@@ -54,6 +54,8 @@ public sealed class GameBootstrapper
         services.Register(this.Window);
         services.RegisterAs<DiskFileSystem, IVirtualFileSystem>(this.FileSystem);
 
+        this.enableUI = !StartupArguments.NoUi;
+
         // Load everything we need to display something, so that
         var gameLoopType = Type.GetType(StartupArguments.GameLoopType, true, true)
             ?? throw new Exception($"Unable to find game loop {StartupArguments.GameLoopType}");
@@ -71,23 +73,21 @@ public sealed class GameBootstrapper
         var serviceActions = initializationOrder.Select(t => new LoadAction(t.Name, () => services.Resolve(t)));
 
         DebugLayerLogger? debugLayerLogger = null;
-        EditorUserInterface? ui = null;
-        var enableUI = true;
+        EditorUserInterface? ui = null;        
         IGameLoop? gameLoop = null;
 
         var actions = new List<LoadAction>(serviceActions)
         {
-            new LoadAction("foo", () => debugLayerLogger = services.Resolve<DebugLayerLogger>()),
-            new LoadAction("foo", () => ui = services.Resolve<EditorUserInterface>()),
-            new LoadAction("foo", () => enableUI = !StartupArguments.NoUi),
-            new LoadAction("foo", () => gameLoop = services.Resolve<IGameLoop>(gameLoopType)),
+            new LoadAction(nameof(DebugLayerLogger), () => debugLayerLogger = services.Resolve<DebugLayerLogger>()),
+            new LoadAction(nameof(EditorUserInterface), () => ui = services.Resolve<EditorUserInterface>()),            
+            new LoadAction(gameLoopType.Name, () => gameLoop = services.Resolve<IGameLoop>(gameLoopType)),
         };
 
         loadingScreen.Load(actions);
 
         this.debugLayerLogger = debugLayerLogger!;
         this.ui = ui!;
-        this.enableUI = enableUI;
+        
         this.gameLoop = gameLoop!;
     }
 
