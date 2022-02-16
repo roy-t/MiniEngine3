@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using Mini.Engine.Configuration;
 using Mini.Engine.Content.Materials;
 using Mini.Engine.Content.Models.Wavefront.Objects;
+using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
@@ -86,7 +88,8 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
         }
 
         var comparer = new ModelVertexComparer();
-        var vertices = new Dictionary<ModelVertex, int>(comparer);
+        var vertexLookUp = new Dictionary<ModelVertex, int>(comparer);
+        var indexLookUp = new Dictionary<int, ModelVertex>();
         var primitives = new List<Primitive>();
         var materials = this.LoadMaterialData(device, id, state, settings);
         var indexList = new List<int>();
@@ -115,14 +118,15 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
                     var n = new Vector3(normal.X, normal.Y, normal.Z);
                     var vertex = new ModelVertex(p, t, n);
 
-                    if (vertices.TryGetValue(vertex, out var index))
+                    if (vertexLookUp.TryGetValue(vertex, out var index))
                     {
                         indices[i] = index;
                     }
                     else
                     {
-                        indices[i] = nextIndex;
-                        vertices.Add(vertex, nextIndex);
+                        indices[i] = nextIndex;                        
+                        vertexLookUp.Add(vertex, nextIndex);
+                        indexLookUp.Add(nextIndex, vertex);
                         ++nextIndex;
                     }
                 }
@@ -152,16 +156,40 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
             }
 
             var materialIndex = GetMaterialIdForGroup(materials, group);
-            primitives.Add(new Primitive(group.Name, materialIndex, startIndex, indexList.Count - startIndex));
+            var bounds = ComputeBounds(indexList, indexLookUp, startIndex, indexList.Count - startIndex);
+            primitives.Add(new Primitive(group.Name, bounds, materialIndex, startIndex, indexList.Count - startIndex));
         }
 
         var vertexArray = new ModelVertex[indexList.Max() + 1];
-        foreach (var tuple in vertices)
+        foreach (var tuple in vertexLookUp)
         {
             vertexArray[tuple.Value] = tuple.Key;
         }
 
         return new ModelData(id, vertexArray, indexList.ToArray(), primitives.ToArray(), materials);
+    }
+
+    private static BoundingBox ComputeBounds(IReadOnlyList<int> indices, IReadOnlyDictionary<int, ModelVertex> vertices, int indexOffset, int indexCount)
+    {
+        var min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+        var max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+        
+        for (var i = 0; i < indexCount; i++)
+        {
+            var index = indexOffset + i;
+            var position = vertices[indices[index]].Position;
+
+            min.X = Math.Min(min.X, position.X);
+            max.X = Math.Max(max.X, position.X);
+
+            min.Y = Math.Min(min.Y, position.Y);
+            max.Y = Math.Max(max.Y, position.Y);
+
+            min.Z = Math.Min(min.Z, position.Z);
+            max.Z = Math.Max(max.Z, position.Z);
+        }
+
+        return new BoundingBox(min, max);
     }
 
     private MaterialContent[] LoadMaterialData(Device device, ContentId id, ParseState state, ILoaderSettings settings)

@@ -1,8 +1,26 @@
-﻿using Mini.Engine.DirectX.Buffers;
+﻿using System.Numerics;
+using Mini.Engine.Core;
+using Mini.Engine.DirectX.Buffers;
 
 namespace Mini.Engine.DirectX.Resources;
 
-public sealed record Primitive(string Name, int MaterialIndex, int IndexOffset, int IndexCount);
+public sealed class Primitive
+{
+    public Primitive(string name, BoundingBox bounds, int materialIndex, int indexOffset, int indexCount)
+    {
+        this.Name = name;
+        this.Bounds = bounds;
+        this.MaterialIndex = materialIndex;
+        this.IndexOffset = indexOffset;
+        this.IndexCount = indexCount;
+    }
+
+    public string Name { get; }
+    public BoundingBox Bounds { get; }
+    public int MaterialIndex { get; }
+    public int IndexOffset { get; }
+    public int IndexCount { get; }
+}
 
 public sealed class Model : IModel
 {

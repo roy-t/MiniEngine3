@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
+using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 
@@ -46,7 +47,7 @@ public static class CubeGenerator
 
         var primitives = new Primitive[]
         {
-            new Primitive("Cube", 0, 0, indices.Length)
+            new Primitive("Cube", new BoundingBox(-Vector3.One, Vector3.One), 0, 0, indices.Length)
         };
 
         var materials = new IMaterial[] { material };
@@ -65,10 +66,10 @@ public static class CubeGenerator
         var bottomRight = maxX - maxY + maxZ;
         var bottomLeft = -maxX - maxY + maxZ;
 
-        var topLeftIndex = (short)(vertices.Count + 0);
-        var topRightIndex = (short)(vertices.Count + 1);
-        var bottomRightIndex = (short)(vertices.Count + 2);
-        var bottomLeftIndex = (short)(vertices.Count + 3);
+        var topLeftIndex = vertices.Count + 0;
+        var topRightIndex = vertices.Count + 1;
+        var bottomRightIndex = vertices.Count + 2;
+        var bottomLeftIndex = vertices.Count + 3;
 
         vertices.Add(new ModelVertex(topLeft, new Vector2(0, 0), normal));
         vertices.Add(new ModelVertex(topRight, new Vector2(1, 0), normal));

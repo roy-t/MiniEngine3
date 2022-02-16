@@ -48,7 +48,7 @@ public static partial class SphereGenerator
 
         var primitives = new Primitive[]
         {
-            new Primitive("Sphere", 0, 0, indices.Length)
+            new Primitive("Sphere", new Core.BoundingBox(-Vector3.One, Vector3.One), 0, 0, indices.Length)
         };
 
         var materials = new IMaterial[] { material };

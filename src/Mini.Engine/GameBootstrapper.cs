@@ -56,7 +56,7 @@ public sealed class GameBootstrapper
 
         this.enableUI = !StartupArguments.NoUi;
 
-        // Load everything we need to display something, so that
+        // Load everything we need to display something
         var gameLoopType = Type.GetType(StartupArguments.GameLoopType, true, true)
             ?? throw new Exception($"Unable to find game loop {StartupArguments.GameLoopType}");
 
