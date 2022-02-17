@@ -12,6 +12,6 @@ internal sealed class VertexPositionParser : VertexParser
 
     protected override void ParseVertex(ParseState state, Vector4 vertex)
     {
-        state.Vertices.Add(vertex);
+        state.Positions.Add(vertex);
     }
 }

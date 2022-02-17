@@ -1,34 +1,17 @@
-﻿using System.Numerics;
-using Mini.Engine.Core;
-using Mini.Engine.DirectX.Buffers;
+﻿using Mini.Engine.DirectX.Buffers;
+using Vortice.Mathematics;
 
 namespace Mini.Engine.DirectX.Resources;
 
-public sealed class Primitive
-{
-    public Primitive(string name, BoundingBox bounds, int materialIndex, int indexOffset, int indexCount)
-    {
-        this.Name = name;
-        this.Bounds = bounds;
-        this.MaterialIndex = materialIndex;
-        this.IndexOffset = indexOffset;
-        this.IndexCount = indexCount;
-    }
-
-    public string Name { get; }
-    public BoundingBox Bounds { get; }
-    public int MaterialIndex { get; }
-    public int IndexOffset { get; }
-    public int IndexCount { get; }
-}
+public sealed record Primitive(string Name, BoundingBox Bounds, int MaterialIndex, int IndexOffset, int IndexCount);
 
 public sealed class Model : IModel
 {
-    public Model(Device device, ModelVertex[] vertices, int[] indices, Primitive[] primitives, IMaterial[] materials, string name)
+    public Model(Device device, BoundingBox bounds, ModelVertex[] vertices, int[] indices, Primitive[] primitives, IMaterial[] materials, string name)
     {
         this.Indices = new IndexBuffer<int>(device, $"{name}_IB");
         this.Vertices = new VertexBuffer<ModelVertex>(device, $"{name}_IB");
-
+        this.Bounds = bounds;
         this.Primitives = primitives;
         this.Materials = materials;
 
@@ -38,6 +21,7 @@ public sealed class Model : IModel
 
     public VertexBuffer<ModelVertex> Vertices { get; }
     public IndexBuffer<int> Indices { get; }
+    public BoundingBox Bounds { get; }
     public Primitive[] Primitives { get; }
     public IMaterial[] Materials { get; }
 

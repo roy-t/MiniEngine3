@@ -46,13 +46,14 @@ public static partial class SphereGenerator
     {
         (var indices, var vertices) = Generate(subdivisions);
 
+        var bounds = new BoundingBox(-Vector3.One, Vector3.One);
         var primitives = new Primitive[]
         {
-            new Primitive("Sphere", new Core.BoundingBox(-Vector3.One, Vector3.One), 0, 0, indices.Length)
+            new Primitive("Sphere", bounds, 0, 0, indices.Length)
         };
 
         var materials = new IMaterial[] { material };
-        return new Model(device, vertices, indices, primitives, materials, name);
+        return new Model(device, bounds, vertices, indices, primitives, materials, name);
     }
 
     private static void GenerateFace(CoordinateSystem coordinateSystem, int subdivisions, List<ModelVertex> vertices, List<int> indices)

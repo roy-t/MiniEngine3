@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
-using Mini.Engine.Configuration;
 using Mini.Engine.Content.Materials;
 using Mini.Engine.Content.Models.Wavefront.Objects;
-using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
+using Vortice.Mathematics;
 
 namespace Mini.Engine.Content.Models.Wavefront;
 
 /// <summary>
 /// Specification: http://www.martinreddy.net/gfx/3d/OBJ.spec
 /// </summary>
-internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
+internal sealed partial class WavefrontModelDataLoader : IContentDataLoader<ModelData>
 {
     private readonly ObjStatementParser[] Parsers;
     private readonly IVirtualFileSystem FileSystem;
@@ -46,7 +45,6 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
     public ModelData Load(Device device, ContentId id, ILoaderSettings settings)
     {
         var text = this.FileSystem.ReadAllText(id.Path).AsSpan();
-
         var state = new ParseState();
         foreach (var line in text.EnumerateLines())
         {
@@ -59,24 +57,6 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
             }
         }
 
-        return this.TransformToModelData(device, id, state, settings);
-    }
-
-    private class ModelVertexComparer : IEqualityComparer<ModelVertex>
-    {
-        public bool Equals(ModelVertex x, ModelVertex y)
-        {
-            return x.Normal.Equals(y.Normal) && x.Position.Equals(y.Position) && x.Texcoord.Equals(y.Texcoord);
-        }
-
-        public int GetHashCode([DisallowNull] ModelVertex obj)
-        {
-            return HashCode.Combine(obj.Normal, obj.Position, obj.Texcoord);
-        }
-    }
-
-    private ModelData TransformToModelData(Device device, ContentId id, ParseState state, ILoaderSettings settings)
-    {
         if (state.Group != null)
         {
             state.EndPreviousGroup();
@@ -84,112 +64,124 @@ internal sealed class WavefrontModelDataLoader : IContentDataLoader<ModelData>
 
         if (state.Groups.Count == 0)
         {
-            state.Groups.Add(new Group(state.Object, 0, state.Faces.Count - 1) { Material = state.Material});
+            state.Groups.Add(new Group(state.Object, 0, state.Faces.Count - 1) { Material = state.Material });
         }
 
-        var comparer = new ModelVertexComparer();
-        var vertexLookUp = new Dictionary<ModelVertex, int>(comparer);
-        var indexLookUp = new Dictionary<int, ModelVertex>();
-        var primitives = new List<Primitive>();
+        return this.TransformToModelData(device, id, state, settings);
+    }
+
+    private ModelData TransformToModelData(Device device, ContentId id, ParseState state, ILoaderSettings settings)
+    {
         var materials = this.LoadMaterialData(device, id, state, settings);
-        var indexList = new List<int>();
-        var nextIndex = 0;
 
-        foreach (var group in state.Groups)
+        var vertices = new List<ModelVertex>(state.Positions.Count);
+        var indices = new List<int>(state.Faces.Count * 3);
+        var primitives = new List<Primitive>(state.Groups.Count);
+        var faces = new List<int[]>(state.Faces.Count);
+                
+        var indexLookUp = new Dictionary<ModelVertex, int>(new ModelVertexComparer());
+
+        var indexBuffer = new int[4];
+
+        // Wavefront defines positions, normals and texture coordinates separately.
+        // The same position point can be used with different normal or texture data.
+        // So we first need to identify all faces and find all unique vertices in the process.
+        for (var f = 0; f < state.Faces.Count; f++)
         {
-            var startIndex = indexList.Count;
+            var face = state.Faces[f];
 
-            for (var fi = group.StartFace; fi <= group.EndFace; fi++)
+            for (var i = 0; i < face.Length; i++)
             {
-                var face = state.Faces[fi];
+                var lookup = face[i];
+                var position = state.Positions[lookup.X - 1];
+                var texcoord = state.Texcoords[lookup.Y - 1];
+                var normal = state.Normals[lookup.Z - 1];
 
-                var indices = new int[face.Length];
-                for (var i = 0; i < face.Length; i++)
+                var p = new Vector3(position.X, position.Y, position.Z);
+                // obj texture coordinates use {0, 0} as top left
+                var t = new Vector2(texcoord.X, 1.0f - texcoord.Y);
+                var n = new Vector3(normal.X, normal.Y, normal.Z);
+                var vertex = new ModelVertex(p, t, n);
+
+                if (indexLookUp.TryGetValue(vertex, out var index))
                 {
-                    var lookup = face[i];
-
-                    var position = state.Vertices[lookup.X - 1];
-                    var texcoord = state.Texcoords[lookup.Y - 1];
-                    var normal = state.Normals[lookup.Z - 1];
-
-                    var p = new Vector3(position.X, position.Y, position.Z);
-                    // obj texture coordinates use {0, 0} as top left
-                    var t = new Vector2(texcoord.X, 1.0f - texcoord.Y);
-                    var n = new Vector3(normal.X, normal.Y, normal.Z);
-                    var vertex = new ModelVertex(p, t, n);
-
-                    if (vertexLookUp.TryGetValue(vertex, out var index))
-                    {
-                        indices[i] = index;
-                    }
-                    else
-                    {
-                        indices[i] = nextIndex;                        
-                        vertexLookUp.Add(vertex, nextIndex);
-                        indexLookUp.Add(nextIndex, vertex);
-                        ++nextIndex;
-                    }
-                }
-
-                // Obj files assume a right-handed coordinate system
-                // invert the triangles to make them work with a left-handed system
-                if (face.Length == 3)
-                {
-                    indexList.Add(indices[2]);
-                    indexList.Add(indices[1]);
-                    indexList.Add(indices[0]);
-                }
-                else if (face.Length == 4)
-                {
-                    indexList.Add(indices[2]);
-                    indexList.Add(indices[1]);
-                    indexList.Add(indices[0]);
-
-                    indexList.Add(indices[0]);
-                    indexList.Add(indices[3]);
-                    indexList.Add(indices[2]);
+                    indexBuffer[i] = index;
                 }
                 else
                 {
-                    throw new Exception($"Face is not a triangle or quad but a polygon with {face.Length} vertices");
+                    indexBuffer[i] = vertices.Count;
+                    indexLookUp.Add(vertex, vertices.Count);
+                    vertices.Add(vertex);
+                }
+            }
+
+            if (face.Length == 3)
+            {
+                faces.Add(new int[] { indexBuffer[0], indexBuffer[1], indexBuffer[2]});
+            }
+            else if (face.Length == 4)
+            {
+                faces.Add(new int[] { indexBuffer[0], indexBuffer[1], indexBuffer[2], indexBuffer[3] });
+            }
+            else
+            {
+                throw new Exception($"Face is not a triangle or quad but a polygon with {face.Length} vertices");
+            }
+        }
+        
+        for (var g = 0; g < state.Groups.Count; g++)
+        {
+            var group = state.Groups[g];
+            var startIndex = indices.Count;
+
+            for (var f = group.StartFace; f <= group.EndFace; f++)
+            {
+                var face = faces[f];
+                if (face.Length == 3)
+                {
+                    indices.Add(face[2]);
+                    indices.Add(face[1]);
+                    indices.Add(face[0]);
+                }
+                else if (face.Length == 4)
+                {
+                    indices.Add(face[2]);
+                    indices.Add(face[1]);
+                    indices.Add(face[0]);
+
+                    indices.Add(face[0]);
+                    indices.Add(face[3]);
+                    indices.Add(face[2]);
                 }
             }
 
             var materialIndex = GetMaterialIdForGroup(materials, group);
-            var bounds = ComputeBounds(indexList, indexLookUp, startIndex, indexList.Count - startIndex);
-            primitives.Add(new Primitive(group.Name, bounds, materialIndex, startIndex, indexList.Count - startIndex));
+            var indexCount = indices.Count - startIndex; 
+            
+            var primitiveBounds = ComputeBounds(indices, vertices, startIndex, indexCount);
+            primitives.Add(new Primitive(group.Name, primitiveBounds, materialIndex, startIndex, indexCount));
         }
 
-        var vertexArray = new ModelVertex[indexList.Max() + 1];
-        foreach (var tuple in vertexLookUp)
-        {
-            vertexArray[tuple.Value] = tuple.Key;
-        }
-
-        return new ModelData(id, vertexArray, indexList.ToArray(), primitives.ToArray(), materials);
+        var modelBounds = ComputeBounds(primitives);
+        return new ModelData(id, modelBounds, vertices.ToArray(), indices.ToArray(), primitives.ToArray(), materials);
     }
 
-    private static BoundingBox ComputeBounds(IReadOnlyList<int> indices, IReadOnlyDictionary<int, ModelVertex> vertices, int indexOffset, int indexCount)
+    private static BoundingBox ComputeBounds(List<int> indices, List<ModelVertex> vertices, int startIndex, int indexCount)
     {
-        var min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-        var max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
-        
-        for (var i = 0; i < indexCount; i++)
+        var positions = indices.Select(i => vertices[i].Position).ToArray();
+        return BoundingBox.CreateFromPoints(positions);
+    }
+
+    private static BoundingBox ComputeBounds(IReadOnlyList<Primitive> primitives)
+    {
+        var bounds = primitives[0].Bounds;
+        for (var i = 1; i < primitives.Count; i++)
         {
-            var index = indexOffset + i;
-            var position = vertices[indices[index]].Position;
-
-            min.X = Math.Min(min.X, position.X);
-            max.X = Math.Max(max.X, position.X);
-
-            min.Y = Math.Min(min.Y, position.Y);
-            max.Y = Math.Max(max.Y, position.Y);
-
-            min.Z = Math.Min(min.Z, position.Z);
-            max.Z = Math.Max(max.Z, position.Z);
+            var primitive = primitives[i];
+            bounds = BoundingBox.CreateMerged(bounds, primitive.Bounds);
         }
 
-        return new BoundingBox(min, max);
+        return bounds;
     }
 
     private MaterialContent[] LoadMaterialData(Device device, ContentId id, ParseState state, ILoaderSettings settings)

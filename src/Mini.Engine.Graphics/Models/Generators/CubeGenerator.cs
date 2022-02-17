@@ -3,6 +3,7 @@ using System.Numerics;
 using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
+using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Models.Generators;
 
@@ -45,13 +46,14 @@ public static class CubeGenerator
     {
         (var indices, var vertices) = Generate();
 
+        var bounds = new BoundingBox(-Vector3.One, Vector3.One);
         var primitives = new Primitive[]
         {
-            new Primitive("Cube", new BoundingBox(-Vector3.One, Vector3.One), 0, 0, indices.Length)
+            new Primitive("Cube", bounds, 0, 0, indices.Length)
         };
 
         var materials = new IMaterial[] { material };
-        return new Model(device, vertices, indices, primitives, materials, name);
+        return new Model(device, bounds, vertices, indices, primitives, materials, name);
     }
 
     private static void GenerateFace(CoordinateSystem coordinateSystem, List<ModelVertex> vertices, List<int> indices)

@@ -14,7 +14,7 @@ internal sealed class ParseState : IParseState
 {
     public ParseState()
     {
-        this.Vertices = new List<Vector4>(100_000);
+        this.Positions = new List<Vector4>(100_000);
         this.Normals = new List<Vector4>(100_000);
         this.Texcoords = new List<Vector4>(100_000);
         this.Faces = new List<Point3[]>(100_000);
@@ -26,7 +26,7 @@ internal sealed class ParseState : IParseState
         this.Material = null;
     }
 
-    public List<Vector4> Vertices { get; }
+    public List<Vector4> Positions { get; }
     public List<Vector4> Normals { get; }
     public List<Vector4> Texcoords { get; }
     public List<Point3[]> Faces { get; }

@@ -2,10 +2,11 @@
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
+using Vortice.Mathematics;
 
 namespace Mini.Engine.Content.Models;
 
-internal sealed record ModelData(ContentId Id, ModelVertex[] Vertices, int[] Indices, Primitive[] Primitives, IMaterial[] Materials)
+internal sealed record ModelData(ContentId Id, BoundingBox Bounds, ModelVertex[] Vertices, int[] Indices, Primitive[] Primitives, IMaterial[] Materials)
     : IContentData;
 
 internal sealed class ModelContent : IModel, IContent
@@ -35,7 +36,7 @@ internal sealed class ModelContent : IModel, IContent
         this.model?.Dispose();
 
         var data = this.Loader.Load(device, this.Id, this.Settings);
-        this.model = new Model(device, data.Vertices, data.Indices, data.Primitives, data.Materials, data.Id.ToString());
+        this.model = new Model(device, data.Bounds, data.Vertices, data.Indices, data.Primitives, data.Materials, data.Id.ToString());
     }
 
     public void Dispose()
