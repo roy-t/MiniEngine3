@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
@@ -11,6 +13,7 @@ using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
 using Vortice.Direct3D;
+using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Models;
 
@@ -64,30 +67,37 @@ public sealed partial class ModelSystem : ISystem, IDisposable
     public void DrawModel(ModelComponent component, TransformComponent transform)
     {
         var world = transform.AsMatrix();
-        var cBuffer = new Constants()
-        {
-            WorldViewProjection = world * this.FrameService.Camera.ViewProjection,
-            World = world,
-            CameraPosition = this.FrameService.Camera.Transform.Position
-        };
-        this.ConstantBuffer.MapData(this.Context, cBuffer);
-        this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
-        this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+        var bounds = Transform(component.Model.Bounds, world);
+        var frustum = new Frustum(this.FrameService.Camera.ViewProjection);
 
-        this.Context.IA.SetVertexBuffer(component.Model.Vertices);
-        this.Context.IA.SetIndexBuffer(component.Model.Indices);
-        
-        for (var i = 0; i < component.Model.Primitives.Length; i++)
+        if (frustum.ContainsOrIntersects(bounds))
         {
-            var primitive = component.Model.Primitives[i];
-            var material = component.Model.Materials[primitive.MaterialIndex];
+            Debug.WriteLine("SEEN");
+            var cBuffer = new Constants()
+            {
+                WorldViewProjection = world * this.FrameService.Camera.ViewProjection,
+                World = world,
+                CameraPosition = this.FrameService.Camera.Transform.Position
+            };
+            this.ConstantBuffer.MapData(this.Context, cBuffer);
+            this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+            this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
 
-            this.Context.PS.SetShaderResource(Geometry.Albedo, material.Albedo);
-            this.Context.PS.SetShaderResource(Geometry.Normal, material.Normal);
-            this.Context.PS.SetShaderResource(Geometry.Metalicness, material.Metalicness);
-            this.Context.PS.SetShaderResource(Geometry.Roughness, material.Roughness);
-            this.Context.PS.SetShaderResource(Geometry.AmbientOcclusion, material.AmbientOcclusion);
-            this.Context.DrawIndexed(primitive.IndexCount, primitive.IndexOffset, 0);
+            this.Context.IA.SetVertexBuffer(component.Model.Vertices);
+            this.Context.IA.SetIndexBuffer(component.Model.Indices);
+
+            for (var i = 0; i < component.Model.Primitives.Length; i++)
+            {
+                var primitive = component.Model.Primitives[i];
+                var material = component.Model.Materials[primitive.MaterialIndex];
+
+                this.Context.PS.SetShaderResource(Geometry.Albedo, material.Albedo);
+                this.Context.PS.SetShaderResource(Geometry.Normal, material.Normal);
+                this.Context.PS.SetShaderResource(Geometry.Metalicness, material.Metalicness);
+                this.Context.PS.SetShaderResource(Geometry.Roughness, material.Roughness);
+                this.Context.PS.SetShaderResource(Geometry.AmbientOcclusion, material.AmbientOcclusion);
+                this.Context.DrawIndexed(primitive.IndexCount, primitive.IndexOffset, 0);
+            }
         }
     }
 
@@ -105,5 +115,21 @@ public sealed partial class ModelSystem : ISystem, IDisposable
         this.PixelShader.Dispose();
         this.VertexShader.Dispose();
         this.Context.Dispose();
+    }
+
+
+    private static BoundingBox Transform(in BoundingBox box, in Matrix4x4 transform)
+    {
+        var size = box.Maximum - box.Minimum;
+        var newCenter = Vector3.Transform(box.Center, transform);
+        var oldEdge = size * 0.5f;
+
+        var newEdge = new Vector3(
+            Math.Abs(transform.M11) * oldEdge.X + Math.Abs(transform.M12) * oldEdge.Y + Math.Abs(transform.M13) * oldEdge.Z,
+            Math.Abs(transform.M21) * oldEdge.X + Math.Abs(transform.M22) * oldEdge.Y + Math.Abs(transform.M23) * oldEdge.Z,
+            Math.Abs(transform.M31) * oldEdge.X + Math.Abs(transform.M32) * oldEdge.Y + Math.Abs(transform.M33) * oldEdge.Z
+        );
+
+        return new(newCenter - newEdge, newCenter + newEdge);
     }
 }

@@ -63,7 +63,8 @@ internal sealed class ShaderResourcePanel : IPanel
         }
 
         var selected = this.Textures[this.selected];
-        ImGui.Image(this.Ids[this.selected], Fit(selected, ImGui.GetWindowContentRegionWidth()));
+        
+        ImGui.Image(this.Ids[this.selected], Fit(selected, ImGui.GetWindowContentRegionMax().X));
     }
 
 

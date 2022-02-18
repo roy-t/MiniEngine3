@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.Graphics.Lighting;
@@ -12,7 +13,12 @@ public sealed class FrameService : IDisposable
     {
         this.GBuffer = new GeometryBuffer(device);
         this.LBuffer = new LightBuffer(device);
-        this.Camera = new PerspectiveCamera(this.GBuffer.AspectRatio, Transform.Identity);
+
+        var transform = Transform.Identity;
+        transform.MoveTo(new Vector3(0, 0, 10));
+        transform.FaceTargetConstrained(Vector3.Zero, Vector3.UnitY);
+
+        this.Camera = new PerspectiveCamera(this.GBuffer.AspectRatio, transform);
     }
 
     /// <summary>

@@ -37,7 +37,7 @@ internal sealed class ImGuiInputHandler
         io.KeyMap[(int)ImGuiKey.Space] = (int)VK.SPACE;
         io.KeyMap[(int)ImGuiKey.Enter] = (int)VK.RETURN;
         io.KeyMap[(int)ImGuiKey.Escape] = (int)VK.ESCAPE;
-        io.KeyMap[(int)ImGuiKey.KeyPadEnter] = (int)VK.RETURN;
+        io.KeyMap[(int)ImGuiKey.KeypadEnter] = (int)VK.RETURN;
         io.KeyMap[(int)ImGuiKey.A] = 'A';
         io.KeyMap[(int)ImGuiKey.C] = 'C';
         io.KeyMap[(int)ImGuiKey.V] = 'V';

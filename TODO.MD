@@ -9,8 +9,6 @@
 
 - Check RenderTargetViews, ShaderResourceViews of it still makes sense, is there not 1 overload per resource?
 
-
-
 Continue replacing things in Mini.Engine.Windows with this: https://github.com/microsoft/CsWin32
 
 # Notes

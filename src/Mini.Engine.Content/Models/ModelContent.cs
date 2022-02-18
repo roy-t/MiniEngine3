@@ -27,6 +27,7 @@ internal sealed class ModelContent : IModel, IContent
 
     public VertexBuffer<ModelVertex> Vertices => this.model.Vertices;
     public IndexBuffer<int> Indices => this.model.Indices;
+    public BoundingBox Bounds => this.model.Bounds;
     public Primitive[] Primitives => this.model.Primitives;
     public IMaterial[] Materials => this.model.Materials;
 
