@@ -1,5 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
+    <None Remove="Assets\Shaders\DebugLines.hlsl" />
+  </ItemGroup> 
+  <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
     <ProjectReference Include="..\Backend\Mini.Engine.IO\Mini.Engine.IO.csproj" />
     <ProjectReference Include="..\Generators\Mini.Engine.Content.Generators\Mini.Engine.Content.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
@@ -26,6 +29,7 @@
     <AdditionalFiles Include="Assets\Shaders\Lighting\Includes\BRDF.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\BrdfLutGenerator.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\PostProcess.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\DebugLines.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\UserInterface.hlsl" />
   </ItemGroup>
   <ItemGroup>

@@ -141,6 +141,8 @@ internal sealed class ImGuiRenderer
 
     private void SetupRenderState(ImDrawDataPtr drawData, DeferredDeviceContext context)
     {
+        // TODO: use context.setup
+
         context.IA.SetInputLayout(this.InputLayout);
         context.IA.SetVertexBuffer(this.VertexBuffer);
         context.IA.SetIndexBuffer(this.IndexBuffer);

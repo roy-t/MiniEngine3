@@ -33,12 +33,12 @@ public struct PostProcessVertex
 public sealed class FullScreenTriangle : IDisposable
 {
     public readonly VertexBuffer<PostProcessVertex> Vertices;
-    public readonly IndexBuffer<short> Indices;
+    public readonly IndexBuffer<ushort> Indices;
 
     public FullScreenTriangle(Device device)
     {
         this.Vertices = new VertexBuffer<PostProcessVertex>(device, $"{nameof(FullScreenTriangle)}_VB");
-        this.Indices = new IndexBuffer<short>(device, $"{nameof(FullScreenTriangle)}_IB");
+        this.Indices = new IndexBuffer<ushort>(device, $"{nameof(FullScreenTriangle)}_IB");
 
         var vertices = new PostProcessVertex[]
         {
@@ -47,7 +47,7 @@ public sealed class FullScreenTriangle : IDisposable
                 new PostProcessVertex(new Vector3(-1, 3, 0), new Vector2(0, -1)),
         };
 
-        var indices = new short[] { 0, 1, 2 };
+        var indices = new ushort[] { 0, 1, 2 };
 
         this.Vertices.MapData(device.ImmediateContext, vertices);
         this.Indices.MapData(device.ImmediateContext, indices);

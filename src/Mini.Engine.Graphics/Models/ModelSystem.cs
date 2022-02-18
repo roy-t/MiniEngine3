@@ -45,6 +45,8 @@ public sealed partial class ModelSystem : ISystem, IDisposable
         var width = this.FrameService.GBuffer.Width;
         var height = this.FrameService.GBuffer.Height;
 
+        // TODO: use context.Setup()
+
         this.Context.IA.SetInputLayout(this.InputLayout);
         this.Context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
 
@@ -67,7 +69,7 @@ public sealed partial class ModelSystem : ISystem, IDisposable
     public void DrawModel(ModelComponent component, TransformComponent transform)
     {
         var world = transform.AsMatrix();
-        var bounds = Transform(component.Model.Bounds, world);
+        var bounds = component.Model.Bounds.Transform(world);
         var frustum = new Frustum(this.FrameService.Camera.ViewProjection);
 
         if (frustum.ContainsOrIntersects(bounds))
@@ -115,21 +117,5 @@ public sealed partial class ModelSystem : ISystem, IDisposable
         this.PixelShader.Dispose();
         this.VertexShader.Dispose();
         this.Context.Dispose();
-    }
-
-
-    private static BoundingBox Transform(in BoundingBox box, in Matrix4x4 transform)
-    {
-        var size = box.Maximum - box.Minimum;
-        var newCenter = Vector3.Transform(box.Center, transform);
-        var oldEdge = size * 0.5f;
-
-        var newEdge = new Vector3(
-            Math.Abs(transform.M11) * oldEdge.X + Math.Abs(transform.M12) * oldEdge.Y + Math.Abs(transform.M13) * oldEdge.Z,
-            Math.Abs(transform.M21) * oldEdge.X + Math.Abs(transform.M22) * oldEdge.Y + Math.Abs(transform.M23) * oldEdge.Z,
-            Math.Abs(transform.M31) * oldEdge.X + Math.Abs(transform.M32) * oldEdge.Y + Math.Abs(transform.M33) * oldEdge.Z
-        );
-
-        return new(newCenter - newEdge, newCenter + newEdge);
-    }
+    }   
 }
