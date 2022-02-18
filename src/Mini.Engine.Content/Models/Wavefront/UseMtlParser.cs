@@ -21,7 +21,7 @@ internal sealed class UseMtlParser : ObjStatementParser
         {
             // obj permits one group to use multiple materials, while we use 1 material per group
             // so start a new group whenever a new material is encountered
-            state.NewGroup($"{state.Group}_{material}");
+            state.NewGroup($"{state.Group?.Name ?? "unknown"}_{material}");
             state.Material = material;
         }
     }

@@ -38,11 +38,22 @@ public sealed class Frustum
         {
             var plane = this.Planes[i];
             var intersection = box.Intersects(ref plane);
-
-            if (intersection == PlaneIntersectionType.Intersecting)
+          
+            if (intersection == PlaneIntersectionType.Front)
             {
-                return true;
+                return false;
             }
+        }
+
+        return true;
+    }
+
+    public bool ContainsOrIntersects(BoundingSphere sphere)
+    {
+        for (var i = 0; i < this.Planes.Length; i++)
+        {
+            var plane = this.Planes[i];
+            var intersection = sphere.Intersects(in plane);
 
             if (intersection == PlaneIntersectionType.Front)
             {

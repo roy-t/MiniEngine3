@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using Mini.Engine.Content.Materials;
@@ -168,7 +167,11 @@ internal sealed partial class WavefrontModelDataLoader : IContentDataLoader<Mode
 
     private static BoundingBox ComputeBounds(List<int> indices, List<ModelVertex> vertices, int startIndex, int indexCount)
     {
-        var positions = indices.Select(i => vertices[i].Position).ToArray();
+        var positions = new Vector3[indexCount];
+        for (var i = 0; i < indexCount; i++)
+        {
+            positions[i] = vertices[indices[startIndex + i]].Position;
+        }        
         return BoundingBox.CreateFromPoints(positions);
     }
 

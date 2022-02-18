@@ -63,11 +63,21 @@ public sealed partial class OutlineSystem : ISystem, IDisposable
     {
         var context = this.Device.ImmediateContext;
 
-        context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None, this.Device.Width, this.Device.Height);
+        var cBuffer = new Constants()
+        {
+            WorldViewProjection = this.FrameService.Camera.ViewProjection,
+            Color = Vector4.One
+        };
+        this.ConstantBuffer.MapData(context, cBuffer);
 
-        context.RS.SetRasterizerState(this.Device.RasterizerStates.CullNone); // useless?
+        context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None, this.Device.Width, this.Device.Height);
+        
         context.IA.SetPrimitiveTopology(PrimitiveTopology.LineList);
+        context.IA.SetVertexBuffer(this.VertexBuffer);
+        context.IA.SetIndexBuffer(this.IndexBuffer);
+
         context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+        context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
         context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
     }
     
@@ -77,38 +87,23 @@ public sealed partial class OutlineSystem : ISystem, IDisposable
         var context = this.Device.ImmediateContext;
 
         var world = transform.AsMatrix();
-        var bounds = component.Model.Bounds.Transform(world);
-
-        var cBuffer = new Constants()
-        {
-            WorldViewProjection = this.FrameService.Camera.ViewProjection,
-            Color = Vector4.One
-        };
-        this.ConstantBuffer.MapData(context, cBuffer);
-
+        var bounds = component.Model.Bounds.Transform(world);       
         var corners = bounds.GetCorners();        
         this.VertexBuffer.MapData(context, corners);
-
-        context.IA.SetVertexBuffer(this.VertexBuffer);
-        context.IA.SetIndexBuffer(this.IndexBuffer);
-
+       
         context.DrawIndexed(24, 0, 0);
 
-        // TODO: draw meshes!
-        
+        for (var i = 0; i < component.Model.Primitives.Length; i++)
+        {
+            var primitive = component.Model.Primitives[i];
 
-        //for (var i = 0; i < component.Model.Primitives.Length; i++)
-        //{
-        //    var primitive = component.Model.Primitives[i];
-        //    var material = component.Model.Materials[primitive.MaterialIndex];
+            bounds = primitive.Bounds.Transform(world);
+            corners = bounds.GetCorners();
 
-        //    this.Context.PS.SetShaderResource(Geometry.Albedo, material.Albedo);
-        //    this.Context.PS.SetShaderResource(Geometry.Normal, material.Normal);
-        //    this.Context.PS.SetShaderResource(Geometry.Metalicness, material.Metalicness);
-        //    this.Context.PS.SetShaderResource(Geometry.Roughness, material.Roughness);
-        //    this.Context.PS.SetShaderResource(Geometry.AmbientOcclusion, material.AmbientOcclusion);
-        //    this.Context.DrawIndexed(primitive.IndexCount, primitive.IndexOffset, 0);
-        //}
+            this.VertexBuffer.MapData(context, corners);
+
+            context.DrawIndexed(24, 0, 0);
+        }        
     }
 
     public void OnUnSet() { }
