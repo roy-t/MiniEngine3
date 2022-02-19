@@ -52,11 +52,6 @@ internal sealed class RenderPipelineBuilder
                 .Requires("Renderer", "ImageBasedLights")
                 .Produces("Renderer", "Skybox")
                 .Build()
-            .System<OutlineSystem>()
-                .InSequence()
-                .Requires("Renderer", "Skybox")                
-                .Produces("Renderer", "Outlines")
-                .Build()
         .Build();
     }
 }

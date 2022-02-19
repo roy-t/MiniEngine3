@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
@@ -25,12 +24,7 @@ public sealed partial class ClearBuffersSystem : ISystem
         this.FrameService = frameService;
     }
 
-    public void OnSet()
-    {
-        this.Device.ImmediateContext.OM.SetBlendState(this.Device.BlendStates.Opaque);
-        this.Device.ImmediateContext.OM.SetDepthStencilState(this.Device.DepthStencilStates.None);
-        this.Device.ImmediateContext.RS.SetRasterizerState(this.Device.RasterizerStates.CullNone);
-    }
+    public void OnSet() { }
 
     [Process]
     public void Process()
@@ -47,9 +41,6 @@ public sealed partial class ClearBuffersSystem : ISystem
         this.Device.Clear(this.FrameService.LBuffer.Light, NeutralLight);
     }
     
-    public void OnUnSet()
-    {
-
-    }
+    public void OnUnSet() {  }
 }
 

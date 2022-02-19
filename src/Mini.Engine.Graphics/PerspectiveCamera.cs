@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine.Graphics;
@@ -15,18 +16,22 @@ public sealed class PerspectiveCamera : ITransformable<PerspectiveCamera>
     public PerspectiveCamera(float aspectRatio, Transform transform)
     {
         this.Transform = transform;
-        this.AspectRatio = aspectRatio;
-
+        this.AspectRatio = aspectRatio;        
         this.ComputeMatrices();
+
+        this.Frustum = new Frustum(this.ViewProjection);
     }
 
     public Matrix4x4 ViewProjection { get; private set; }
 
     public Transform Transform { get; }
 
+    public Frustum Frustum { get; private set; }
+
     public PerspectiveCamera OnTransform()
     {
         this.ComputeMatrices();
+        this.Frustum = new Frustum(this.ViewProjection);
         return this;
     }
 

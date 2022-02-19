@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
@@ -13,7 +12,6 @@ using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
 using Vortice.Direct3D;
-using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Models;
 
@@ -28,6 +26,7 @@ public sealed partial class ModelSystem : ISystem, IDisposable
     private readonly InputLayout InputLayout;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
 
+    int drawn = 0;
 
     public ModelSystem(Device device, FrameService frameService, ContentManager content)
     {
@@ -42,6 +41,8 @@ public sealed partial class ModelSystem : ISystem, IDisposable
 
     public void OnSet()
     {
+        this.drawn = 0;
+
         var width = this.FrameService.GBuffer.Width;
         var height = this.FrameService.GBuffer.Height;
 
@@ -74,7 +75,6 @@ public sealed partial class ModelSystem : ISystem, IDisposable
 
         if (frustum.ContainsOrIntersects(bounds))
         {
-            Debug.WriteLine("SEEN");
             var cBuffer = new Constants()
             {
                 WorldViewProjection = world * this.FrameService.Camera.ViewProjection,
@@ -91,20 +91,30 @@ public sealed partial class ModelSystem : ISystem, IDisposable
             for (var i = 0; i < component.Model.Primitives.Length; i++)
             {
                 var primitive = component.Model.Primitives[i];
-                var material = component.Model.Materials[primitive.MaterialIndex];
 
-                this.Context.PS.SetShaderResource(Geometry.Albedo, material.Albedo);
-                this.Context.PS.SetShaderResource(Geometry.Normal, material.Normal);
-                this.Context.PS.SetShaderResource(Geometry.Metalicness, material.Metalicness);
-                this.Context.PS.SetShaderResource(Geometry.Roughness, material.Roughness);
-                this.Context.PS.SetShaderResource(Geometry.AmbientOcclusion, material.AmbientOcclusion);
-                this.Context.DrawIndexed(primitive.IndexCount, primitive.IndexOffset, 0);
+                bounds = primitive.Bounds.Transform(world);
+
+                if (frustum.ContainsOrIntersects(bounds))
+                {
+                    var material = component.Model.Materials[primitive.MaterialIndex];
+
+                    this.Context.PS.SetShaderResource(Geometry.Albedo, material.Albedo);
+                    this.Context.PS.SetShaderResource(Geometry.Normal, material.Normal);
+                    this.Context.PS.SetShaderResource(Geometry.Metalicness, material.Metalicness);
+                    this.Context.PS.SetShaderResource(Geometry.Roughness, material.Roughness);
+                    this.Context.PS.SetShaderResource(Geometry.AmbientOcclusion, material.AmbientOcclusion);
+                    this.Context.DrawIndexed(primitive.IndexCount, primitive.IndexOffset, 0);
+
+                    this.drawn++;
+                }
             }
         }
     }
 
     public void OnUnSet()
     {
+        Debug.WriteLine($"Drawn {this.drawn}");
+
         // TODO: is it really useful to do this asynchronously?
         using var commandList = this.Context.FinishCommandList();
         this.Device.ImmediateContext.ExecuteCommandList(commandList);
