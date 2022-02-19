@@ -33,14 +33,14 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
 
     private readonly ImDrawVert[] Buffer;
 
-    public BoundsSystem(Device device, FrameService frameService, DebugFrameService debugFrameService, ContentManager content)
+    public BoundsSystem(Device device, FrameService frameService, DebugFrameService debugFrameService, ColorShaderVs vertexShader, ColorShaderPs pixelShader)
     {
         this.Device = device;
         this.FrameService = frameService;
         this.DebugFrameService = debugFrameService;
 
-        this.VertexShader = content.LoadColorShaderVs();
-        this.PixelShader = content.LoadColorShaderPs();
+        this.VertexShader = vertexShader;
+        this.PixelShader = pixelShader;
 
         this.VertexBuffer = new VertexBuffer<Vector3>(device, $"{nameof(BoundsSystem)}_VB");
         this.IndexBuffer = new IndexBuffer<ushort>(device, $"{nameof(BoundsSystem)}_IB");

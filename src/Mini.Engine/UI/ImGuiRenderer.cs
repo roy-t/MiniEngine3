@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Numerics;
 using ImGuiNET;
-using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.UserInterface;
 using Mini.Engine.DirectX;
@@ -32,7 +31,7 @@ internal sealed class ImGuiRenderer
     private readonly IndexBuffer<ImDrawIdx> IndexBuffer;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
 
-    public ImGuiRenderer(Device device, ContentManager content, UITextureRegistry textureRegistry)
+    public ImGuiRenderer(Device device, UITextureRegistry textureRegistry, UserInterfaceVs vertexShader, UserInterfacePs pixelShader)
     {
         this.Device = device;
         this.TextureRegistry = textureRegistry;
@@ -43,8 +42,8 @@ internal sealed class ImGuiRenderer
         this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device, $"{nameof(ImGuiRenderer)}_IB");
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(ImGuiRenderer)}_CB");
 
-        this.VertexShader = content.LoadUserInterfaceVs();
-        this.PixelShader = content.LoadUserInterfacePs();
+        this.VertexShader = vertexShader;
+        this.PixelShader = pixelShader;
 
         this.InputLayout = this.VertexShader.CreateInputLayout
         (

@@ -2,7 +2,7 @@
 using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content;
+using Mini.Engine.Content.Shaders;
 using Mini.Engine.DirectX;
 using Mini.Engine.Windows;
 
@@ -15,11 +15,11 @@ public sealed class UICore : IDisposable
     private readonly ImGuiInputHandler Input;
     private readonly ImGuiIOPtr IO;
 
-    public UICore(Win32Window window, Device device, ContentManager content, UITextureRegistry textureRegistry)
+    public UICore(Win32Window window, Device device, UITextureRegistry textureRegistry, UserInterfaceVs vertexShader, UserInterfacePs pixelShader)
     {
         ImGui.CreateContext();
         this.IO = ImGui.GetIO();
-        this.Renderer = new ImGuiRenderer(device, content, textureRegistry);
+        this.Renderer = new ImGuiRenderer(device, textureRegistry, vertexShader, pixelShader);
         this.Input = new ImGuiInputHandler(window.Handle);
 
         this.Resize(window.Width, window.Height);

@@ -28,15 +28,15 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
 
     private readonly ITexture2D BrdfLut;    
 
-    public ImageBasedLightSystem(Device device, FullScreenTriangle fullScreenTriangle, FrameService frameService, BrdfLutGenerator generator, ContentManager content)
+    public ImageBasedLightSystem(Device device, FullScreenTriangle fullScreenTriangle, FrameService frameService, BrdfLutGenerator generator, ImageBasedLightVs vertexShader, ImageBasedLightPs pixelShader)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<ImageBasedLightSystem>();
         this.FullScreenTriangle = fullScreenTriangle;
         this.FrameService = frameService;
 
-        this.VertexShader = content.LoadImageBasedLightVs();
-        this.PixelShader = content.LoadImageBasedLightPs();
+        this.VertexShader = vertexShader;
+        this.PixelShader = pixelShader;
 
         this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(ImageBasedLightSystem)}_CB");

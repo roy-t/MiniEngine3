@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.Geometry;
 using Mini.Engine.DirectX;
@@ -25,13 +24,13 @@ public sealed partial class ModelSystem : ISystem, IDisposable
     private readonly InputLayout InputLayout;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
 
-    public ModelSystem(Device device, FrameService frameService, ContentManager content)
+    public ModelSystem(Device device, FrameService frameService, GeometryVs vertexShader, GeometryPs pixelShader)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<ModelSystem>();
         this.FrameService = frameService;
-        this.VertexShader = content.LoadGeometryVs();
-        this.PixelShader = content.LoadGeometryPs();
+        this.VertexShader = vertexShader;
+        this.PixelShader = pixelShader;
         this.InputLayout = this.VertexShader.CreateInputLayout(device, ModelVertex.Elements);
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(ModelSystem)}_CB");
     }

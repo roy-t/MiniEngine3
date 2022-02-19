@@ -12,7 +12,6 @@ using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Models.Generators;
 using Mini.Engine.Graphics.Transforms;
-using Vortice.Direct3D;
 
 namespace Mini.Engine.Graphics.Lighting.PointLights;
 
@@ -30,13 +29,13 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
     private readonly ConstantBuffer<PerLightConstants> PerLightConstantBuffer;
     private readonly IModel Sphere;
 
-    public PointLightSystem(Device device, FrameService frameService, ContentManager content)
+    public PointLightSystem(Device device, ContentManager content, FrameService frameService, PointLightVs vertexShader, PointLightPs pixelShader)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<PointLightSystem>();
         this.FrameService = frameService;
-        this.VertexShader = content.LoadPointLightVs();
-        this.PixelShader = content.LoadPointLightPs();
+        this.VertexShader = vertexShader;
+        this.PixelShader = pixelShader;
         this.InputLayout = this.VertexShader.CreateInputLayout(device, ModelVertex.Elements);
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(PointLightSystem)}_CB");
         this.PerLightConstantBuffer = new ConstantBuffer<PerLightConstants>(device, $"{nameof(PointLightSystem)}_per_light_CB");

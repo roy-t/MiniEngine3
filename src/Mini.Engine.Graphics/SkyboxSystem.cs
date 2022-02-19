@@ -7,7 +7,6 @@ using Mini.Engine.Content.Shaders.Skybox;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.DirectX.Contexts;
-using Mini.Engine.Content;
 using System.Numerics;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
@@ -25,12 +24,12 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
     private readonly InputLayout InputLayout;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
 
-    public SkyboxSystem(Device device, ContentManager content, CubeMapGenerator cubeMapGenerator, FullScreenTriangle fullScreenTriangle, FrameService frameService)
+    public SkyboxSystem(Device device, CubeMapGenerator cubeMapGenerator, FullScreenTriangle fullScreenTriangle, FrameService frameService, SkyboxVs vertexShader, SkyboxPs pixelShader)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<SkyboxSystem>();
-        this.VertexShader = content.LoadSkyboxVs();
-        this.PixelShader = content.LoadSkyboxPs();
+        this.VertexShader = vertexShader;
+        this.PixelShader = pixelShader;
         this.FullScreenTriangle = fullScreenTriangle;
         this.FrameService = frameService;
         this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);

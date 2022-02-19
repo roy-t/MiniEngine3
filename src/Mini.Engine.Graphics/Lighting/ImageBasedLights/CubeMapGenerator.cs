@@ -1,5 +1,4 @@
 ﻿using Mini.Engine.Configuration;
-using Mini.Engine.Content;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
@@ -32,14 +31,14 @@ public sealed class CubeMapGenerator
     private readonly ConstantBuffer<Constants> ConstantBuffer;
     private readonly ConstantBuffer<EnvironmentConstants> EnvironmentConstantBuffer;
 
-    public CubeMapGenerator(Device device, FullScreenTriangle fullScreenTriangle, ContentManager content)
+    public CubeMapGenerator(Device device, FullScreenTriangle fullScreenTriangle, CubeMapGeneratorVs vertexShader, CubeMapGeneratorAlbedoPs albedoPs, CubeMapGeneratorIrradiancePs irradiancePs, CubeMapGeneratorEnvironmentPs environmentPs)
     {
         this.Device = device;
         this.FullScreenTriangle = fullScreenTriangle;
-        this.VertexShader = content.LoadCubeMapGeneratorVs();
-        this.AlbedoPs = content.LoadCubeMapGeneratorAlbedoPs();
-        this.IrradiancePs = content.LoadCubeMapGeneratorIrradiancePs();
-        this.EnvironmentPs = content.LoadCubeMapGeneratorEnvironmentPs();
+        this.VertexShader = vertexShader;
+        this.AlbedoPs = albedoPs;
+        this.IrradiancePs = irradiancePs;
+        this.EnvironmentPs = environmentPs;
 
         this.InputLayout = this.VertexShader.CreateInputLayout(device, ModelVertex.Elements);
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(CubeMapGenerator)}_CB");

@@ -1,11 +1,9 @@
 ﻿using System;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
-using Vortice.Direct3D;
 using Vortice.DXGI;
 using Vortice.Mathematics;
 
@@ -23,12 +21,12 @@ public sealed class BrdfLutGenerator : IDisposable
 
     private readonly InputLayout InputLayout;
 
-    public BrdfLutGenerator(Device device, FullScreenTriangle triangle, ContentManager content)
+    public BrdfLutGenerator(Device device, FullScreenTriangle triangle, BrdfLutGeneratorVs vertexShader, BrdfLutGeneratorPs pixelShader)
     {
         this.Device = device;
         this.Triangle = triangle;
-        this.VertexShader = content.LoadBrdfLutGeneratorVs();
-        this.PixelShader = content.LoadBrdfLutGeneratorPs();
+        this.VertexShader = vertexShader;
+        this.PixelShader = pixelShader;
 
         this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
     }

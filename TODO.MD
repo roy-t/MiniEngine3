@@ -1,12 +1,6 @@
 # TODO
 
-- Remove ContentManager everywhere and inject the content instead!
-
-- Think of an architecture where we can add a loading screen to start-up, this is going to be especially hard due to all the work in constructors
-- Create Scenes
 - Make it easier to change skyboxes
-- Load all shaders at startup and just inject them
-
 - Use Texture.Load() instead of Sampling using the point sampling for a tiny perf boost where we don't need sampling
 
 - Check RenderTargetViews, ShaderResourceViews of it still makes sense, is there not 1 overload per resource?

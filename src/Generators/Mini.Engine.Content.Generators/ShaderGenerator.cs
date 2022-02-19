@@ -20,7 +20,6 @@ namespace Mini.Engine.Content.Generators
 
         public void Execute(GeneratorExecutionContext context)
         {
-            //System.Diagnostics.Debugger.Launch();
             var contentFiles = new List<SourceFile>();
 
             var generatedFiles = context.AdditionalFiles
@@ -101,8 +100,6 @@ namespace Mini.Engine.Content.Generators
                 file.Generate(writer);
                 context.AddSource(file.Name, writer.ToString());
             }
-
-            ContentManager.AddLoadMethods(context, contentFiles, "Mini.Engine.Content.Shaders");
         }
     }
 }
