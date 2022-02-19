@@ -46,30 +46,15 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
 
     public void OnSet()
     {
-        var width = this.FrameService.GBuffer.Width;
-        var height = this.FrameService.GBuffer.Height;
+        this.Context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
+        this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
-        this.Context.IA.SetInputLayout(this.InputLayout);
-        this.Context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
-
-        this.Context.VS.SetShader(this.VertexShader);
-
-        this.Context.RS.SetViewPort(0, 0, width, height);
-        this.Context.RS.SetScissorRect(0, 0, width, height);
-
-        this.Context.PS.SetShader(this.PixelShader);
-        
         this.Context.PS.SetSampler(0, this.Device.SamplerStates.LinearClamp);
         this.Context.PS.SetShaderResource(PointLight.Albedo, this.FrameService.GBuffer.Albedo);
         this.Context.PS.SetShaderResource(PointLight.Normal, this.FrameService.GBuffer.Normal);
         this.Context.PS.SetShaderResource(PointLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
         this.Context.PS.SetShaderResource(PointLight.Material, this.FrameService.GBuffer.Material);
-
-        this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
-
-        this.Context.OM.SetBlendState(this.Device.BlendStates.Additive);
-        this.Context.OM.SetDepthStencilState(this.Device.DepthStencilStates.None);
-
+        
         var camera = this.FrameService.Camera;
         Matrix4x4.Invert(camera.ViewProjection, out var inverseViewProjection);
         var cBuffer = new Constants()

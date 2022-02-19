@@ -38,25 +38,12 @@ public sealed class BrdfLutGenerator : IDisposable
         var context = this.Device.ImmediateContext;
 
         var renderTarget = new RenderTarget2D(this.Device, Resolution, Resolution, Format.R16G16_Float, "BrdfLut");
+
+        context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None, Resolution, Resolution);
         context.OM.SetRenderTarget(renderTarget);
 
-        this.Device.Clear(renderTarget, Color4.Black);
-
-        context.IA.SetInputLayout(this.InputLayout);
-        context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
-
-        context.VS.SetShader(this.VertexShader);
-
-        context.RS.SetViewPort(0, 0, Resolution, Resolution);
-        context.RS.SetScissorRect(0, 0, Resolution, Resolution);
-        context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
-
-        context.PS.SetShader(this.PixelShader);
-        context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
-
-        context.OM.SetBlendState(this.Device.BlendStates.Opaque);
-        context.OM.SetDepthStencilState(this.Device.DepthStencilStates.None);
-
+        this.Device.Clear(renderTarget, Color4.Black);        
+        context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);        
         context.IA.SetVertexBuffer(this.Triangle.Vertices);
         context.IA.SetIndexBuffer(this.Triangle.Indices);
         context.DrawIndexed(FullScreenTriangle.PrimitiveCount, FullScreenTriangle.PrimitiveOffset, FullScreenTriangle.VertexOffset);

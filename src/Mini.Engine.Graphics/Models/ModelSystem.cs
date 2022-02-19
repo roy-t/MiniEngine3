@@ -11,7 +11,6 @@ using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
-using Vortice.Direct3D;
 
 namespace Mini.Engine.Graphics.Models;
 

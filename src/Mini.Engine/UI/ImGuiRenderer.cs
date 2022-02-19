@@ -141,25 +141,13 @@ internal sealed class ImGuiRenderer
 
     private void SetupRenderState(ImDrawDataPtr drawData, DeferredDeviceContext context)
     {
-        // TODO: use context.setup
+        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.VertexShader, this.Device.RasterizerStates.CullNone, 0, 0, (int)drawData.DisplaySize.X, (int)drawData.DisplaySize.Y, this.PixelShader, this.Device.BlendStates.NonPreMultiplied, this.Device.DepthStencilStates.None);
+        context.OM.SetRenderTargetToBackBuffer();
 
-        context.IA.SetInputLayout(this.InputLayout);
         context.IA.SetVertexBuffer(this.VertexBuffer);
         context.IA.SetIndexBuffer(this.IndexBuffer);
-        context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
-
-        context.VS.SetShader(this.VertexShader);
         context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
-
-        context.RS.SetViewPort(0, 0, drawData.DisplaySize.X, drawData.DisplaySize.Y);
-        context.RS.SetRasterizerState(this.Device.RasterizerStates.CullNone);
-
-        context.PS.SetShader(this.PixelShader);
         context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
-
-        context.OM.SetRenderTargetToBackBuffer();
-        context.OM.SetBlendState(this.Device.BlendStates.NonPreMultiplied);
-        context.OM.SetDepthStencilState(this.Device.DepthStencilStates.None);
     }    
 
     private static ITexture2D CreateFontsTexture(Device device)
