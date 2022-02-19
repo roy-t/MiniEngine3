@@ -43,7 +43,7 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
         var height = this.FrameService.GBuffer.Height;
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.ReadOnly;
-        this.Context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, blend, depth, width, height);
+        this.Context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, blend, depth);
 
         this.Context.IA.SetVertexBuffer(this.FullScreenTriangle.Vertices);
         this.Context.IA.SetIndexBuffer(this.FullScreenTriangle.Indices);

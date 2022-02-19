@@ -2,7 +2,7 @@
 using ImGuiNET;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.DebugLines;
+using Mini.Engine.Content.Shaders.ColorShader;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Vortice.Direct3D11;
@@ -25,8 +25,8 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
     private readonly FrameService FrameService;
     private readonly DebugFrameService DebugFrameService;
     private readonly InputLayout InputLayout;
-    private readonly DebugLinesVs VertexShader;
-    private readonly DebugLinesPs PixelShader;
+    private readonly ColorShaderVs VertexShader;
+    private readonly ColorShaderPs PixelShader;
     private readonly VertexBuffer<Vector3> VertexBuffer;
     private readonly IndexBuffer<ushort> IndexBuffer;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
@@ -39,8 +39,8 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
         this.FrameService = frameService;
         this.DebugFrameService = debugFrameService;
 
-        this.VertexShader = content.LoadDebugLinesVs();
-        this.PixelShader = content.LoadDebugLinesPs();
+        this.VertexShader = content.LoadColorShaderVs();
+        this.PixelShader = content.LoadColorShaderPs();
 
         this.VertexBuffer = new VertexBuffer<Vector3>(device, $"{nameof(BoundsSystem)}_VB");
         this.IndexBuffer = new IndexBuffer<ushort>(device, $"{nameof(BoundsSystem)}_IB");
@@ -73,16 +73,14 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
                 Color = Vector4.One
             };
             this.ConstantBuffer.MapData(context, cBuffer);
+            
+            context.Setup(this.InputLayout, PrimitiveTopology.LineList, this.VertexShader, this.Device.RasterizerStates.CullNone, 0, 0, this.Device.Width, this.Device.Height, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
+            context.OM.SetRenderTarget(this.DebugFrameService.DebugOverlay);
 
-            context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None, this.Device.Width, this.Device.Height);
-
-            context.IA.SetPrimitiveTopology(PrimitiveTopology.LineList);
             context.IA.SetVertexBuffer(this.VertexBuffer);
             context.IA.SetIndexBuffer(this.IndexBuffer);
-
             context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
-            context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
-            context.OM.SetRenderTarget(this.DebugFrameService.DebugOverlay);
+            context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);            
         }
     }
 

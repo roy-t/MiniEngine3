@@ -258,11 +258,16 @@ float3 FXAA(float2 uv)
 }
 
 #pragma PixelShader
-float4 PS(PS_INPUT input) : SV_Target
+float4 FxaaPS(PS_INPUT input) : SV_Target
 {
     float3 color = FXAA(input.tex);
     color = color / (color + float3(1.0f, 1.0f, 1.0f));
 
-    return float4(color, 1.0f);
-    //return Texture.Sample(TextureSampler, input.tex);
+    return float4(color, 1.0f);    
+}
+
+#pragma PixelShader
+float4 PS(PS_INPUT input) : SV_Target
+{
+    return Texture.Sample(TextureSampler, input.tex);
 }

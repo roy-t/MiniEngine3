@@ -26,8 +26,6 @@ public sealed partial class ModelSystem : ISystem, IDisposable
     private readonly InputLayout InputLayout;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
 
-    int drawn = 0;
-
     public ModelSystem(Device device, FrameService frameService, ContentManager content)
     {
         this.Device = device;
@@ -41,29 +39,12 @@ public sealed partial class ModelSystem : ISystem, IDisposable
 
     public void OnSet()
     {
-        this.drawn = 0;
+        this.Context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.Default);
 
-        var width = this.FrameService.GBuffer.Width;
-        var height = this.FrameService.GBuffer.Height;
-
-        // TODO: use context.Setup()
-
-        this.Context.IA.SetInputLayout(this.InputLayout);
-        this.Context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
-
-        this.Context.VS.SetShader(this.VertexShader);
-
-        this.Context.RS.SetViewPort(0, 0, width, height);
-        this.Context.RS.SetScissorRect(0, 0, width, height);
-        this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
-
-        this.Context.PS.SetShader(this.PixelShader);
+        this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+        this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
         this.Context.PS.SetSampler(Geometry.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);
-
-        this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal);
-
-        this.Context.OM.SetBlendState(this.Device.BlendStates.Opaque);
-        this.Context.OM.SetDepthStencilState(this.Device.DepthStencilStates.Default);
+        this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal);                
     }
 
     [Process(Query = ProcessQuery.All)]
@@ -82,9 +63,7 @@ public sealed partial class ModelSystem : ISystem, IDisposable
                 CameraPosition = this.FrameService.Camera.Transform.Position
             };
             this.ConstantBuffer.MapData(this.Context, cBuffer);
-            this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
-            this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
-
+            
             this.Context.IA.SetVertexBuffer(component.Model.Vertices);
             this.Context.IA.SetIndexBuffer(component.Model.Indices);
 
@@ -104,8 +83,6 @@ public sealed partial class ModelSystem : ISystem, IDisposable
                     this.Context.PS.SetShaderResource(Geometry.Roughness, material.Roughness);
                     this.Context.PS.SetShaderResource(Geometry.AmbientOcclusion, material.AmbientOcclusion);
                     this.Context.DrawIndexed(primitive.IndexCount, primitive.IndexOffset, 0);
-
-                    this.drawn++;
                 }
             }
         }
@@ -113,8 +90,6 @@ public sealed partial class ModelSystem : ISystem, IDisposable
 
     public void OnUnSet()
     {
-        Debug.WriteLine($"Drawn {this.drawn}");
-
         // TODO: is it really useful to do this asynchronously?
         using var commandList = this.Context.FinishCommandList();
         this.Device.ImmediateContext.ExecuteCommandList(commandList);

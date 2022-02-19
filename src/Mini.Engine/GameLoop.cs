@@ -60,8 +60,11 @@ internal sealed class GameLoop : IGameLoop
         {
             this.DebugPipeline.Frame();
 
-            this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();
-            this.FXAARenderer.Render(this.Device.ImmediateContext, this.DebugFrameService.DebugOverlay, 0, 0, this.Device.Width, this.Device.Height);
+            if (this.DebugFrameService.RenderToViewport)
+            {
+                this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();
+                this.FXAARenderer.Render(this.Device.ImmediateContext, this.DebugFrameService.DebugOverlay, 0, 0, this.Device.Width, this.Device.Height);
+            }
         }        
     }
 

@@ -33,21 +33,58 @@ public abstract class DeviceContext : IDisposable
         this.ID3D11DeviceContext.DrawIndexed(indexCount, indexOffset, vertexOffset);
     }
 
-    public void Setup(InputLayout inputLayout, IVertexShader vertexShader, IPixelShader pixelShader, BlendState blendState, DepthStencilState depthState, int width, int height)
+
+    public void Setup(InputLayout inputLayout, IVertexShader vertex, IPixelShader pixel, BlendState blend, DepthStencilState depth)
     {
-        this.IA.SetInputLayout(inputLayout);
-        this.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
+        this.Setup
+        (
+            inputLayout,
+            PrimitiveTopology.TriangleList,
+            vertex,
+            this.Device.RasterizerStates.CullCounterClockwise,
+            0,
+            0,
+            this.Device.Width,
+            this.Device.Height,
+            pixel,
+            blend,
+            depth
+        );
+    }
 
-        this.VS.SetShader(vertexShader);
+    public void Setup(InputLayout inputLayout, IVertexShader vertex, IPixelShader pixel, BlendState blend, DepthStencilState depth, int width, int height)
+    {
+        this.Setup
+        (
+            inputLayout,
+            PrimitiveTopology.TriangleList,
+            vertex,
+            this.Device.RasterizerStates.CullCounterClockwise,
+            0,
+            0,
+            width,
+            height,
+            pixel,
+            blend,
+            depth
+        );
+    }
 
-        this.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwise);
-        this.RS.SetScissorRect(0, 0, width, height);
-        this.RS.SetViewPort(0, 0, width, height);
+    public void Setup(InputLayout layout, PrimitiveTopology primitive, IVertexShader vertex, RasterizerState rasterizer, int x, int y, int width, int height, IPixelShader pixel, BlendState blend, DepthStencilState depth)
+    {
+        this.IA.SetInputLayout(layout);
+        this.IA.SetPrimitiveTopology(primitive);
 
-        this.PS.SetShader(pixelShader);
+        this.VS.SetShader(vertex);
 
-        this.OM.SetBlendState(blendState);
-        this.OM.SetDepthStencilState(depthState);        
+        this.RS.SetRasterizerState(rasterizer);
+        this.RS.SetScissorRect(x, y, width, height);
+        this.RS.SetViewPort(x, y, width, height);
+
+        this.PS.SetShader(pixel);
+
+        this.OM.SetBlendState(blend);
+        this.OM.SetDepthStencilState(depth);
     }
 
     public Device Device { get; }

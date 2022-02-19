@@ -11,6 +11,10 @@ public sealed class DebugFrameService
     public DebugFrameService(Device device)
     {
         this.DebugOverlay = new RenderTarget2D(device, device.Width, device.Height, Format.R8G8B8A8_UNorm_SRgb, "DebugOverlay");
+#if DEBUG
+        this.EnableDebugOverlay = true;
+#endif
+        this.ShowBounds = true;
     }
 
     public RenderTarget2D DebugOverlay { get; }

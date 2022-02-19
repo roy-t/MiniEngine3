@@ -49,20 +49,15 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
     {
         var blendState = this.Device.BlendStates.Additive;
         var depthStencilState = this.Device.DepthStencilStates.None;
-        var width = this.FrameService.GBuffer.Width;
-        var height = this.FrameService.GBuffer.Height;
-        this.Context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, blendState, depthStencilState, width, height);
+        this.Context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, blendState, depthStencilState);
+        this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
-        
         this.Context.PS.SetSampler(0, this.Device.SamplerStates.LinearClamp);
         this.Context.PS.SetShaderResource(ImageBasedLight.Albedo, this.FrameService.GBuffer.Albedo);
         this.Context.PS.SetShaderResource(ImageBasedLight.Normal, this.FrameService.GBuffer.Normal);
         this.Context.PS.SetShaderResource(ImageBasedLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
         this.Context.PS.SetShaderResource(ImageBasedLight.Material, this.FrameService.GBuffer.Material);
-
         this.Context.PS.SetShaderResource(ImageBasedLight.BrdfLut, this.BrdfLut);
-
-        this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
         Matrix4x4.Invert(this.FrameService.Camera.ViewProjection, out var inverseViewProjection);
         var cameraPosition = this.FrameService.Camera.Transform.Position;

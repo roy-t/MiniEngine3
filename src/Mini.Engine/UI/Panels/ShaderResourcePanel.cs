@@ -16,7 +16,7 @@ internal sealed class ShaderResourcePanel : IPanel
     private readonly IntPtr[] Ids;
     private int selected;
 
-    public ShaderResourcePanel(FrameService frameService, UITextureRegistry textureRegistry)
+    public ShaderResourcePanel(FrameService frameService, DebugFrameService debugFrameService, UITextureRegistry textureRegistry)
     {
         this.Names = new string[]
         {
@@ -24,7 +24,8 @@ internal sealed class ShaderResourcePanel : IPanel
             nameof(frameService.GBuffer.Material),
             nameof(frameService.GBuffer.Normal),
             nameof(frameService.LBuffer.Light),
-            nameof(frameService.GBuffer.DepthStencilBuffer)
+            nameof(frameService.GBuffer.DepthStencilBuffer),
+            nameof(debugFrameService.DebugOverlay),
         };
 
         this.Textures = new ITexture2D[]
@@ -33,11 +34,11 @@ internal sealed class ShaderResourcePanel : IPanel
             frameService.GBuffer.Material,
             frameService.GBuffer.Normal,
             frameService.LBuffer.Light,
-            frameService.GBuffer.DepthStencilBuffer
-
+            frameService.GBuffer.DepthStencilBuffer,
+            debugFrameService.DebugOverlay,
         };
 
-        this.Ids = this.Textures.Select(rt => textureRegistry.Register(rt)).ToArray();
+        this.Ids = this.Textures.Select(rt => textureRegistry.Register(rt)).ToArray();        
     }
 
     public string Title => "Shader Resources";
