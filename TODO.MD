@@ -1,5 +1,7 @@
 # TODO
 
+- Remove ContentManager everywhere and inject the content instead!
+
 - Think of an architecture where we can add a loading screen to start-up, this is going to be especially hard due to all the work in constructors
 - Create Scenes
 - Make it easier to change skyboxes

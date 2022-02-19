@@ -1,5 +1,4 @@
 ﻿using Mini.Engine.Configuration;
-using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
@@ -15,33 +14,33 @@ public class RenderHelper
 {
     private readonly Device Device;    
     private readonly TextureShaderVs VertexShader;
+    private readonly TextureShaderPs PixelShader;
     private readonly TextureShaderFxaaPs FxaaPixelShader;
-    private readonly TextureShaderPs UnmodifiedPixelShader;
 
     private readonly FullScreenTriangle FullScreenTriangle;
     private readonly InputLayout InputLayout;
 
-    public RenderHelper(Device device, FullScreenTriangle fullScreenTriangle, ContentManager content)
+    public RenderHelper(Device device, FullScreenTriangle fullScreenTriangle, TextureShaderVs vertexShader, TextureShaderPs pixelShader, TextureShaderFxaaPs fxaaPixelShader)
     {
         this.Device = device;
         this.FullScreenTriangle = fullScreenTriangle;
-        
-        this.VertexShader = content.LoadTextureShaderVs();
-        this.FxaaPixelShader = content.LoadTextureShaderFxaaPs();
-        this.UnmodifiedPixelShader = content.LoadTextureShaderPs();
 
+        this.VertexShader = vertexShader;
+        this.PixelShader = pixelShader;
+        this.FxaaPixelShader = fxaaPixelShader;
+        
         this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
-    }
-    
-    public void RenderFXAA(DeviceContext context, ITexture2D texture, int x, int y, int width, int height)
-    {
-        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.VertexShader, this.Device.RasterizerStates.CullCounterClockwise, x, y, width, height, this.FxaaPixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
-        this.Render(context, texture);
     }
 
     public void Render(DeviceContext context, ITexture2D texture, int x, int y, int width, int height)
     {
-        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.VertexShader, this.Device.RasterizerStates.CullCounterClockwise, x, y, width, height, this.UnmodifiedPixelShader, this.Device.BlendStates.AlphaBlend, this.Device.DepthStencilStates.None);
+        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.VertexShader, this.Device.RasterizerStates.CullCounterClockwise, x, y, width, height, this.PixelShader, this.Device.BlendStates.AlphaBlend, this.Device.DepthStencilStates.None);
+        this.Render(context, texture);
+    }
+
+    public void RenderFXAA(DeviceContext context, ITexture2D texture, int x, int y, int width, int height)
+    {
+        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.VertexShader, this.Device.RasterizerStates.CullCounterClockwise, x, y, width, height, this.FxaaPixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
         this.Render(context, texture);
     }
 

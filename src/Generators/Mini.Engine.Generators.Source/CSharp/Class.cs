@@ -30,6 +30,14 @@ namespace Mini.Engine.Generators.Source.CSharp
             return this;
         }
 
+        public ClassBuilder<TPrevious> Attribute(string name, params string[] arguments)
+        {
+            var attribute = new Attribute(name, new ArgumentList(arguments));
+            this.Output.Attributes.Add(attribute);
+
+            return this;
+        }
+
         public MethodBuilder<ClassBuilder<TPrevious>> Method(string type, string name, params string[] modifiers)
         {
             var builder = new MethodBuilder<ClassBuilder<TPrevious>>(this, type, name, modifiers);

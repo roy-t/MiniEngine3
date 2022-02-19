@@ -17,7 +17,10 @@
         public void Generate(SourceWriter writer)
         {
             writer.Write($"[{this.Name}");
-            this.Arguments.Generate(writer);
+            if (this.Arguments.Arguments.Count > 0)
+            {
+                this.Arguments.Generate(writer);
+            }
             writer.WriteLine("]");
         }
 

@@ -70,14 +70,16 @@ namespace Mini.Engine.Content.Generators
                         .Select(function =>
                         {
                             return SourceFile.Build($"{shader.Name}{function.Name}.cs")
+                                .Using("Mini.Engine.Configuration")
                                 .Using("Mini.Engine.DirectX")
                                 .Using("Mini.Engine.DirectX.Resources")
                                 .Using("Mini.Engine.IO")
                                 .Using("System.Runtime.InteropServices")
                                 .Namespace("Mini.Engine.Content.Shaders")
                                     .Class(Naming.ToPascalCase($"{shader.Name}{function.Name}"), "public", "sealed")
+                                        .Attribute("Content")
                                         .Inherits(BaseTypeTranslator.GetBaseType(function))
-                                        .Constructor("internal")
+                                        .Constructor("public")
                                             .Parameter("Device", "device")
                                             .Parameter("IVirtualFileSystem", "fileSystem")
                                             .BaseConstructorCall("device", "fileSystem",
