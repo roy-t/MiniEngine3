@@ -27,8 +27,13 @@ public sealed class InputAssemblerContext : DeviceContextPart
         this.ID3D11DeviceContext.IASetInputLayout(inputLayout.ID3D11InputLayout);
     }
 
+    public void ClearInputLayout()
+    {
+        this.ID3D11DeviceContext.IASetInputLayout(null);
+    }
+
     public void SetPrimitiveTopology(PrimitiveTopology topology)
     {
         this.ID3D11DeviceContext.IASetPrimitiveTopology(topology);
-    }
+    }   
 }

@@ -1,8 +1,4 @@
-struct VS_INPUT
-{
-    float3 pos : POSITION;
-    float2 tex : TEXCOORD;
-};
+// Use with FullScreenTriangle.TextureVS
 
 struct PS_INPUT
 {
@@ -12,16 +8,6 @@ struct PS_INPUT
 
 sampler TextureSampler : register(s0);
 Texture2D Texture : register(t0);
-
-#pragma VertexShader
-PS_INPUT VS(VS_INPUT input)
-{
-    PS_INPUT output;
-    output.pos = float4(input.pos.xyz, 1.0f);
-    output.tex = input.tex;
-
-    return output;
-}
 
 #define EDGE_THRESHOLD_MIN 0.0312
 #define EDGE_THRESHOLD_MAX 0.125

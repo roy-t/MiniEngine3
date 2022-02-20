@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
     <None Remove="Assets\Shaders\ColorShader.hlsl" />
+    <None Remove="Assets\Shaders\FullScreenTriangle.hlsl" />
   </ItemGroup> 
   <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
@@ -28,6 +29,7 @@
     <AdditionalFiles Include="Assets\Shaders\Lighting\Includes\Lights.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\Includes\BRDF.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\BrdfLutGenerator.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\FullScreenTriangle.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\TextureShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\ColorShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\UserInterface.hlsl" />

@@ -30,9 +30,13 @@ public abstract class DeviceContext : IDisposable
     
     public void DrawIndexed(int indexCount, int indexOffset, int vertexOffset)
     {
-        this.ID3D11DeviceContext.DrawIndexed(indexCount, indexOffset, vertexOffset);
+        this.ID3D11DeviceContext.DrawIndexed(indexCount, indexOffset, vertexOffset);        
     }
 
+    public void Draw(int vertexCount, int startVertexLocation = 0)
+    {
+        this.ID3D11DeviceContext.Draw(vertexCount, startVertexLocation);
+    }
 
     public void Setup(InputLayout inputLayout, IVertexShader vertex, IPixelShader pixel, BlendState blend, DepthStencilState depth)
     {
@@ -78,6 +82,28 @@ public abstract class DeviceContext : IDisposable
         this.VS.SetShader(vertex);
 
         this.RS.SetRasterizerState(rasterizer);
+        this.RS.SetScissorRect(x, y, width, height);
+        this.RS.SetViewPort(x, y, width, height);
+
+        this.PS.SetShader(pixel);
+
+        this.OM.SetBlendState(blend);
+        this.OM.SetDepthStencilState(depth);
+    }
+
+    public void SetupFullScreenTriangle(IVertexShader vertex, IPixelShader pixel, BlendState blend, DepthStencilState depth)
+    {
+        this.SetupFullScreenTriangle(vertex, 0, 0, this.Device.Width, this.Device.Height, pixel, blend, depth);
+    }
+
+    public void SetupFullScreenTriangle(IVertexShader vertex, int x, int y, int width, int height, IPixelShader pixel, BlendState blend, DepthStencilState depth)
+    {
+        this.IA.ClearInputLayout();
+        this.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
+
+        this.VS.SetShader(vertex);
+
+        this.RS.SetRasterizerState(this.Device.RasterizerStates.CullNone);
         this.RS.SetScissorRect(x, y, width, height);
         this.RS.SetViewPort(x, y, width, height);
 
