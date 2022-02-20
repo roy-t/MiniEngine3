@@ -56,7 +56,7 @@ public abstract class DeviceContext : IDisposable
         );
     }
 
-    public void Setup(InputLayout inputLayout, IVertexShader vertex, IPixelShader pixel, BlendState blend, DepthStencilState depth, int width, int height)
+    public void Setup(InputLayout inputLayout, IVertexShader vertex, int width, int height, IPixelShader pixel, BlendState blend, DepthStencilState depth)
     {
         this.Setup
         (
@@ -94,6 +94,11 @@ public abstract class DeviceContext : IDisposable
     public void SetupFullScreenTriangle(IVertexShader vertex, IPixelShader pixel, BlendState blend, DepthStencilState depth)
     {
         this.SetupFullScreenTriangle(vertex, 0, 0, this.Device.Width, this.Device.Height, pixel, blend, depth);
+    }
+
+    public void SetupFullScreenTriangle(IVertexShader vertex, int width, int height, IPixelShader pixel, BlendState blend, DepthStencilState depth)
+    {
+        this.SetupFullScreenTriangle(vertex, 0, 0, width, height, pixel, blend, depth);
     }
 
     public void SetupFullScreenTriangle(IVertexShader vertex, int x, int y, int width, int height, IPixelShader pixel, BlendState blend, DepthStencilState depth)

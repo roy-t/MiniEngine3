@@ -74,7 +74,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
             };
             this.ConstantBuffer.MapData(context, cBuffer);
             
-            context.Setup(this.InputLayout, PrimitiveTopology.LineList, this.VertexShader, this.Device.RasterizerStates.CullNone, 0, 0, this.Device.Width, this.Device.Height, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
+            context.Setup(this.InputLayout, PrimitiveTopology.LineList,this.VertexShader, this.Device.RasterizerStates.CullNone, 0, 0, this.Device.Width, this.Device.Height, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
             context.OM.SetRenderTarget(this.DebugFrameService.DebugOverlay);
 
             context.IA.SetVertexBuffer(this.VertexBuffer);

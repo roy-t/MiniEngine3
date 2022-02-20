@@ -45,7 +45,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
 
     public void OnSet()
     {
-        this.Context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
+        this.Context.Setup(this.InputLayout, this.VertexShader, pixel: this.PixelShader, blend: this.Device.BlendStates.Additive, depth: this.Device.DepthStencilStates.None);
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
         this.Context.PS.SetSampler(0, this.Device.SamplerStates.LinearClamp);

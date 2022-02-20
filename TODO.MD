@@ -1,5 +1,7 @@
 # TODO
 
+- I broke hot reloading due to injecting shaders
+
 - Make it easier to change skyboxes
 - Use Texture.Load() instead of Sampling using the point sampling for a tiny perf boost where we don't need sampling
 

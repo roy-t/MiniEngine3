@@ -1,16 +1,12 @@
 ﻿#include "Includes/BRDF.hlsl"
 #include "Includes/Lights.hlsl"
 
-struct VS_INPUT
-{
-	float3 position : POSITION;
-    float2 texcoord : TEXCOORD;
-};
+// Use with FullScreenTriangle.TextureVS
 
 struct PS_INPUT
 {
-	float4 position : SV_POSITION;
-    float2 texcoord : TEXCOORD;
+	float4 pos : SV_POSITION;
+    float2 tex : TEXCOORD;
 };
 
 struct OUTPUT
@@ -18,24 +14,13 @@ struct OUTPUT
 	float2 brdf : SV_Target;
 };
 
-#pragma VertexShader
-PS_INPUT VS(VS_INPUT input)
-{
-	PS_INPUT output;
-
-	output.position = float4(input.position, 1.0f);
-	output.texcoord = float2(input.texcoord.x, 1.0f - input.texcoord.y);
-
-	return output;
-}
-
 #pragma PixelShader
 OUTPUT PS(PS_INPUT input)
 {
 	OUTPUT output;
 
-	float NdotV = input.texcoord.x;
-	float roughness = input.texcoord.y;
+	float NdotV = input.tex.x;
+	float roughness = 1.0f - input.tex.y;
 
 	float3 V;
 	V.x = sqrt(1.0f - NdotV * NdotV);

@@ -49,7 +49,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
     {
         var blendState = this.Device.BlendStates.Additive;
         var depthStencilState = this.Device.DepthStencilStates.None;
-        this.Context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, blendState, depthStencilState);
+        this.Context.Setup(this.InputLayout, this.VertexShader, pixel: this.PixelShader, blend: blendState, depth: depthStencilState);
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
         this.Context.PS.SetSampler(0, this.Device.SamplerStates.LinearClamp);

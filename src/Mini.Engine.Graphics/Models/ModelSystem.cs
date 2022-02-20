@@ -37,7 +37,7 @@ public sealed partial class ModelSystem : ISystem, IDisposable
 
     public void OnSet()
     {
-        this.Context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.Default);
+        this.Context.Setup(this.InputLayout, this.VertexShader, pixel: this.PixelShader, blend: this.Device.BlendStates.Opaque, depth: this.Device.DepthStencilStates.Default);
 
         this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
         this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);

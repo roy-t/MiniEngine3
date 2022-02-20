@@ -54,7 +54,7 @@ public sealed class CubeMapGenerator
         var depth = this.Device.DepthStencilStates.None;
 
         var context = this.Device.ImmediateContext;
-        context.Setup(this.InputLayout, this.VertexShader, this.AlbedoPs, blend, depth, resolution, resolution);
+        context.Setup(this.InputLayout, this.VertexShader, resolution, resolution, this.AlbedoPs, blend, depth);
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, equirectangular);
 
@@ -71,7 +71,7 @@ public sealed class CubeMapGenerator
         var depth = this.Device.DepthStencilStates.None;
 
         var context = this.Device.ImmediateContext;
-        context.Setup(this.InputLayout, this.VertexShader, this.IrradiancePs, blend, depth, resolution, resolution);
+        context.Setup(this.InputLayout, this.VertexShader, resolution, resolution, this.IrradiancePs, blend, depth);
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, equirectangular);
 
@@ -88,7 +88,7 @@ public sealed class CubeMapGenerator
         var depth = this.Device.DepthStencilStates.None;
 
         var context = this.Device.ImmediateContext;
-        context.Setup(this.InputLayout, this.VertexShader, this.EnvironmentPs, blend, depth, resolution, resolution);
+        context.Setup(this.InputLayout, this.VertexShader, resolution, resolution, this.EnvironmentPs, blend, depth);
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, equirectangular);
 
