@@ -18,34 +18,25 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
     private readonly SkyboxVs VertexShader;
-    private readonly SkyboxPs PixelShader;
-    private readonly FullScreenTriangle FullScreenTriangle;
-    private readonly FrameService FrameService;
-    private readonly InputLayout InputLayout;
+    private readonly SkyboxPs PixelShader;    
+    private readonly FrameService FrameService;    
     private readonly ConstantBuffer<Constants> ConstantBuffer;
 
-    public SkyboxSystem(Device device, CubeMapGenerator cubeMapGenerator, FullScreenTriangle fullScreenTriangle, FrameService frameService, SkyboxVs vertexShader, SkyboxPs pixelShader)
+    public SkyboxSystem(Device device, CubeMapGenerator cubeMapGenerator, FrameService frameService, SkyboxVs vertexShader, SkyboxPs pixelShader)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<SkyboxSystem>();
         this.VertexShader = vertexShader;
         this.PixelShader = pixelShader;
-        this.FullScreenTriangle = fullScreenTriangle;
         this.FrameService = frameService;
-        this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(SkyboxSystem)}_CB");
     }   
 
     public void OnSet()
     {
-        var width = this.FrameService.GBuffer.Width;
-        var height = this.FrameService.GBuffer.Height;
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.ReadOnly;
-        this.Context.Setup(this.InputLayout, this.VertexShader, pixel: this.PixelShader, blend: blend, depth: depth);
-
-        this.Context.IA.SetVertexBuffer(this.FullScreenTriangle.Vertices);
-        this.Context.IA.SetIndexBuffer(this.FullScreenTriangle.Indices);
+        this.Context.SetupFullScreenTriangle(this.VertexShader, this.PixelShader, blend, depth);
 
         this.Context.PS.SetSampler(Skybox.TextureSampler, this.Device.SamplerStates.LinearClamp);        
 
@@ -70,7 +61,7 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
         this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
 
         this.Context.PS.SetShaderResource(Skybox.CubeMap, skybox.Albedo);
-        this.Context.DrawIndexed(FullScreenTriangle.PrimitiveCount, FullScreenTriangle.PrimitiveOffset, FullScreenTriangle.VertexOffset);
+        this.Context.Draw(3);
     }
 
     public void OnUnSet()
@@ -82,7 +73,6 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
     public void Dispose()
     {
         this.ConstantBuffer.Dispose();
-        this.InputLayout.Dispose();
         this.PixelShader.Dispose();
         this.VertexShader.Dispose();
         this.Context.Dispose();

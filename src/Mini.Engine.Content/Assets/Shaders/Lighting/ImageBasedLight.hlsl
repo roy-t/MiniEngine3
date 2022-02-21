@@ -2,12 +2,6 @@
 #include "../Includes/Coordinates.hlsl"
 #include "Includes/Lights.hlsl"
 
-struct VS_INPUT
-{
-    float3 position : POSITION;
-    float2 texcoord : TEXCOORD;
-};
-
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
@@ -36,17 +30,6 @@ Texture2D Normal : register(t3);
 TextureCube Irradiance : register(t4);
 TextureCube Environment : register(t5);
 Texture2D BrdfLut : register(t6);
-
-#pragma VertexShader
-PS_INPUT VS(VS_INPUT input)
-{
-    PS_INPUT output;
-    
-    output.position = float4(input.position.xyz, 1.0f);
-    output.texcoord = input.texcoord;
-
-    return output;
-}
 
 #pragma PixelShader
 float4 PS(PS_INPUT input) : SV_TARGET

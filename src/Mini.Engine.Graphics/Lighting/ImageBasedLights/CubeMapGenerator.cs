@@ -26,21 +26,17 @@ public sealed class CubeMapGenerator
     private readonly CubeMapGeneratorAlbedoPs AlbedoPs;
     private readonly CubeMapGeneratorIrradiancePs IrradiancePs;
     private readonly CubeMapGeneratorEnvironmentPs EnvironmentPs;
-    private readonly FullScreenTriangle FullScreenTriangle;
-    private readonly InputLayout InputLayout;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
     private readonly ConstantBuffer<EnvironmentConstants> EnvironmentConstantBuffer;
 
-    public CubeMapGenerator(Device device, FullScreenTriangle fullScreenTriangle, CubeMapGeneratorVs vertexShader, CubeMapGeneratorAlbedoPs albedoPs, CubeMapGeneratorIrradiancePs irradiancePs, CubeMapGeneratorEnvironmentPs environmentPs)
+    public CubeMapGenerator(Device device, CubeMapGeneratorVs vertexShader, CubeMapGeneratorAlbedoPs albedoPs, CubeMapGeneratorIrradiancePs irradiancePs, CubeMapGeneratorEnvironmentPs environmentPs)
     {
         this.Device = device;
-        this.FullScreenTriangle = fullScreenTriangle;
         this.VertexShader = vertexShader;
         this.AlbedoPs = albedoPs;
         this.IrradiancePs = irradiancePs;
         this.EnvironmentPs = environmentPs;
 
-        this.InputLayout = this.VertexShader.CreateInputLayout(device, ModelVertex.Elements);
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(CubeMapGenerator)}_CB");
         this.EnvironmentConstantBuffer = new ConstantBuffer<EnvironmentConstants>(device, $"{nameof(CubeMapGenerator)}_Environment_CB");
     }
@@ -53,8 +49,8 @@ public sealed class CubeMapGenerator
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;
 
-        var context = this.Device.ImmediateContext;
-        context.Setup(this.InputLayout, this.VertexShader, resolution, resolution, this.AlbedoPs, blend, depth);
+        var context = this.Device.ImmediateContext;        
+        context.SetupFullScreenTriangle(this.VertexShader, resolution, resolution, this.AlbedoPs, blend, depth);
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, equirectangular);
 
@@ -70,8 +66,8 @@ public sealed class CubeMapGenerator
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;
 
-        var context = this.Device.ImmediateContext;
-        context.Setup(this.InputLayout, this.VertexShader, resolution, resolution, this.IrradiancePs, blend, depth);
+        var context = this.Device.ImmediateContext;        
+        context.SetupFullScreenTriangle(this.VertexShader, resolution, resolution, this.IrradiancePs, blend, depth);
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, equirectangular);
 
@@ -88,7 +84,7 @@ public sealed class CubeMapGenerator
         var depth = this.Device.DepthStencilStates.None;
 
         var context = this.Device.ImmediateContext;
-        context.Setup(this.InputLayout, this.VertexShader, resolution, resolution, this.EnvironmentPs, blend, depth);
+        context.SetupFullScreenTriangle(this.VertexShader, resolution, resolution, this.EnvironmentPs, blend, depth);
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, equirectangular);
 
@@ -115,10 +111,6 @@ public sealed class CubeMapGenerator
     private void RenderFaces(RenderTargetCube target, int mipSlice = 0)
     {
         var context = this.Device.ImmediateContext;
-
-        context.IA.SetVertexBuffer(this.FullScreenTriangle.Vertices);
-        context.IA.SetIndexBuffer(this.FullScreenTriangle.Indices);
-
         var projection = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 2.0f, 1.0f, 0.1f, 1.5f);
 
         for (var i = 0; i < Faces.Length; i++)
@@ -136,7 +128,7 @@ public sealed class CubeMapGenerator
             context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
 
             context.OM.SetRenderTarget(target, face, mipSlice);
-            context.DrawIndexed(FullScreenTriangle.PrimitiveCount, FullScreenTriangle.PrimitiveOffset, FullScreenTriangle.VertexOffset);
+            context.Draw(3);
         }
     }
 

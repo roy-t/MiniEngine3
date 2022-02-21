@@ -1,8 +1,3 @@
-struct VS_INPUT
-{
-    float3 position : POSITION;
-};
-
 struct PS_INPUT
 {
     float4 position : SV_POSITION;    
@@ -17,14 +12,18 @@ cbuffer Constants : register(b0)
 sampler TextureSampler : register(s0);
 TextureCube CubeMap : register(t0);
 
+// Similar to FullScreenTriangleVs but with an InverseViewProjection
 #pragma VertexShader
-PS_INPUT VS(VS_INPUT input)
+PS_INPUT VS(uint vertexId : SV_VERTEXID)
 {
     PS_INPUT output;
 
-    output.position = float4(input.position.xy, 1, 1);
-    output.world = mul(InverseWorldViewProjection, float4(input.position, 1.0f)).xyz;
-    
+    // z is fixed to 1.0f
+    float4 pos = float4(vertexId == 1 ? 3.0f : -1.0f, vertexId == 2 ? 3.0f : -1.0f, 1.0f, 1.0f);
+
+    output.position = pos;
+    output.world = mul(InverseWorldViewProjection, pos).xyz;
+
     return output;
 }
 

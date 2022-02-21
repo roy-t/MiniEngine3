@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
@@ -17,28 +16,24 @@ namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
 {
     private readonly Device Device;
-    private readonly DeferredDeviceContext Context;
-    private readonly FullScreenTriangle FullScreenTriangle;
+    private readonly DeferredDeviceContext Context;    
     private readonly FrameService FrameService;
-    private readonly ImageBasedLightVs VertexShader;
+    private readonly FullScreenTriangleTextureVs VertexShader;
     private readonly ImageBasedLightPs PixelShader;
-    private readonly InputLayout InputLayout;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
     private readonly ConstantBuffer<PerLightConstants> PerLightConstantBuffer;
 
     private readonly ITexture2D BrdfLut;    
 
-    public ImageBasedLightSystem(Device device, FullScreenTriangle fullScreenTriangle, FrameService frameService, BrdfLutGenerator generator, ImageBasedLightVs vertexShader, ImageBasedLightPs pixelShader)
+    public ImageBasedLightSystem(Device device, FrameService frameService, BrdfLutGenerator generator, FullScreenTriangleTextureVs vertexShader, ImageBasedLightPs pixelShader)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<ImageBasedLightSystem>();
-        this.FullScreenTriangle = fullScreenTriangle;
         this.FrameService = frameService;
 
         this.VertexShader = vertexShader;
         this.PixelShader = pixelShader;
 
-        this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(ImageBasedLightSystem)}_CB");
         this.PerLightConstantBuffer = new ConstantBuffer<PerLightConstants>(device, $"{nameof(ImageBasedLightSystem)}_per_light_CB");
 
@@ -49,7 +44,8 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
     {
         var blendState = this.Device.BlendStates.Additive;
         var depthStencilState = this.Device.DepthStencilStates.None;
-        this.Context.Setup(this.InputLayout, this.VertexShader, pixel: this.PixelShader, blend: blendState, depth: depthStencilState);
+        this.Context.SetupFullScreenTriangle(this.VertexShader, this.PixelShader, blendState, depthStencilState);
+
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
         this.Context.PS.SetSampler(0, this.Device.SamplerStates.LinearClamp);
@@ -84,10 +80,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(ImageBasedLight.Irradiance, skybox.Irradiance);
         this.Context.PS.SetShaderResource(ImageBasedLight.Environment, skybox.Environment);
 
-        this.Context.IA.SetVertexBuffer(this.FullScreenTriangle.Vertices);
-        this.Context.IA.SetIndexBuffer(this.FullScreenTriangle.Indices);
-
-        this.Context.DrawIndexed(FullScreenTriangle.PrimitiveCount, FullScreenTriangle.PrimitiveOffset, FullScreenTriangle.VertexOffset);
+        this.Context.Draw(3);
     }
 
     public void OnUnSet()
@@ -100,7 +93,6 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
     {
         this.BrdfLut.Dispose();
         this.ConstantBuffer.Dispose();
-        this.InputLayout.Dispose();
         this.PixelShader.Dispose();
         this.VertexShader.Dispose();
         this.Context.Dispose();

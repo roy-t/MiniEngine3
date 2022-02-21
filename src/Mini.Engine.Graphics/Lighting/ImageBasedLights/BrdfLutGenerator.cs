@@ -1,8 +1,6 @@
-﻿using System;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
 using Vortice.DXGI;
 using Vortice.Mathematics;
@@ -10,7 +8,7 @@ using Vortice.Mathematics;
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 [Service]
-public sealed class BrdfLutGenerator : IDisposable
+public sealed class BrdfLutGenerator
 {
     private const int Resolution = 512;
 
@@ -18,15 +16,11 @@ public sealed class BrdfLutGenerator : IDisposable
     private readonly FullScreenTriangleTextureVs VertexShader;
     private readonly BrdfLutGeneratorPs PixelShader;
 
-    private readonly InputLayout InputLayout;
-
     public BrdfLutGenerator(Device device, FullScreenTriangleTextureVs vertexShader, BrdfLutGeneratorPs pixelShader)
     {
         this.Device = device;
         this.VertexShader = vertexShader;
         this.PixelShader = pixelShader;
-
-        this.InputLayout = this.VertexShader.CreateInputLayout(device, PostProcessVertex.Elements);
     }
 
     public ITexture2D Generate()
@@ -43,10 +37,5 @@ public sealed class BrdfLutGenerator : IDisposable
         context.Draw(3);
 
         return renderTarget;
-    }
-
-    public void Dispose()
-    {
-        this.InputLayout.Dispose();
     }
 }
