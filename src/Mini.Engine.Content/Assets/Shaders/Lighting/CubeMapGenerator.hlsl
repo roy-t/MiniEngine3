@@ -31,7 +31,7 @@ PS_INPUT VS(uint vertexId : SV_VERTEXID)
 {
     PS_INPUT output;
 
-    float4 pos = float4(vertexId == 1 ? 3 : -1, vertexId == 2 ? 3 : -1, 0.5, 1);
+    float4 pos = float4(vertexId == 1 ? 3.0f : -1.0f, vertexId == 2 ? 3.0f : -1.0f, 0.5f, 1.0f);
 
     output.position = pos;
     output.world = mul(InverseWorldViewProjection, pos).xyz;
@@ -43,16 +43,16 @@ PS_INPUT VS(uint vertexId : SV_VERTEXID)
 float4 AlbedoPs(PS_INPUT input) : SV_Target
 {
     float2 uv = WorldToSpherical(normalize(input.world));
-    return Texture.SampleLevel(TextureSampler, uv, 0);
+    return Texture.SampleLevel(TextureSampler, uv, 0.0f);
 }
 
 #pragma PixelShader
 float4 IrradiancePs(PS_INPUT input) : SV_Target
 {
     float3 normal = normalize(input.world);
-    float3 irradiance = float3(0, 0, 0);
+    float3 irradiance = float3(0.0f, 0.0f, 0.0f);
 
-    float3 right = normalize(cross(float3(0, 1, 0), normal));
+    float3 right = normalize(cross(float3(0.0f, 1.0f, 0.0f), normal));
     float3 up = normalize(cross(normal, right));
 
     float nrSamples = 0.0f;
@@ -68,7 +68,7 @@ float4 IrradiancePs(PS_INPUT input) : SV_Target
             float3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * normal;
 
             float2 uv = WorldToSpherical(sampleVec);
-            float3 albedo = Texture.SampleLevel(TextureSampler, uv, 0).rgb;
+            float3 albedo = Texture.SampleLevel(TextureSampler, uv, 0.0f).rgb;
             irradiance += albedo;
             nrSamples++;
         }
@@ -86,7 +86,7 @@ float4 EnvironmentPs(PS_INPUT input) : SV_Target
 
     const uint SAMPLE_COUNT = 1024u;
     float totalWeight = 0.0f;
-    float3 prefilteredColor = float3(0, 0, 0);
+    float3 prefilteredColor = float3(0.0f, 0.0f, 0.0f);
 
     for (uint i = 0u; i < SAMPLE_COUNT; i++)
     {
@@ -99,16 +99,16 @@ float4 EnvironmentPs(PS_INPUT input) : SV_Target
         {
             // Compute the right mip-map level to sample from
             // to reduce the convolution artefacts
-            float NdotH = max(dot(N, H), 0.0);
+            float NdotH = max(dot(N, H), 0.0f);
             float HdotV = dot(H, V);
             float D = DistributionGGX(NdotH, Roughness);
-            float pdf = (D * NdotH / (4.0 * HdotV)) + 0.0001;
+            float pdf = (D * NdotH / (4.0f * HdotV)) + 0.0001f;
 
-            float resolution = 512.0; // resolution of source cubemap (per face)
-            float saTexel = 4.0 * PI / (6.0 * resolution * resolution);
-            float saSample = 1.0 / (float(SAMPLE_COUNT) * pdf + 0.0001);
+            float resolution = 512.0f; // resolution of source cubemap (per face)
+            float saTexel = 4.0f * PI / (6.0f * resolution * resolution);
+            float saSample = 1.0f / (float(SAMPLE_COUNT) * pdf + 0.0001f);
 
-            float mipLevel = Roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel);
+            float mipLevel = Roughness == 0.0f ? 0.0f : 0.5f * log2(saSample / saTexel);
 
 
             float2 uv = WorldToSpherical(L);

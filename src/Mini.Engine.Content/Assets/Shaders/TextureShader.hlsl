@@ -9,15 +9,15 @@ struct PS_INPUT
 sampler TextureSampler : register(s0);
 Texture2D Texture : register(t0);
 
-#define EDGE_THRESHOLD_MIN 0.0312
-#define EDGE_THRESHOLD_MAX 0.125
-#define QUALITY(q) ((q) < 5 ? 1.0 : ((q) > 5 ? ((q) < 10 ? 2.0 : ((q) < 11 ? 4.0 : 8.0)) : 1.5))
+#define EDGE_THRESHOLD_MIN 0.0312f
+#define EDGE_THRESHOLD_MAX 0.125f
+#define QUALITY(q) ((q) < 5.0f ? 1.0f : ((q) > 5.0f ? ((q) < 10.0f ? 2.0f : ((q) < 11.0f? 4.0f : 8.0f)) : 1.5f))
 #define ITERATIONS 12
-#define SUBPIXEL_QUALITY 0.75
+#define SUBPIXEL_QUALITY 0.75f
 
 float rgb2luma(float3 rgb)
 {
-    return sqrt(dot(rgb, float3(0.299, 0.587, 0.114)));
+    return sqrt(dot(rgb, float3(0.299f, 0.587f, 0.114f)));
 }
 
 // Inspired by https://github.com/kosua20/Rendu/blob/master/resources/common/shaders/screens/fxaa.frag
@@ -35,10 +35,10 @@ float3 FXAA(float2 uv)
     float lumaCenter = rgb2luma(colorCenter);
 
 	// Luma at the four direct neighbours of the current fragment.
-    float lumaDown = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0, int2(0, -1)).rgb);
-    float lumaUp = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0, int2(0, 1)).rgb);
-    float lumaLeft = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0, int2(-1, 0)).rgb);
-    float lumaRight = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0, int2(1, 0)).rgb);
+    float lumaDown = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0f, int2(0, -1)).rgb);
+    float lumaUp = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0f, int2(0, 1)).rgb);
+    float lumaLeft = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0f, int2(-1, 0)).rgb);
+    float lumaRight = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0f, int2(1, 0)).rgb);
 
 	// Find the maximum and minimum luma around the current fragment.
     float lumaMin = min(lumaCenter, min(min(lumaDown, lumaUp), min(lumaLeft, lumaRight)));
@@ -55,10 +55,10 @@ float3 FXAA(float2 uv)
     }
 
 	// Query the 4 remaining corners lumas.
-    float lumaDownLeft = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0, int2(-1, -1)).rgb);
-    float lumaUpRight = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0, int2(1, 1)).rgb);
-    float lumaUpLeft = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0, int2(-1, 1)).rgb);
-    float lumaDownRight = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0, int2(1, -1)).rgb);
+    float lumaDownLeft = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0f, int2(-1, -1)).rgb);
+    float lumaUpRight = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0f, int2(1, 1)).rgb);
+    float lumaUpLeft = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0f, int2(-1, 1)).rgb);
+    float lumaDownRight = rgb2luma(Texture.SampleLevel(TextureSampler, uv, 0.0f, int2(1, -1)).rgb);
 
 	// Combine the four edges lumas (using intermediary variables for future computations with the same values).
     float lumaDownUp = lumaDown + lumaUp;
@@ -71,8 +71,8 @@ float3 FXAA(float2 uv)
     float lumaUpCorners = lumaUpRight + lumaUpLeft;
 
 	// Compute an estimation of the gradient along the horizontal and vertical axis.
-    float edgeHorizontal = abs(-2.0 * lumaLeft + lumaLeftCorners) + abs(-2.0 * lumaCenter + lumaDownUp) * 2.0 + abs(-2.0 * lumaRight + lumaRightCorners);
-    float edgeVertical = abs(-2.0 * lumaUp + lumaUpCorners) + abs(-2.0 * lumaCenter + lumaLeftRight) * 2.0 + abs(-2.0 * lumaDown + lumaDownCorners);
+    float edgeHorizontal = abs(-2.0f * lumaLeft + lumaLeftCorners) + abs(-2.0f * lumaCenter + lumaDownUp) * 2.0f + abs(-2.0f * lumaRight + lumaRightCorners);
+    float edgeVertical = abs(-2.0f * lumaUp + lumaUpCorners) + abs(-2.0f * lumaCenter + lumaLeftRight) * 2.0f + abs(-2.0f * lumaDown + lumaDownCorners);
 
 	// Is the local edge horizontal or vertical ?
     bool isHorizontal = (edgeHorizontal >= edgeVertical);
@@ -91,41 +91,41 @@ float3 FXAA(float2 uv)
     bool is1Steepest = abs(gradient1) >= abs(gradient2);
 
 	// Gradient in the corresponding direction, normalized.
-    float gradientScaled = 0.25 * max(abs(gradient1), abs(gradient2));
+    float gradientScaled = 0.25f * max(abs(gradient1), abs(gradient2));
 
 	// Average luma in the correct direction.
-    float lumaLocalAverage = 0.0;
+    float lumaLocalAverage = 0.0f;
     if (is1Steepest)
     {
 		// Switch the direction
         stepLength = -stepLength;
-        lumaLocalAverage = 0.5 * (luma1 + lumaCenter);
+        lumaLocalAverage = 0.5f * (luma1 + lumaCenter);
     }
     else
     {
-        lumaLocalAverage = 0.5 * (luma2 + lumaCenter);
+        lumaLocalAverage = 0.5f * (luma2 + lumaCenter);
     }
 
 	// Shift UV in the correct direction by half a pixel.
     float2 currentUv = uv;
     if (isHorizontal)
     {
-        currentUv.y += stepLength * 0.5;
+        currentUv.y += stepLength * 0.5f;
     }
     else
     {
-        currentUv.x += stepLength * 0.5;
+        currentUv.x += stepLength * 0.5f;
     }
 
 	// Compute offset (for each iteration step) in the right direction.
-    float2 offset = isHorizontal ? float2(inverseScreenSize.x, 0.0) : float2(0.0, inverseScreenSize.y);
+    float2 offset = isHorizontal ? float2(inverseScreenSize.x, 0.0f) : float2(0.0f, inverseScreenSize.y);
 	// Compute UVs to explore on each side of the edge, orthogonally. The QUALITY allows us to step faster.
     float2 uv1 = currentUv - offset * QUALITY(0);
     float2 uv2 = currentUv + offset * QUALITY(0);
 
 	// Read the lumas at both current extremities of the exploration segment, and compute the delta wrt to the local average luma.
-    float lumaEnd1 = rgb2luma(Texture.SampleLevel(TextureSampler, uv1, 0.0).rgb);
-    float lumaEnd2 = rgb2luma(Texture.SampleLevel(TextureSampler, uv2, 0.0).rgb);
+    float lumaEnd1 = rgb2luma(Texture.SampleLevel(TextureSampler, uv1, 0.0f).rgb);
+    float lumaEnd2 = rgb2luma(Texture.SampleLevel(TextureSampler, uv2, 0.0f).rgb);
     lumaEnd1 -= lumaLocalAverage;
     lumaEnd2 -= lumaLocalAverage;
 
@@ -153,13 +153,13 @@ float3 FXAA(float2 uv)
 			// If needed, read luma in 1st direction, compute delta.
             if (!reached1)
             {
-                lumaEnd1 = rgb2luma(Texture.SampleLevel(TextureSampler, uv1, 0.0).rgb);
+                lumaEnd1 = rgb2luma(Texture.SampleLevel(TextureSampler, uv1, 0.0f).rgb);
                 lumaEnd1 = lumaEnd1 - lumaLocalAverage;
             }
 			// If needed, read luma in opposite direction, compute delta.
             if (!reached2)
             {
-                lumaEnd2 = rgb2luma(Texture.SampleLevel(TextureSampler, uv2, 0.0).rgb);
+                lumaEnd2 = rgb2luma(Texture.SampleLevel(TextureSampler, uv2, 0.0f).rgb);
                 lumaEnd2 = lumaEnd2 - lumaLocalAverage;
             }
 			// If the luma deltas at the current extremities is larger than the local gradient, we have reached the side of the edge.
@@ -201,24 +201,24 @@ float3 FXAA(float2 uv)
     bool isLumaCenterSmaller = lumaCenter < lumaLocalAverage;
 
 	// If the luma at center is smaller than at its neighbour, the delta luma at each end should be positive (same variation).
-    bool correctVariation1 = (lumaEnd1 < 0.0) != isLumaCenterSmaller;
-    bool correctVariation2 = (lumaEnd2 < 0.0) != isLumaCenterSmaller;
+    bool correctVariation1 = (lumaEnd1 < 0.0f) != isLumaCenterSmaller;
+    bool correctVariation2 = (lumaEnd2 < 0.0f) != isLumaCenterSmaller;
 
 	// Only keep the result in the direction of the closer side of the edge.
     bool correctVariation = isDirection1 ? correctVariation1 : correctVariation2;
 
 	// UV offset: read in the direction of the closest side of the edge.
-    float pixelOffset = -distanceFinal / edgeThickness + 0.5;
+    float pixelOffset = -distanceFinal / edgeThickness + 0.5f;
 
 	// If the luma variation is incorrect, do not offset.
-    float finalOffset = correctVariation ? pixelOffset : 0.0;
+    float finalOffset = correctVariation ? pixelOffset : 0.0f;
 
 	// Sub-pixel shifting
 	// Full weighted average of the luma over the 3x3 neighborhood.
-    float lumaAverage = (1.0 / 12.0) * (2.0 * (lumaDownUp + lumaLeftRight) + lumaLeftCorners + lumaRightCorners);
+    float lumaAverage = (1.0f / 12.0f) * (2.0f * (lumaDownUp + lumaLeftRight) + lumaLeftCorners + lumaRightCorners);
 	// Ratio of the delta between the global average and the center luma, over the luma range in the 3x3 neighborhood.
-    float subPixelOffset1 = clamp(abs(lumaAverage - lumaCenter) / lumaRange, 0.0, 1.0);
-    float subPixelOffset2 = (-2.0 * subPixelOffset1 + 3.0) * subPixelOffset1 * subPixelOffset1;
+    float subPixelOffset1 = clamp(abs(lumaAverage - lumaCenter) / lumaRange, 0.0f, 1.0f);
+    float subPixelOffset2 = (-2.0f * subPixelOffset1 + 3.0f) * subPixelOffset1 * subPixelOffset1;
 	// Compute a sub-pixel offset based on this delta.
     float subPixelOffsetFinal = subPixelOffset2 * subPixelOffset2 * SUBPIXEL_QUALITY;
 
@@ -237,7 +237,7 @@ float3 FXAA(float2 uv)
     }
 
 	// Read the color at the new UV coordinates, and use it.
-    float3 finalColor = Texture.SampleLevel(TextureSampler, finalUv, 0.0).rgb;
+    float3 finalColor = Texture.SampleLevel(TextureSampler, finalUv, 0.0f).rgb;
     fragColor = finalColor;
 
     return fragColor;

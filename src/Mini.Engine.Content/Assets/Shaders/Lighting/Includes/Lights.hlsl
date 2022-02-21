@@ -14,11 +14,11 @@ float DistributionGGX(float3 N, float3 H, float roughness)
 {
     float a = roughness * roughness;
     float a2 = a * a;
-    float NdotH = max(dot(N, H), 0.0);
+    float NdotH = max(dot(N, H), 0.0f);
     float NdotH2 = NdotH * NdotH;
 
     float nom = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    float denom = (NdotH2 * (a2 - 1.0f) + 1.0f);
     denom = PI * denom * denom;
 
     return nom / max(denom, EPSILON); // prevent divide by zero for roughness=0.0 and NdotH=1.0
@@ -28,7 +28,7 @@ float DistributionGGX(float3 N, float3 H, float roughness)
 float GeometrySchlickGGX(float NdotV, float roughness, float k)
 {
     float nom = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
+    float denom = NdotV * (1.0f - k) + k;
 
     return nom / denom;
 }
@@ -38,11 +38,11 @@ float GeometrySchlickGGX(float NdotV, float roughness, float k)
 // energy. Rougher surfaces have a higher chance of self-shadowing and will thus appear darker.
 float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
 {
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
+    float NdotV = max(dot(N, V), 0.0f);
+    float NdotL = max(dot(N, L), 0.0f);
 
-    float r = (roughness + 1.0);
-    float k = (r * r) / 8.0;
+    float r = (roughness + 1.0f);
+    float k = (r * r) / 8.0f;
 
     float ggx2 = GeometrySchlickGGX(NdotV, roughness, k);
     float ggx1 = GeometrySchlickGGX(NdotL, roughness, k);
@@ -54,8 +54,8 @@ float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
 // an explanation why the rescaling is different.
 float GeometrySmithIBL(float3 N, float3 V, float3 L, float roughness)
 {
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
+    float NdotV = max(dot(N, V), 0.0f);
+    float NdotL = max(dot(N, L), 0.0f);
 
     float r = roughness;
     float k = (r * r) / 2.0f;
@@ -71,14 +71,14 @@ float GeometrySmithIBL(float3 N, float3 V, float3 L, float roughness)
 // sort of outline effect.
 float3 FresnelSchlick(float cosTheta, float3 F0)
 {
-    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+    return F0 + (1.0f - F0) * pow(1.0f - cosTheta, 5.0f);
 }
 
 // Fresnel approximation that takes roughness into account, for image based lighting
 float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
 {
-    float invRoughness = 1.0 - roughness;
-    return F0 + (max(float3(invRoughness, invRoughness, invRoughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+    float invRoughness = 1.0f - roughness;
+    return F0 + (max(float3(invRoughness, invRoughness, invRoughness), F0) - F0) * pow(1.0f - cosTheta, 5.0f);
 }
 
 // Attenuation models how the influence of a light grows weaker over distance due to scattering

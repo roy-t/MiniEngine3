@@ -22,9 +22,9 @@ float3 ImportanceSampleGGX(float2 Xi, float3 N, float roughness)
 {
     float a = roughness * roughness;
 
-    float phi = 2.0 * PI * Xi.x;
-    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a * a - 1.0) * Xi.y));
-    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+    float phi = 2.0f * PI * Xi.x;
+    float cosTheta = sqrt((1.0f - Xi.y) / (1.0f + (a * a - 1.0f) * Xi.y));
+    float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
 
     // from spherical coordinates to cartesian coordinates
     float3 H;
@@ -33,7 +33,7 @@ float3 ImportanceSampleGGX(float2 Xi, float3 N, float roughness)
     H.z = cosTheta;
 
     // from tangent-space vector to world-space sample vector
-    float3 up = abs(N.z) < 0.999 ? float3(0.0, 0.0, 1.0) : float3(1.0, 0.0, 0.0);
+    float3 up = abs(N.z) < 0.999f ? float3(0.0f, 0.0f, 1.0f) : float3(1.0f, 0.0f, 0.0f);
     float3 tangent = normalize(cross(up, N));
     float3 bitangent = cross(N, tangent);
 
@@ -49,8 +49,8 @@ float DistributionGGX(float NdotH, float roughness)
     float nDotH2 = NdotH * NdotH;
 
     float num = a2;
-    float denom = (nDotH2 * (a2 - 1.0) + 1.0);
-    denom = 1 / (PI * denom * denom);
+    float denom = (nDotH2 * (a2 - 1.0f) + 1.0f);
+    denom = 1.0f / (PI * denom * denom);
 
     return num * denom;
 }
