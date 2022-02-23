@@ -8,8 +8,8 @@ namespace Mini.Engine.Content.Shaders;
 
 public class VertexShaderContent : ShaderContent<ID3D11VertexShader>, IVertexShader
 {
-    public VertexShaderContent(Device device, IVirtualFileSystem fileSystem, ContentId id, string profile)
-        : base(device, fileSystem, id, profile) { }
+    public VertexShaderContent(Device device, IVirtualFileSystem fileSystem, ContentManager content, ContentId id, string profile)
+        : base(device, fileSystem, content, id, profile) { }
 
     protected override ID3D11VertexShader Create(Blob blob)
     {

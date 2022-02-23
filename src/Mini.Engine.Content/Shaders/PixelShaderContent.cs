@@ -8,8 +8,8 @@ namespace Mini.Engine.Content.Shaders;
 
 public class PixelShaderContent : ShaderContent<ID3D11PixelShader>, IPixelShader
 {
-    public PixelShaderContent(Device device, IVirtualFileSystem fileSystem, ContentId id, string profile)
-        : base(device, fileSystem, id, profile) { }
+    public PixelShaderContent(Device device, IVirtualFileSystem fileSystem, ContentManager content, ContentId id, string profile)
+        : base(device, fileSystem, content, id, profile) { }
 
     protected override ID3D11PixelShader Create(Blob blob)
     {

@@ -15,7 +15,7 @@ public abstract class ShaderContent<TShader> : Shader<TShader>, IContent
     private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();
     private readonly IVirtualFileSystem FileSystem;
 
-    public ShaderContent(Device device, IVirtualFileSystem fileSystem, ContentId id, string profile)
+    public ShaderContent(Device device, IVirtualFileSystem fileSystem, ContentManager content, ContentId id, string profile)
         : base(device)
     {
         this.FileSystem = fileSystem;
@@ -23,6 +23,8 @@ public abstract class ShaderContent<TShader> : Shader<TShader>, IContent
         this.Profile = profile;
 
         this.Reload(device);
+
+        content.Add(this);
     }
 
     public ContentId Id { get; }

@@ -70,6 +70,7 @@ namespace Mini.Engine.Content.Generators
                         {
                             return SourceFile.Build($"{shader.Name}{function.Name}.cs")
                                 .Using("Mini.Engine.Configuration")
+                                .Using("Mini.Engine.Content")
                                 .Using("Mini.Engine.DirectX")
                                 .Using("Mini.Engine.DirectX.Resources")
                                 .Using("Mini.Engine.IO")
@@ -81,7 +82,8 @@ namespace Mini.Engine.Content.Generators
                                         .Constructor("public")
                                             .Parameter("Device", "device")
                                             .Parameter("IVirtualFileSystem", "fileSystem")
-                                            .BaseConstructorCall("device", "fileSystem",
+                                            .Parameter("ContentManager", "content")
+                                            .BaseConstructorCall("device", "fileSystem", "content",
                                                 $"new ContentId({SourceUtilities.ToLiteral(shader.FilePath)},{SourceUtilities.ToLiteral(function.Name)})",
                                                 SourceUtilities.ToLiteral(function.GetProfile()))
                                             .Complete()
