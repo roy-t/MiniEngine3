@@ -17,6 +17,7 @@ public sealed class CameraController
     private static readonly ushort CodeBackward = InputService.GetScanCode(VK.KEY_S);
     private static readonly ushort CodeUp = InputService.GetScanCode(VK.SPACE);
     private static readonly ushort CodeDown = InputService.GetScanCode(VK.KEY_C);
+    private static readonly ushort CodeReset = InputService.GetScanCode(VK.KEY_R);
 
     private const float MinLinearVelocity = 1.0f;
     private const float MaxLinearVelocity = 25.0f;
@@ -40,12 +41,19 @@ public sealed class CameraController
     {
         var horizontal = Vector4.Zero;
         var vertical = Vector2.Zero;
-
+        var reset = false;
         while (this.InputController.ProcessEvents(this.Keyboard))
         {
             horizontal += this.Keyboard.AsVector(InputState.Pressed, CodeForward, CodeLeft, CodeBackward, CodeRight);
             vertical += this.Keyboard.AsVector(InputState.Pressed, CodeUp, CodeDown);
+            reset |= this.Keyboard.Pressed(CodeReset);
         }
+
+        if (reset)
+        {
+            camera.MoveTo(Vector3.UnitZ * 10);
+            camera.FaceTargetConstrained(Vector3.Zero, Vector3.UnitY);
+        }    
 
         if (horizontal.LengthSquared() > 0 || vertical.LengthSquared() > 0)
         {

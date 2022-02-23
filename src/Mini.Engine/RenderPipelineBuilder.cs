@@ -4,6 +4,7 @@ using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.PointLights;
+using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Models;
 
 namespace Mini.Engine;
@@ -32,8 +33,14 @@ internal sealed class RenderPipelineBuilder
                 .Build()
             .System<ModelSystem>()
                 .InSequence()
+                .Requires("Initialization", "Containers")
                 .Requires("Initialization", "GBuffer")
                 .Produces("Renderer", "Models")
+                .Build()
+            .System<CascadedShadowMapSystem>()
+                .InSequence()
+                .Requires("Initialization", "Containers")
+                .Produces("Shadows", "CascadedShadowMap")
                 .Build()
             .System<PointLightSystem>()
                 .InSequence()

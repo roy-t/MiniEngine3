@@ -93,8 +93,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
     {
         this.BrdfLut.Dispose();
         this.ConstantBuffer.Dispose();
-        this.PixelShader.Dispose();
-        this.VertexShader.Dispose();
+        this.PerLightConstantBuffer.Dispose();
         this.Context.Dispose();
     }
 }

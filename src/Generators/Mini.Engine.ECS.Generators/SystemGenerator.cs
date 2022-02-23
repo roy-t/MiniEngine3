@@ -9,7 +9,9 @@ namespace Mini.Engine.ECS.Generators
     public class SystemGenerator : ISourceGenerator
     {
         public void Initialize(GeneratorInitializationContext context)
-            => context.RegisterForSyntaxNotifications(() => new ProcessAttributeReceiver());
+        {
+            context.RegisterForSyntaxNotifications(() => new ProcessAttributeReceiver());
+        }
 
         public void Execute(GeneratorExecutionContext context)
         {

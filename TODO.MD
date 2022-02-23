@@ -1,5 +1,7 @@
 # TODO
 
+- Only runder generators on each compile, some generators now run on each change and look at each method for an attribute!
+
 - Make it easier to change skyboxes
 - Use Texture.Load() instead of Sampling using the point sampling for a tiny perf boost where we don't need sampling
 

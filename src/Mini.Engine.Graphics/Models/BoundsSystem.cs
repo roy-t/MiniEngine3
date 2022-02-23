@@ -124,7 +124,5 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
     {
         this.ConstantBuffer.Dispose();
         this.InputLayout.Dispose();
-        this.PixelShader.Dispose();
-        this.VertexShader.Dispose();
     }
 }

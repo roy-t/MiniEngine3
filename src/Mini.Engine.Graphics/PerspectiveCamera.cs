@@ -6,13 +6,7 @@ using Mini.Engine.Graphics.Transforms;
 namespace Mini.Engine.Graphics;
 
 public sealed class PerspectiveCamera : ITransformable<PerspectiveCamera>
-{
-    public const float NearPlane = 0.1f;
-    public const float FarPlane = 250.0f;
-    public const float FieldOfView = MathF.PI / 2.0f;
-
-    public readonly float AspectRatio;
-
+{        
     public PerspectiveCamera(float aspectRatio, Transform transform)
     {
         this.Transform = transform;
@@ -21,6 +15,11 @@ public sealed class PerspectiveCamera : ITransformable<PerspectiveCamera>
 
         this.Frustum = new Frustum(this.ViewProjection);
     }
+
+    public float NearPlane { get; } = 0.1f;
+    public float FarPlane { get; } = 250.0f;
+    public float FieldOfView { get; } = MathF.PI / 2.0f;
+    public float AspectRatio { get; }
 
     public Matrix4x4 ViewProjection { get; private set; }
 

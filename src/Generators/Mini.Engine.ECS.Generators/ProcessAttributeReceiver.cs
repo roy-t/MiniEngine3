@@ -11,10 +11,14 @@ namespace Mini.Engine.ECS.Generators
         private sealed class ClassEqualityComparer : IEqualityComparer<ClassDeclarationSyntax>
         {
             public bool Equals(ClassDeclarationSyntax x, ClassDeclarationSyntax y)
-                => x.IsIncrementallyIdenticalTo(y);
+            {
+                return x.IsIncrementallyIdenticalTo(y);
+            }
 
             public int GetHashCode(ClassDeclarationSyntax syntax)
-                => syntax.Identifier.ValueText.GetHashCode();
+            {
+                return syntax.Identifier.ValueText.GetHashCode();
+            }
         }
 
         private readonly Type TargetAttributeType;

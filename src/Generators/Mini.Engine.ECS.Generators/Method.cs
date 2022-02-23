@@ -10,10 +10,10 @@ namespace Mini.Engine.ECS.Generators
     {
         public Method(MethodDeclarationSyntax method)
         {
-            this.Name = method.Identifier.ValueText;
+            this.Name = method.Identifier.ValueText;            
 
             this.Components = method.ParameterList.Parameters
-                .Select(parameter => (parameter.Type as IdentifierNameSyntax).Identifier.ValueText)
+                .Select(parameter => GetParameterTypeName(parameter))
                 .ToList();
 
             this.Query = method.AttributeLists
@@ -35,6 +35,21 @@ namespace Mini.Engine.ECS.Generators
             var queryValue = queryProperty == null ? @default : (T)Enum.Parse(typeof(T), (queryProperty.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText);
 
             return queryValue;
+        }
+
+        private static string GetParameterTypeName(ParameterSyntax parameter)
+        {
+            if (parameter.Type is IdentifierNameSyntax identifierName)
+            {
+                return identifierName.Identifier.ValueText;
+            }
+
+            if (parameter.Type is PredefinedTypeSyntax predefinedType)
+            {
+                return predefinedType.Keyword.ValueText;
+            }
+
+            throw new Exception($"Unexpected parameter type {parameter.Type.GetType().FullName}");
         }
     }
 }

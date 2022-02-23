@@ -5,14 +5,19 @@ using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX.Resources;
 
-public interface IPixelShader
+public interface IPixelShader : IShader
 {
     internal ID3D11PixelShader ID3D11Shader { get; set; }
 }
 
-public interface IVertexShader
+public interface IVertexShader : IShader
 {
     internal ID3D11VertexShader ID3D11Shader { get; set; }
+}
+
+public interface IShader
+{
+    InputLayout CreateInputLayout(Device device, params InputElementDescription[] elements);
 }
 
 public abstract class Shader<TShader> : IDisposable
