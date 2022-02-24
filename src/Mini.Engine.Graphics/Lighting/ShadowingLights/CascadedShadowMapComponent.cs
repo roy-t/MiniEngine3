@@ -3,6 +3,7 @@ using System.Numerics;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS;
+using Vortice.DXGI;
 
 namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 public sealed class CascadedShadowMapComponent : Component, IDisposable
@@ -18,23 +19,16 @@ public sealed class CascadedShadowMapComponent : Component, IDisposable
         this.Offsets = new Vector4[this.Cascades.Length];
         this.Scales = new Vector4[this.Cascades.Length];
 
-
-        this.RenderTargets = new RenderTarget2D[this.Cascades.Length];
-        this.DepthBuffers = new DepthStencilBuffer[this.Cascades.Length];
-
-        for(var i = 0; i < this.Cascades.Length; i++)
-        {
-            this.RenderTargets[i] = new RenderTarget2D(device, resolution, resolution, Vortice.DXGI.Format.R32_Float, $"{entity}_{i}_CascadedShadowMap_RT");
-            this.DepthBuffers[i] = new DepthStencilBuffer(device, DepthStencilFormat.D32_Float, resolution, resolution, $"{entity}_{i}_Depth");
-        }        
+        this.RenderTargetArray = new RenderTarget2DArray(device, resolution, resolution, this.Cascades.Length, Format.R32_Float, $"{entity}_CascadedShadowMap_RT");
+        this.DepthBuffer = new DepthStencilBuffer(device, DepthStencilFormat.D32_Float, resolution, resolution, $"{entity}_Depth");        
     }
 
     public int Resolution { get; }
 
     // TODO: do we really need these render targets, even if we're only interested in the depth buffer output?
     // the other way around, maybe we can only use 1 depth buffer in the system if we clear it in between?
-    public RenderTarget2D[] RenderTargets { get; private set; }
-    public DepthStencilBuffer[] DepthBuffers { get; private set; }
+    public RenderTarget2DArray RenderTargetArray { get; private set; }
+    public DepthStencilBuffer DepthBuffer { get; private set; }
 
     public float[] Cascades { get; }
 
@@ -48,10 +42,7 @@ public sealed class CascadedShadowMapComponent : Component, IDisposable
 
     public void Dispose()
     {
-        for (var i = 0; i < this.Cascades.Length; i++)
-        {
-            this.RenderTargets[i].Dispose();
-            this.DepthBuffers[i].Dispose();
-        }
+        this.RenderTargetArray.Dispose();
+        this.DepthBuffer.Dispose();
     }
 }

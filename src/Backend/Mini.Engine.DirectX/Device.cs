@@ -87,6 +87,12 @@ public sealed class Device : IDisposable
         dc.ClearRenderTargetView(renderTarget.ID3D11RenderTargetView, color);
     }
 
+    public void Clear(RenderTarget2DArray renderTarget, int slice, Color4 color)
+    {
+        var dc = this.ID3D11DeviceContext;
+        dc.ClearRenderTargetView(renderTarget.ID3D11RenderTargetViews[slice], color);
+    }
+
     public void Clear(RenderTargetCube renderTarget, CubeMapFace face, Color4 color)
     {
         var dc = this.ID3D11DeviceContext;

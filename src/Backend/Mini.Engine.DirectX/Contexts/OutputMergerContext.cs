@@ -30,6 +30,11 @@ public sealed class OutputMergerContext : DeviceContextPart
         this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetView, depthStencilBuffer?.DepthStencilView);
     }
 
+    public void SetRenderTarget(RenderTarget2DArray renderTarget, int slice, DepthStencilBuffer? depthStencilBuffer = null)
+    {
+        this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetViews[slice], depthStencilBuffer?.DepthStencilView);
+    }
+
     public void SetRenderTarget(RenderTargetCube renderTarget, CubeMapFace face, int mipSlice = 0, DepthStencilBuffer? depthStencilBuffer = null)
     {
         var slice = Indexes.ToOneDimensional(mipSlice, (int)face, 6);

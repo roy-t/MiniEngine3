@@ -84,17 +84,17 @@ public sealed partial class CascadedShadowMapSystem : IRenderServiceCallBack, IS
             shadowMap.Offsets[i] = new Vector4(-nearCorner, 0.0f);
             shadowMap.Scales[i] = new Vector4(Vector3.One / (farCorner - nearCorner), 1.0f);
 
-            this.RenderShadowMap(shadowMap.RenderTargets[i], shadowMap.DepthBuffers[i], viewProjection);
+            this.RenderShadowMap(shadowMap.RenderTargetArray, shadowMap.DepthBuffer, i, viewProjection);
         }
     }
 
-    private void RenderShadowMap(RenderTarget2D shadowMap, DepthStencilBuffer depthStencilBuffer, Matrix4x4 viewProjection)
+    private void RenderShadowMap(RenderTarget2DArray shadowMap, DepthStencilBuffer depthStencilBuffer, int slice, Matrix4x4 viewProjection)
     {
         this.Context.RS.SetViewPort(0, 0, shadowMap.Width, shadowMap.Height);
         this.Context.RS.SetScissorRect(0, 0, shadowMap.Width, shadowMap.Height);
-        this.Context.OM.SetRenderTarget(shadowMap, depthStencilBuffer);
+        this.Context.OM.SetRenderTarget(shadowMap, slice, depthStencilBuffer);
         
-        this.Device.Clear(shadowMap, Color4.White);
+        this.Device.Clear(shadowMap, slice, Color4.White);
         this.Device.Clear(depthStencilBuffer, DepthStencilClearFlags.Depth, 1.0f, 0);
 
         this.RenderService.DrawAllModels(this, this.Context, viewProjection);
