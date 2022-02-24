@@ -10,6 +10,7 @@ using Mini.Engine.Graphics.Lighting.PointLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Transforms;
+using Vortice.Mathematics;
 
 namespace Mini.Engine.Scenes;
 
@@ -60,6 +61,7 @@ public sealed class SponzaScene : IScene
                 this.Components.Add(new TransformComponent(sphere));
 
                 var sun = this.Entities.Create();
+                this.Components.Add(new SunLightComponent(sun, Color4.White, 3.0f));
                 this.Components.Add(new CascadedShadowMapComponent(sun, this.Device, 2048, Cascades[0], Cascades[1], Cascades[2], Cascades[3]));
                 this.Components.Add(new TransformComponent(sun)
                     .MoveTo(Vector3.UnitY)

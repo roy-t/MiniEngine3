@@ -9,10 +9,9 @@ static const uint NumCascades = 4;
 struct ShadowProperties
 {
     float4x4 ShadowMatrix;    
-    float4 Offsets[NumCascades];
-    float4 Scales[NumCascades];
-    float Splits[NumCascades];
-    float3 unused;
+    float4x4 Offsets;
+    float4x4 Scales;
+    float4 Splits;
 };
 
 float SampleShadowMap(float2 baseUv, float u, float v, float2 shadowMapSizeInv, uint cascadeIndex, float z, Texture2DArray shadowMap, SamplerComparisonState shadowSampler)
@@ -109,7 +108,7 @@ uint GetCascadeIndex(float depth, ShadowProperties shadow)
 
 float ComputeLightFactorInternal(float3 worldPosition, float depth, bool filter, ShadowProperties shadow, Texture2DArray shadowMap, SamplerComparisonState shadowSampler)
 {
-    float3 position = mul(float4(worldPosition, 1.0f), shadow.ShadowMatrix).xyz;
+    float3 position = mul(shadow.ShadowMatrix, float4(worldPosition, 1.0f)).xyz;
 
     uint cascadeIndex = GetCascadeIndex(depth, shadow);
 

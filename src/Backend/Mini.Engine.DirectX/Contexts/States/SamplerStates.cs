@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Numerics;
 using Vortice.Direct3D11;
+using Vortice.Mathematics;
 
 namespace Mini.Engine.DirectX.Contexts.States;
 
@@ -30,6 +32,7 @@ public sealed class SamplerStates : IDisposable
         this.LinearWrap = Create(device, SamplerDescription.LinearWrap, nameof(this.LinearWrap));
         this.LinearClamp = Create(device, SamplerDescription.LinearClamp, nameof(this.LinearClamp));
         this.AnisotropicWrap = Create(device, SamplerDescription.AnisotropicWrap, nameof(this.AnisotropicWrap));
+        this.CompareLessEqualClamp = Create(device, CreateCompareLessEqualClamp(), nameof(this.CompareLessEqualClamp));
     }
 
     public SamplerState PointWrap { get; }
@@ -37,10 +40,29 @@ public sealed class SamplerStates : IDisposable
     public SamplerState LinearClamp { get; }
     public SamplerState AnisotropicWrap { get; }
 
+    public SamplerState CompareLessEqualClamp { get; }
+
     private static SamplerState Create(ID3D11Device device, SamplerDescription description, string name)
     {
         var state = device.CreateSamplerState(description);
         return new SamplerState(state, name);
+    }
+
+    private static SamplerDescription CreateCompareLessEqualClamp()
+    {
+        return new SamplerDescription()
+        {
+            AddressU = TextureAddressMode.Clamp,
+            AddressV = TextureAddressMode.Clamp,
+            AddressW = TextureAddressMode.Clamp,
+            BorderColor = Color4.White,
+            ComparisonFunction = ComparisonFunction.LessEqual,
+            Filter = Filter.ComparisonAnisotropic, // Should this be ComparisonXYZ or not?
+            MaxAnisotropy = 1,
+            MaxLOD = float.MaxValue,
+            MinLOD = float.MinValue,
+            MipLODBias = 0
+        };
     }
 
     public void Dispose()

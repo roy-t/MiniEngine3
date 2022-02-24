@@ -19,6 +19,7 @@ cbuffer Constants : register(b0)
     float4x4 InverseViewProjection;
     float3 CameraPosition;
     float unused;
+    ShadowProperties Shadow;
 }
 
 sampler TextureSampler : register(s0);
@@ -26,11 +27,6 @@ Texture2D Albedo : register(t0);
 Texture2D Material : register(t1);
 Texture2D Depth : register(t2);
 Texture2D Normal : register(t3);
-
-cbuffer ShadowConstants : register(b1)
-{
-    ShadowProperties Shadow;
-}
 
 Texture2DArray ShadowMap : register(t4);
 SamplerComparisonState ShadowSampler : register(s1);

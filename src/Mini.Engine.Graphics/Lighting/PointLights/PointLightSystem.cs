@@ -48,7 +48,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
         this.Context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
-        this.Context.PS.SetSampler(0, this.Device.SamplerStates.LinearClamp);
+        this.Context.PS.SetSampler(PointLight.TextureSampler, this.Device.SamplerStates.LinearClamp);
         this.Context.PS.SetShaderResource(PointLight.Albedo, this.FrameService.GBuffer.Albedo);
         this.Context.PS.SetShaderResource(PointLight.Normal, this.FrameService.GBuffer.Normal);
         this.Context.PS.SetShaderResource(PointLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
@@ -61,9 +61,11 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
             InverseViewProjection = inverseViewProjection,
             CameraPosition = camera.Transform.Position
         };
-        this.ConstantBuffer.MapData(this.Context, cBuffer);
-        this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+        this.ConstantBuffer.MapData(this.Context, cBuffer);        
         this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+
+        this.Context.VS.SetConstantBuffer(PerLightConstants.Slot, this.PerLightConstantBuffer);
+        this.Context.PS.SetConstantBuffer(PerLightConstants.Slot, this.PerLightConstantBuffer);
     }
 
     [Process(Query = ProcessQuery.All)]
@@ -90,8 +92,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
             Strength = component.Strength,
         };
         this.PerLightConstantBuffer.MapData(this.Context, cBuffer);
-        this.Context.VS.SetConstantBuffer(PerLightConstants.Slot, this.PerLightConstantBuffer);
-        this.Context.PS.SetConstantBuffer(PerLightConstants.Slot, this.PerLightConstantBuffer);
+
 
         this.Context.IA.SetVertexBuffer(this.Sphere.Vertices);
         this.Context.IA.SetIndexBuffer(this.Sphere.Indices);

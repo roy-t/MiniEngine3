@@ -13,7 +13,7 @@ namespace Mini.Engine.ECS.Generators
             this.Name = method.Identifier.ValueText;            
 
             this.Components = method.ParameterList.Parameters
-                .Select(parameter => GetParameterTypeName(parameter))
+                .Select(parameter => GetTypeName(parameter.Type))
                 .ToList();
 
             this.Query = method.AttributeLists
@@ -37,19 +37,25 @@ namespace Mini.Engine.ECS.Generators
             return queryValue;
         }
 
-        private static string GetParameterTypeName(ParameterSyntax parameter)
+        private static string GetTypeName(TypeSyntax type)
         {
-            if (parameter.Type is IdentifierNameSyntax identifierName)
+            if (type is IdentifierNameSyntax identifierName)
             {
                 return identifierName.Identifier.ValueText;
             }
 
-            if (parameter.Type is PredefinedTypeSyntax predefinedType)
+            if (type is PredefinedTypeSyntax predefinedType)
             {
                 return predefinedType.Keyword.ValueText;
             }
 
-            throw new Exception($"Unexpected parameter type {parameter.Type.GetType().FullName}");
+            if (type is ArrayTypeSyntax arrayType)
+            {
+                var elementType = GetTypeName(arrayType.ElementType);
+                return $"{elementType}[]";                
+            }
+
+            throw new Exception($"Unexpected parameter type {type.GetType().FullName}");
         }
     }
 }
