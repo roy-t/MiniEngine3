@@ -106,6 +106,7 @@ uint GetCascadeIndex(float depth, ShadowProperties shadow)
     return cascadeIndex;
 }
 
+// TODO: test if code is faster without the filter boolean
 float ComputeLightFactorInternal(float3 worldPosition, float depth, bool filter, ShadowProperties shadow, Texture2DArray shadowMap, SamplerComparisonState shadowSampler)
 {
     float3 position = mul(shadow.ShadowMatrix, float4(worldPosition, 1.0f)).xyz;

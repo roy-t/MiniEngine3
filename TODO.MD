@@ -1,5 +1,7 @@
 # TODO
 
+- Clean up ShadowMapCascade and SunLight systems, test if shader can be improved
+
 - Only runder generators on each compile, some generators now run on each change and look at each method for an attribute!
 
 - Make it easier to change skyboxes

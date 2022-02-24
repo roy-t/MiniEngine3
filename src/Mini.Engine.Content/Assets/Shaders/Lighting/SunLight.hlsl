@@ -1,5 +1,4 @@
 ﻿#include "../Includes/GBuffer.hlsl"
-#include "../Includes/Coordinates.hlsl"
 #include "Includes/Lights.hlsl"
 #include "Includes/Shadows.hlsl"
 
