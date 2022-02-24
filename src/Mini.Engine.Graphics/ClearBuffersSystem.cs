@@ -29,16 +29,18 @@ public sealed partial class ClearBuffersSystem : ISystem
     [Process]
     public void Process()
     {
-        // GBuffer
-        this.Device.Clear(this.FrameService.GBuffer.Albedo, NeutralAlbedo);
-        this.Device.Clear(this.FrameService.GBuffer.Material, NeutralMaterial);        
-        this.Device.Clear(this.FrameService.GBuffer.Normal, NeutralNormal);
+        var context = this.Device.ImmediateContext;
 
-        this.Device.Clear(this.FrameService.GBuffer.DepthStencilBuffer,
+        // GBuffer
+        context.Clear(this.FrameService.GBuffer.Albedo, NeutralAlbedo);
+        context.Clear(this.FrameService.GBuffer.Material, NeutralMaterial);        
+        context.Clear(this.FrameService.GBuffer.Normal, NeutralNormal);
+
+        context.Clear(this.FrameService.GBuffer.DepthStencilBuffer,
              DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, 1.0f, 0);
 
         // LBuffer
-        this.Device.Clear(this.FrameService.LBuffer.Light, NeutralLight);
+        context.Clear(this.FrameService.LBuffer.Light, NeutralLight);
     }
     
     public void OnUnSet() {  }

@@ -27,6 +27,14 @@ Texture2D Material : register(t1);
 Texture2D Depth : register(t2);
 Texture2D Normal : register(t3);
 
+cbuffer ShadowConstants : register(b1)
+{
+    ShadowProperties Shadow;
+}
+
+Texture2DArray ShadowMap : register(t4);
+SamplerComparisonState ShadowSampler : register(s1);
+
 #pragma PixelShader
 float4 PS(PS_INPUT input) : SV_TARGET
 {
@@ -38,7 +46,7 @@ float4 PS(PS_INPUT input) : SV_TARGET
     float3 worldPosition = ReadPosition(Depth, TextureSampler, input.tex, InverseViewProjection);
     float depth = distance(worldPosition, CameraPosition);
 
-    float lightFactor = ComputeLightFactorPCF(worldPosition, depth);
+    float lightFactor = ComputeLightFactorPCF(worldPosition, depth, Shadow, ShadowMap, ShadowSampler);
     float3 Lo = float3(0.0f, 0.0f, 0.0f);
 
     if (lightFactor > 0)

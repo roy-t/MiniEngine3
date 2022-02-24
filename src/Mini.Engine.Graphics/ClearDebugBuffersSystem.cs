@@ -25,7 +25,7 @@ public sealed partial class ClearDebugBuffersSystem : ISystem
     [Process]
     public void Process()
     {
-        this.Device.Clear(this.FrameService.DebugOverlay, Neutral);        
+        this.Device.ImmediateContext.Clear(this.FrameService.DebugOverlay, Neutral);        
     }
 
     public void OnUnSet() { }

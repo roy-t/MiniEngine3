@@ -21,7 +21,7 @@ namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 public sealed partial class CascadedShadowMapSystem : IRenderServiceCallBack, ISystem, IDisposable
 {
     private readonly Device Device;
-    private readonly ImmediateDeviceContext Context;    
+    private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
     private readonly RenderService RenderService;
     private readonly ShadowMapVs VertexShader;
@@ -35,7 +35,7 @@ public sealed partial class CascadedShadowMapSystem : IRenderServiceCallBack, IS
     public CascadedShadowMapSystem(Device device, FrameService frameService, RenderService renderService, ShadowMapVs vertexShader, ShadowMapPs pixelShader)
     {
         this.Device = device;
-        this.Context = device.ImmediateContext;
+        this.Context = device.CreateDeferredContextFor<CascadedShadowMapSystem>();
         this.FrameService = frameService;
         this.RenderService = renderService;
         this.VertexShader = vertexShader;
@@ -94,8 +94,8 @@ public sealed partial class CascadedShadowMapSystem : IRenderServiceCallBack, IS
         this.Context.RS.SetScissorRect(0, 0, shadowMap.Width, shadowMap.Height);
         this.Context.OM.SetRenderTarget(shadowMap, slice, depthStencilBuffer);
         
-        this.Device.Clear(shadowMap, slice, Color4.White);
-        this.Device.Clear(depthStencilBuffer, DepthStencilClearFlags.Depth, 1.0f, 0);
+        this.Context.Clear(shadowMap, slice, Color4.White);
+        this.Context.Clear(depthStencilBuffer, DepthStencilClearFlags.Depth, 1.0f, 0);
 
         this.RenderService.DrawAllModels(this, this.Context, viewProjection);
     }
@@ -176,10 +176,16 @@ public sealed partial class CascadedShadowMapSystem : IRenderServiceCallBack, IS
         return new Vector3(value.X, value.Y, value.Z) / value.W;
     }
 
-    public void OnUnSet() { }
+    public void OnUnSet()
+    {
+        using var commandList = this.Context.FinishCommandList();
+        this.Device.ImmediateContext.ExecuteCommandList(commandList);
+    }
 
     public void Dispose()
     {
         this.InputLayout.Dispose();
+        this.Context.Dispose();
+        this.ConstantBuffer.Dispose();
     }
 }

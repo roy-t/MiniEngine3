@@ -81,44 +81,6 @@ public sealed class Device : IDisposable
         return new(this, this.ID3D11Device.CreateDeferredContext(), $"{typeof(T).Name}DeferredContext");
     }
 
-    public void Clear(RenderTarget2D renderTarget, Color4 color)
-    {
-        var dc = this.ID3D11DeviceContext;
-        dc.ClearRenderTargetView(renderTarget.ID3D11RenderTargetView, color);
-    }
-
-    public void Clear(RenderTarget2DArray renderTarget, int slice, Color4 color)
-    {
-        var dc = this.ID3D11DeviceContext;
-        dc.ClearRenderTargetView(renderTarget.ID3D11RenderTargetViews[slice], color);
-    }
-
-    public void Clear(RenderTargetCube renderTarget, CubeMapFace face, Color4 color)
-    {
-        var dc = this.ID3D11DeviceContext;
-        dc.ClearRenderTargetView(renderTarget.FaceRenderTargetViews[(int)face], color);
-    }
-
-    public void Clear(DepthStencilBuffer depthStencilBuffer, DepthStencilClearFlags flags, float depth, byte stencil)
-    {
-        var dc = this.ID3D11DeviceContext;
-        dc.ClearDepthStencilView(depthStencilBuffer.DepthStencilView, flags, depth, stencil);
-    }
-
-    public void ClearBackBuffer()
-    {
-        this.ClearBackBuffer(new Color4(0, 0, 0));
-    }
-
-    public void ClearBackBuffer(Color4 color)
-    {
-        var dc = this.ID3D11DeviceContext;
-
-        dc.ClearRenderTargetView(this.BackBufferView, color);
-        dc.OMSetRenderTargets(this.BackBufferView);
-        dc.RSSetViewport(0, 0, this.Width, this.Height);
-    }    
-
     public void Present()
     {
         if (this.VSync)
@@ -147,7 +109,7 @@ public sealed class Device : IDisposable
             swapChainDescription.Flags);
 
         this.CreateBackBuffer();
-    }
+    }   
 
     private void CreateBackBuffer()
     {

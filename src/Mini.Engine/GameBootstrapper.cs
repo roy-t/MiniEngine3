@@ -138,7 +138,8 @@ public sealed class GameBootstrapper
             }
 
             var alpha = accumulator / dt;
-            this.Device.ClearBackBuffer();
+
+            this.Device.ImmediateContext.ClearBackBuffer();
             this.gameLoop.Draw((float)alpha); // alpha signifies how much to lerp between current and future state
             if (this.enableUI)
             {

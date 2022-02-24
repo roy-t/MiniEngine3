@@ -4,6 +4,7 @@ using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
+using Vortice.Mathematics;
 
 namespace Mini.Engine.DirectX.Contexts;
 
@@ -36,6 +37,37 @@ public abstract class DeviceContext : IDisposable
     public void Draw(int vertexCount, int startVertexLocation = 0)
     {
         this.ID3D11DeviceContext.Draw(vertexCount, startVertexLocation);
+    }
+
+
+    public void Clear(RenderTarget2D renderTarget, Color4 color)
+    {
+        this.ID3D11DeviceContext.ClearRenderTargetView(renderTarget.ID3D11RenderTargetView, color);
+    }
+
+    public void Clear(RenderTarget2DArray renderTarget, int slice, Color4 color)
+    {
+        this.ID3D11DeviceContext.ClearRenderTargetView(renderTarget.ID3D11RenderTargetViews[slice], color);
+    }
+
+    public void Clear(RenderTargetCube renderTarget, CubeMapFace face, Color4 color)
+    {
+        this.ID3D11DeviceContext.ClearRenderTargetView(renderTarget.FaceRenderTargetViews[(int)face], color);
+    }
+
+    public void Clear(DepthStencilBuffer depthStencilBuffer, DepthStencilClearFlags flags, float depth, byte stencil)
+    {
+        this.ID3D11DeviceContext.ClearDepthStencilView(depthStencilBuffer.DepthStencilView, flags, depth, stencil);
+    }
+
+    public void ClearBackBuffer()
+    {
+        this.ClearBackBuffer(new Color4(0, 0, 0));
+    }
+
+    public void ClearBackBuffer(Color4 color)
+    {
+        this.ID3D11DeviceContext.ClearRenderTargetView(this.Device.BackBufferView, color);        
     }
 
     public void Setup(InputLayout inputLayout, IVertexShader vertex, IPixelShader pixel, BlendState blend, DepthStencilState depth)

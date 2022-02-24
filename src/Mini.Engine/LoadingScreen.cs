@@ -67,7 +67,8 @@ public sealed class LoadingScreen
 
     private void RenderWindow(string message, float progress)
     {
-        this.Device.ClearBackBuffer();
+        this.Device.ImmediateContext.ClearBackBuffer();
+
         this.UI.NewFrame((float)ReportDelta);
 
         ImGui.SetNextWindowPos(new Vector2(0, Math.Max(0, this.Device.Height - 100)));
