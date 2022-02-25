@@ -1,6 +1,10 @@
 # TODO
 
 - Clean up ShadowMapCascade and SunLight systems, test if shader can be improved
+- Look on how to improve shadows, I have the feeling the shadow maps are taken from way too far away? 
+- Sun shadows: front faces rendered with slope-scaled depth bias??
+- See https://www.realtimeshadows.com/sites/default/files/Playing%20with%20Real-Time%20Shadows_0.pdf for shadow map ideas, especially from slide 59
+- See https://www.realtimeshadows.com/sites/default/files/Playing%20with%20Real-Time%20Shadows_0.pdf starting form slide 42 on FOG
 
 - Only runder generators on each compile, some generators now run on each change and look at each method for an attribute!
 

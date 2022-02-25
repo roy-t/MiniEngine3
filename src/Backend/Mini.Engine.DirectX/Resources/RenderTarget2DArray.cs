@@ -25,7 +25,7 @@ public sealed class RenderTarget2DArray : ITexture2D
     }
 
     private static ID3D11ShaderResourceView CreateSRV(Device device, ID3D11Texture2D texture, int length, Format format, string name)
-{
+    {
         var description = new ShaderResourceViewDescription(texture, ShaderResourceViewDimension.Texture2DArray, format, 0, -1, 0, length);
         var srv = device.ID3D11Device.CreateShaderResourceView(texture, description);
         srv.DebugName = $"{name}_SRV";

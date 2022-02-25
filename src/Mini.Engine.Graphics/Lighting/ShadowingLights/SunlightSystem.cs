@@ -78,7 +78,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
 
         this.ConstantBuffer.MapData(this.Context, constants);
 
-        this.Context.PS.SetShaderResource(SunLight.ShadowMap, shadowMap.RenderTargetArray);
+        this.Context.PS.SetShaderResource(SunLight.ShadowMap, shadowMap.DepthBuffers);
 
         this.Context.Draw(3);
     }

@@ -37,7 +37,7 @@ public sealed class PerspectiveCamera : ITransformable<PerspectiveCamera>
     private void ComputeMatrices()
     {
         var view = Matrix4x4.CreateLookAt(this.Transform.Position, this.Transform.Position + this.Transform.Forward, this.Transform.Up);
-        var proj = Matrix4x4.CreatePerspectiveFieldOfView(FieldOfView, this.AspectRatio, NearPlane, FarPlane);
+        var proj = Matrix4x4.CreatePerspectiveFieldOfView(FieldOfView, this.AspectRatio, this.NearPlane, this.FarPlane);
 
         this.ViewProjection = view * proj;
     }

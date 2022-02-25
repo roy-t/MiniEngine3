@@ -84,18 +84,17 @@ public sealed partial class CascadedShadowMapSystem : IRenderServiceCallBack, IS
             shadowMap.Offsets[i] = new Vector4(-nearCorner, 0.0f);
             shadowMap.Scales[i] = new Vector4(Vector3.One / (farCorner - nearCorner), 1.0f);
 
-            this.RenderShadowMap(shadowMap.RenderTargetArray, shadowMap.DepthBuffer, i, viewProjection);
+            this.RenderShadowMap(shadowMap.DepthBuffers, i, viewProjection);
         }
     }
 
-    private void RenderShadowMap(RenderTarget2DArray shadowMap, DepthStencilBuffer depthStencilBuffer, int slice, Matrix4x4 viewProjection)
+    private void RenderShadowMap(DepthStencilBufferArray depthStencilBuffers, int slice, Matrix4x4 viewProjection)
     {
-        this.Context.RS.SetViewPort(0, 0, shadowMap.Width, shadowMap.Height);
-        this.Context.RS.SetScissorRect(0, 0, shadowMap.Width, shadowMap.Height);
-        this.Context.OM.SetRenderTarget(shadowMap, slice, depthStencilBuffer);
-        
-        this.Context.Clear(shadowMap, slice, Color4.White);
-        this.Context.Clear(depthStencilBuffer, DepthStencilClearFlags.Depth, 1.0f, 0);
+        this.Context.RS.SetViewPort(0, 0, depthStencilBuffers.Width, depthStencilBuffers.Height);
+        this.Context.RS.SetScissorRect(0, 0, depthStencilBuffers.Width, depthStencilBuffers.Height);
+        this.Context.OM.SetRenderTarget(depthStencilBuffers, slice);
+                
+        this.Context.Clear(depthStencilBuffers, slice, DepthStencilClearFlags.Depth, 1.0f, 0);
 
         this.RenderService.DrawAllModels(this, this.Context, viewProjection);
     }

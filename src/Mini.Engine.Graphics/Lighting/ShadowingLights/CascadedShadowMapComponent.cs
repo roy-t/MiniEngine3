@@ -3,7 +3,6 @@ using System.Numerics;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS;
-using Vortice.DXGI;
 
 namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 public sealed class CascadedShadowMapComponent : Component, IDisposable
@@ -18,17 +17,11 @@ public sealed class CascadedShadowMapComponent : Component, IDisposable
         this.Splits = new float[this.Cascades.Length];
         this.Offsets = new Vector4[this.Cascades.Length];
         this.Scales = new Vector4[this.Cascades.Length];
-
-        this.RenderTargetArray = new RenderTarget2DArray(device, resolution, resolution, this.Cascades.Length, Format.R32_Float, $"{entity}_CascadedShadowMap_RT");
-        this.DepthBuffer = new DepthStencilBuffer(device, DepthStencilFormat.D32_Float, resolution, resolution, $"{entity}_Depth");        
+        this.DepthBuffers = new DepthStencilBufferArray(device, DepthStencilFormat.D32_Float, resolution, resolution, this.Cascades.Length, $"{entity}_Depth");
     }
 
     public int Resolution { get; }
-
-    // TODO: do we really need these render targets, even if we're only interested in the depth buffer output?
-    // the other way around, maybe we can only use 1 depth buffer in the system if we clear it in between?
-    public RenderTarget2DArray RenderTargetArray { get; private set; }
-    public DepthStencilBuffer DepthBuffer { get; private set; }
+    public DepthStencilBufferArray DepthBuffers { get; private set; }
 
     public float[] Cascades { get; }
 
@@ -42,7 +35,6 @@ public sealed class CascadedShadowMapComponent : Component, IDisposable
 
     public void Dispose()
     {
-        this.RenderTargetArray.Dispose();
-        this.DepthBuffer.Dispose();
+        this.DepthBuffers.Dispose();
     }
 }

@@ -60,6 +60,11 @@ public abstract class DeviceContext : IDisposable
         this.ID3D11DeviceContext.ClearDepthStencilView(depthStencilBuffer.DepthStencilView, flags, depth, stencil);
     }
 
+    public void Clear(DepthStencilBufferArray depthStencilBuffers, int slice, DepthStencilClearFlags flags, float depth, byte stencil)
+    {
+        this.ID3D11DeviceContext.ClearDepthStencilView(depthStencilBuffers.DepthStencilViews[slice], flags, depth, stencil);
+    }
+
     public void ClearBackBuffer()
     {
         this.ClearBackBuffer(new Color4(0, 0, 0));
