@@ -6,7 +6,6 @@ using Mini.Engine.ECS.Systems;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.SunLight;
 using Mini.Engine.DirectX.Buffers;
-using Mini.Engine.Graphics.Lighting.PointLights;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.Graphics.Transforms;
 using System.Numerics;

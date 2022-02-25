@@ -55,9 +55,9 @@ public sealed class SponzaScene : IScene
             }),
             new LoadAction("Lighting", () =>
             {
-                // var sphere = this.Entities.Create();                
-                //this.Components.Add(new PointLightComponent(sphere, Vector4.One, 100.0f));
-                //this.Components.Add(new TransformComponent(sphere));
+                var sphere = this.Entities.Create();
+                this.Components.Add(new PointLightComponent(sphere, Vector4.One, 100.0f));
+                this.Components.Add(new TransformComponent(sphere));
 
                 var sun = this.Entities.Create();
                 this.Components.Add(new SunLightComponent(sun, Color4.White, 3.0f));
@@ -68,19 +68,19 @@ public sealed class SponzaScene : IScene
             }),
             new LoadAction("Skybox", () =>
             {
-                //var sky = this.Entities.Create();
-                //var texture = this.Content.LoadTexture(@"Skyboxes\circus.hdr");
-                //var albedo = this.CubeMapGenerator.GenerateAlbedo(texture, false, "skybox_albedo");
-                //var irradiance = this.CubeMapGenerator.GenerateIrradiance(texture, "skybox_irradiance");
-                //var environment = this.CubeMapGenerator.GenerateEnvironment(texture, "skybox_environment");
+                var sky = this.Entities.Create();
+                var texture = this.Content.LoadTexture(@"Skyboxes\circus.hdr");
+                var albedo = this.CubeMapGenerator.GenerateAlbedo(texture, false, "skybox_albedo");
+                var irradiance = this.CubeMapGenerator.GenerateIrradiance(texture, "skybox_irradiance");
+                var environment = this.CubeMapGenerator.GenerateEnvironment(texture, "skybox_environment");
 
-                //// Make sure the items are disposed whenever this content frame is
-                //this.Content.Link(albedo, albedo.Name);
-                //this.Content.Link(irradiance, irradiance.Name);
-                //this.Content.Link(environment, environment.Name);
+                // Make sure the items are disposed whenever this content frame is
+                this.Content.Link(albedo, albedo.Name);
+                this.Content.Link(irradiance, irradiance.Name);
+                this.Content.Link(environment, environment.Name);
 
-                //this.Components.Add(new SkyboxComponent(sky, albedo, irradiance, environment, 1.0f));
+                this.Components.Add(new SkyboxComponent(sky, albedo, irradiance, environment, 1.0f));
             })
         };
-    }  
+    }
 }

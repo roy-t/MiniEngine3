@@ -25,22 +25,21 @@ public sealed class RenderService
         this.Transforms = transforms;
     }
 
-    public void DrawAllModels(IRenderServiceCallBack callback, DeviceContext context, Matrix4x4 viewProjection)
+    public void DrawAllModels(IRenderServiceCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection)
     {
         foreach (var model in this.Models.GetAllItems())
         {
             var transform = this.Transforms[model.Entity];
-            this.DrawModel(callback, context, viewProjection, model.Model, transform.Transform);
+            this.DrawModel(callback, context, viewVolume, viewProjection, model.Model, transform.Transform);
         }
     }
 
-    public void DrawModel(IRenderServiceCallBack callback, DeviceContext context, Matrix4x4 viewProjection, IModel model, Transform transform)
+    public void DrawModel(IRenderServiceCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IModel model, Transform transform)
     {
         var world = transform.Matrix;
-        var bounds = model.Bounds.Transform(world);
-        var frustum = new Frustum(viewProjection);
+        var bounds = model.Bounds.Transform(world);        
 
-        if (frustum.ContainsOrIntersects(bounds))
+        if (viewVolume.ContainsOrIntersects(bounds))
         {
             callback.SetConstants(world * viewProjection, world);
 
@@ -53,7 +52,7 @@ public sealed class RenderService
 
                 bounds = primitive.Bounds.Transform(world);
 
-                if (frustum.ContainsOrIntersects(bounds))
+                if (viewVolume.ContainsOrIntersects(bounds))
                 {
                     callback.SetMaterial(model.Materials[primitive.MaterialIndex]);
                     context.DrawIndexed(primitive.IndexCount, primitive.IndexOffset, 0);
