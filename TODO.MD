@@ -1,12 +1,10 @@
 # TODO
 
-- Clean up ShadowMapCascade and SunLight systems, test if shader can be improved
-- Look on how to improve shadows, I have the feeling the shadow maps are taken from way too far away? 
-- Sun shadows: front faces rendered with slope-scaled depth bias??
+- Sun shadows: front faces rendered with slope-scaled depth bias?? https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias
 - See https://www.realtimeshadows.com/sites/default/files/Playing%20with%20Real-Time%20Shadows_0.pdf for shadow map ideas, especially from slide 59
 - See https://www.realtimeshadows.com/sites/default/files/Playing%20with%20Real-Time%20Shadows_0.pdf starting form slide 42 on FOG
 
-- Only runder generators on each compile, some generators now run on each change and look at each method for an attribute!
+- Only run generators on each compile, some generators now run on each change and look at each method for an attribute!
 
 - Make it easier to change skyboxes
 - Use Texture.Load() instead of Sampling using the point sampling for a tiny perf boost where we don't need sampling
