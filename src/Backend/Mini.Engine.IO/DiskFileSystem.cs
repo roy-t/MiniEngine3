@@ -71,7 +71,7 @@ public sealed class DiskFileSystem : IVirtualFileSystem
 
     private void OnChange(string fullPath, string reason)
     {
-        var relativePath = ToRelative(fullPath);
+        var relativePath = this.ToRelative(fullPath);
         this.Logger.Debug("[{@reason}] {@file}", reason, relativePath);
 
         if (this.ChangedFilesFilter.Contains(relativePath))

@@ -13,13 +13,17 @@ internal sealed class ShaderFileInclude : CallbackBase, Include
     private readonly IVirtualFileSystem FileSystem;
     private readonly string RootFolder;
     private readonly Dictionary<Stream, string> Streams;
+    private readonly List<string> IncludedList;
 
     public ShaderFileInclude(IVirtualFileSystem fileSystem, string? rootFolder = null)
     {
         this.FileSystem = fileSystem;
         this.RootFolder = rootFolder ?? Environment.CurrentDirectory;
         this.Streams = new Dictionary<Stream, string>();
+        this.IncludedList = new List<string>();
     }
+
+    public IReadOnlyList<string> Included => this.IncludedList;
 
     public void Close(Stream stream)
     {
@@ -42,6 +46,7 @@ internal sealed class ShaderFileInclude : CallbackBase, Include
         var bytes = Encoding.ASCII.GetBytes(text);
         var stream = new MemoryStream(bytes, false);
         this.Streams.Add(stream, fileName);
+        this.IncludedList.Add(fileName);
         return stream;
     }
 

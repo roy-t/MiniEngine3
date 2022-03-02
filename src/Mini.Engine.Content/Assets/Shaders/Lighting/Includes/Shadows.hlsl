@@ -5,7 +5,6 @@ static const float BlendThreshold = 0.3f;
 static const float Bias = 0.005f; // Bias to prevent shadow acne
 static const uint NumCascades = 4;
 
-
 struct ShadowProperties
 {
     float4x4 ShadowMatrix;    

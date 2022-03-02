@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D11;
@@ -32,9 +31,7 @@ internal sealed class Texture2DContent : ITexture2D, IContent
     public int MipMapSlices => this.texture.MipMapSlices;
 
     ID3D11ShaderResourceView ITexture.ShaderResourceView => this.texture.ShaderResourceView;
-    ID3D11Texture2D ITexture.Texture => this.texture.Texture;
-
-    
+    ID3D11Texture2D ITexture.Texture => this.texture.Texture;    
 
     [MemberNotNull(nameof(texture))]
     public void Reload(Device device)

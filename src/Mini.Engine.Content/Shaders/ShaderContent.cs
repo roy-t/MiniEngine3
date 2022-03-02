@@ -14,17 +14,19 @@ public abstract class ShaderContent<TShader> : Shader<TShader>, IContent
 {
     private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();
     private readonly IVirtualFileSystem FileSystem;
+    private readonly ContentManager Content;
 
     public ShaderContent(Device device, IVirtualFileSystem fileSystem, ContentManager content, ContentId id, string profile)
         : base(device)
     {
         this.FileSystem = fileSystem;
+        this.Content = content;
         this.Id = id;
         this.Profile = profile;
 
         this.Reload(device);
 
-        content.Add(this);
+        this.Content.Add(this);
     }
 
     public ContentId Id { get; }
@@ -44,6 +46,12 @@ public abstract class ShaderContent<TShader> : Shader<TShader>, IContent
         this.blob = shaderBlob;
         this.ID3D11Shader = this.Create(this.blob);
         this.ID3D11Shader.DebugName = this.Id.ToString();
+
+        foreach (var file in include.Included)
+        {
+            var relativePath = Path.Combine(Path.GetDirectoryName(this.Id.Path) ?? String.Empty, file.Replace('/', '\\'));
+            this.Content.RegisterDependency(this.Id, relativePath);
+        }
     }
 
     protected abstract TShader Create(Blob blob);

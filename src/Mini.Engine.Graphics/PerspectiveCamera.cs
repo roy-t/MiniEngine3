@@ -16,7 +16,7 @@ public sealed class PerspectiveCamera : ITransformable<PerspectiveCamera>
         this.Frustum = new Frustum(this.ViewProjection);
     }
 
-    public float NearPlane { get; } = 0.1f;
+    public float NearPlane { get; } = 0.25f;
     public float FarPlane { get; } = 250.0f;
     public float FieldOfView { get; } = MathF.PI / 2.0f;
     public float AspectRatio { get; }

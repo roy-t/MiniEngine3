@@ -18,12 +18,12 @@ namespace Mini.Engine.Scenes;
 public sealed class SponzaScene : IScene
 {
     private static readonly float[] Cascades =
-       {
-            0.075f,
-            0.15f,
-            0.3f,
-            1.0f
-        };
+    {
+        0.075f,
+        0.15f,
+        0.3f,
+        1.0f
+    };
 
     private readonly Device Device;
     private readonly ContentManager Content;
@@ -57,7 +57,7 @@ public sealed class SponzaScene : IScene
             {
                 var sphere = this.Entities.Create();
                 this.Components.Add(new PointLightComponent(sphere, Vector4.One, 100.0f));
-                this.Components.Add(new TransformComponent(sphere));
+                this.Components.Add(new TransformComponent(sphere).MoveTo(new Vector3(0, 1, 0)));
 
                 var sun = this.Entities.Create();
                 this.Components.Add(new SunLightComponent(sun, Color4.White, 3.0f));
@@ -79,7 +79,7 @@ public sealed class SponzaScene : IScene
                 this.Content.Link(irradiance, irradiance.Name);
                 this.Content.Link(environment, environment.Name);
 
-                this.Components.Add(new SkyboxComponent(sky, albedo, irradiance, environment, 1.0f));
+                this.Components.Add(new SkyboxComponent(sky, albedo, irradiance, environment, 0.1f));
             })
         };
     }

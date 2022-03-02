@@ -31,6 +31,8 @@ public sealed partial class ContentManager : IDisposable
     private readonly ContentCache<MaterialContent> MaterialLoader;
     private readonly ContentCache<ModelContent> ModelLoader;
 
+    private readonly Dictionary<string, HashSet<ContentId>> Dependencies;
+
     public ContentManager(ILogger logger, Device device, IVirtualFileSystem fileSystem)
     {
         this.Logger = logger.ForContext<ContentManager>();
@@ -42,6 +44,8 @@ public sealed partial class ContentManager : IDisposable
         this.TextureLoader = new ContentCache<Texture2DContent>(new TextureLoader(this, fileSystem));
         this.MaterialLoader = new ContentCache<MaterialContent>(new MaterialLoader(this, fileSystem, this.TextureLoader));
         this.ModelLoader = new ContentCache<ModelContent>(new ModelLoader(this, fileSystem, this.MaterialLoader));
+
+        this.Dependencies = new Dictionary<string, HashSet<ContentId>>(StringComparer.OrdinalIgnoreCase);
     }
 
     public ITexture2D LoadTexture(string path, string key = "")
@@ -110,6 +114,19 @@ public sealed partial class ContentManager : IDisposable
         this.ContentStack.Peek().Content.Add(content);
     }
 
+    // TODO: fix reloading based on dependencies!
+    internal void RegisterDependency(ContentId content, string file)
+    {
+        if (!this.Dependencies.TryGetValue(file, out var dependencies))
+        {
+            dependencies = new HashSet<ContentId>();
+            this.Dependencies.Add(file, dependencies);
+        }
+
+        dependencies.Add(content);
+        this.FileSystem.WatchFile(file);
+    }
+
     [Conditional("DEBUG")]
     internal void Track(IContent content)
     {
@@ -134,11 +151,12 @@ public sealed partial class ContentManager : IDisposable
 
     private void ReloadContentReferencingFile(string path)
     {
+        var dependencies = this.Dependencies[path];
         foreach (var frame in this.ContentStack)
         {
             foreach (var content in frame.Content)
             {
-                if (content.Id.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
+                if (content.Id.Path.Equals(path, StringComparison.OrdinalIgnoreCase) || dependencies.Contains(content.Id))
                 {
                     this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, path);
                     content.Reload(this.Device);
