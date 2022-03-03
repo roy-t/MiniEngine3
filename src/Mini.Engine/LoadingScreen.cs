@@ -31,11 +31,11 @@ public sealed class LoadingScreen
         this.Services = services;
     }    
 
-    public void Load(IReadOnlyList<LoadAction> actions)
+    public void Load(IReadOnlyList<LoadAction> actions, string description)
     {
         var stopwatch = Stopwatch.StartNew();
         this.Load(actions.Count, i => actions[i].Description, i => actions[i].Load());
-        this.Logger.Information("Loading {@count} items took {@ms}ms ", actions.Count, stopwatch.ElapsedMilliseconds);
+        this.Logger.Information("Loading {@description} with {@count} items took {@ms}ms", description, actions.Count, stopwatch.ElapsedMilliseconds);
     }
 
     private void Load(int count, Func<int, string> onDescribe, Action<int> onLoad)

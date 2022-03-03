@@ -9,9 +9,10 @@ using Serilog;
 namespace Mini.Engine.Configuration;
 public sealed class Injector : IDisposable
 {
+    private const string DefaultOutputTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} @ {SourceContext}{NewLine}{Exception}";
     private static readonly string[] IgnoredAssemblies = new[]
     {
-            "ImGui.NET", "LightInject", "Microsoft", "Mini.Engine.Content.Generators", "Mini.Engine.DirectX", "Mini.Engine.Windows", "NativeLibraryLoader", "Newtonsoft", "Serilog", "ShaderTools", "SharpGen", "Vortice"
+            "ImGui.NET", "LightInject", "Microsoft", "Mini.Engine.Content.Generators", "Mini.Engine.DirectX", "Mini.Engine.Windows", "NativeLibraryLoader", "Newtonsoft", "Serilog", "ShaderTools", "SharpGen", "Vortice", "StbImageSharp"
         };
 
     private readonly ServiceContainer Container;
@@ -20,10 +21,12 @@ public sealed class Injector : IDisposable
 
     public Injector()
     {
+
+
         Log.Logger = new LoggerConfiguration()
          .Enrich.FromLogContext()
-         .MinimumLevel.Debug()
-         .WriteTo.Debug()
+         .MinimumLevel.Information()
+         .WriteTo.Debug(outputTemplate: DefaultOutputTemplate)
          .CreateLogger();
 
         this.Logger = Log.Logger.ForContext<Injector>();

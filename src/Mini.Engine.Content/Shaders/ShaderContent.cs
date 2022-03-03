@@ -47,10 +47,11 @@ public abstract class ShaderContent<TShader> : Shader<TShader>, IContent
         this.ID3D11Shader = this.Create(this.blob);
         this.ID3D11Shader.DebugName = this.Id.ToString();
 
-        foreach (var file in include.Included)
+        foreach (var pathRelativeToShader in include.Included)
         {
-            var relativePath = Path.Combine(Path.GetDirectoryName(this.Id.Path) ?? String.Empty, file.Replace('/', '\\'));
-            this.Content.RegisterDependency(this.Id, relativePath);
+            var pathRelativeToRoot = Path.Combine(Path.GetDirectoryName(this.Id.Path) ?? string.Empty, pathRelativeToShader);
+            var pathNormalized = this.FileSystem.NormalizePath(pathRelativeToRoot);
+            this.Content.RegisterDependency(this.Id, pathNormalized);
         }
     }
 

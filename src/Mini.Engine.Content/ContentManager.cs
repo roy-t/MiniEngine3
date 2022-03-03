@@ -112,9 +112,16 @@ public sealed partial class ContentManager : IDisposable
     {
         this.Track(content);
         this.ContentStack.Peek().Content.Add(content);
+    }    
+
+    [Conditional("DEBUG")]
+    private void Track(IContent content)
+    {
+        this.FileSystem.WatchFile(content.Id.Path);
+        this.RegisterDependency(content.Id, content.Id.Path);
     }
 
-    // TODO: fix reloading based on dependencies!
+    [Conditional("DEBUG")]
     internal void RegisterDependency(ContentId content, string file)
     {
         if (!this.Dependencies.TryGetValue(file, out var dependencies))
@@ -125,12 +132,6 @@ public sealed partial class ContentManager : IDisposable
 
         dependencies.Add(content);
         this.FileSystem.WatchFile(file);
-    }
-
-    [Conditional("DEBUG")]
-    internal void Track(IContent content)
-    {
-        this.FileSystem.WatchFile(content.Id.Path);
     }
 
     [Conditional("DEBUG")]
@@ -151,15 +152,17 @@ public sealed partial class ContentManager : IDisposable
 
     private void ReloadContentReferencingFile(string path)
     {
-        var dependencies = this.Dependencies[path];
-        foreach (var frame in this.ContentStack)
+        if (this.Dependencies.TryGetValue(path, out var dependencies))
         {
-            foreach (var content in frame.Content)
+            foreach (var frame in this.ContentStack)
             {
-                if (content.Id.Path.Equals(path, StringComparison.OrdinalIgnoreCase) || dependencies.Contains(content.Id))
+                foreach (var content in frame.Content)
                 {
-                    this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, path);
-                    content.Reload(this.Device);
+                    if (dependencies.Contains(content.Id))
+                    {
+                        this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, path);
+                        content.Reload(this.Device);
+                    }
                 }
             }
         }

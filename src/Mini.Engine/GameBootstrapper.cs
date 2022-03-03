@@ -83,7 +83,7 @@ public sealed class GameBootstrapper
             new LoadAction(gameLoopType.Name, () => gameLoop = services.Resolve<IGameLoop>(gameLoopType)),
         };
 
-        loadingScreen.Load(actions);
+        loadingScreen.Load(actions, "gameloop");
 
         this.debugLayerLogger = debugLayerLogger!;
         this.ui = ui!;

@@ -33,6 +33,11 @@ public sealed class DiskFileSystem : IVirtualFileSystem
         return File.Open(this.ToAbsolute(path), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
     }
 
+    public string NormalizePath(string relativePath)
+    {
+        return this.ToRelative(this.ToAbsolute(relativePath)).ToLowerInvariant();
+    }
+
     public string ReadAllText(string path)
     {
         using var stream = this.OpenRead(path);
@@ -41,7 +46,8 @@ public sealed class DiskFileSystem : IVirtualFileSystem
 
     public void WatchFile(string path)
     {
-        this.ChangedFilesFilter.Add(path);
+        var normalized = this.NormalizePath(path);
+        this.ChangedFilesFilter.Add(normalized);
     }
 
     public IEnumerable<string> GetChangedFiles()
@@ -56,7 +62,7 @@ public sealed class DiskFileSystem : IVirtualFileSystem
             throw new ArgumentException($"Expected relative path but got '{path}'", nameof(path));
         }
 
-        return Path.Combine(this.RootDirectory, path);
+        return Path.GetFullPath(path, this.RootDirectory);
     }
 
     private string ToRelative(string path)

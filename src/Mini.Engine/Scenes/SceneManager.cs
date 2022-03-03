@@ -32,7 +32,8 @@ public sealed class SceneManager
         this.activeScene = index;
         var actions = this.Scenes[this.activeScene].Load();
 
-        this.Content.Push($"Scene_{this.Scenes[this.activeScene].Title}");
-        this.LoadingScreen.Load(actions);
+        var title = this.Scenes[this.activeScene].Title;
+        this.Content.Push($"Scene{title}");
+        this.LoadingScreen.Load(actions, title);
     }
 }
