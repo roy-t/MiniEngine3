@@ -21,7 +21,8 @@ public sealed class ConstantBuffer<T> : DeviceBuffer<T>
             Usage = ResourceUsage.Dynamic,
             SizeInBytes = sizeInBytes,
             BindFlags = BindFlags.ConstantBuffer,
-            CpuAccessFlags = CpuAccessFlags.Write
+            CpuAccessFlags = CpuAccessFlags.Write,
+            StructureByteStride = this.PrimitiveSizeInBytes
         };
 
         return this.Device.CreateBuffer(constBufferDesc);

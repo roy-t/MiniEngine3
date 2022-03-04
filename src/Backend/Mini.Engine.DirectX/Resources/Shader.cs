@@ -15,6 +15,11 @@ public interface IVertexShader : IShader
     internal ID3D11VertexShader ID3D11Shader { get; set; }
 }
 
+public interface IComputeShader : IShader
+{
+    internal ID3D11ComputeShader ID3D11Shader { get; set; }
+}
+
 public interface IShader
 {
     InputLayout CreateInputLayout(Device device, params InputElementDescription[] elements);

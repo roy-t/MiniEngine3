@@ -9,7 +9,12 @@ using Vortice.Direct3D11;
 
 namespace Mini.Engine.Content.Shaders;
 
-public abstract class ShaderContent<TShader> : Shader<TShader>, IContent
+public interface IShaderContent : IContent, IDisposable
+{
+    string Profile { get; }
+}
+
+public abstract class ShaderContent<TShader> : Shader<TShader>, IShaderContent
     where TShader : ID3D11DeviceChild
 {
     private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();

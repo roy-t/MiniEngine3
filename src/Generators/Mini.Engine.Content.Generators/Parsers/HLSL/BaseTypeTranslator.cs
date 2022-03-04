@@ -13,6 +13,8 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
                     return "VertexShaderContent";
                 case ProgramDirectives.PixelShader:
                     return "PixelShaderContent";
+                case ProgramDirectives.ComputeShader:
+                    return "ComputeShaderContent";
                 default:
                     throw new InvalidOperationException($"Cannot get base type for program directive: {type}");
             }

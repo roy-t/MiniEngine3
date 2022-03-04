@@ -11,6 +11,7 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
         None,
         VertexShader,
         PixelShader,
+        ComputeShader,
     }
 
     public sealed class Function
@@ -52,6 +53,8 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
                     return "vs_5_0";
                 case ProgramDirectives.PixelShader:
                     return "ps_5_0";
+                case ProgramDirectives.ComputeShader:
+                    return "cs_5_0";
                 default:
                     throw new InvalidOperationException($"Cannot get profile for program directive: {type}");
             }

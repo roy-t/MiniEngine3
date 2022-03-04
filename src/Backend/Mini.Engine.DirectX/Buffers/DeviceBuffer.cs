@@ -25,6 +25,8 @@ public abstract class DeviceBuffer<T> : IDisposable
 
     public int Capacity { get; private set; }
 
+    public int Length { get; private set; }
+
     internal ID3D11Buffer Buffer { get; private set; } = null!;
 
     public string Name { get; }
@@ -35,6 +37,7 @@ public abstract class DeviceBuffer<T> : IDisposable
         {
             this.Buffer?.Dispose();
             this.Capacity = primitiveCount + reserveExtra;
+            this.Length = primitiveCount;
             this.Buffer = this.CreateBuffer(this.Capacity * this.PrimitiveSizeInBytes);
 #if DEBUG
             this.Buffer.DebugName = this.Name;
@@ -73,7 +76,12 @@ public abstract class DeviceBuffer<T> : IDisposable
         return new(context.ID3D11DeviceContext, this.Buffer);
     }
 
-    public void Dispose()
+    public BufferReader<T> OpenReader(DeviceContext context, StagingBuffer<T> staging)
+    {
+        return new(context.ID3D11DeviceContext, this.Buffer, staging.Buffer);
+    }
+
+    public virtual void Dispose()
     {
         this.Buffer?.Dispose();
         GC.SuppressFinalize(this);

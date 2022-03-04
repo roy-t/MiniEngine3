@@ -184,12 +184,9 @@ public sealed partial class ContentManager : IDisposable
                 case ModelContent model:
                     this.ModelLoader.Unload(model);
                     break;
-                case PixelShaderContent ps:
-                    ps.Dispose();
-                    break;
-                case VertexShaderContent vs:
-                    vs.Dispose();
-                    break;
+                case IShaderContent shader:
+                    shader.Dispose();
+                    break;               
                 case ExternalContent external:
                     external.Dispose();
                     break;

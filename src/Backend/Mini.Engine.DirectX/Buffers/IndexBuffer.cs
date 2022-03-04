@@ -34,6 +34,7 @@ public sealed class IndexBuffer<T> : DeviceBuffer<T>
             SizeInBytes = sizeInBytes,
             BindFlags = BindFlags.IndexBuffer,
             CpuAccessFlags = CpuAccessFlags.Write,
+            StructureByteStride = this.PrimitiveSizeInBytes
         };
 
         return this.Device.CreateBuffer(description);
