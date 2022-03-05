@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
@@ -63,7 +65,7 @@ public sealed class GameBootstrapper
         this.RunLoadingScreenAndLoad(gameLoopType, services);
 
         this.Logger.Information("Bootstrapping {@gameLoop} took: {@milliseconds}ms", gameLoopType, stopWatch.ElapsedMilliseconds);
-    }
+    }    
 
     [MemberNotNull(nameof(debugLayerLogger), nameof(ui), nameof(gameLoop))]
     private void RunLoadingScreenAndLoad(Type gameLoopType, Services services)
@@ -92,7 +94,7 @@ public sealed class GameBootstrapper
     }
 
     public void Run()
-    {
+    {        
         var stopwatch = Stopwatch.StartNew();
 
         const double dt = 1.0 / 60.0; // constant tick rate of simulation

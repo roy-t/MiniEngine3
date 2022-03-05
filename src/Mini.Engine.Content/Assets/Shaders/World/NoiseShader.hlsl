@@ -6,8 +6,8 @@ cbuffer Constants : register(b0)
     float2 unused;
 };
 
-StructuredBuffer<float3> Tile;
-RWStructuredBuffer<float3> World;
+StructuredBuffer<float3> Tile : register(t0);
+RWStructuredBuffer<float3> World : register(u1);
 
 #pragma ComputeShader
 [numthreads(NumThreads, 1, 1)]

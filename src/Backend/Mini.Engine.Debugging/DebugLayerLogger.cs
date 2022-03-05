@@ -1,12 +1,14 @@
-﻿using Mini.Engine.DirectX;
+﻿using System;
+using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
+using Mini.Engine.Configuration;
+using Mini.Engine.DirectX;
 using Serilog;
 using Serilog.Events;
-using Vortice.DXGI;
-using Vortice.DXGI.Debug;
 using Vortice.Direct3D11;
 using Vortice.Direct3D11.Debug;
-using Mini.Engine.Configuration;
-using System;
+using Vortice.DXGI;
+using Vortice.DXGI.Debug;
 
 namespace Mini.Engine.Debugging;
 
@@ -20,6 +22,9 @@ public sealed class DebugLayerLogger
     public DebugLayerLogger(Device device, ILogger logger)
     {
 #if DEBUG
+
+        AppDomain.CurrentDomain.FirstChanceException += this.OnFirstChanceException;
+
         this.DebugInfoQueue = device.ID3D11Debug.QueryInterface<ID3D11InfoQueue>();
         this.DebugInfoQueue.PushEmptyStorageFilter();
 
@@ -49,20 +54,42 @@ public sealed class DebugLayerLogger
         for (ulong i = 0; i < stored; i++)
         {
             var message = this.DebugInfoQueue.GetMessage(i);
-            var level = SeverityToLevel(message.Severity);            
+            var level = SeverityToLevel(message.Severity);
             this.Logger.Write(
                 level,
                 "[{@category}:{@id}] {@description}",
                 message.Id.ToString(), message.Category.ToString(), UnterminateString(message.Description));
-
-           if (level != LogEventLevel.Information)
-            {
-                throw new Exception($"[{message.Id}:{message.Category}] {UnterminateString(message.Description)}");
-            }
         }
 
         this.DebugInfoQueue.ClearStoredMessages();
 #endif
+    }
+
+    private void OnFirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
+    {
+        if (e.Exception is SEHException seh)
+        {
+            var exception = this.CheckForException(seh);
+            if (exception != null)
+            {
+                throw exception;
+            }
+        }
+    }
+
+    private Exception? CheckForException(SEHException exception)
+    {
+        var stored = this.DebugInfoQueue.NumStoredMessages;
+        for (ulong i = 0; i < stored; i++)
+        {
+            var message = this.DebugInfoQueue.GetMessage(i);
+            var level = SeverityToLevel(message.Severity);
+            if (level == LogEventLevel.Fatal || level == LogEventLevel.Error || level == LogEventLevel.Warning)
+            {
+                return new Exception($"[{message.Id}:{message.Category}] {UnterminateString(message.Description)}", exception);
+            }
+        }
+        return null;
     }
 
     private static string UnterminateString(string message)

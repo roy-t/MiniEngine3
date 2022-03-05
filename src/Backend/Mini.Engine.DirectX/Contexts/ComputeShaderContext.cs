@@ -65,4 +65,9 @@ public sealed class ComputeShaderContext : DeviceContextPart
     {
         this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, buffer.GetUnorderedAccessView(firstElement, length));
     }
+
+    public void Dispatch(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ)
+    {
+        this.ID3D11DeviceContext.Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
+    }
 }

@@ -1,7 +1,6 @@
 ﻿using Mini.Engine.Configuration;
-using Mini.Engine.Content;
 using Mini.Engine.Debugging;
-using Mini.Engine.Graphics.Lighting.ImageBasedLights;
+using Mini.Engine.Graphics.World;
 using Mini.Engine.Windows;
 
 namespace Mini.Engine;
@@ -11,16 +10,14 @@ internal sealed class SingleFrameLoop : IGameLoop
 {
     private int drawCalls;
     private readonly Win32Window Window;
-    private readonly CubeMapGenerator Generator;
-    private readonly ContentManager Content;
+    private readonly NoiseGenerator NoiseGenerator;
 
     private readonly RenderDoc? RenderDoc;
 
-    public SingleFrameLoop(Win32Window window, CubeMapGenerator generator, ContentManager content, Services services)
+    public SingleFrameLoop(Win32Window window, NoiseGenerator noiseGenerator, Services services)
     {
         this.Window = window;
-        this.Generator = generator;
-        this.Content = content;
+        this.NoiseGenerator = noiseGenerator;
 
         if (services.TryResolve<RenderDoc>(out var instance))
         {
@@ -30,8 +27,7 @@ internal sealed class SingleFrameLoop : IGameLoop
 
     private void DrawExperiment()
     {
-        var texture = this.Content.LoadTexture(@"Skyboxes\industrial.hdr");
-        using var cube = this.Generator.GenerateEnvironment(texture, "CubeMap");
+        this.NoiseGenerator.Generate();
     }
 
     public void Update(float time, float elapsed) { }
