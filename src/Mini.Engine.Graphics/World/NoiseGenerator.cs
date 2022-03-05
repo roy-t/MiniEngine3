@@ -4,8 +4,6 @@ using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.NoiseShader;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
-using Mini.Engine.Graphics.Lighting.PointLights;
-using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.World;
 

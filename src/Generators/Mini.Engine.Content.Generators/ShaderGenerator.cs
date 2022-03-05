@@ -67,9 +67,7 @@ namespace Mini.Engine.Content.Generators
                     var classFiles = shader.Functions
                         .Where(f => f.IsProgram())
                         .Where(function => function.GetProgramDirective() != ProgramDirectives.ComputeShader)
-                        .Select(function =>
-                        {
-                            return SourceFile.Build($"{shader.Name}{function.Name}.cs")
+                        .Select(function => SourceFile.Build($"{shader.Name}{function.Name}.cs")
                                 .Using("Mini.Engine.Configuration")
                                 .Using("Mini.Engine.Content")
                                 .Using("Mini.Engine.DirectX")
@@ -90,16 +88,13 @@ namespace Mini.Engine.Content.Generators
                                             .Complete()
                                         .Complete()
                                     .Complete()
-                                .Complete();
-                        })
+                                .Complete())
                         .Union
                         (
                             shader.Functions
                                 .Where(f => f.IsProgram())
                                 .Where(function => function.GetProgramDirective() == ProgramDirectives.ComputeShader)
-                                .Select(function =>
-                                {
-                                    return SourceFile.Build($"{shader.Name}{function.Name}.cs")
+                                .Select(function => SourceFile.Build($"{shader.Name}{function.Name}.cs")
                                         .Using("Mini.Engine.Configuration")
                                         .Using("Mini.Engine.Content")
                                         .Using("Mini.Engine.DirectX")
@@ -123,8 +118,7 @@ namespace Mini.Engine.Content.Generators
                                                     .Complete()
                                                 .Complete()
                                             .Complete()
-                                        .Complete();
-                                })
+                                        .Complete())
                         );
 
                     contentFiles.AddRange(classFiles);

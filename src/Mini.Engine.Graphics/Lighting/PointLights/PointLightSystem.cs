@@ -18,7 +18,6 @@ namespace Mini.Engine.Graphics.Lighting.PointLights;
 [Service]
 public sealed partial class PointLightSystem : ISystem, IDisposable
 {
-
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
