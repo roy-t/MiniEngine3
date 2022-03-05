@@ -20,5 +20,14 @@ namespace Mini.Engine.Generators.Source.CSharp
                 ? throw new InvalidOperationException()
                 : this.PreviousBuilder;
         }
+
+        public Builder<TPreviousBuilder, TOutput> If(bool condition, Action<Builder<TPreviousBuilder, TOutput>> action)
+        {
+            if(condition)
+            {
+                action(this);
+            }
+            return this;
+        }
     }
 }

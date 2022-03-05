@@ -23,11 +23,15 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
                 .Cast<PragmaDirectiveTriviaSyntax>().ToList()
                 .Select(s => string.Join(" ", s.TokenString.Select(t => t.ValueText)))
                 .ToList();
+
+            this.Attributes = FunctionAttribute.FindAll(syntax);
         }
 
         public string Name { get; }
 
         public IReadOnlyList<string> Directives { get; }
+
+        public IReadOnlyDictionary<string, IReadOnlyList<string>> Attributes { get; }
 
         public bool IsProgram() => this.GetProgramDirective() != ProgramDirectives.None;
 

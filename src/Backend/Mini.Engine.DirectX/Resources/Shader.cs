@@ -18,6 +18,7 @@ public interface IVertexShader : IShader
 public interface IComputeShader : IShader
 {
     internal ID3D11ComputeShader ID3D11Shader { get; set; }
+    (int X, int Y, int Z) GetDispatchSize(int dimX, int dimY, int dimZ);
 }
 
 public interface IShader

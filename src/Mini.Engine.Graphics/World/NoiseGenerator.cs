@@ -5,6 +5,7 @@ using Mini.Engine.Content.Shaders.NoiseShader;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.Graphics.Lighting.PointLights;
+using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.World;
 
@@ -26,11 +27,11 @@ public sealed class NoiseGenerator
     {
         var context = this.Device.ImmediateContext;
 
-        var stride = 32u;             
+        var stride = 32;             
         var vertices = new Vector3[stride * stride];
         var cBuffer = new Constants()
         {
-            Stride = stride
+            Stride = (uint)stride
         };
         this.ConstantBuffer.MapData(context, cBuffer);
         context.CS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
@@ -46,14 +47,11 @@ public sealed class NoiseGenerator
 
         // TODO: https://docs.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-dispatch ?????
 
-        context.CS.Dispatch(4, 4, 1);
+
+        var size = this.Kernel.GetDispatchSize(stride, stride, 1);
+        context.CS.Dispatch(size.X, size.Y, size.Z);
 
         var data = new Vector3[vertices.Length];
         output.ReadData(context, data);
-    }
-
-    private static int GetDispatchSize(int threadGroupSize, int elements)
-    {
-        return (elements + threadGroupSize - 1) / threadGroupSize;
-    }
+    }      
 }

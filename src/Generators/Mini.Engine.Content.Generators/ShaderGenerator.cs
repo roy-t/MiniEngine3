@@ -66,6 +66,7 @@ namespace Mini.Engine.Content.Generators
 
                     var classFiles = shader.Functions
                         .Where(f => f.IsProgram())
+                        .Where(function => function.GetProgramDirective() != ProgramDirectives.ComputeShader)
                         .Select(function =>
                         {
                             return SourceFile.Build($"{shader.Name}{function.Name}.cs")
@@ -90,7 +91,41 @@ namespace Mini.Engine.Content.Generators
                                         .Complete()
                                     .Complete()
                                 .Complete();
-                        });
+                        })
+                        .Union
+                        (
+                            shader.Functions
+                                .Where(f => f.IsProgram())
+                                .Where(function => function.GetProgramDirective() == ProgramDirectives.ComputeShader)
+                                .Select(function =>
+                                {
+                                    return SourceFile.Build($"{shader.Name}{function.Name}.cs")
+                                        .Using("Mini.Engine.Configuration")
+                                        .Using("Mini.Engine.Content")
+                                        .Using("Mini.Engine.DirectX")
+                                        .Using("Mini.Engine.DirectX.Resources")
+                                        .Using("Mini.Engine.IO")
+                                        .Using("System.Runtime.InteropServices")
+                                        .Namespace("Mini.Engine.Content.Shaders")
+                                            .Class(Naming.ToPascalCase($"{shader.Name}{function.Name}"), "public", "sealed")
+                                                .Attribute("Content")
+                                                .Inherits(BaseTypeTranslator.GetBaseType(function))
+                                                .Constructor("public")
+                                                    .Parameter("Device", "device")
+                                                    .Parameter("IVirtualFileSystem", "fileSystem")
+                                                    .Parameter("ContentManager", "content")
+                                                    .BaseConstructorCall("device", "fileSystem", "content",
+                                                        $"new ContentId({SourceUtilities.ToLiteral(shader.FilePath)},{SourceUtilities.ToLiteral(function.Name)})",
+                                                        SourceUtilities.ToLiteral(function.GetProfile()),
+                                                        function.Attributes["numthreads"][0],
+                                                        function.Attributes["numthreads"][1],
+                                                        function.Attributes["numthreads"][2])
+                                                    .Complete()
+                                                .Complete()
+                                            .Complete()
+                                        .Complete();
+                                })
+                        );
 
                     contentFiles.AddRange(classFiles);
                     return classFiles.Append(structuresFile).Append(shaderFile);
