@@ -22,7 +22,6 @@ public sealed class DebugLayerLogger
     public DebugLayerLogger(Device device, ILogger logger)
     {
 #if DEBUG
-
         AppDomain.CurrentDomain.FirstChanceException += this.OnFirstChanceException;
 
         this.DebugInfoQueue = device.ID3D11Debug.QueryInterface<ID3D11InfoQueue>();
@@ -34,7 +33,6 @@ public sealed class DebugLayerLogger
         var dxgiInfoQueue = DXGI.DXGIGetDebugInterface1<IDXGIInfoQueue>();
         dxgiInfoQueue.SetBreakOnSeverity(DXGI.DebugAll, InfoQueueMessageSeverity.Error, true);
         dxgiInfoQueue.SetBreakOnSeverity(DXGI.DebugAll, InfoQueueMessageSeverity.Corruption, true);
-
 
         this.Logger = logger.ForContext<DebugLayerLogger>();
 

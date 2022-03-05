@@ -18,7 +18,7 @@ public sealed class BufferReader<T> : IDisposable
         this.Source = source;        
 
         context.CopyResource(this.Staging, this.Source);
-        this.Resource = context.Map(source, 0, MapMode.Read, MapFlags.None);
+        this.Resource = context.Map(staging, 0, MapMode.Read, MapFlags.None);
         context.Flush();
     }
 
@@ -31,6 +31,6 @@ public sealed class BufferReader<T> : IDisposable
 
     public void Dispose()
     {
-        this.Context.Unmap(this.Source);
+        this.Context.Unmap(this.Staging);
     }
 }
