@@ -1,18 +1,21 @@
-static const uint NumThreads = 512;
+#include "../Includes/Indexes.hlsl"
 
 cbuffer Constants : register(b0)
-{    
-    float2 Offset;
-    float2 unused;
+{
+    uint Stride;    
+    float3 unused;
 };
 
 StructuredBuffer<float3> Tile : register(t0);
 RWStructuredBuffer<float3> World : register(u1);
 
+// Run 8x8x1=64 threads per thread group, which means one full warp for AMD
+// or two warps for NVIDIA. Leaving no threads idle.
 #pragma ComputeShader
-[numthreads(NumThreads, 1, 1)]
-void Kernel(in uint dispatchId : SV_DispatchThreadID)
+[numthreads(8, 8, 1)]
+void Kernel(in uint3 dispatchId : SV_DispatchThreadID)
 {
-    float3 input = Tile[dispatchId];
-    World[dispatchId] = input + float3(0, 1, 0);
+    int index = ToOneDimensional(dispatchId.x, dispatchId.y, Stride);
+    float3 input = Tile[index];
+    World[index] = input + float3(index, dispatchId.x, dispatchId.y);
 }

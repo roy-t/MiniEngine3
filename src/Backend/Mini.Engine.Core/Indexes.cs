@@ -4,7 +4,7 @@ public static class Indexes
 {
     public static int ToOneDimensional(int x, int y, int stride)
     {
-        return y + (stride * x);
+        return x + (stride * y);
     }
 
     public static (int, int) ToTwoDimensional(int i, int stride)

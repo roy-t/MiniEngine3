@@ -4,6 +4,7 @@ using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.NoiseShader;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
+using Mini.Engine.Graphics.Lighting.PointLights;
 
 namespace Mini.Engine.Graphics.World;
 
@@ -11,18 +12,28 @@ namespace Mini.Engine.Graphics.World;
 public sealed class NoiseGenerator
 {
     private readonly Device Device;
+    private readonly ConstantBuffer<Constants> ConstantBuffer;
     private readonly NoiseShaderKernel Kernel;
 
     public NoiseGenerator(Device device, NoiseShaderKernel noiseShader)
     {
         this.Device = device;
+        this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(NoiseGenerator)}_CB");
         this.Kernel = noiseShader;
     }
 
     public void Generate()
     {
         var context = this.Device.ImmediateContext;
-        var vertices = new Vector3[512];
+
+        var stride = 32u;             
+        var vertices = new Vector3[stride * stride];
+        var cBuffer = new Constants()
+        {
+            Stride = stride
+        };
+        this.ConstantBuffer.MapData(context, cBuffer);
+        context.CS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
 
         using var input = new StructuredBuffer<Vector3>(this.Device, "input");
         input.MapData(context, vertices);
@@ -34,8 +45,8 @@ public sealed class NoiseGenerator
         context.CS.SetUnorderedAccessView(NoiseShader.World, output);
 
         // TODO: https://docs.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-dispatch ?????
-        var dispatchSize = GetDispatchSize(512, vertices.Length);
-        context.CS.Dispatch(dispatchSize, 1, 1);
+
+        context.CS.Dispatch(4, 4, 1);
 
         var data = new Vector3[vertices.Length];
         output.ReadData(context, data);

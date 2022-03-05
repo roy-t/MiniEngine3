@@ -41,7 +41,6 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
 
                 case "float4x4":
                     return Dimension(Numerics("Matrix4x4"), variable.Dimensions);
-
                 default:
                     throw new NotSupportedException($"Cannot translate HLSL type {variable.Type} to .NET");
             }
@@ -54,6 +53,8 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
         }
 
         private static string Numerics(string type)
-            => $"System.Numerics.{type}";
+        {
+            return $"System.Numerics.{type}";
+        }
     }
 }

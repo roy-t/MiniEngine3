@@ -2,6 +2,7 @@
   <ItemGroup>
     <None Remove="Assets\Shaders\ColorShader.hlsl" />
     <None Remove="Assets\Shaders\FullScreenTriangle.hlsl" />
+    <None Remove="Assets\Shaders\Includes\Indexes.hlsl" />
     <None Remove="Assets\Shaders\Lighting\Includes\Shadows.hlsl" />
     <None Remove="Assets\Shaders\Lighting\ShadowMap.hlsl" />
     <None Remove="Assets\Shaders\Lighting\SunLight.hlsl" />
@@ -19,6 +20,7 @@
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
+    <AdditionalFiles Include="Assets\Shaders\Includes\Indexes.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\CubeMapGenerator.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\ImageBasedLight.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\Includes\Shadows.hlsl" />

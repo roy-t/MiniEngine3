@@ -51,7 +51,7 @@ public sealed class OutputMergerContext : DeviceContextPart
 
     public void SetRenderTarget(RenderTargetCube renderTarget, CubeMapFace face, int mipSlice = 0, DepthStencilBuffer? depthStencilBuffer = null)
     {
-        var slice = Indexes.ToOneDimensional(mipSlice, (int)face, 6);
+        var slice = Indexes.ToOneDimensional((int)face, mipSlice, 6);
         this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.FaceRenderTargetViews[slice], depthStencilBuffer?.DepthStencilView);
     }
 

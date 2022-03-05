@@ -21,7 +21,7 @@ public sealed class RenderTargetCube : ITextureCube
         {            
             for (var slice = 0; slice < this.MipMapSlices; slice++)
             {
-                var index = Indexes.ToOneDimensional(slice, face, TextureCube.Faces);
+                var index = Indexes.ToOneDimensional(face, slice, TextureCube.Faces);
                 this.FaceRenderTargetViews[index] = RenderTargetViews.Create(device, this.Texture, format, face, slice, name);
             }
         }
