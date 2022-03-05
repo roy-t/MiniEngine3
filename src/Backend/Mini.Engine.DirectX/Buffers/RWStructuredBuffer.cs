@@ -1,4 +1,6 @@
-﻿using Vortice.Direct3D11;
+﻿using System;
+using Mini.Engine.DirectX.Contexts;
+using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Buffers;
@@ -14,6 +16,23 @@ public sealed class RWStructuredBuffer<T> : StructuredBuffer<T>
         : base(device, name)
     {
         this.EnsureCapacity(elements);
+    }
+
+    public BufferReader<T> OpenReader(DeviceContext context)
+    {
+        return new(context.ID3D11DeviceContext, this.Buffer);
+    }
+
+    public void ReadData(DeviceContext context, Span<T> output)
+    {
+        var ctx = context.ID3D11DeviceContext;
+        var resource = ctx.Map(this.Buffer, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
+        ctx.Flush();
+
+        var span = resource.AsSpan<T>(this.Buffer);
+        span.CopyTo(output);
+
+        ctx.Unmap(this.Buffer);
     }
 
     internal ID3D11UnorderedAccessView GetUnorderedAccessView()
@@ -57,11 +76,11 @@ public sealed class RWStructuredBuffer<T> : StructuredBuffer<T>
             Usage = ResourceUsage.Default,
             SizeInBytes = sizeInBytes,
             BindFlags = BindFlags.UnorderedAccess | BindFlags.ShaderResource,
-            CpuAccessFlags = CpuAccessFlags.None,
+            CpuAccessFlags = CpuAccessFlags.Read | CpuAccessFlags.Write,
             OptionFlags = ResourceOptionFlags.BufferStructured,
             StructureByteStride = this.PrimitiveSizeInBytes
         };
-
+        
         return this.Device.CreateBuffer(structuredBufferDesc);
     }
 

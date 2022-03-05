@@ -1,4 +1,5 @@
-﻿using Vortice.Direct3D11;
+﻿using System;
+using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Buffers;
@@ -69,5 +70,6 @@ public class StructuredBuffer<T> : DeviceBuffer<T>
     {
         this.srv?.Dispose();
         base.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

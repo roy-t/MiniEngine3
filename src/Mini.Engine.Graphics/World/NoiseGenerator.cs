@@ -19,7 +19,6 @@ public sealed class NoiseGenerator
         this.Kernel = noiseShader;
     }
 
-
     public void Generate()
     {
         var context = this.Device.ImmediateContext;
@@ -34,18 +33,12 @@ public sealed class NoiseGenerator
         context.CS.SetShaderResource(NoiseShader.Tile, input);
         context.CS.SetUnorderedAccessView(NoiseShader.World, output);
 
-        // https://docs.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-dispatch ?????
+        // TODO: https://docs.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-dispatch ?????
         var dispatchSize = GetDispatchSize(512, vertices.Length);
         context.CS.Dispatch(dispatchSize, 1, 1);
 
-        using var staging = new StagingBuffer<Vector3>(this.Device, vertices.Length, "staging");
-        using var reader = output.OpenReader(context, staging);
-
         var data = new Vector3[vertices.Length];
-        reader.ReadData(0, vertices.Length, data);
-
-        // WIP WIP WIP WIP WIP WIP see if all the buffers and stuff work?
-        // see D:\Projects\C#\MiniRTS\vOld\Engine\MiniEngine.Pipeline.Models\Generators\NoiseGenerator.cs
+        output.ReadData(context, data);
     }
 
     private static int GetDispatchSize(int threadGroupSize, int elements)

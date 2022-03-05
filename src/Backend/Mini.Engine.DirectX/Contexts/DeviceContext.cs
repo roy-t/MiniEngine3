@@ -74,7 +74,7 @@ public abstract class DeviceContext : IDisposable
     public void ClearBackBuffer(Color4 color)
     {
         this.ID3D11DeviceContext.ClearRenderTargetView(this.Device.BackBufferView, color);        
-    }    
+    }
 
     public void Setup(InputLayout inputLayout, IVertexShader vertex, IPixelShader pixel, BlendState blend, DepthStencilState depth)
     {

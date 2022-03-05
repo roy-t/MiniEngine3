@@ -8,17 +8,14 @@ public sealed class BufferReader<T> : IDisposable
 {
     private readonly ID3D11DeviceContext Context;
     private readonly ID3D11Buffer Source;
-    private readonly ID3D11Buffer Staging;
     private readonly MappedSubresource Resource;
 
-    internal BufferReader(ID3D11DeviceContext context, ID3D11Buffer source, ID3D11Buffer staging)
+    internal BufferReader(ID3D11DeviceContext context, ID3D11Buffer source)
     {
-        this.Staging = staging;
         this.Context = context;
         this.Source = source;        
 
-        context.CopyResource(this.Staging, this.Source);
-        this.Resource = context.Map(staging, 0, MapMode.Read, MapFlags.None);
+        this.Resource = context.Map(source, 0, MapMode.Read, MapFlags.None);
         context.Flush();
     }
 
@@ -31,6 +28,6 @@ public sealed class BufferReader<T> : IDisposable
 
     public void Dispose()
     {
-        this.Context.Unmap(this.Staging);
+        this.Context.Unmap(this.Source);
     }
 }
