@@ -43,9 +43,6 @@ public sealed class NoiseGenerator
         context.CS.SetShaderResource(NoiseShader.Tile, input);
         context.CS.SetUnorderedAccessView(NoiseShader.World, output);
 
-        // TODO: https://docs.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-dispatch ?????
-
-
         var size = this.Kernel.GetDispatchSize(stride, stride, 1);
         context.CS.Dispatch(size.X, size.Y, size.Z);
 
