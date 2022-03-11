@@ -4,6 +4,16 @@
 - See https://www.realtimeshadows.com/sites/default/files/Playing%20with%20Real-Time%20Shadows_0.pdf for shadow map ideas, especially from slide 59
 - See https://www.realtimeshadows.com/sites/default/files/Playing%20with%20Real-Time%20Shadows_0.pdf starting form slide 42 on FOG
 
+
+- Terrain
+	- Lots of practical tips: 
+		1. https://mtnphil.wordpress.com/2011/09/22/terrain-engine/
+		2. https://mtnphil.wordpress.com/2012/09/25/terrain-texture-projection-artifacts/
+		3. https://mtnphil.wordpress.com/2012/10/10/terrain-triangulation/
+		4. https://mtnphil.wordpress.com/2012/10/10/terrain-triangulation-part-4/
+		5. https://mtnphil.wordpress.com/2012/10/12/terrain-triangulation-part-5/
+		6. https://mtnphil.wordpress.com/2012/10/15/terrain-triangulation-summary/
+
 - Only run generators on each compile, some generators now run on each change and look at each method for an attribute!
 
 - Make it easier to change skyboxes
