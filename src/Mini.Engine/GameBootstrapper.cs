@@ -43,6 +43,7 @@ public sealed class GameBootstrapper
 
         this.LoadRenderDoc(services);
 
+        // TODO: pass something that can tell the Device that the window size has changed so that it rebuilds the backbuffer and GBuffer
         this.Device = new Device(this.Window.Handle, this.Window.Width, this.Window.Height);
         this.InputService = new InputService(this.Window);
         this.Keyboard = new Keyboard();

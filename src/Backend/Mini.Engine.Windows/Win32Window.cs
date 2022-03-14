@@ -33,7 +33,7 @@ public sealed class Win32Window : IDisposable
             y = pos.Top;
         }
 
-        var style = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+        var style = WS_OVERLAPPEDWINDOW;
         var styleEx = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 
         var windowRect = new RawRect(0, 0, this.Width, this.Height);

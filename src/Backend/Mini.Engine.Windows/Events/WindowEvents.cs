@@ -45,7 +45,6 @@ public sealed class WindowEvents
             case Destroy:
                 this.OnDestroy?.Invoke(hWnd, EventArgs.Empty);
                 break;
-
         }
     }
 }
