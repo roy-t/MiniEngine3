@@ -67,15 +67,11 @@ public static class Win32Application
 
         // TODO: maybe we can move the input classes here and make ImGui use RawInputController?
         RawEvents.FireWindowEvents(hWnd, msg, wParam, lParam);
-
+        WindowEvents.FireWindowEvents(hWnd, msg, wParam, lParam);
         switch (msg)
         {
             case WindowMessage.Destroy:
                 PostQuitMessage(0);
-                break;
-
-            default:
-                WindowEvents.FireWindowEvents(hWnd, msg, wParam, lParam);
                 break;
         }
 

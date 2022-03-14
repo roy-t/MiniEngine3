@@ -9,6 +9,7 @@ public sealed class WindowEvents
 {
     public EventHandler<SizeEventArgs>? OnResize;
     public EventHandler<bool>? OnFocus;
+    public EventHandler? OnDestroy;
 
     internal void FireWindowEvents(IntPtr hWnd, WindowMessage msg, UIntPtr wParam, IntPtr lParam)
     {
@@ -40,6 +41,11 @@ public sealed class WindowEvents
             case Activate:
                 this.OnFocus?.Invoke(hWnd, Utils.Loword((int)wParam) != 0);
                 break;
+
+            case Destroy:
+                this.OnDestroy?.Invoke(hWnd, EventArgs.Empty);
+                break;
+
         }
     }
 }
