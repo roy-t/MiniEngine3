@@ -17,5 +17,5 @@ void Kernel(in uint3 dispatchId : SV_DispatchThreadID)
 {
     int index = ToOneDimensional(dispatchId.x, dispatchId.y, Stride);
     float input = Tile[index];
-    World[index] = input + float(index);
+    World[index] = 1;//
 }

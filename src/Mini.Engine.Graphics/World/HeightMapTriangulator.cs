@@ -65,8 +65,6 @@ public sealed class HeightMapTriangulator
                     indices.Add(tl);
                     indices.Add(tr);
                 }
-
-                
             }
         }
 
@@ -79,7 +77,7 @@ public sealed class HeightMapTriangulator
     }
 
     // TODO: verify this math
-    private float Sample(float x, float y, float[] heightMap, int dimensions)
+    private static float Sample(float x, float y, float[] heightMap, int dimensions)
     {
         var xi = (int)x;
         var xxi = Math.Clamp((int)(x + 1.0f), 0, dimensions - 1);

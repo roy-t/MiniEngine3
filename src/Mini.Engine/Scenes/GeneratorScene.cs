@@ -3,6 +3,7 @@ using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.DirectX;
+using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Entities;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
@@ -33,6 +34,8 @@ public sealed class GeneratorScene : IScene
     private readonly NoiseGenerator NoiseGenerator;
     private readonly HeightMapTriangulator Triangulator;
 
+    private Entity? world;
+
     public GeneratorScene(Device device, ContentManager content, EntityAdministrator entities, ComponentAdministrator components, CubeMapGenerator cubeMapGenerator, NoiseGenerator noiseGenerator, HeightMapTriangulator triangulator)
     {
         this.Device = device;
@@ -50,18 +53,10 @@ public sealed class GeneratorScene : IScene
     {
         return new List<LoadAction>()
         {
-            new LoadAction("Terrain", () =>
+            new LoadAction("Terrain", () => 
             {
-                var world = this.Entities.Create();
-
-                var defaultMaterial = this.Content.LoadDefaultMaterial();
-                var dimensions = 2;
-                //var heightMap = this.NoiseGenerator.Generate(dimensions);
-                var heightMap = new float[dimensions * dimensions];
-                var model = this.Triangulator.Triangulate(this.Device, heightMap, dimensions, defaultMaterial, "terrain");
-                this.Content.Link(model, "terrain");
-                this.Components.Add(new ModelComponent(world, model));
-                this.Components.Add(new TransformComponent(world));
+                this.GenerateTerrain();
+                this.Content.OnReloadCallback(new ContentId(@"Shaders\World\NoiseShader.hlsl", "Kernel") , _ => this.GenerateTerrain());
             }),
             new LoadAction("Lighting", () =>
             {
@@ -88,5 +83,25 @@ public sealed class GeneratorScene : IScene
                 this.Components.Add(new SkyboxComponent(sky, albedo, irradiance, environment, 0.1f));
             })
         };
+    }
+
+    private void GenerateTerrain()
+    {
+        if (this.world.HasValue)
+        {
+            this.Components.MarkForRemoval(this.world.Value);
+        }
+
+        var world = this.Entities.Create();
+
+        var defaultMaterial = this.Content.LoadDefaultMaterial();
+        var dimensions = 2;
+        var heightMap = this.NoiseGenerator.Generate(dimensions);
+        var model = this.Triangulator.Triangulate(this.Device, heightMap, dimensions, defaultMaterial, "terrain");
+        this.Content.Link(model, "terrain");
+        this.Components.Add(new ModelComponent(world, model));
+        this.Components.Add(new TransformComponent(world));
+
+        this.world = world;
     }
 }

@@ -38,7 +38,7 @@ public sealed class GameBootstrapper
 
         this.Logger = logger.ForContext<GameBootstrapper>();
 
-        this.Window = Win32Application.Initialize("Mini.Engine", 1920, 1080);
+        this.Window = Win32Application.Initialize("Mini.Engine", 900, 1300);
         this.Window.Show();
 
         this.LoadRenderDoc(services);

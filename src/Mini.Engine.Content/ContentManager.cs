@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Materials;
 using Mini.Engine.Content.Models;
@@ -20,6 +21,9 @@ public sealed partial class ContentManager : IDisposable
     {
         public Frame(string name) : this(name, new List<IContent>()) { }
     }
+
+    private record ReloadCallback(ContentId Id, Action<ContentId> Callback);
+    private readonly Dictionary<ContentId, List<ReloadCallback>> Callbacks;
 
     private readonly ILogger Logger;
     private readonly IVirtualFileSystem FileSystem;
@@ -46,6 +50,7 @@ public sealed partial class ContentManager : IDisposable
         this.ModelLoader = new ContentCache<ModelContent>(new ModelLoader(this, fileSystem, this.MaterialLoader));
 
         this.Dependencies = new Dictionary<string, HashSet<ContentId>>(StringComparer.OrdinalIgnoreCase);
+        this.Callbacks = new Dictionary<ContentId, List<ReloadCallback>>();
     }
 
     public ITexture2D LoadTexture(string path, string key = "")
@@ -150,6 +155,18 @@ public sealed partial class ContentManager : IDisposable
         }
     }
 
+    [Conditional("DEBUG")]
+    public void OnReloadCallback(ContentId id, Action<ContentId> callback)
+    {
+        if (!this.Callbacks.TryGetValue(id, out var callbacks))
+        {
+            callbacks = new List<ReloadCallback>();
+            this.Callbacks.Add(id, callbacks);
+        }
+
+        callbacks.Add(new ReloadCallback(id, callback));
+    }
+
     private void ReloadContentReferencingFile(string path)
     {
         if (this.Dependencies.TryGetValue(path, out var dependencies))
@@ -162,8 +179,20 @@ public sealed partial class ContentManager : IDisposable
                     {
                         this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, path);
                         content.Reload(this.Device);
+                        this.CallCallbacks(content);
                     }
                 }
+            }
+        }
+    }
+
+    private void CallCallbacks(IContent content)
+    {
+        if (this.Callbacks.TryGetValue(content.Id, out var callbacks))
+        {
+            foreach (var callback in callbacks)
+            {
+                callback.Callback(content.Id);
             }
         }
     }
