@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Configuration;
+﻿using System;
+using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
 using Mini.Engine.Graphics.World;
 using Mini.Engine.Windows;
@@ -48,6 +49,11 @@ internal sealed class SingleFrameLoop : IGameLoop
         }
 
         this.drawCalls++;
+    }
+
+    public void Resize(int width, int height)
+    {
+        throw new NotSupportedException($"{nameof(SingleFrameLoop)} should not be resized during its short lifetime");
     }
     
     public void Dispose()

@@ -68,6 +68,11 @@ internal sealed class GameLoop : IGameLoop
         }        
     }
 
+    public void Resize(int width, int height)
+    {
+        this.FrameService.Resize(this.Device);
+    }
+
     public void Dispose()
     {
         this.RenderPipeline.Dispose();

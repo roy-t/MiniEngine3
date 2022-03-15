@@ -52,6 +52,8 @@ public sealed class Win32Window : IDisposable
         windowEvents.OnResize += (o, e) =>
         {
             this.IsMinimized = e.Width == 0 && e.Height == 0;
+            this.Width = e.Width;
+            this.Height = e.Height;
         };
 
         windowEvents.OnFocus += (o, e) =>

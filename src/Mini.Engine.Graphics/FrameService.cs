@@ -26,13 +26,25 @@ public sealed class FrameService : IDisposable
     /// </summary>
     public float Alpha { get; set; }
 
-    public GeometryBuffer GBuffer { get; }
-    public LightBuffer LBuffer { get; }
+    public GeometryBuffer GBuffer { get; private set; }
+    public LightBuffer LBuffer { get; private set; }
 
-    public PerspectiveCamera Camera;
+    public PerspectiveCamera Camera { get; private set; }
+
+    public void Resize(Device device)
+    {
+        this.Dispose();
+
+        this.GBuffer = new GeometryBuffer(device);
+        this.LBuffer = new LightBuffer(device);
+
+        var transform = this.Camera.Transform;
+        this.Camera = new PerspectiveCamera(this.GBuffer.AspectRatio, transform);
+    }
 
     public void Dispose()
     {
         this.GBuffer.Dispose();
+        this.LBuffer.Dispose();
     }
 }

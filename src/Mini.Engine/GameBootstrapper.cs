@@ -32,19 +32,24 @@ public sealed class GameBootstrapper
     private readonly Keyboard Keyboard;
     private bool enableUI = true;
 
+    private int width;
+    private int height;
+
     public GameBootstrapper(ILogger logger, Services services)
     {
         var stopWatch = Stopwatch.StartNew();
 
         this.Logger = logger.ForContext<GameBootstrapper>();
 
-        this.Window = Win32Application.Initialize("Mini.Engine", 900, 1300);
+        this.Window = Win32Application.Initialize("Mini.Engine", 1920, 1080);
         this.Window.Show();
+
+        this.width = this.Window.Width;
+        this.height = this.Window.Height;
 
         this.LoadRenderDoc(services);
 
-        // TODO: pass something that can tell the Device that the window size has changed so that it rebuilds the backbuffer and GBuffer
-        this.Device = new Device(this.Window.Handle, this.Window.Width, this.Window.Height);
+        this.Device = new Device(this.Window.Handle, this.width, this.height);
         this.InputService = new InputService(this.Window);
         this.Keyboard = new Keyboard();
         this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
@@ -64,23 +69,23 @@ public sealed class GameBootstrapper
         this.RunLoadingScreenAndLoad(gameLoopType, services);
 
         this.Logger.Information("Bootstrapping {@gameLoop} took: {@milliseconds}ms", gameLoopType, stopWatch.ElapsedMilliseconds);
-    }    
+    }
 
     [MemberNotNull(nameof(debugLayerLogger), nameof(ui), nameof(gameLoop))]
     private void RunLoadingScreenAndLoad(Type gameLoopType, Services services)
     {
-        var loadingScreen = services.Resolve<LoadingScreen>();        
+        var loadingScreen = services.Resolve<LoadingScreen>();
         var initializationOrder = InjectableDependencies.CreateInitializationOrder(gameLoopType);
         var serviceActions = initializationOrder.Select(t => new LoadAction(t.Name, () => services.Resolve(t)));
 
         DebugLayerLogger? debugLayerLogger = null;
-        EditorUserInterface? ui = null;        
+        EditorUserInterface? ui = null;
         IGameLoop? gameLoop = null;
 
         var actions = new List<LoadAction>(serviceActions)
         {
             new LoadAction(nameof(DebugLayerLogger), () => debugLayerLogger = services.Resolve<DebugLayerLogger>()),
-            new LoadAction(nameof(EditorUserInterface), () => ui = services.Resolve<EditorUserInterface>()),            
+            new LoadAction(nameof(EditorUserInterface), () => ui = services.Resolve<EditorUserInterface>()),
             new LoadAction(gameLoopType.Name, () => gameLoop = services.Resolve<IGameLoop>(gameLoopType)),
         };
 
@@ -88,12 +93,12 @@ public sealed class GameBootstrapper
 
         this.debugLayerLogger = debugLayerLogger!;
         this.ui = ui!;
-        
+
         this.gameLoop = gameLoop!;
     }
 
     public void Run()
-    {        
+    {
         var stopwatch = Stopwatch.StartNew();
 
         const double dt = 1.0 / 60.0; // constant tick rate of simulation
@@ -125,7 +130,7 @@ public sealed class GameBootstrapper
                         this.Window.Dispose();
                     }
 
-                    if(this.Keyboard.Pressed(F1))
+                    if (this.Keyboard.Pressed(F1))
                     {
                         this.enableUI = !this.enableUI;
                     }
@@ -147,9 +152,23 @@ public sealed class GameBootstrapper
                 this.ui.Render();
             }
             this.Device.Present();
+
+            if (!this.Window.IsMinimized && (this.Window.Width != this.width || this.Window.Height != this.height))
+            {
+                this.width = this.Window.Width;
+                this.height = this.Window.Height;
+                this.ResizeDeviceResources();
+            }
         }
     }
-   
+
+    private void ResizeDeviceResources()
+    {
+        this.Device.Resize(this.width, this.height);
+        this.ui.Resize(this.width, this.height);
+        this.gameLoop.Resize(this.width, this.height);
+    }
+
     private void LoadRenderDoc(Services services)
     {
         if (StartupArguments.EnableRenderDoc)
