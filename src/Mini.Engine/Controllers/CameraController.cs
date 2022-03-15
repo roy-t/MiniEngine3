@@ -4,20 +4,20 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Windows;
-using Vortice.Win32;
+using Windows.Win32.UI.KeyboardAndMouseInput;
 
 namespace Mini.Engine.Controllers;
 
 [Service]
 public sealed class CameraController
 {
-    private static readonly ushort CodeLeft = InputService.GetScanCode(VK.KEY_A);
-    private static readonly ushort CodeRight = InputService.GetScanCode(VK.KEY_D);
-    private static readonly ushort CodeForward = InputService.GetScanCode(VK.KEY_W);
-    private static readonly ushort CodeBackward = InputService.GetScanCode(VK.KEY_S);
-    private static readonly ushort CodeUp = InputService.GetScanCode(VK.SPACE);
-    private static readonly ushort CodeDown = InputService.GetScanCode(VK.KEY_C);
-    private static readonly ushort CodeReset = InputService.GetScanCode(VK.KEY_R);
+    private static readonly ushort CodeLeft = InputService.GetScanCode(VIRTUAL_KEY.VK_A);
+    private static readonly ushort CodeRight = InputService.GetScanCode(VIRTUAL_KEY.VK_D);
+    private static readonly ushort CodeForward = InputService.GetScanCode(VIRTUAL_KEY.VK_W);
+    private static readonly ushort CodeBackward = InputService.GetScanCode(VIRTUAL_KEY.VK_S);
+    private static readonly ushort CodeUp = InputService.GetScanCode(VIRTUAL_KEY.VK_SPACE);
+    private static readonly ushort CodeDown = InputService.GetScanCode(VIRTUAL_KEY.VK_C);
+    private static readonly ushort CodeReset = InputService.GetScanCode(VIRTUAL_KEY.VK_R);
 
     private const float MinLinearVelocity = 1.0f;
     private const float MaxLinearVelocity = 25.0f;

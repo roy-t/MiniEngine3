@@ -1,13 +1,17 @@
 ﻿using System;
 using ImGuiNET;
 using Mini.Engine.Windows;
-using Vortice.Win32;
-using static Vortice.Win32.User32;
+using Windows.Win32.Foundation;
+using static Windows.Win32.Constants;
+using static Windows.Win32.UI.KeyboardAndMouseInput.VIRTUAL_KEY;
+using static Windows.Win32.PInvoke;
 
 namespace Mini.Engine.UI;
 
 internal sealed class ImGuiInputHandler
 {
+    private const int WHEEL_DELTA = 120;
+
     private readonly IntPtr HWND;
     private ImGuiMouseCursor lastCursor;
 
@@ -22,22 +26,22 @@ internal sealed class ImGuiInputHandler
     {
         var io = ImGui.GetIO();
 
-        io.KeyMap[(int)ImGuiKey.Tab] = (int)VK.TAB;
-        io.KeyMap[(int)ImGuiKey.LeftArrow] = (int)VK.LEFT;
-        io.KeyMap[(int)ImGuiKey.RightArrow] = (int)VK.RIGHT;
-        io.KeyMap[(int)ImGuiKey.UpArrow] = (int)VK.UP;
-        io.KeyMap[(int)ImGuiKey.DownArrow] = (int)VK.DOWN;
-        io.KeyMap[(int)ImGuiKey.PageUp] = (int)VK.PRIOR;
-        io.KeyMap[(int)ImGuiKey.PageDown] = (int)VK.NEXT;
-        io.KeyMap[(int)ImGuiKey.Home] = (int)VK.HOME;
-        io.KeyMap[(int)ImGuiKey.End] = (int)VK.END;
-        io.KeyMap[(int)ImGuiKey.Insert] = (int)VK.INSERT;
-        io.KeyMap[(int)ImGuiKey.Delete] = (int)VK.DELETE;
-        io.KeyMap[(int)ImGuiKey.Backspace] = (int)VK.BACK;
-        io.KeyMap[(int)ImGuiKey.Space] = (int)VK.SPACE;
-        io.KeyMap[(int)ImGuiKey.Enter] = (int)VK.RETURN;
-        io.KeyMap[(int)ImGuiKey.Escape] = (int)VK.ESCAPE;
-        io.KeyMap[(int)ImGuiKey.KeypadEnter] = (int)VK.RETURN;
+        io.KeyMap[(int)ImGuiKey.Tab] = (int)VK_TAB;
+        io.KeyMap[(int)ImGuiKey.LeftArrow] = (int)VK_LEFT;
+        io.KeyMap[(int)ImGuiKey.RightArrow] = (int)VK_RIGHT;
+        io.KeyMap[(int)ImGuiKey.UpArrow] = (int)VK_UP;
+        io.KeyMap[(int)ImGuiKey.DownArrow] = (int)VK_DOWN;
+        io.KeyMap[(int)ImGuiKey.PageUp] = (int)VK_PRIOR;
+        io.KeyMap[(int)ImGuiKey.PageDown] = (int)VK_NEXT;
+        io.KeyMap[(int)ImGuiKey.Home] = (int)VK_HOME;
+        io.KeyMap[(int)ImGuiKey.End] = (int)VK_END;
+        io.KeyMap[(int)ImGuiKey.Insert] = (int)VK_INSERT;
+        io.KeyMap[(int)ImGuiKey.Delete] = (int)VK_DELETE;
+        io.KeyMap[(int)ImGuiKey.Backspace] = (int)VK_BACK;
+        io.KeyMap[(int)ImGuiKey.Space] = (int)VK_SPACE;
+        io.KeyMap[(int)ImGuiKey.Enter] = (int)VK_RETURN;
+        io.KeyMap[(int)ImGuiKey.Escape] = (int)VK_ESCAPE;
+        io.KeyMap[(int)ImGuiKey.KeypadEnter] = (int)VK_RETURN;
         io.KeyMap[(int)ImGuiKey.A] = 'A';
         io.KeyMap[(int)ImGuiKey.C] = 'C';
         io.KeyMap[(int)ImGuiKey.V] = 'V';
@@ -62,9 +66,9 @@ internal sealed class ImGuiInputHandler
     private void UpdateKeyModifiers()
     {
         var io = ImGui.GetIO();
-        io.KeyCtrl = (GetKeyState(VK.CONTROL) & 0x8000) != 0;
-        io.KeyShift = (GetKeyState(VK.SHIFT) & 0x8000) != 0;
-        io.KeyAlt = (GetKeyState(VK.MENU) & 0x8000) != 0;
+        io.KeyCtrl = (GetKeyState((int)VK_CONTROL) & 0x8000) != 0;
+        io.KeyShift = (GetKeyState((int)VK_SHIFT) & 0x8000) != 0;
+        io.KeyAlt = (GetKeyState((int)VK_MENU) & 0x8000) != 0;
         io.KeySuper = false;
     }
 
@@ -79,24 +83,24 @@ internal sealed class ImGuiInputHandler
         var requestedcursor = ImGui.GetMouseCursor();
         if (requestedcursor == ImGuiMouseCursor.None || io.MouseDrawCursor)
         {
-            SetCursor(IntPtr.Zero);
+            SetCursor(null);
         }
         else
         {
-            var cursor = SystemCursor.IDC_ARROW;
+            var cursor = "IDC_ARROW";
             switch (requestedcursor)
             {
-                case ImGuiMouseCursor.Arrow: cursor = SystemCursor.IDC_ARROW; break;
-                case ImGuiMouseCursor.TextInput: cursor = SystemCursor.IDC_IBEAM; break;
-                case ImGuiMouseCursor.ResizeAll: cursor = SystemCursor.IDC_SIZEALL; break;
-                case ImGuiMouseCursor.ResizeEW: cursor = SystemCursor.IDC_SIZEWE; break;
-                case ImGuiMouseCursor.ResizeNS: cursor = SystemCursor.IDC_SIZENS; break;
-                case ImGuiMouseCursor.ResizeNESW: cursor = SystemCursor.IDC_SIZENESW; break;
-                case ImGuiMouseCursor.ResizeNWSE: cursor = SystemCursor.IDC_SIZENWSE; break;
-                case ImGuiMouseCursor.Hand: cursor = SystemCursor.IDC_HAND; break;
-                case ImGuiMouseCursor.NotAllowed: cursor = SystemCursor.IDC_NO; break;
+                case ImGuiMouseCursor.Arrow: cursor = "IDC_ARROW"; break;
+                case ImGuiMouseCursor.TextInput: cursor = "IDC_IBEAM"; break;
+                case ImGuiMouseCursor.ResizeAll: cursor = "IDC_SIZEALL"; break;
+                case ImGuiMouseCursor.ResizeEW: cursor = "IDC_SIZEWE"; break;
+                case ImGuiMouseCursor.ResizeNS: cursor = "IDC_SIZENS"; break;
+                case ImGuiMouseCursor.ResizeNESW: cursor = "IDC_SIZENESW"; break;
+                case ImGuiMouseCursor.ResizeNWSE: cursor = "IDC_SIZENWSE"; break;
+                case ImGuiMouseCursor.Hand: cursor = "IDC_HAND"; break;
+                case ImGuiMouseCursor.NotAllowed: cursor = "IDC_NO"; break;
             }
-            SetCursor(LoadCursor(IntPtr.Zero, cursor));
+            SetCursor(LoadCursor(null, cursor));
         }
 
         return true;
@@ -108,23 +112,22 @@ internal sealed class ImGuiInputHandler
 
         if (io.WantSetMousePos)
         {
-            var pos = new POINT((int)io.MousePos.X, (int)io.MousePos.Y);
-            ClientToScreen(this.HWND, ref pos);
-            SetCursorPos(pos.X, pos.Y);
+            var pos = new POINT() { x = (int)io.MousePos.X, y = (int)io.MousePos.Y };
+            ClientToScreen((HWND)this.HWND, ref pos);
+            SetCursorPos(pos.x, pos.y);
         }
 
         var foregroundWindow = GetForegroundWindow();
-        if (foregroundWindow == this.HWND || IsChild(foregroundWindow, this.HWND))
+        if (foregroundWindow == this.HWND || IsChild(foregroundWindow, (HWND)this.HWND))
         {
-            POINT pos;
-            if (GetCursorPos(out pos) && ScreenToClient(this.HWND, ref pos))
+            if (GetCursorPos(out var pos) && ScreenToClient((HWND)this.HWND, ref pos))
             {
-                io.MousePos = new System.Numerics.Vector2(pos.X, pos.Y);
+                io.MousePos = new System.Numerics.Vector2(pos.x, pos.y);
             }
         }
     }
 
-    private bool ProcessMessage(WindowMessage msg, UIntPtr wParam, IntPtr lParam)
+    private bool ProcessMessage(uint msg, UIntPtr wParam, IntPtr lParam)
     {
         if (ImGui.GetCurrentContext() == IntPtr.Zero)
         {
@@ -132,40 +135,41 @@ internal sealed class ImGuiInputHandler
         }
 
         var io = ImGui.GetIO();
+
         switch (msg)
         {
-            case WindowMessage.LButtonDown:
-            case WindowMessage.LButtonDoubleClick:
-            case WindowMessage.RButtonDown:
-            case WindowMessage.RButtonDoubleClick:
-            case WindowMessage.MButtonDown:
-            case WindowMessage.MButtonDoubleClick:
-            case WindowMessage.XButtonDown:
-            case WindowMessage.XButtonDoubleClick:
+            case WM_LBUTTONDOWN:
+            case WM_LBUTTONDBLCLK:
+            case WM_RBUTTONDOWN:
+            case WM_RBUTTONDBLCLK:
+            case WM_MBUTTONDOWN:
+            case WM_MBUTTONDBLCLK:
+            case WM_XBUTTONDOWN:
+            case WM_XBUTTONDBLCLK:
                 {
                     int button = 0;
-                    if (msg == WindowMessage.LButtonDown || msg == WindowMessage.LButtonDoubleClick) { button = 0; }
-                    if (msg == WindowMessage.RButtonDown || msg == WindowMessage.RButtonDoubleClick) { button = 1; }
-                    if (msg == WindowMessage.MButtonDown || msg == WindowMessage.MButtonDoubleClick) { button = 2; }
-                    if (msg == WindowMessage.XButtonDown || msg == WindowMessage.XButtonDoubleClick) { button = (GET_XBUTTON_WPARAM(wParam) == 1) ? 3 : 4; }
+                    if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONDBLCLK) { button = 0; }
+                    if (msg == WM_RBUTTONDOWN || msg == WM_RBUTTONDBLCLK) { button = 1; }
+                    if (msg == WM_MBUTTONDOWN || msg == WM_MBUTTONDBLCLK) { button = 2; }
+                    if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONDBLCLK) { button = (GET_XBUTTON_WPARAM(wParam) == 1) ? 3 : 4; }
                     if (!ImGui.IsAnyMouseDown() && GetCapture() == IntPtr.Zero)
                     {
-                        SetCapture(this.HWND);
+                        SetCapture((HWND)this.HWND);
                     }
 
                     io.MouseDown[button] = true;
                     return false;
                 }
-            case WindowMessage.LButtonUp:
-            case WindowMessage.RButtonUp:
-            case WindowMessage.MButtonUp:
-            case WindowMessage.XButtonUp:
+            case WM_LBUTTONUP:
+            case WM_RBUTTONUP:
+            case WM_MBUTTONUP:
+            case WM_XBUTTONUP:
                 {
                     int button = 0;
-                    if (msg == WindowMessage.LButtonUp) { button = 0; }
-                    if (msg == WindowMessage.RButtonUp) { button = 1; }
-                    if (msg == WindowMessage.MButtonUp) { button = 2; }
-                    if (msg == WindowMessage.XButtonUp) { button = (GET_XBUTTON_WPARAM(wParam) == 1) ? 3 : 4; }
+                    if (msg == WM_LBUTTONUP) { button = 0; }
+                    if (msg == WM_RBUTTONUP) { button = 1; }
+                    if (msg == WM_MBUTTONUP) { button = 2; }
+                    if (msg == WM_XBUTTONUP) { button = (GET_XBUTTON_WPARAM(wParam) == 1) ? 3 : 4; }
                     io.MouseDown[button] = false;
                     if (!ImGui.IsAnyMouseDown() && GetCapture() == this.HWND)
                     {
@@ -174,33 +178,34 @@ internal sealed class ImGuiInputHandler
 
                     return false;
                 }
-            case WindowMessage.MouseWheel:
+            case WM_MOUSEWHEEL:
                 io.MouseWheel += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
                 return false;
-            case WindowMessage.MouseHWheel:
+            case WM_MOUSEHWHEEL:
                 io.MouseWheelH += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
                 return false;
-            case WindowMessage.KeyDown:
-            case WindowMessage.SysKeyDown:
+            case WM_KEYDOWN:
+            case WM_SYSKEYDOWN:
                 if ((ulong)wParam < 256)
                 {
                     io.KeysDown[(int)wParam] = true;
                 }
 
                 return false;
-            case WindowMessage.KeyUp:
-            case WindowMessage.SysKeyUp:
+            case WM_KEYUP:
+            case WM_SYSKEYUP:
                 if ((ulong)wParam < 256)
                 {
                     io.KeysDown[(int)wParam] = false;
                 }
 
                 return false;
-            case WindowMessage.Char:
+            case WM_CHAR:
                 io.AddInputCharacter((uint)wParam);
                 return false;
-            case WindowMessage.SetCursor:
-                if (Utils.Loword((int)(long)lParam) == 1 && this.UpdateMouseCursor())
+            case WM_SETCURSOR:
+                var low = Loword((int)lParam);
+                if (low == 1 && this.UpdateMouseCursor())
                 {
                     return true;
                 }
@@ -209,8 +214,24 @@ internal sealed class ImGuiInputHandler
         }
         return false;
     }
+    
+    private static int GET_WHEEL_DELTA_WPARAM(UIntPtr wParam)
+    {
+        return Hiword((int)wParam);
+    }
 
-    private static int WHEEL_DELTA = 120;
-    private static int GET_WHEEL_DELTA_WPARAM(UIntPtr wParam) => Utils.Hiword((int)wParam);
-    private static int GET_XBUTTON_WPARAM(UIntPtr wParam) => Utils.Hiword((int)wParam);
+    private static int GET_XBUTTON_WPARAM(UIntPtr wParam)
+    {
+        return Hiword((int)wParam);
+    }
+
+    private static int Loword(int number)
+    {
+        return number & 0x0000FFFF;
+    }
+
+    private static int Hiword(int number)
+    {
+        return number >> 16;
+    }
 }

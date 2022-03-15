@@ -3,12 +3,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Json;
 using Mini.Engine.Windows.Events;
-using Vortice;
-using Vortice.Win32;
 using Windows.Win32.UI.WindowsAndMessaging;
-using static Vortice.Win32.User32;
-using static Vortice.Win32.WindowExStyles;
-using static Vortice.Win32.WindowStyles;
+using Windows.Win32.Foundation;
 using static Windows.Win32.PInvoke;
 
 namespace Mini.Engine.Windows;
@@ -17,31 +13,33 @@ public sealed class Win32Window : IDisposable
 {
     private const string WindowSettingsFile = "window.json";
 
-    internal Win32Window(string title, WindowEvents windowEvents)
+    internal unsafe Win32Window(string title, WindowEvents windowEvents)
     {
         this.Title = title;
 
-        var screenWidth = GetSystemMetrics(SystemMetrics.SM_CXSCREEN);
-        var screenHeight = GetSystemMetrics(SystemMetrics.SM_CYSCREEN);
-        var left = screenWidth / 4;
-        var top = screenHeight / 4;
-        var right = left * 3;
-        var bottom = top * 3;
+        var screenWidth = GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
+        var screenHeight = GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN);
 
-        var windowRect = new RawRect(left, top, right, bottom);        
-
-        var style = WS_OVERLAPPEDWINDOW;
-        var styleEx = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-       
+        var windowRect = new RECT()
+        {
+            left = screenWidth / 4,
+            top = screenHeight / 4,
+            right = (screenWidth / 4) * 3,
+            bottom = (screenHeight / 4) * 3,
+        };
+        
+        var style = WINDOW_STYLE.WS_OVERLAPPEDWINDOW;
+        var styleEx = WINDOW_EX_STYLE.WS_EX_APPWINDOW | WINDOW_EX_STYLE.WS_EX_WINDOWEDGE;
+        
         AdjustWindowRectEx(ref windowRect, style, false, styleEx);
 
-        this.Width = windowRect.Right - windowRect.Left;
-        this.Height = windowRect.Bottom - windowRect.Top;
-
+        this.Width = windowRect.right - windowRect.left;
+        this.Height = windowRect.bottom - windowRect.top;
+        
         var hwnd = CreateWindowEx(
-            styleEx, "WndClass", this.Title, (int)style,
-            windowRect.Left, windowRect.Top, this.Width, this.Height,
-            IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+            styleEx, "WndClass", this.Title, style,
+            windowRect.left, windowRect.top, this.Width, this.Height,
+            (HWND)IntPtr.Zero, null, null, null);
 
         this.Handle = hwnd;
         
@@ -55,17 +53,14 @@ public sealed class Win32Window : IDisposable
         windowEvents.OnFocus += (o, e) => this.HasFocus = e;
         windowEvents.OnDestroy += (o, e) => TrySerializeWindowPosition(this.Handle);
 
-        var show = ShowWindowCommand.Normal;
+        var show = SHOW_WINDOW_CMD.SW_NORMAL;
         if (TryDeserializeWindowPosition(out var pos))
         {
-            SetWindowPlacement((global::Windows.Win32.Foundation.HWND)this.Handle, pos);
-            if (pos.showCmd == SHOW_WINDOW_CMD.SW_MAXIMIZE)
-            {
-                show = ShowWindowCommand.Maximize;
-            }
+            SetWindowPlacement((HWND)this.Handle, pos);
+            show = pos.showCmd;
         }
 
-        ShowWindow(this.Handle, show);
+        ShowWindow((HWND)this.Handle, show);
     }
 
     public string Title { get; }
@@ -77,7 +72,7 @@ public sealed class Win32Window : IDisposable
 
     public void Dispose()
     {
-        DestroyWindow(this.Handle);
+        DestroyWindow((HWND)this.Handle);
     }
 
     private static void TrySerializeWindowPosition(IntPtr handle)

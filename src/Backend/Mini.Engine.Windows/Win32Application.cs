@@ -2,9 +2,9 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Mini.Engine.Windows.Events;
-using Vortice.Win32;
-using static Vortice.Win32.User32;
 using static Windows.Win32.PInvoke;
+using static global::Windows.Win32.Constants;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Mini.Engine.Windows;
 
@@ -13,28 +13,33 @@ public static class Win32Application
     public static readonly WindowEvents WindowEvents = new WindowEvents();
     public static readonly RawEvents RawEvents = new RawEvents();
 
-    public static Win32Window Initialize(string title)
+    public static unsafe Win32Window Initialize(string title)
     {
 #nullable disable
         var moduleHandle = GetModuleHandle((string)null);
 #nullable restore
-        var wndClass = new WNDCLASSEX
+        var cursor = LoadCursor(null, "IDC_ARROW");
+        fixed (char* ptrClassName = "WndClass")
         {
-            Size = Unsafe.SizeOf<WNDCLASSEX>(),
-            Styles = WindowClassStyles.CS_HREDRAW | WindowClassStyles.CS_VREDRAW | WindowClassStyles.CS_OWNDC,
-            WindowProc = &WndProc,
-            InstanceHandle = moduleHandle.DangerousGetHandle(),
-            CursorHandle = LoadCursor(IntPtr.Zero, SystemCursor.IDC_ARROW),
-            BackgroundBrushHandle = IntPtr.Zero,
-            IconHandle = IntPtr.Zero,
-            ClassName = "WndClass"
-        };
+            var wndClass = new WNDCLASSEXW
+            {
+                cbSize = (uint)Marshal.SizeOf<WNDCLASSEXW>(),
+                style = WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW | WNDCLASS_STYLES.CS_OWNDC,
+                lpfnWndProc = &WndProc,
+                hInstance = (global::Windows.Win32.Foundation.HINSTANCE)moduleHandle.DangerousGetHandle(),
+                hCursor = (HCURSOR)cursor.DangerousGetHandle(),
+                hbrBackground = (global::Windows.Win32.Graphics.Gdi.HBRUSH)IntPtr.Zero,
+                hIcon = (HICON)IntPtr.Zero,
+                lpszClassName = new global::Windows.Win32.Foundation.PCWSTR(ptrClassName)
+            };
 
-        RegisterClassEx(ref wndClass);
+            RegisterClassEx(wndClass);
+        }
+        
         return new Win32Window(title, WindowEvents);
     }
 
-    public static void RegisterMessageListener(WindowMessage message, Action<UIntPtr, IntPtr> handler)
+    public static void RegisterMessageListener(uint message, Action<UIntPtr, IntPtr> handler)
     {
         RawEvents.OnEvent += (o, e) =>
         {
@@ -48,19 +53,18 @@ public static class Win32Application
     public static bool PumpMessages()
     {
         var @continue = true;
-        while (PeekMessage(out var msg, IntPtr.Zero, 0, 0, PM_REMOVE))
+        while (PeekMessage(out var msg, (global::Windows.Win32.Foundation.HWND)IntPtr.Zero, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE))
         {
-            TranslateMessage(ref msg);
-            DispatchMessage(ref msg);
-
-            @continue = @continue && (msg.Value != (uint)WindowMessage.Quit);
+            TranslateMessage(msg);
+            DispatchMessage(msg);            
+            @continue = @continue && (msg.message != WM_QUIT);
         }
 
         return @continue;
     }
 
-    [UnmanagedCallersOnly]
-    public static IntPtr WndProc(IntPtr hWnd, WindowMessage msg, UIntPtr wParam, IntPtr lParam)
+    [UnmanagedCallersOnly(CallConvs = new[] {typeof(CallConvStdcall)})]
+    public static global::Windows.Win32.Foundation.LRESULT WndProc(global::Windows.Win32.Foundation.HWND hWnd, uint msg, global::Windows.Win32.Foundation.WPARAM wParam, global::Windows.Win32.Foundation.LPARAM lParam)
     {
         // TODO: ideally we never want to expose these events, right now its necessary for input
         // but we should replace it with input system similar to what ImGui uses
@@ -70,7 +74,7 @@ public static class Win32Application
         WindowEvents.FireWindowEvents(hWnd, msg, wParam, lParam);
         switch (msg)
         {
-            case WindowMessage.Destroy:
+            case WM_DESTROY:
                 PostQuitMessage(0);
                 break;
         }

@@ -1,5 +1,4 @@
 ﻿using System;
-using Vortice.Win32;
 using Windows.Win32.UI.KeyboardAndMouseInput;
 
 namespace Mini.Engine.Windows;
@@ -20,9 +19,9 @@ internal static class KeyboardDecoder
         return (KeyFlags)input.data.keyboard.Flags;
     }
 
-    public static VK GetKey(RAWINPUT input)
+    public static VIRTUAL_KEY GetKey(RAWINPUT input)
     {
-        return (VK)input.data.keyboard.VKey;
+        return (VIRTUAL_KEY)input.data.keyboard.VKey;
     }
 
     public static ushort GetScanCode(RAWINPUT input)

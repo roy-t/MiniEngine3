@@ -1,7 +1,5 @@
 ﻿using System;
-using Vortice.Win32;
-using static Vortice.Win32.SizeMessage;
-using static Vortice.Win32.WindowMessage;
+using static Windows.Win32.Constants;
 
 namespace Mini.Engine.Windows.Events;
 
@@ -11,16 +9,16 @@ public sealed class WindowEvents
     public EventHandler<bool>? OnFocus;
     public EventHandler? OnDestroy;
 
-    internal void FireWindowEvents(IntPtr hWnd, WindowMessage msg, UIntPtr wParam, IntPtr lParam)
+    internal void FireWindowEvents(global::Windows.Win32.Foundation.HWND hWnd, uint msg, UIntPtr wParam, IntPtr lParam)
     {
         switch (msg)
         {
-            case Size:
+            case WM_SIZE:
                 var lp = (int)lParam;
-                var width = Utils.Loword(lp);
-                var height = Utils.Hiword(lp);
+                var width = Loword(lp);
+                var height = Hiword(lp);
 
-                switch ((SizeMessage)wParam)
+                switch ((uint)wParam)
                 {
                     case SIZE_RESTORED:
                     case SIZE_MAXIMIZED:
@@ -30,21 +28,31 @@ public sealed class WindowEvents
                 }
                 break;
 
-            case SetFocus:
+            case WM_SETFOCUS:
                 this.OnFocus?.Invoke(hWnd, true);
                 break;
 
-            case KillFocus:
+            case WM_KILLFOCUS:
                 this.OnFocus?.Invoke(hWnd, false);
                 break;
 
-            case Activate:
-                this.OnFocus?.Invoke(hWnd, Utils.Loword((int)wParam) != 0);
+            case WM_ACTIVATE:
+                this.OnFocus?.Invoke(hWnd, Loword((int)wParam) != 0);
                 break;
 
-            case Destroy:
+            case WM_DESTROY:
                 this.OnDestroy?.Invoke(hWnd, EventArgs.Empty);
                 break;
         }
+    }
+
+    private static int Loword(int number)
+    {
+        return number & 0x0000FFFF;
+    }
+
+    private static int Hiword(int number)
+    {
+        return number >> 16;
     }
 }

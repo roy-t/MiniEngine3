@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Vortice.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.KeyboardAndMouseInput;
 using static Windows.Win32.Constants;
@@ -28,7 +27,7 @@ public sealed class InputService
 
     public InputService(Win32Window window)
     {
-        Win32Application.RegisterMessageListener(WindowMessage.Input, (wParam, lParam) => this.ProcessMessage(wParam, lParam));
+        Win32Application.RegisterMessageListener(WM_INPUT, (wParam, lParam) => this.ProcessMessage(wParam, lParam));
 
         var devices = new RAWINPUTDEVICE[] { CreateKeyboard(window.Handle), CreateMouse(window.Handle) };
         var success = RegisterRawInputDevices(devices, (uint)Marshal.SizeOf<RAWINPUTDEVICE>());
@@ -72,7 +71,7 @@ public sealed class InputService
         }
     }
 
-    public static ushort GetScanCode(VK virtualKey)
+    public static ushort GetScanCode(VIRTUAL_KEY virtualKey)
     {
         return (ushort)MapVirtualKey((uint)virtualKey, MAPVK_VK_TO_VSC);
     }
