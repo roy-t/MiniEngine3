@@ -6,11 +6,11 @@ using Mini.Engine.Graphics.Transforms;
 namespace Mini.Engine.Graphics;
 
 public sealed class PerspectiveCamera : ITransformable<PerspectiveCamera>
-{        
+{
     public PerspectiveCamera(float aspectRatio, Transform transform)
     {
         this.Transform = transform;
-        this.AspectRatio = aspectRatio;        
+        this.AspectRatio = aspectRatio;
         this.ComputeMatrices();
 
         this.Frustum = new Frustum(this.ViewProjection);

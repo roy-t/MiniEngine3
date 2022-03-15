@@ -52,7 +52,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(PointLight.Normal, this.FrameService.GBuffer.Normal);
         this.Context.PS.SetShaderResource(PointLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
         this.Context.PS.SetShaderResource(PointLight.Material, this.FrameService.GBuffer.Material);
-        
+
         var camera = this.FrameService.Camera;
         Matrix4x4.Invert(camera.ViewProjection, out var inverseViewProjection);
         var cBuffer = new Constants()
@@ -60,7 +60,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
             InverseViewProjection = inverseViewProjection,
             CameraPosition = camera.Transform.Position
         };
-        this.ConstantBuffer.MapData(this.Context, cBuffer);        
+        this.ConstantBuffer.MapData(this.Context, cBuffer);
         this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
 
         this.Context.VS.SetConstantBuffer(PerLightConstants.Slot, this.PerLightConstantBuffer);
@@ -79,13 +79,13 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
         else
         {
             this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwiseNoDepthClip);
-        }        
+        }
 
         var world = Matrix4x4.CreateScale(component.RadiusOfInfluence) * transform.AsMatrix();
-        
+
         var cBuffer = new PerLightConstants()
-        {            
-            WorldViewProjection = world * camera.ViewProjection,                        
+        {
+            WorldViewProjection = world * camera.ViewProjection,
             LightPosition = transform.Transform.Position,
             Color = component.Color,
             Strength = component.Strength,
@@ -106,7 +106,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
     }
 
     public void Dispose()
-    {        
+    {
         this.ConstantBuffer.Dispose();
         this.PerLightConstantBuffer.Dispose();
         this.InputLayout.Dispose();

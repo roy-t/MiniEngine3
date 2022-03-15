@@ -24,7 +24,7 @@ public sealed class SceneManager
 
     public void Set(int index)
     {
-        if(this.activeScene >= 0)
+        if (this.activeScene >= 0)
         {
             this.Content.Pop();
         }

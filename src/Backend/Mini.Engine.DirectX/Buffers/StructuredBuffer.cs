@@ -31,7 +31,7 @@ public class StructuredBuffer<T> : DeviceBuffer<T>
             var bufferDescription = new BufferShaderResourceView()
             {
                 FirstElement = firstElement,
-                NumElements = length               
+                NumElements = length
             };
 
             var description = new ShaderResourceViewDescription()

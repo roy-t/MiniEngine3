@@ -24,7 +24,7 @@ public sealed class GeometryBuffer : IDisposable
     public float AspectRatio => (float)this.Width / (float)this.Height;
 
     public RenderTarget2D Albedo { get; }
-    public RenderTarget2D Material { get; } 
+    public RenderTarget2D Material { get; }
     public RenderTarget2D Normal { get; }
 
     public DepthStencilBuffer DepthStencilBuffer { get; }

@@ -1,13 +1,13 @@
 ﻿using System;
+using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.Skybox;
-using Mini.Engine.ECS.Systems;
-using Mini.Engine.ECS.Generators.Shared;
+using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
-using System.Numerics;
+using Mini.Engine.ECS.Generators.Shared;
+using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 namespace Mini.Engine.Graphics;
@@ -18,8 +18,8 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
     private readonly SkyboxVs VertexShader;
-    private readonly SkyboxPs PixelShader;    
-    private readonly FrameService FrameService;    
+    private readonly SkyboxPs PixelShader;
+    private readonly FrameService FrameService;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
 
     public SkyboxSystem(Device device, CubeMapGenerator cubeMapGenerator, FrameService frameService, SkyboxVs vertexShader, SkyboxPs pixelShader)
@@ -30,7 +30,7 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
         this.PixelShader = pixelShader;
         this.FrameService = frameService;
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(SkyboxSystem)}_CB");
-    }   
+    }
 
     public void OnSet()
     {
@@ -38,7 +38,7 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
         var depth = this.Device.DepthStencilStates.ReadOnly;
         this.Context.SetupFullScreenTriangle(this.VertexShader, this.PixelShader, blend, depth);
 
-        this.Context.PS.SetSampler(Skybox.TextureSampler, this.Device.SamplerStates.LinearClamp);        
+        this.Context.PS.SetSampler(Skybox.TextureSampler, this.Device.SamplerStates.LinearClamp);
 
         this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.LBuffer.Light);
     }
@@ -48,7 +48,7 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
     {
         var camera = this.FrameService.Camera;
 
-        var view = Matrix4x4.CreateLookAt(Vector3.Zero, camera.Transform.Forward, camera.Transform.Up);        
+        var view = Matrix4x4.CreateLookAt(Vector3.Zero, camera.Transform.Forward, camera.Transform.Up);
         var projection = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 2.0f, camera.AspectRatio, 0.1f, 1.5f);
         var worldViewProjection = view * projection;
         Matrix4x4.Invert(worldViewProjection, out var inverse);

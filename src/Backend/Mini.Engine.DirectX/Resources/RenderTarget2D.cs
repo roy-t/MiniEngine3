@@ -5,7 +5,7 @@ namespace Mini.Engine.DirectX.Resources;
 
 public sealed class RenderTarget2D : ITexture2D
 {
-    public RenderTarget2D(Device device, int width, int height, Format format, string name)        
+    public RenderTarget2D(Device device, int width, int height, Format format, string name)
     {
         this.Width = width;
         this.Height = height;

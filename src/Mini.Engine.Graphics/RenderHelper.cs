@@ -1,16 +1,16 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders;
+using Mini.Engine.Content.Shaders.TextureShader;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources;
-using Mini.Engine.Content.Shaders.TextureShader;
 
 namespace Mini.Engine.Graphics;
 
 [Service]
 public class RenderHelper
 {
-    private readonly Device Device;    
+    private readonly Device Device;
     private readonly FullScreenTriangleTextureVs VertexShader;
     private readonly TextureShaderPs PixelShader;
     private readonly TextureShaderFxaaPs FxaaPixelShader;
@@ -39,7 +39,7 @@ public class RenderHelper
     private void Render(DeviceContext context, ITexture2D texture)
     {
         context.PS.SetSampler(TextureShader.TextureSampler, this.Device.SamplerStates.LinearWrap);
-        context.PS.SetShaderResource(TextureShader.Texture, texture);        
+        context.PS.SetShaderResource(TextureShader.Texture, texture);
         context.Draw(3);
     }
 }

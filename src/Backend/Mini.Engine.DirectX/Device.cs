@@ -106,7 +106,7 @@ public sealed class Device : IDisposable
             swapChainDescription.Flags);
 
         this.CreateBackBuffer();
-    }   
+    }
 
     private void CreateBackBuffer()
     {

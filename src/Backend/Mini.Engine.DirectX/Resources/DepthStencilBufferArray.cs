@@ -16,14 +16,14 @@ public sealed class DepthStencilBufferArray : ITexture2D
 
         this.Texture = Textures.Create(device, width, height, ToTextureFormat(format), BindFlags.DepthStencil | BindFlags.ShaderResource, ResourceOptionFlags.None, length, false, nameof(DepthStencilBuffer));
         this.ShaderResourceView = CreateSRV(device, this.Texture, length, ToShaderResourceViewFormat(format), nameof(DepthStencilBuffer));
-        
+
         this.DepthStencilViews = new ID3D11DepthStencilView[length];
         for (var i = 0; i < length; i++)
         {
             var depthView = new DepthStencilViewDescription(DepthStencilViewDimension.Texture2DArray, ToDepthViewFormat(format), 0, i, 1);
             this.DepthStencilViews[i] = device.ID3D11Device.CreateDepthStencilView(this.Texture, depthView);
             this.DepthStencilViews[i].DebugName = $"{this.Name}_{i}_DSV";
-        }        
+        }
     }
 
     public string Name { get; }

@@ -1,12 +1,12 @@
-﻿using Mini.Engine.Configuration;
+﻿using System;
+using System.Numerics;
+using Mini.Engine.Configuration;
+using Mini.Engine.Content.Shaders;
+using Mini.Engine.Content.Shaders.CubeMapGenerator;
+using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.CubeMapGenerator;
-using System.Numerics;
-using System;
-using Mini.Engine.Core;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
@@ -49,13 +49,13 @@ public sealed class CubeMapGenerator
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;
 
-        var context = this.Device.ImmediateContext;        
+        var context = this.Device.ImmediateContext;
         context.SetupFullScreenTriangle(this.VertexShader, resolution, resolution, this.AlbedoPs, blend, depth);
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, equirectangular);
 
         this.RenderFaces(texture);
-        
+
         return texture;
     }
 
@@ -66,7 +66,7 @@ public sealed class CubeMapGenerator
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;
 
-        var context = this.Device.ImmediateContext;        
+        var context = this.Device.ImmediateContext;
         context.SetupFullScreenTriangle(this.VertexShader, resolution, resolution, this.IrradiancePs, blend, depth);
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, equirectangular);
@@ -98,16 +98,16 @@ public sealed class CubeMapGenerator
                 Roughness = roughness
             };
             this.EnvironmentConstantBuffer.MapData(context, constants);
-            context.RS.SetViewPort(0, 0, resolution >> slice , resolution >> slice);
+            context.RS.SetViewPort(0, 0, resolution >> slice, resolution >> slice);
             context.PS.SetConstantBuffer(EnvironmentConstants.Slot, this.EnvironmentConstantBuffer);
-        
+
             this.RenderFaces(texture, slice);
         }
 
-        
+
         return texture;
     }
-    
+
     private void RenderFaces(RenderTargetCube target, int mipSlice = 0)
     {
         var context = this.Device.ImmediateContext;

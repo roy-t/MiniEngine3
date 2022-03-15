@@ -37,7 +37,7 @@ internal sealed class SingleFrameLoop : IGameLoop
 
     public void Draw(float alpha)
     {
-        if(this.drawCalls == 0 && this.RenderDoc != null)
+        if (this.drawCalls == 0 && this.RenderDoc != null)
         {
             this.RenderDoc.TriggerCapture();
         }
@@ -55,13 +55,13 @@ internal sealed class SingleFrameLoop : IGameLoop
     {
         throw new NotSupportedException($"{nameof(SingleFrameLoop)} should not be resized during its short lifetime");
     }
-    
+
     public void Dispose()
     {
         if (this.RenderDoc != null)
         {
             var path = this.RenderDoc.GetCapture(this.RenderDoc.GetNumCaptures() - 1) ?? string.Empty;
-            this.RenderDoc.LaunchReplayUI(path);            
+            this.RenderDoc.LaunchReplayUI(path);
         }
     }
 }

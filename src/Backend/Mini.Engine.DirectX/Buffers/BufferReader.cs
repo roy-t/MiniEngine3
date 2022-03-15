@@ -13,7 +13,7 @@ public sealed class BufferReader<T> : IDisposable
     internal BufferReader(ID3D11DeviceContext context, ID3D11Buffer source)
     {
         this.Context = context;
-        this.Source = source;        
+        this.Source = source;
 
         this.Resource = context.Map(source, 0, MapMode.Read, MapFlags.None);
         context.Flush();

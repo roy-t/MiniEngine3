@@ -1,18 +1,18 @@
 ﻿using System;
+using System.Numerics;
 using Mini.Engine.Configuration;
+using Mini.Engine.Content.Shaders;
+using Mini.Engine.Content.Shaders.ShadowMap;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources;
-using Mini.Engine.ECS.Systems;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.ShadowMap;
-using Vortice.Direct3D;
 using Mini.Engine.ECS.Generators.Shared;
-using System.Numerics;
+using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Models;
-using Vortice.Direct3D11;
 using Mini.Engine.Graphics.Transforms;
+using Vortice.Direct3D;
+using Vortice.Direct3D11;
 
 namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 
@@ -42,7 +42,7 @@ public sealed partial class CascadedShadowMapSystem : IRenderServiceCallBack, IS
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(CascadedShadowMapSystem)}_CB");
 
         this.Frustum = new LightFrustum();
-    }    
+    }
 
     public void OnSet()
     {
@@ -92,10 +92,10 @@ public sealed partial class CascadedShadowMapSystem : IRenderServiceCallBack, IS
         this.Context.RS.SetViewPort(0, 0, depthStencilBuffers.Width, depthStencilBuffers.Height);
         this.Context.RS.SetScissorRect(0, 0, depthStencilBuffers.Width, depthStencilBuffers.Height);
         this.Context.OM.SetRenderTarget(depthStencilBuffers, slice);
-                
+
         this.Context.Clear(depthStencilBuffers, slice, DepthStencilClearFlags.Depth, 1.0f, 0);
 
-        
+
         this.RenderService.DrawAllModels(this, this.Context, viewVolume, viewProjection);
     }
 

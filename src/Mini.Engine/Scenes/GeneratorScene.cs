@@ -53,7 +53,7 @@ public sealed class GeneratorScene : IScene
     {
         return new List<LoadAction>()
         {
-            new LoadAction("Terrain", () => 
+            new LoadAction("Terrain", () =>
             {
                 this.GenerateTerrain();
                 this.Content.OnReloadCallback(new ContentId(@"Shaders\World\NoiseShader.hlsl", "Kernel") , _ => this.GenerateTerrain());

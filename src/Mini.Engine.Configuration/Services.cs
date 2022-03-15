@@ -33,7 +33,7 @@ public sealed class Services
         return instance != null;
     }
 
-    
+
 
     public void Register<T>(T instance)
     {

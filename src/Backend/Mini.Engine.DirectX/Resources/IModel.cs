@@ -9,6 +9,6 @@ public interface IModel : IDisposable
     VertexBuffer<ModelVertex> Vertices { get; }
     IndexBuffer<int> Indices { get; }
     BoundingBox Bounds { get; }
-    Primitive[] Primitives { get; }    
+    Primitive[] Primitives { get; }
     IMaterial[] Materials { get; }
 }

@@ -7,7 +7,7 @@ namespace Mini.Engine.UI.Panels;
 [Service]
 internal sealed class DebugPanel : IPanel
 {
-    private readonly DebugFrameService FrameService;    
+    private readonly DebugFrameService FrameService;
 
     public DebugPanel(DebugFrameService frameService)
     {

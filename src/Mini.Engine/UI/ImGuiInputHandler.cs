@@ -3,8 +3,8 @@ using ImGuiNET;
 using Mini.Engine.Windows;
 using Windows.Win32.Foundation;
 using static Windows.Win32.Constants;
-using static Windows.Win32.UI.KeyboardAndMouseInput.VIRTUAL_KEY;
 using static Windows.Win32.PInvoke;
+using static Windows.Win32.UI.KeyboardAndMouseInput.VIRTUAL_KEY;
 
 namespace Mini.Engine.UI;
 
@@ -100,7 +100,7 @@ internal sealed class ImGuiInputHandler
                 case ImGuiMouseCursor.Hand: cursor = IDC_HAND; break;
                 case ImGuiMouseCursor.NotAllowed: cursor = IDC_NO; break;
             }
-            
+
             var hCursor = LoadCursor((HINSTANCE)IntPtr.Zero, cursor);
             SetCursor(hCursor);
         }
@@ -216,7 +216,7 @@ internal sealed class ImGuiInputHandler
         }
         return false;
     }
-    
+
     private static int GET_WHEEL_DELTA_WPARAM(UIntPtr wParam)
     {
         return Hiword((int)wParam);

@@ -42,7 +42,7 @@ public sealed class GameBootstrapper
 
         this.Logger = logger.ForContext<GameBootstrapper>();
 
-        this.Window = Win32Application.Initialize("Mini.Engine");        
+        this.Window = Win32Application.Initialize("Mini.Engine");
 
         this.width = this.Window.Width;
         this.height = this.Window.Height;

@@ -3,8 +3,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Json;
 using Mini.Engine.Windows.Events;
-using Windows.Win32.UI.WindowsAndMessaging;
 using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 using static Windows.Win32.PInvoke;
 
 namespace Mini.Engine.Windows;
@@ -27,22 +27,22 @@ public sealed class Win32Window : IDisposable
             right = (screenWidth / 4) * 3,
             bottom = (screenHeight / 4) * 3,
         };
-        
+
         var style = WINDOW_STYLE.WS_OVERLAPPEDWINDOW;
         var styleEx = WINDOW_EX_STYLE.WS_EX_APPWINDOW | WINDOW_EX_STYLE.WS_EX_WINDOWEDGE;
-        
+
         AdjustWindowRectEx(ref windowRect, style, false, styleEx);
 
         this.Width = windowRect.right - windowRect.left;
         this.Height = windowRect.bottom - windowRect.top;
-        
+
         var hwnd = CreateWindowEx(
             styleEx, "WndClass", this.Title, style,
             windowRect.left, windowRect.top, this.Width, this.Height,
             (HWND)IntPtr.Zero, null, null, null);
 
         this.Handle = hwnd;
-        
+
         windowEvents.OnResize += (o, e) =>
         {
             this.IsMinimized = e.Width == 0 && e.Height == 0;
@@ -82,7 +82,7 @@ public sealed class Win32Window : IDisposable
             var placement = new WINDOWPLACEMENT() { length = (uint)Marshal.SizeOf<WINDOWPLACEMENT>() };
             var success = GetWindowPlacement((global::Windows.Win32.Foundation.HWND)handle, ref placement);
             if (success)
-            {                
+            {
                 using var stream = File.Create(WindowSettingsFile);
                 var serializer = new DataContractJsonSerializer(typeof(WINDOWPLACEMENT));
                 serializer.WriteObject(stream, placement);

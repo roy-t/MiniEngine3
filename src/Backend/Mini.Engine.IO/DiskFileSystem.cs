@@ -89,8 +89,8 @@ public sealed class DiskFileSystem : IVirtualFileSystem
     private static FileSystemWatcher CreateWatcher(string directory)
     {
         return new FileSystemWatcher(directory)
-        {            
-            NotifyFilter = NotifyFilters.LastWrite| NotifyFilters.FileName,
+        {
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
             Filter = "*",
             IncludeSubdirectories = true,
             EnableRaisingEvents = true,

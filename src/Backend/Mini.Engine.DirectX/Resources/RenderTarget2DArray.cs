@@ -54,7 +54,7 @@ public sealed class RenderTarget2DArray : ITexture2D
         {
             this.ID3D11RenderTargetViews[i].Dispose();
         }
-        
+
         this.ShaderResourceView.Dispose();
         this.Texture.Dispose();
     }

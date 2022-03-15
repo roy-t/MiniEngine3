@@ -52,14 +52,14 @@ internal sealed class ImGuiRenderer
             new InputElementDescription("TEXCOORD", 0, Format.R32G32_Float, 8, 0, InputClassification.PerVertexData, 0),
             new InputElementDescription("COLOR", 0, Format.R8G8B8A8_UNorm, 16, 0, InputClassification.PerVertexData, 0)
         );
-        
+
         this.FontTexture = CreateFontsTexture(device);
 
         var io = ImGui.GetIO();
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
         io.Fonts.TexID = this.TextureRegistry.Register(this.FontTexture);
-    }   
+    }
 
     public void Render(ImDrawDataPtr data)
     {
@@ -147,7 +147,7 @@ internal sealed class ImGuiRenderer
         context.IA.SetIndexBuffer(this.IndexBuffer);
         context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
         context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
-    }    
+    }
 
     private static ITexture2D CreateFontsTexture(Device device)
     {

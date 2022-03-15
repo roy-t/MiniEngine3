@@ -38,7 +38,7 @@ public sealed class CoffmanGraham<TProducerConsumer, TProduct>
             else
             {
                 unordered.Add(item);
-            }    
+            }
         }
 
         while (unordered.Count > 0)
@@ -90,7 +90,7 @@ public sealed class CoffmanGraham<TProducerConsumer, TProduct>
 
         NextCandidate: { }
         }
-       
+
         return maxDistance > int.MinValue;
     }
 

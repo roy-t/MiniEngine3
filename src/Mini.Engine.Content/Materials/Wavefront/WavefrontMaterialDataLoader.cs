@@ -98,5 +98,5 @@ internal sealed partial class WavefrontMaterialDataLoader : IContentDataLoader<M
         }
 
         return parent.RelativeTo(path);
-    }   
+    }
 }

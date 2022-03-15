@@ -1,19 +1,18 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Numerics;
 using ImGuiNET;
-using Mini.Engine.Content;
+using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.ColorShader;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
+using Mini.Engine.ECS.Generators.Shared;
+using Mini.Engine.ECS.Systems;
+using Mini.Engine.Graphics.Transforms;
+using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
-using Mini.Engine.ECS.Systems;
-using Mini.Engine.ECS.Generators.Shared;
-using Mini.Engine.Graphics.Transforms;
-using System.Diagnostics;
-using Vortice.Direct3D;
-using System.Numerics;
-using Mini.Engine.Configuration;
 
 namespace Mini.Engine.Graphics.Models;
 
@@ -44,7 +43,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
 
         this.VertexBuffer = new VertexBuffer<Vector3>(device, $"{nameof(BoundsSystem)}_VB");
         this.IndexBuffer = new IndexBuffer<ushort>(device, $"{nameof(BoundsSystem)}_IB");
-        this.IndexBuffer.MapData(this.Device.ImmediateContext, 
+        this.IndexBuffer.MapData(this.Device.ImmediateContext,
             0, 1, 1, 2, 2, 3, 3, 0,
             4, 5, 5, 6, 6, 7, 7, 4,
             0, 4, 1, 5, 2, 6, 3, 7
@@ -57,7 +56,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
             device,
             new InputElementDescription("POSITION", 0, Format.R32G32B32_Float, 0, 0, InputClassification.PerVertexData, 0)
         );
-        
+
         this.Buffer = new ImDrawVert[12];
     }
 
@@ -73,14 +72,14 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
                 Color = Vector4.One
             };
             this.ConstantBuffer.MapData(context, cBuffer);
-            
-            context.Setup(this.InputLayout, PrimitiveTopology.LineList,this.VertexShader, this.Device.RasterizerStates.CullNone, 0, 0, this.Device.Width, this.Device.Height, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
+
+            context.Setup(this.InputLayout, PrimitiveTopology.LineList, this.VertexShader, this.Device.RasterizerStates.CullNone, 0, 0, this.Device.Width, this.Device.Height, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
             context.OM.SetRenderTarget(this.DebugFrameService.DebugOverlay);
 
             context.IA.SetVertexBuffer(this.VertexBuffer);
             context.IA.SetIndexBuffer(this.IndexBuffer);
             context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
-            context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);            
+            context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
         }
     }
 

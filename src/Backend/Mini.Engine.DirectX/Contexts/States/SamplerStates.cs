@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Numerics;
 using Vortice.Direct3D11;
 using Vortice.Mathematics;
 

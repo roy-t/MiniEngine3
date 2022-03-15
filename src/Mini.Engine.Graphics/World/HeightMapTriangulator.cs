@@ -23,7 +23,7 @@ public sealed class HeightMapTriangulator
         var positions = new List<Vector3>();
         var vertices = new List<ModelVertex>();
 
-        for (var y = 0.0f; y <= dimensions - 1; y += 0.5f) 
+        for (var y = 0.0f; y <= dimensions - 1; y += 0.5f)
         {
             for (var x = 0.0f; x <= dimensions - 1; x += 0.5f)
             {
@@ -68,7 +68,7 @@ public sealed class HeightMapTriangulator
             }
         }
 
-        for(var i = 0; i < positions.Count; i++)
+        for (var i = 0; i < positions.Count; i++)
         {
             vertices.Add(new ModelVertex(positions[i], Vector2.Zero, Vector3.UnitY));
         }
@@ -110,7 +110,7 @@ public sealed class HeightMapTriangulator
     public IModel Triangulate(Device device, float[] heightMap, int dimensions, IMaterial material, string name)
     {
         (var indices, var vertices) = this.Triangulate(heightMap, dimensions);
-        
+
         var bounds = new BoundingBox(-Vector3.One * dimensions, Vector3.One * dimensions);// TODO: terrain should be normalized size
         var primitives = new Primitive[]
         {

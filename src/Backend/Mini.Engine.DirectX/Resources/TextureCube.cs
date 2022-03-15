@@ -19,7 +19,7 @@ public sealed class TextureCube : ITextureCube
 {
     public TextureCube(Device device, int resolution, Format format, bool generateMipMaps, string name)
     {
-        this.Resolution = resolution;        
+        this.Resolution = resolution;
         this.Format = format;
 
         this.Texture = Textures.Create(device, resolution, resolution, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.TextureCube, 6, generateMipMaps, name);
@@ -32,7 +32,7 @@ public sealed class TextureCube : ITextureCube
 
     public string Name { get; }
     public const int Faces = 6;
-    public int Resolution { get; }    
+    public int Resolution { get; }
     public Format Format { get; }
     public int MipMapSlices { get; }
 
@@ -40,7 +40,7 @@ public sealed class TextureCube : ITextureCube
     internal ID3D11Texture2D Texture { get; }
 
     ID3D11ShaderResourceView ITexture.ShaderResourceView => this.ShaderResourceView;
-    ID3D11Texture2D ITexture.Texture => this.Texture;    
+    ID3D11Texture2D ITexture.Texture => this.Texture;
 
     public void Dispose()
     {

@@ -28,7 +28,7 @@ public sealed class EditorUserInterface
         }
     }
 
-    private readonly UICore Core;    
+    private readonly UICore Core;
     private readonly MicroBenchmark MicroBenchmark;
     private readonly List<PanelRecord> Panels;
 
@@ -46,7 +46,7 @@ public sealed class EditorUserInterface
 
     public void NewFrame(float elapsed)
     {
-        this.Core.NewFrame(elapsed);        
+        this.Core.NewFrame(elapsed);
         this.MicroBenchmark.Update(elapsed);
 
         ImGui.DockSpaceOverViewport(ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode);

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection.Metadata;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Materials;
 using Mini.Engine.Content.Models;
@@ -70,7 +69,7 @@ public sealed partial class ContentManager : IDisposable
 
     public IModel LoadSponza()
     {
-        return this.LoadModel(@"Scenes\sponza\sponza.obj");        
+        return this.LoadModel(@"Scenes\sponza\sponza.obj");
     }
 
     public IModel LoadAsteroid()
@@ -117,7 +116,7 @@ public sealed partial class ContentManager : IDisposable
     {
         this.Track(content);
         this.ContentStack.Peek().Content.Add(content);
-    }    
+    }
 
     [Conditional("DEBUG")]
     private void Track(IContent content)
@@ -215,7 +214,7 @@ public sealed partial class ContentManager : IDisposable
                     break;
                 case IShaderContent shader:
                     shader.Dispose();
-                    break;               
+                    break;
                 case ExternalContent external:
                     external.Dispose();
                     break;

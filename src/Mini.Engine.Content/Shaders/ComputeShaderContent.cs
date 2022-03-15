@@ -26,7 +26,7 @@ public class ComputeShaderContent : ShaderContent<ID3D11ComputeShader>, ICompute
         var y = GetDispatchSize(this.NumThreadsY, dimY);
         var z = GetDispatchSize(this.NumThreadsZ, dimZ);
 
-        return new (x, y, z);
+        return new(x, y, z);
     }
 
     private static int GetDispatchSize(int numThreads, int dim)

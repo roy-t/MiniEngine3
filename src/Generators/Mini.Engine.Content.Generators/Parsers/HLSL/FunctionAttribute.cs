@@ -7,12 +7,12 @@ using ShaderTools.CodeAnalysis.Syntax;
 namespace Mini.Engine.Content.Generators.Parsers.HLSL
 {
     public static class FunctionAttribute
-    {       
+    {
         public static IReadOnlyDictionary<string, IReadOnlyList<string>> FindAll(SyntaxNodeBase startingNode)
         {
             return startingNode.DescendantNodesAndSelf()
                 .Where(node => node.IsKind(SyntaxKind.AttributeDeclaration))
-                .Cast<AttributeDeclarationSyntax>()                
+                .Cast<AttributeDeclarationSyntax>()
                 .ToDictionary(a => FindName(a), a => FindArguments(a));
         }
 

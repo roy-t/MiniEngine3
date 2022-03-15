@@ -25,7 +25,7 @@ public sealed class OutputMergerContext : DeviceContextPart
         this.ID3D11DeviceContext.OMSetRenderTargets(base.DeviceContext.Device.BackBufferView, depthStencilBuffer?.DepthStencilView);
     }
 
-    public void SetRenderTarget(DepthStencilBuffer depthStencilBuffer )
+    public void SetRenderTarget(DepthStencilBuffer depthStencilBuffer)
     {
 #nullable disable
         this.ID3D11DeviceContext.OMSetRenderTargets((ID3D11RenderTargetView)null, depthStencilBuffer.DepthStencilView);

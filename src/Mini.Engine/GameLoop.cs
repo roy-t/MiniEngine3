@@ -38,7 +38,7 @@ internal sealed class GameLoop : IGameLoop
         this.DebugPipeline = debugBuilder.Build();
 
         content.Push("Game");
-        this.SceneManager.Set(0);        
+        this.SceneManager.Set(0);
     }
 
     public void Update(float time, float elapsed)
@@ -65,7 +65,7 @@ internal sealed class GameLoop : IGameLoop
                 this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();
                 this.FXAARenderer.Render(this.Device.ImmediateContext, this.DebugFrameService.DebugOverlay, 0, 0, this.Device.Width, this.Device.Height);
             }
-        }        
+        }
     }
 
     public void Resize(int width, int height)

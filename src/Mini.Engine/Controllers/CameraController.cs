@@ -53,7 +53,7 @@ public sealed class CameraController
         {
             camera.MoveTo(Vector3.UnitZ * 10);
             camera.FaceTargetConstrained(Vector3.Zero, Vector3.UnitY);
-        }    
+        }
 
         if (horizontal.LengthSquared() > 0 || vertical.LengthSquared() > 0)
         {

@@ -20,9 +20,9 @@ internal sealed class Texture2DContent : ITexture2D, IContent
         this.Id = id;
         this.Loader = loader;
         this.Settings = settings;
-        this.Reload(device);        
+        this.Reload(device);
     }
-    
+
     public ContentId Id { get; }
     public string Name => this.texture.Name;
     public int Width => this.texture.Width;
@@ -31,7 +31,7 @@ internal sealed class Texture2DContent : ITexture2D, IContent
     public int MipMapSlices => this.texture.MipMapSlices;
 
     ID3D11ShaderResourceView ITexture.ShaderResourceView => this.texture.ShaderResourceView;
-    ID3D11Texture2D ITexture.Texture => this.texture.Texture;    
+    ID3D11Texture2D ITexture.Texture => this.texture.Texture;
 
     [MemberNotNull(nameof(texture))]
     public void Reload(Device device)

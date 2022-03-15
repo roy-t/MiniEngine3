@@ -80,7 +80,7 @@ public sealed class RWStructuredBuffer<T> : StructuredBuffer<T>
             OptionFlags = ResourceOptionFlags.BufferStructured,
             StructureByteStride = this.PrimitiveSizeInBytes
         };
-        
+
         return this.Device.CreateBuffer(structuredBufferDesc);
     }
 

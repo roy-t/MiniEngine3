@@ -2,10 +2,10 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Mini.Engine.Windows.Events;
-using static Windows.Win32.PInvoke;
-using static global::Windows.Win32.Constants;
-using Windows.Win32.UI.WindowsAndMessaging;
 using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
+using static global::Windows.Win32.Constants;
+using static Windows.Win32.PInvoke;
 
 namespace Mini.Engine.Windows;
 
@@ -36,7 +36,7 @@ public static class Win32Application
 
             RegisterClassEx(wndClass);
         }
-        
+
         return new Win32Window(title, WindowEvents);
     }
 
@@ -57,14 +57,14 @@ public static class Win32Application
         while (PeekMessage(out var msg, (global::Windows.Win32.Foundation.HWND)IntPtr.Zero, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE))
         {
             TranslateMessage(msg);
-            DispatchMessage(msg);            
+            DispatchMessage(msg);
             @continue = @continue && (msg.message != WM_QUIT);
         }
 
         return @continue;
     }
 
-    [UnmanagedCallersOnly(CallConvs = new[] {typeof(CallConvStdcall)})]
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
     public static global::Windows.Win32.Foundation.LRESULT WndProc(global::Windows.Win32.Foundation.HWND hWnd, uint msg, global::Windows.Win32.Foundation.WPARAM wParam, global::Windows.Win32.Foundation.LPARAM lParam)
     {
         // TODO: ideally we never want to expose these events, right now its necessary for input

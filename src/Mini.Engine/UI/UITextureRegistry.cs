@@ -7,7 +7,7 @@ namespace Mini.Engine.UI;
 
 [Service]
 public sealed class UITextureRegistry
-{    
+{
     private readonly Dictionary<IntPtr, ITexture2D> TextureResources;
     private int textureCounter;
 

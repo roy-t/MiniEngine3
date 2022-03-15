@@ -112,7 +112,7 @@ public static partial class SphereGenerator
         var v0 = Vector3.Transform(basis, Matrix4x4.CreateRotationY(-MathHelper.PiOver4));
         var v1 = Vector3.Transform(basis, Matrix4x4.CreateRotationY(MathHelper.PiOver4));
 
-        var target = Vector3.Normalize(Vector3.Transform(basis, Matrix4x4.CreateRotationY(angle)));        
+        var target = Vector3.Normalize(Vector3.Transform(basis, Matrix4x4.CreateRotationY(angle)));
         var plane = Plane.CreateFromVertices(v0, v1, v1 + Vector3.UnitY);
         var ray = new Ray(Vector3.Zero, target);
         var distance = ray.Intersects(plane).GetValueOrDefault();

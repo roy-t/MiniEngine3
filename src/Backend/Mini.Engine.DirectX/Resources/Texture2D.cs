@@ -53,6 +53,6 @@ public sealed class Texture2D : ITexture2D
     public void Dispose()
     {
         this.ShaderResourceView.Dispose();
-        this.Texture.Dispose();        
+        this.Texture.Dispose();
     }
 }

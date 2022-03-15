@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mini.Engine.DirectX.Resources;
+﻿namespace Mini.Engine.DirectX.Resources;
 
 public interface IMaterial
 {

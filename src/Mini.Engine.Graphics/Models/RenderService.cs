@@ -37,7 +37,7 @@ public sealed class RenderService
     public void DrawModel(IRenderServiceCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IModel model, Transform transform)
     {
         var world = transform.Matrix;
-        var bounds = model.Bounds.Transform(world);        
+        var bounds = model.Bounds.Transform(world);
 
         if (viewVolume.ContainsOrIntersects(bounds))
         {

@@ -35,5 +35,5 @@ public sealed class InputAssemblerContext : DeviceContextPart
     public void SetPrimitiveTopology(PrimitiveTopology topology)
     {
         this.ID3D11DeviceContext.IASetPrimitiveTopology(topology);
-    }   
+    }
 }

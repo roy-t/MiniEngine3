@@ -23,7 +23,7 @@ public sealed class NoiseGenerator
     public float[] Generate(int dimensions)
     {
         var context = this.Device.ImmediateContext;
-        
+
         var vertices = new float[dimensions * dimensions];
         var cBuffer = new Constants()
         {
@@ -34,19 +34,19 @@ public sealed class NoiseGenerator
 
         using var input = new StructuredBuffer<float>(this.Device, "input");
         input.MapData(context, vertices);
-        
+
         using var output = new RWStructuredBuffer<float>(this.Device, "output", vertices.Length);
-        
+
         context.CS.SetShader(this.Kernel);
         context.CS.SetShaderResource(NoiseShader.Tile, input);
         context.CS.SetUnorderedAccessView(NoiseShader.World, output);
 
-        var size = this.Kernel.GetDispatchSize(dimensions, dimensions, 1);
-        context.CS.Dispatch(size.X, size.Y, size.Z);
+        var (x, y, z) = this.Kernel.GetDispatchSize(dimensions, dimensions, 1);
+        context.CS.Dispatch(x, y, z);
 
         var data = new float[vertices.Length];
         output.ReadData(context, data);
 
         return data;
-    }      
+    }
 }

@@ -28,7 +28,7 @@ internal sealed class MaterialContent : IMaterial, IContent
     public ITexture2D Normal => this.material.Normal;
     public ITexture2D Roughness => this.material.Roughness;
     public ITexture2D AmbientOcclusion => this.material.AmbientOcclusion;
-    
+
     [MemberNotNull(nameof(material))]
     public void Reload(Device device)
     {

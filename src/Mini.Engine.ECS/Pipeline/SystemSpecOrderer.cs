@@ -51,7 +51,7 @@ public static class SystemSpecOrderer
             }
         }
         return single;
-    }   
+    }
 
     private static IReadOnlyList<SystemSpec> ExpandRequirements(IReadOnlyList<SystemSpec> systemSpecs)
     {

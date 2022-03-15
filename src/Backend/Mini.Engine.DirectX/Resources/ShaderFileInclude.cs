@@ -54,11 +54,11 @@ internal sealed class ShaderFileInclude : CallbackBase, Include
     {
         if (disposing)
         {
-            foreach(var record in this.Streams)
+            foreach (var record in this.Streams)
             {
                 record.Key.Dispose();
             }
             this.Streams.Clear();
-        }        
+        }
     }
 }

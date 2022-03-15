@@ -10,5 +10,5 @@ public interface IVirtualFileSystem
     string NormalizePath(string path);
     IEnumerable<string> GetChangedFiles();
     void WatchFile(string path);
-    
+
 }

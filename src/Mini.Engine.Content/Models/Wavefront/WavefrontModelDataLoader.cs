@@ -77,7 +77,7 @@ internal sealed partial class WavefrontModelDataLoader : IContentDataLoader<Mode
         var indices = new List<int>(state.Faces.Count * 3);
         var primitives = new List<Primitive>(state.Groups.Count);
         var faces = new List<int[]>(state.Faces.Count);
-                
+
         var indexLookUp = new Dictionary<ModelVertex, int>(new ModelVertexComparer());
 
         var indexBuffer = new int[4];
@@ -116,7 +116,7 @@ internal sealed partial class WavefrontModelDataLoader : IContentDataLoader<Mode
 
             if (face.Length == 3)
             {
-                faces.Add(new int[] { indexBuffer[0], indexBuffer[1], indexBuffer[2]});
+                faces.Add(new int[] { indexBuffer[0], indexBuffer[1], indexBuffer[2] });
             }
             else if (face.Length == 4)
             {
@@ -127,7 +127,7 @@ internal sealed partial class WavefrontModelDataLoader : IContentDataLoader<Mode
                 throw new Exception($"Face is not a triangle or quad but a polygon with {face.Length} vertices");
             }
         }
-        
+
         for (var g = 0; g < state.Groups.Count; g++)
         {
             var group = state.Groups[g];
@@ -155,8 +155,8 @@ internal sealed partial class WavefrontModelDataLoader : IContentDataLoader<Mode
             }
 
             var materialIndex = GetMaterialIdForGroup(materials, group);
-            var indexCount = indices.Count - startIndex; 
-            
+            var indexCount = indices.Count - startIndex;
+
             var primitiveBounds = ComputeBounds(indices, vertices, startIndex, indexCount);
             primitives.Add(new Primitive(group.Name, primitiveBounds, materialIndex, startIndex, indexCount));
         }
@@ -171,7 +171,7 @@ internal sealed partial class WavefrontModelDataLoader : IContentDataLoader<Mode
         for (var i = 0; i < indexCount; i++)
         {
             positions[i] = vertices[indices[startIndex + i]].Position;
-        }        
+        }
         return BoundingBox.CreateFromPoints(positions);
     }
 

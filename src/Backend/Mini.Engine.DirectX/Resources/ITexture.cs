@@ -14,9 +14,9 @@ public interface ITexture : IDisposable
 }
 
 public interface ITexture2D : ITexture
-{ 
+{
     public int Width { get; }
-    public int Height { get; }    
+    public int Height { get; }
 }
 
 public interface ITextureCube : ITexture

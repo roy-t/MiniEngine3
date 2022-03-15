@@ -38,7 +38,7 @@ internal sealed class ShaderResourcePanel : IPanel
             debugFrameService.DebugOverlay,
         };
 
-        this.Ids = this.Textures.Select(rt => textureRegistry.Register(rt)).ToArray();        
+        this.Ids = this.Textures.Select(rt => textureRegistry.Register(rt)).ToArray();
     }
 
     public string Title => "Shader Resources";
@@ -64,7 +64,7 @@ internal sealed class ShaderResourcePanel : IPanel
         }
 
         var selected = this.Textures[this.selected];
-        
+
         ImGui.Image(this.Ids[this.selected], Fit(selected, ImGui.GetWindowContentRegionMax().X));
     }
 

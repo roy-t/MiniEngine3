@@ -1,14 +1,14 @@
 ﻿using System;
+using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.DirectX.Contexts;
-using Mini.Engine.DirectX;
-using Mini.Engine.ECS.Systems;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.SunLight;
+using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
+using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Generators.Shared;
+using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
-using System.Numerics;
 
 namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 
@@ -47,7 +47,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(SunLight.Material, this.FrameService.GBuffer.Material);
 
         this.Context.PS.SetSampler(SunLight.ShadowSampler, this.Device.SamplerStates.CompareLessEqualClamp);
-        
+
         this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
     }
 
@@ -81,7 +81,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
 
         this.Context.Draw(3);
     }
-    
+
     private static Matrix4x4 Pack(Vector4[] vectors)
     {
         return new Matrix4x4

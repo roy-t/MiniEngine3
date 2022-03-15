@@ -27,7 +27,7 @@ internal class ParseState : IParseState
     public string Metalicness { get; internal set; }
     public string Normal { get; internal set; }
     public string Roughness { get; internal set; }
-    public string AmbientOcclusion { get; internal set; }    
+    public string AmbientOcclusion { get; internal set; }
 
     public void NewMaterial(string material)
     {

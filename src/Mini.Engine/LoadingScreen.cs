@@ -23,13 +23,13 @@ public sealed class LoadingScreen
     private readonly UICore UI;
     private readonly Services Services;
 
-    public LoadingScreen(ILogger logger, Device device, UICore ui,  Services services)
+    public LoadingScreen(ILogger logger, Device device, UICore ui, Services services)
     {
         this.Logger = logger.ForContext<LoadingScreen>();
         this.Device = device;
         this.UI = ui;
         this.Services = services;
-    }    
+    }
 
     public void Load(IReadOnlyList<LoadAction> actions, string description)
     {
@@ -42,7 +42,7 @@ public sealed class LoadingScreen
     {
         var reportWatch = Stopwatch.StartNew();
         var accumulator = double.MaxValue;
-        
+
         var index = 0;
 
         while (Win32Application.PumpMessages() && index < count)
@@ -62,7 +62,7 @@ public sealed class LoadingScreen
             onLoad(index++);
         }
 
-        this.RenderWindow("Completed", 1.0f);        
+        this.RenderWindow("Completed", 1.0f);
     }
 
     private void RenderWindow(string message, float progress)

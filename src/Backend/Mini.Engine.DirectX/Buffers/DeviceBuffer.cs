@@ -74,7 +74,7 @@ public abstract class DeviceBuffer<T> : IDisposable
     public BufferWriter<T> OpenWriter(DeviceContext context)
     {
         return new(context.ID3D11DeviceContext, this.Buffer);
-    }    
+    }
 
     public virtual void Dispose()
     {

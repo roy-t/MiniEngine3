@@ -17,7 +17,7 @@ public abstract class DeviceContext : IDisposable
         this.ID3D11DeviceContext.DebugName = name;
 
         this.IA = new InputAssemblerContext(this);
-        this.VS = new VertexShaderContext(this);        
+        this.VS = new VertexShaderContext(this);
         this.RS = new RasterizerContext(this);
         this.PS = new PixelShaderContext(this);
         this.OM = new OutputMergerContext(this);
@@ -25,7 +25,7 @@ public abstract class DeviceContext : IDisposable
     }
 
     public InputAssemblerContext IA { get; }
-    public VertexShaderContext VS { get; }    
+    public VertexShaderContext VS { get; }
     public RasterizerContext RS { get; }
     public PixelShaderContext PS { get; }
     public OutputMergerContext OM { get; }
@@ -33,7 +33,7 @@ public abstract class DeviceContext : IDisposable
 
     public void DrawIndexed(int indexCount, int indexOffset, int vertexOffset)
     {
-        this.ID3D11DeviceContext.DrawIndexed(indexCount, indexOffset, vertexOffset);        
+        this.ID3D11DeviceContext.DrawIndexed(indexCount, indexOffset, vertexOffset);
     }
 
     public void Draw(int vertexCount, int startVertexLocation = 0)
@@ -73,7 +73,7 @@ public abstract class DeviceContext : IDisposable
 
     public void ClearBackBuffer(Color4 color)
     {
-        this.ID3D11DeviceContext.ClearRenderTargetView(this.Device.BackBufferView, color);        
+        this.ID3D11DeviceContext.ClearRenderTargetView(this.Device.BackBufferView, color);
     }
 
     public void Setup(InputLayout inputLayout, IVertexShader vertex, IPixelShader pixel, BlendState blend, DepthStencilState depth)

@@ -3,14 +3,12 @@ using System.IO;
 using Mini.Engine.Content.Materials.Wavefront;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
-using Vortice.DXGI;
 
 namespace Mini.Engine.Content.Materials;
 
 internal sealed class MaterialLoader : IContentLoader<MaterialContent>
-{    
+{
     private readonly IContentDataLoader<MaterialData> WavefrontMaterialDataLoader;
     private readonly ContentManager Content;
 

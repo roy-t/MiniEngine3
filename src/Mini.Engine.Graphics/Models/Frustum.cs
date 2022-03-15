@@ -29,7 +29,7 @@ public sealed class Frustum
         };
     }
 
-    public Plane[] Planes {get;}
+    public Plane[] Planes { get; }
     public Vector3[] Corners { get; }
 
     public bool ContainsOrIntersects(BoundingBox box)
@@ -38,7 +38,7 @@ public sealed class Frustum
         {
             var plane = this.Planes[i];
             var intersection = box.Intersects(ref plane);
-          
+
             if (intersection == PlaneIntersectionType.Front)
             {
                 return false;

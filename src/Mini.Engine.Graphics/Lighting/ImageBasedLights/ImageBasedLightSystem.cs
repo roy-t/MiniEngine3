@@ -1,14 +1,14 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using Mini.Engine.Configuration;
+using Mini.Engine.Content.Shaders;
+using Mini.Engine.Content.Shaders.ImageBasedLight;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS.Generators.Shared;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.ImageBasedLight;
 using Mini.Engine.ECS.Systems;
-using System;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
@@ -16,14 +16,14 @@ namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
 {
     private readonly Device Device;
-    private readonly DeferredDeviceContext Context;    
+    private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
     private readonly FullScreenTriangleTextureVs VertexShader;
     private readonly ImageBasedLightPs PixelShader;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
     private readonly ConstantBuffer<PerLightConstants> PerLightConstantBuffer;
 
-    private readonly ITexture2D BrdfLut;    
+    private readonly ITexture2D BrdfLut;
 
     public ImageBasedLightSystem(Device device, FrameService frameService, BrdfLutGenerator generator, FullScreenTriangleTextureVs vertexShader, ImageBasedLightPs pixelShader)
     {
@@ -38,7 +38,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.PerLightConstantBuffer = new ConstantBuffer<PerLightConstants>(device, $"{nameof(ImageBasedLightSystem)}_per_light_CB");
 
         this.BrdfLut = generator.Generate();
-    }  
+    }
 
     public void OnSet()
     {
@@ -64,11 +64,11 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         };
         this.ConstantBuffer.MapData(this.Context, constants);
         this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
-    }   
+    }
 
     [Process(Query = ProcessQuery.All)]
     public void Render(SkyboxComponent skybox)
-    {        
+    {
         var constants = new PerLightConstants
         {
             MaxReflectionLod = skybox.Environment.MipMapSlices,

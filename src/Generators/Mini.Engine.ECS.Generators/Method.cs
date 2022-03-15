@@ -10,7 +10,7 @@ namespace Mini.Engine.ECS.Generators
     {
         public Method(MethodDeclarationSyntax method)
         {
-            this.Name = method.Identifier.ValueText;            
+            this.Name = method.Identifier.ValueText;
 
             this.Components = method.ParameterList.Parameters
                 .Select(parameter => GetTypeName(parameter.Type))
@@ -52,7 +52,7 @@ namespace Mini.Engine.ECS.Generators
             if (type is ArrayTypeSyntax arrayType)
             {
                 var elementType = GetTypeName(arrayType.ElementType);
-                return $"{elementType}[]";                
+                return $"{elementType}[]";
             }
 
             throw new Exception($"Unexpected parameter type {type.GetType().FullName}");

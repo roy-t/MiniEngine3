@@ -45,7 +45,7 @@ public sealed partial class ModelSystem : IRenderServiceCallBack, ISystem, IDisp
         this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
         this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
         this.Context.PS.SetSampler(Geometry.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);
-        this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal);                
+        this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal);
     }
 
     [Process(Query = ProcessQuery.All)]
