@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Json;
 using Mini.Engine.Windows.Events;
 using Vortice;
 using Vortice.Win32;
@@ -14,41 +15,36 @@ namespace Mini.Engine.Windows;
 
 public sealed class Win32Window : IDisposable
 {
-    private const string WindowSettingsFile = "window.ini";
+    private const string WindowSettingsFile = "window.json";
 
-    internal Win32Window(string title, int width, int height, WindowEvents windowEvents)
+    internal Win32Window(string title, WindowEvents windowEvents)
     {
         this.Title = title;
-        this.Width = width;
-        this.Height = height;
 
         var screenWidth = GetSystemMetrics(SystemMetrics.SM_CXSCREEN);
         var screenHeight = GetSystemMetrics(SystemMetrics.SM_CYSCREEN);
-        var x = (screenWidth - this.Width) / 2;
-        var y = (screenHeight - this.Height) / 2;
+        var left = screenWidth / 4;
+        var top = screenHeight / 4;
+        var right = left * 3;
+        var bottom = top * 3;
 
-        if (TryDeserializeWindowPosition(out var pos))
-        {
-            x = pos.Left;
-            y = pos.Top;
-        }
+        var windowRect = new RawRect(left, top, right, bottom);        
 
         var style = WS_OVERLAPPEDWINDOW;
         var styleEx = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-
-        var windowRect = new RawRect(0, 0, this.Width, this.Height);
+       
         AdjustWindowRectEx(ref windowRect, style, false, styleEx);
 
-        var windowWidth = windowRect.Right - windowRect.Left;
-        var windowHeight = windowRect.Bottom - windowRect.Top;
+        this.Width = windowRect.Right - windowRect.Left;
+        this.Height = windowRect.Bottom - windowRect.Top;
 
         var hwnd = CreateWindowEx(
             styleEx, "WndClass", this.Title, (int)style,
-            x, y, windowWidth, windowHeight,
+            windowRect.Left, windowRect.Top, this.Width, this.Height,
             IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
 
         this.Handle = hwnd;
-
+        
         windowEvents.OnResize += (o, e) =>
         {
             this.IsMinimized = e.Width == 0 && e.Height == 0;
@@ -56,55 +52,20 @@ public sealed class Win32Window : IDisposable
             this.Height = e.Height;
         };
 
-        windowEvents.OnFocus += (o, e) =>
-        {
-            this.HasFocus = e;
-        };
+        windowEvents.OnFocus += (o, e) => this.HasFocus = e;
+        windowEvents.OnDestroy += (o, e) => TrySerializeWindowPosition(this.Handle);
 
-        windowEvents.OnDestroy += (o, e) =>
+        var show = ShowWindowCommand.Normal;
+        if (TryDeserializeWindowPosition(out var pos))
         {
-            this.TrySerializeWindowPosition();
-        };
-    }
-
-    private void TrySerializeWindowPosition()
-    {
-        try
-        {
-            var placement = new WINDOWPLACEMENT() { length = (uint)Marshal.SizeOf<WINDOWPLACEMENT>() };
-            var success = GetWindowPlacement((global::Windows.Win32.Foundation.HWND)this.Handle, ref placement);
-            if (success)
+            SetWindowPlacement((global::Windows.Win32.Foundation.HWND)this.Handle, pos);
+            if (pos.showCmd == SHOW_WINDOW_CMD.SW_MAXIMIZE)
             {
-                using var stream = File.CreateText(WindowSettingsFile);
-                stream.WriteLine($"{placement.rcNormalPosition.left};{placement.rcNormalPosition.top};{placement.rcNormalPosition.right};{placement.rcNormalPosition.bottom}");
+                show = ShowWindowCommand.Maximize;
             }
         }
-        catch
-        {
 
-        }
-    }
-
-    private static bool TryDeserializeWindowPosition(out RawRect position)
-    {
-        try
-        {
-            var text = File.ReadAllText(WindowSettingsFile);
-            var split = text.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            var left = int.Parse(split[0]);
-            var top = int.Parse(split[1]);
-            var right = int.Parse(split[2]);
-            var bottom = int.Parse(split[3]);
-
-            position = new RawRect(left, top, right, bottom);
-
-            return true;
-        }
-        catch
-        {
-            position = default;
-            return false;
-        }
+        ShowWindow(this.Handle, show);
     }
 
     public string Title { get; }
@@ -114,15 +75,43 @@ public sealed class Win32Window : IDisposable
     public bool IsMinimized { get; private set; }
     public bool HasFocus { get; private set; }
 
-    public void Show()
-    {
-        ShowWindow(this.Handle, ShowWindowCommand.Normal);
-    }
-
     public void Dispose()
     {
-
-
         DestroyWindow(this.Handle);
+    }
+
+    private static void TrySerializeWindowPosition(IntPtr handle)
+    {
+        try
+        {
+            var placement = new WINDOWPLACEMENT() { length = (uint)Marshal.SizeOf<WINDOWPLACEMENT>() };
+            var success = GetWindowPlacement((global::Windows.Win32.Foundation.HWND)handle, ref placement);
+            if (success)
+            {                
+                using var stream = File.Create(WindowSettingsFile);
+                var serializer = new DataContractJsonSerializer(typeof(WINDOWPLACEMENT));
+                serializer.WriteObject(stream, placement);
+            }
+        }
+        catch
+        {
+
+        }
+    }
+
+    private static bool TryDeserializeWindowPosition(out WINDOWPLACEMENT placement)
+    {
+        try
+        {
+            using var stream = File.OpenRead(WindowSettingsFile);
+            var deserializer = new DataContractJsonSerializer(typeof(WINDOWPLACEMENT));
+            placement = (WINDOWPLACEMENT?)deserializer.ReadObject(stream) ?? throw new IOException();
+            return true;
+        }
+        catch
+        {
+            placement = default;
+            return false;
+        }
     }
 }

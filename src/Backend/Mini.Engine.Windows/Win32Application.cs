@@ -13,7 +13,7 @@ public static class Win32Application
     public static readonly WindowEvents WindowEvents = new WindowEvents();
     public static readonly RawEvents RawEvents = new RawEvents();
 
-    public static Win32Window Initialize(string title, int width, int height)
+    public static Win32Window Initialize(string title)
     {
 #nullable disable
         var moduleHandle = GetModuleHandle((string)null);
@@ -31,7 +31,7 @@ public static class Win32Application
         };
 
         RegisterClassEx(ref wndClass);
-        return new Win32Window(title, width, height, WindowEvents);
+        return new Win32Window(title, WindowEvents);
     }
 
     public static void RegisterMessageListener(WindowMessage message, Action<UIntPtr, IntPtr> handler)

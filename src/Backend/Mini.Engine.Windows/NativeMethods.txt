@@ -5,3 +5,4 @@ MapVirtualKey
 MAPVK_VK_TO_VSC
 GetModuleHandle
 GetWindowPlacement
+SetWindowPlacement

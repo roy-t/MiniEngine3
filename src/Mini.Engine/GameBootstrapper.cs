@@ -14,6 +14,7 @@ using Vortice.Win32;
 
 namespace Mini.Engine;
 
+// TODO: this class is getting quite long with a lot of mixed reponsibilities
 public sealed class GameBootstrapper
 {
     private static readonly ushort Escape = InputService.GetScanCode(VK.ESCAPE);
@@ -41,8 +42,7 @@ public sealed class GameBootstrapper
 
         this.Logger = logger.ForContext<GameBootstrapper>();
 
-        this.Window = Win32Application.Initialize("Mini.Engine", 1920, 1080);
-        this.Window.Show();
+        this.Window = Win32Application.Initialize("Mini.Engine");        
 
         this.width = this.Window.Width;
         this.height = this.Window.Height;
