@@ -5,6 +5,7 @@ using Mini.Engine.Windows.Events;
 using static Windows.Win32.PInvoke;
 using static global::Windows.Win32.Constants;
 using Windows.Win32.UI.WindowsAndMessaging;
+using Windows.Win32.Foundation;
 
 namespace Mini.Engine.Windows;
 
@@ -18,7 +19,7 @@ public static class Win32Application
 #nullable disable
         var moduleHandle = GetModuleHandle((string)null);
 #nullable restore
-        var cursor = LoadCursor(null, "IDC_ARROW");
+        var cursor = LoadCursor((HINSTANCE)IntPtr.Zero, IDC_ARROW);
         fixed (char* ptrClassName = "WndClass")
         {
             var wndClass = new WNDCLASSEXW
@@ -26,11 +27,11 @@ public static class Win32Application
                 cbSize = (uint)Marshal.SizeOf<WNDCLASSEXW>(),
                 style = WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW | WNDCLASS_STYLES.CS_OWNDC,
                 lpfnWndProc = &WndProc,
-                hInstance = (global::Windows.Win32.Foundation.HINSTANCE)moduleHandle.DangerousGetHandle(),
-                hCursor = (HCURSOR)cursor.DangerousGetHandle(),
+                hInstance = (HINSTANCE)moduleHandle.DangerousGetHandle(),
+                hCursor = cursor,
                 hbrBackground = (global::Windows.Win32.Graphics.Gdi.HBRUSH)IntPtr.Zero,
                 hIcon = (HICON)IntPtr.Zero,
-                lpszClassName = new global::Windows.Win32.Foundation.PCWSTR(ptrClassName)
+                lpszClassName = new PCWSTR(ptrClassName)
             };
 
             RegisterClassEx(wndClass);

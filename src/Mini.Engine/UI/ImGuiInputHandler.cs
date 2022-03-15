@@ -87,20 +87,22 @@ internal sealed class ImGuiInputHandler
         }
         else
         {
-            var cursor = "IDC_ARROW";
+            var cursor = IDC_ARROW;
             switch (requestedcursor)
             {
-                case ImGuiMouseCursor.Arrow: cursor = "IDC_ARROW"; break;
-                case ImGuiMouseCursor.TextInput: cursor = "IDC_IBEAM"; break;
-                case ImGuiMouseCursor.ResizeAll: cursor = "IDC_SIZEALL"; break;
-                case ImGuiMouseCursor.ResizeEW: cursor = "IDC_SIZEWE"; break;
-                case ImGuiMouseCursor.ResizeNS: cursor = "IDC_SIZENS"; break;
-                case ImGuiMouseCursor.ResizeNESW: cursor = "IDC_SIZENESW"; break;
-                case ImGuiMouseCursor.ResizeNWSE: cursor = "IDC_SIZENWSE"; break;
-                case ImGuiMouseCursor.Hand: cursor = "IDC_HAND"; break;
-                case ImGuiMouseCursor.NotAllowed: cursor = "IDC_NO"; break;
+                case ImGuiMouseCursor.Arrow: cursor = IDC_ARROW; break;
+                case ImGuiMouseCursor.TextInput: cursor = IDC_IBEAM; break;
+                case ImGuiMouseCursor.ResizeAll: cursor = IDC_SIZEALL; break;
+                case ImGuiMouseCursor.ResizeEW: cursor = IDC_SIZEWE; break;
+                case ImGuiMouseCursor.ResizeNS: cursor = IDC_SIZENS; break;
+                case ImGuiMouseCursor.ResizeNESW: cursor = IDC_SIZENESW; break;
+                case ImGuiMouseCursor.ResizeNWSE: cursor = IDC_SIZENWSE; break;
+                case ImGuiMouseCursor.Hand: cursor = IDC_HAND; break;
+                case ImGuiMouseCursor.NotAllowed: cursor = IDC_NO; break;
             }
-            SetCursor(LoadCursor(null, cursor));
+            
+            var hCursor = LoadCursor((HINSTANCE)IntPtr.Zero, cursor);
+            SetCursor(hCursor);
         }
 
         return true;
