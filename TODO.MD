@@ -21,6 +21,13 @@
 
 - Check RenderTargetViews, ShaderResourceViews of it still makes sense, is there not 1 overload per resource?
 
+
+- Unsafe zooi: https://github.com/dotnet/runtime/issues/29905
+
+- Input: move to https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getrawinputbuffer, see also https://twitter.com/roytries/status/1504726298136043542?s=20&t=f-MV-lcabEsZvyDSDONvMQ
+
+- Reintroduce: Staged buffer reader ?
+
 # Notes
 Particle renderer
 https://miketuritzin.com/post/rendering-particles-with-compute-shaders/
