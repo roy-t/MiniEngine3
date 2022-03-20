@@ -95,12 +95,13 @@ public sealed class GeneratorScene : IScene
         var world = this.Entities.Create();
 
         var defaultMaterial = this.Content.LoadDefaultMaterial();
-        var dimensions = 2;
+        var dimensions = 512;
         var heightMap = this.NoiseGenerator.Generate(dimensions);
         var model = this.Triangulator.Triangulate(this.Device, heightMap, dimensions, defaultMaterial, "terrain");
         this.Content.Link(model, "terrain");
         this.Components.Add(new ModelComponent(world, model));
-        this.Components.Add(new TransformComponent(world));
+        this.Components.Add(new TransformComponent(world).SetScale(0.02f));
+        //this.Components.Add(new TransformComponent(world));
 
         this.world = world;
     }

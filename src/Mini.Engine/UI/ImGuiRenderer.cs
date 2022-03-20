@@ -58,7 +58,7 @@ internal sealed class ImGuiRenderer
         var io = ImGui.GetIO();
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
-        io.Fonts.TexID = this.TextureRegistry.Register(this.FontTexture);
+        io.Fonts.TexID = this.TextureRegistry.Get(this.FontTexture);
     }
 
     public void Render(ImDrawDataPtr data)
@@ -114,7 +114,7 @@ internal sealed class ImGuiRenderer
                 this.DeferredContext.RS.SetScissorRect(left, top, right - left, bottom - top);
 
                 var texture = this.TextureRegistry.Get(cmd.TextureId);
-                this.DeferredContext.PS.SetShaderResource(Mini.Engine.Content.Shaders.UserInterface.UserInterface.Texture, texture);
+                this.DeferredContext.PS.SetShaderResource(UserInterface.Texture, texture);
 
                 this.DeferredContext.DrawIndexed((int)cmd.ElemCount, (int)(cmd.IdxOffset + globalIndexOffset), (int)(cmd.VtxOffset + lobalVertexOffset));
             }

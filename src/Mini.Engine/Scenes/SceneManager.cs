@@ -9,9 +9,9 @@ namespace Mini.Engine.Scenes;
 public sealed class SceneManager
 {
     private readonly LoadingScreen LoadingScreen;
-    private readonly ContentManager Content;
-    private readonly IReadOnlyList<IScene> Scenes;
+    private readonly ContentManager Content;    
     private int activeScene;
+    private int nextScene;
 
     public SceneManager(LoadingScreen loadingScreen, ContentManager content, IEnumerable<IScene> scenes)
     {
@@ -20,9 +20,25 @@ public sealed class SceneManager
         this.Scenes = scenes.ToList();
 
         this.activeScene = -1;
+        this.nextScene = -1;
+    }
+
+    public IReadOnlyList<IScene> Scenes { get; }
+
+    public void CheckChangeScene()
+    {
+        if (this.nextScene != this.activeScene)
+        {
+            this.ChangeScene(this.nextScene);
+        }
     }
 
     public void Set(int index)
+    {
+        this.nextScene = index;
+    }
+
+    private void ChangeScene(int index)
     {
         if (this.activeScene >= 0)
         {

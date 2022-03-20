@@ -9,8 +9,8 @@ public static class Indexes
 
     public static (int, int) ToTwoDimensional(int i, int stride)
     {
-        var x = i / stride;
-        var y = i % stride;
+        var x = i % stride;
+        var y = i / stride;
 
         return (x, y);
     }

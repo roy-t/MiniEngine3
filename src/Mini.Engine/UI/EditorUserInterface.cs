@@ -2,6 +2,7 @@
 using System.Linq;
 using ImGuiNET;
 using Mini.Engine.Configuration;
+using Mini.Engine.UI.Menus;
 using Mini.Engine.UI.Panels;
 
 namespace Mini.Engine.UI;
@@ -9,9 +10,17 @@ namespace Mini.Engine.UI;
 [Service]
 public sealed class EditorUserInterface
 {
-    private sealed class PanelRecord
+    private sealed record MenuRegistration(string Title, IMenu Menu)
     {
-        public PanelRecord(string title, IPanel panel, bool isVisible)
+        public void Update(float elapsed)
+        {
+            this.Menu.Update(elapsed);
+        }
+    }
+
+    private sealed class PanelRegistration
+    {
+        public PanelRegistration(string title, IPanel panel, bool isVisible)
         {
             this.Title = title;
             this.Panel = panel;
@@ -30,13 +39,15 @@ public sealed class EditorUserInterface
 
     private readonly UICore Core;
     private readonly MicroBenchmark MicroBenchmark;
-    private readonly List<PanelRecord> Panels;
+    private readonly List<PanelRegistration> Panels;
+    private readonly List<MenuRegistration> Menus;
 
-    public EditorUserInterface(UICore core, IEnumerable<IPanel> panels)
+    public EditorUserInterface(UICore core, IEnumerable<IPanel> panels, IEnumerable<IMenu> menus)
     {
         this.Core = core;
         this.MicroBenchmark = new MicroBenchmark("Perf");
-        this.Panels = panels.Select(p => new PanelRecord(p.Title, p, true)).ToList();
+        this.Panels = panels.Select(p => new PanelRegistration(p.Title, p, true)).ToList();
+        this.Menus = menus.Select(m => new MenuRegistration(m.Title, m)).ToList();
     }
 
     public void Resize(int width, int height)
@@ -62,9 +73,19 @@ public sealed class EditorUserInterface
                     {
                         panel.IsVisible = isVisible;
                     }
-                }
+                }                
 
                 ImGui.EndMenu();
+            }
+
+            foreach (var menu in this.Menus)
+            {
+                if (ImGui.BeginMenu(menu.Title))
+                {
+                    menu.Update(elapsed);
+
+                    ImGui.EndMenu();
+                }
             }
 
             ImGui.Text(this.MicroBenchmark.ToString());

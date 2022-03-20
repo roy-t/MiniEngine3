@@ -11,63 +11,60 @@ namespace Mini.Engine.UI.Panels;
 [Service]
 internal sealed class ShaderResourcePanel : IPanel
 {
-    private readonly string[] Names;
-    private readonly ITexture2D[] Textures;
-    private readonly IntPtr[] Ids;
+    private readonly FrameService FrameService;
+    private readonly DebugFrameService DebugFrameService;
+    private readonly UITextureRegistry TextureRegistry;
+
     private int selected;
+    private string selectedName;
+    private ITexture2D? selectedTexture;
 
     public ShaderResourcePanel(FrameService frameService, DebugFrameService debugFrameService, UITextureRegistry textureRegistry)
     {
-        this.Names = new string[]
-        {
-            nameof(frameService.GBuffer.Albedo),
-            nameof(frameService.GBuffer.Material),
-            nameof(frameService.GBuffer.Normal),
-            nameof(frameService.LBuffer.Light),
-            nameof(frameService.GBuffer.DepthStencilBuffer),
-            nameof(debugFrameService.DebugOverlay),
-        };
+        this.FrameService = frameService;
+        this.DebugFrameService = debugFrameService;
+        this.TextureRegistry = textureRegistry;
 
-        this.Textures = new ITexture2D[]
-        {
-            frameService.GBuffer.Albedo,
-            frameService.GBuffer.Material,
-            frameService.GBuffer.Normal,
-            frameService.LBuffer.Light,
-            frameService.GBuffer.DepthStencilBuffer,
-            debugFrameService.DebugOverlay,
-        };
-
-        this.Ids = this.Textures.Select(rt => textureRegistry.Register(rt)).ToArray();
+        this.selected = 0;
+        this.selectedName = nameof(this.FrameService.GBuffer.Albedo);
+        this.selectedTexture = this.FrameService.GBuffer.Albedo;
     }
 
     public string Title => "Shader Resources";
 
     public void Update(float elapsed)
     {
-        if (ImGui.BeginCombo("Shader Resources", this.Names[this.selected]))
+        if (ImGui.BeginCombo("Shader Resources", this.selectedName))
         {
-            for (var i = 0; i < this.Names.Length; i++)
-            {
-                var isSelected = i == this.selected;
-                if (ImGui.Selectable(this.Names[i], isSelected))
-                {
-                    this.selected = i;
-                }
+            var i = 0;
+            this.Selectable(nameof(this.FrameService.GBuffer.Albedo), this.FrameService.GBuffer.Albedo, i++);
+            this.Selectable(nameof(this.FrameService.GBuffer.Material), this.FrameService.GBuffer.Material, i++);
+            this.Selectable(nameof(this.FrameService.GBuffer.Normal), this.FrameService.GBuffer.Normal, i++);
+            this.Selectable(nameof(this.FrameService.LBuffer.Light), this.FrameService.LBuffer.Light, i++);
+            this.Selectable(nameof(this.FrameService.GBuffer.DepthStencilBuffer), this.FrameService.GBuffer.DepthStencilBuffer, i++);
+            this.Selectable(nameof(this.DebugFrameService.DebugOverlay), this.DebugFrameService.DebugOverlay, i++);
 
-                if (isSelected)
-                {
-                    ImGui.SetItemDefaultFocus();
-                }
-            }
             ImGui.EndCombo();
         }
 
-        var selected = this.Textures[this.selected];
-
-        ImGui.Image(this.Ids[this.selected], Fit(selected, ImGui.GetWindowContentRegionMax().X));
+        ImGui.Image(this.TextureRegistry.Get(this.selectedTexture!), Fit(this.selectedTexture!, ImGui.GetWindowContentRegionMax().X));
     }
 
+    private void Selectable(string name, ITexture2D texture, int index)
+    {
+        var isSelected = this.selected == index;
+        if (ImGui.Selectable(name, isSelected))
+        {
+            this.selected = index;
+            this.selectedName = name;
+            this.selectedTexture = texture;            
+        }
+
+        if (isSelected)
+        {
+            ImGui.SetItemDefaultFocus();
+        }
+    }
 
     private static Vector2 Fit(ITexture2D texture, float maxWidth)
     {

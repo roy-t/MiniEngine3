@@ -43,8 +43,10 @@ internal sealed class GameLoop : IGameLoop
 
     public void Update(float time, float elapsed)
     {
+        this.SceneManager.CheckChangeScene();
+
         this.Content.ReloadChangedContent();
-        this.CameraController.Update(this.FrameService.Camera, elapsed);
+        this.CameraController.Update(this.FrameService.Camera, elapsed);        
     }
 
     public void Draw(float alpha)
