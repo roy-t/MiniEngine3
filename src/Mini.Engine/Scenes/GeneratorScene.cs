@@ -56,7 +56,7 @@ public sealed class GeneratorScene : IScene
             new LoadAction("Terrain", () =>
             {
                 this.GenerateTerrain();
-                this.Content.OnReloadCallback(new ContentId(@"Shaders\World\NoiseShader.hlsl", "Kernel") , _ => this.GenerateTerrain());
+                this.Content.OnReloadCallback(new ContentId(@"Shaders\Noise\NoiseShader.hlsl", "Kernel") , _ => this.GenerateTerrain());
             }),
             new LoadAction("Lighting", () =>
             {
@@ -70,7 +70,7 @@ public sealed class GeneratorScene : IScene
             new LoadAction("Skybox", () =>
             {
                 var sky = this.Entities.Create();
-                var texture = this.Content.LoadTexture(@"Skyboxes\circus.hdr");
+                var texture = this.Content.LoadTexture(@"Skyboxes\industrial.hdr");
                 var albedo = this.CubeMapGenerator.GenerateAlbedo(texture, false, "skybox_albedo");
                 var irradiance = this.CubeMapGenerator.GenerateIrradiance(texture, "skybox_irradiance");
                 var environment = this.CubeMapGenerator.GenerateEnvironment(texture, "skybox_environment");
