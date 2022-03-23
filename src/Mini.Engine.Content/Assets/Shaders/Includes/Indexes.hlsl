@@ -8,7 +8,10 @@ uint ToOneDimensional(uint x, uint y, uint stride)
 
 uint2 ToTwoDimensional(uint i, uint stride)
 {
-    return uint2(i / stride, i % stride);
+    uint x = i % stride;
+    uint y = i / stride;
+
+    return uint2(x, y);
 }
 
 #endif
