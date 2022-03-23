@@ -31,12 +31,11 @@ public sealed class GeneratorScene : IScene
     private readonly EntityAdministrator Entities;
     private readonly ComponentAdministrator Components;
     private readonly CubeMapGenerator CubeMapGenerator;
-    private readonly NoiseGenerator NoiseGenerator;
-    private readonly HeightMapTriangulator Triangulator;
+    private readonly SimplexNoiseGenerator NoiseGenerator;
 
     private Entity? world;
 
-    public GeneratorScene(Device device, ContentManager content, EntityAdministrator entities, ComponentAdministrator components, CubeMapGenerator cubeMapGenerator, NoiseGenerator noiseGenerator, HeightMapTriangulator triangulator)
+    public GeneratorScene(Device device, ContentManager content, EntityAdministrator entities, ComponentAdministrator components, CubeMapGenerator cubeMapGenerator, SimplexNoiseGenerator noiseGenerator)
     {
         this.Device = device;
         this.Content = content;
@@ -44,7 +43,6 @@ public sealed class GeneratorScene : IScene
         this.Components = components;
         this.CubeMapGenerator = cubeMapGenerator;
         this.NoiseGenerator = noiseGenerator;
-        this.Triangulator = triangulator;
     }
 
     public string Title => "Generator";
@@ -53,11 +51,6 @@ public sealed class GeneratorScene : IScene
     {
         return new List<LoadAction>()
         {
-            new LoadAction("Terrain", () =>
-            {
-                this.GenerateTerrain();
-                this.Content.OnReloadCallback(new ContentId(@"Shaders\Noise\NoiseShader.hlsl", "Kernel") , _ => this.GenerateTerrain());
-            }),
             new LoadAction("Lighting", () =>
             {
                 var sun = this.Entities.Create();
@@ -83,26 +76,5 @@ public sealed class GeneratorScene : IScene
                 this.Components.Add(new SkyboxComponent(sky, albedo, irradiance, environment, 0.1f));
             })
         };
-    }
-
-    private void GenerateTerrain()
-    {
-        if (this.world.HasValue)
-        {
-            this.Components.MarkForRemoval(this.world.Value);
-        }
-
-        var world = this.Entities.Create();
-
-        var defaultMaterial = this.Content.LoadDefaultMaterial();
-        var dimensions = 512;
-        var heightMap = this.NoiseGenerator.Generate(dimensions);
-        var model = this.Triangulator.Triangulate(this.Device, heightMap, dimensions, defaultMaterial, "terrain");
-        this.Content.Link(model, "terrain");
-        this.Components.Add(new ModelComponent(world, model));
-        this.Components.Add(new TransformComponent(world).SetScale(0.02f));
-        //this.Components.Add(new TransformComponent(world));
-
-        this.world = world;
-    }
+    }   
 }

@@ -7,16 +7,16 @@ using Mini.Engine.DirectX.Buffers;
 namespace Mini.Engine.Graphics.World;
 
 [Service]
-public sealed class NoiseGenerator
+public sealed class SimplexNoiseGenerator
 {
     private readonly Device Device;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
     private readonly NoiseShaderKernel Kernel;
 
-    public NoiseGenerator(Device device, NoiseShaderKernel noiseShader)
+    public SimplexNoiseGenerator(Device device, NoiseShaderKernel noiseShader)
     {
         this.Device = device;
-        this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(NoiseGenerator)}_CB");
+        this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(SimplexNoiseGenerator)}_CB");
         this.Kernel = noiseShader;
     }
 

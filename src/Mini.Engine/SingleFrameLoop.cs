@@ -11,15 +11,13 @@ internal sealed class SingleFrameLoop : IGameLoop
 {
     private int drawCalls;
     private readonly Win32Window Window;
-    private readonly NoiseGenerator NoiseGenerator;
-    private readonly HeightMapTriangulator Triangulator;
+    private readonly SimplexNoiseGenerator NoiseGenerator;
     private readonly RenderDoc? RenderDoc;
 
-    public SingleFrameLoop(Win32Window window, NoiseGenerator noiseGenerator, HeightMapTriangulator triangulator, Services services)
+    public SingleFrameLoop(Win32Window window, SimplexNoiseGenerator noiseGenerator, Services services)
     {
         this.Window = window;
         this.NoiseGenerator = noiseGenerator;
-        this.Triangulator = triangulator;
         if (services.TryResolve<RenderDoc>(out var instance))
         {
             this.RenderDoc = instance;
@@ -30,7 +28,7 @@ internal sealed class SingleFrameLoop : IGameLoop
     {
         var dimensions = 64;
         var heightMap = this.NoiseGenerator.Generate(dimensions);
-        var model = this.Triangulator.Triangulate(heightMap, dimensions);
+        var model = HeightMapTriangulator.Triangulate(heightMap, dimensions);
     }
 
     public void Update(float time, float elapsed) { }

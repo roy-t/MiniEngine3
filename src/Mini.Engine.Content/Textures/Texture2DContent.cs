@@ -39,7 +39,11 @@ internal sealed class Texture2DContent : ITexture2D, IContent
         this.texture?.Dispose();
 
         var data = this.Loader.Load(device, this.Id, this.Settings);
-        this.texture = new Texture2D(device, data.Data, data.Width, data.Height, data.Format, true, data.Id.ToString());
+
+        var texture = new Texture2D(device, data.Width, data.Height, data.Format, true, data.Id.ToString());
+        texture.SetPixels<byte>(device, data.Data);
+
+        this.texture = texture;        
     }
 
     public void Dispose()

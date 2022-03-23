@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-using Mini.Engine.Configuration;
 using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
@@ -9,15 +8,10 @@ using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.World;
 
-[Service]
-public sealed class HeightMapTriangulator
+public static class HeightMapTriangulator
 {
-    public HeightMapTriangulator()
-    {
-
-    }
     // based on https://mtnphil.wordpress.com/2012/10/15/terrain-triangulation-summary/
-    public (int[], ModelVertex[]) Triangulate(float[] heightMap, int dimensions)
+    public static (int[], ModelVertex[]) Triangulate(float[] heightMap, int dimensions)
     {
         var indices = new List<int>();
         var positions = new List<Vector3>();
@@ -130,9 +124,9 @@ public sealed class HeightMapTriangulator
         return vertices[Indexes.ToOneDimensional(x, y, dimensions)].Y;
     }
 
-    public IModel Triangulate(Device device, float[] heightMap, int dimensions, IMaterial material, string name)
+    public static IModel Triangulate(Device device, float[] heightMap, int dimensions, IMaterial material, string name)
     {
-        (var indices, var vertices) = this.Triangulate(heightMap, dimensions);
+        (var indices, var vertices) = Triangulate(heightMap, dimensions);
 
         var minX = float.MaxValue;
         var minY = float.MaxValue;

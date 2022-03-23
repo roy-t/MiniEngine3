@@ -20,19 +20,19 @@ public sealed class Texture2D : ITexture2D
         this.Name = name;
     }
 
-    public Texture2D(Device device, Span<byte> pixels, int width, int height, Format format, bool generateMipMaps = false, string name = "")
-        : this(device, width, height, format, generateMipMaps, name)
+    public void SetPixels<T>(Device device, Span<T> pixels)
+        where T : unmanaged
     {
-        if (format.IsCompressed())
+        if (this.Format.IsCompressed())
         {
-            throw new NotSupportedException($"Compressed texture formats are not supported: {format}");
+            throw new NotSupportedException($"Uploading data in compressed texture formats is not supported: {this.Format}");
         }
 
         // Assumes texture is uncompressed and fills the entire buffer
-        var pitch = width * format.SizeOfInBytes();
+        var pitch = this.Width * this.Format.SizeOfInBytes();
         device.ID3D11DeviceContext.UpdateSubresource(pixels, this.Texture, 0, pitch, 0);
 
-        if (generateMipMaps)
+        if (this.MipMapSlices > 1)
         {
             device.ID3D11DeviceContext.GenerateMips(this.ShaderResourceView);
         }

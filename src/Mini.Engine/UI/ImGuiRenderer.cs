@@ -157,7 +157,10 @@ internal sealed class ImGuiRenderer
             io.Fonts.GetTexDataAsRGBA32(out byte* pixels, out var width, out var height);
             var format = Format.R8G8B8A8_UNorm; // Texture contains only white pixels for the font so gamma is irrelevant
             var pixelSpan = new Span<byte>(pixels, width * height * format.SizeOfInBytes());
-            return new Texture2D(device, pixelSpan, width, height, format, false, "ImGui_Font");
+
+            var texture = new Texture2D(device, width, height, format, false, "ImGui_Font");
+            texture.SetPixels(device, pixelSpan);
+            return texture;
         }
     }
 }
