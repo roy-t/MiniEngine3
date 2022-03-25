@@ -2,32 +2,34 @@
 using System.Collections.Generic;
 using System.Numerics;
 using Mini.Engine.Core;
-using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.World;
 
+// based on https://mtnphil.wordpress.com/2012/10/15/terrain-triangulation-summary/
 public static class HeightMapTriangulator
 {
-    // based on https://mtnphil.wordpress.com/2012/10/15/terrain-triangulation-summary/
-    public static (int[], ModelVertex[]) Triangulate(float[] heightMap, int dimensions)
+    public static (int[], ModelVertex[], BoundingBox bounds) Triangulate(float[] heightMap, int dimensions)
     {
-        var indices = new List<int>();
-        var positions = new List<Vector3>();
-        var vertices = new List<ModelVertex>();
+        var width = ((dimensions - 1) * 2) + 1;
+        var elements = width * width;        
+        var positions = new Vector3[elements];        
 
-        for (var y= 0.0f; y <= dimensions - 1; y += 0.5f)
+        // TODO: Multi thread!
+        for (var y = 0.0f; y <= dimensions - 1; y += 0.5f)
         {
             for (var x = 0.0f; x <= dimensions - 1; x += 0.5f)
             {
+
                 var value = Sample(x, y, heightMap, dimensions);
-                positions.Add(new Vector3(x, value, y));
+                var pi = Indexes.ToOneDimensional((int)(x * 2), (int)(y * 2), width);
+                positions[pi] = new Vector3(x, value, y);
             }
         }
 
-        var width = (int)Math.Sqrt(positions.Count);
-
+        var indices = new int[(width - 1) * (width - 1) * 6];
+        var ii = 0;
         for (var y = 0; y < width - 1; y++)
         {
             for (var x = 0; x < width - 1; x++)
@@ -37,37 +39,41 @@ public static class HeightMapTriangulator
                 var br = Indexes.ToOneDimensional(x + 1, y + 1, width);
                 var bl = Indexes.ToOneDimensional(x, y + 1, width);
 
+                // TODO: do not use i++ but compute indices, then multi thread
+                //var indexBase = y * (width - 1)
                 // Choose the where to slice the quad into two triangles
                 // so that for a 2x2 quad all diagonals connect to the center
                 if ((x % 2 == 0) == (y % 2 == 0))
                 {
-                    indices.Add(tl);
-                    indices.Add(tr);
-                    indices.Add(br);
+                    indices[ii++] = tl;
+                    indices[ii++] = tr;
+                    indices[ii++] = br;
 
-                    indices.Add(br);
-                    indices.Add(bl);
-                    indices.Add(tl);
+                    indices[ii++] = br;
+                    indices[ii++] = bl;
+                    indices[ii++] = tl;
                 }
                 else
                 {
-                    indices.Add(tr);
-                    indices.Add(br);
-                    indices.Add(bl);
+                    indices[ii++] = tr;
+                    indices[ii++] = br;
+                    indices[ii++] = bl;
 
-                    indices.Add(bl);
-                    indices.Add(tl);
-                    indices.Add(tr);
+                    indices[ii++] = bl;
+                    indices[ii++] = tl;
+                    indices[ii++] = tr;
                 }
             }
         }
 
-        for (var i = 0; i < positions.Count; i++)
+
+        var vertices = new ModelVertex[positions.Length];
+        for (var vi = 0; vi < positions.Length; vi++)
         {
-            var (x, y) = Indexes.ToTwoDimensional(i, width);
+            var (x, y) = Indexes.ToTwoDimensional(vi, width);
             var texcoord = new Vector2(x / (float)width, y / (float)width);
-            var position = positions[i];
-            var normal = Vector3.Zero;            
+            var position = positions[vi];
+            var normal = Vector3.Zero;
 
             // TODO: what about the border?
             if (x > 0 && x < width - 1 && y > 0 && y < width - 1)
@@ -82,11 +88,39 @@ public static class HeightMapTriangulator
                 var N = Vector3.Cross(T, B);
                 normal = Vector3.Normalize(N);
             }
-            
-            vertices.Add(new ModelVertex(position, texcoord, normal));
+
+            vertices[vi]= new ModelVertex(position, texcoord, normal);
         }
 
-        return (indices.ToArray(), vertices.ToArray());
+        var bounds = ComputeBounds(vertices);
+
+        return (indices, vertices, bounds);
+    }
+
+    private static BoundingBox ComputeBounds(IReadOnlyList<ModelVertex> vertices)
+    {
+        var minX = float.MaxValue;
+        var minY = float.MaxValue;
+        var minZ = float.MaxValue;
+
+        var maxX = float.MinValue;
+        var maxY = float.MinValue;
+        var maxZ = float.MinValue;
+
+        for (var i = 0; i < vertices.Count; i++)
+        {
+            var position = vertices[i].Position;
+            minX = Math.Min(minX, position.X);
+            minY = Math.Min(minY, position.Y);
+            minZ = Math.Min(minZ, position.Z);
+
+            maxX = Math.Max(maxX, position.X);
+            maxY = Math.Max(maxY, position.Y);
+            maxZ = Math.Max(maxZ, position.Z);
+        }
+
+        var bounds = new BoundingBox(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
+        return bounds;
     }
 
     private static float Sample(float x, float y, float[] heightMap, int dimensions)
@@ -122,39 +156,5 @@ public static class HeightMapTriangulator
     private static float GetHeight(int x, int y, IReadOnlyList<Vector3> vertices, int dimensions)
     {
         return vertices[Indexes.ToOneDimensional(x, y, dimensions)].Y;
-    }
-
-    public static IModel Triangulate(Device device, float[] heightMap, int dimensions, IMaterial material, string name)
-    {
-        (var indices, var vertices) = Triangulate(heightMap, dimensions);
-
-        var minX = float.MaxValue;
-        var minY = float.MaxValue;
-        var minZ = float.MaxValue;
-
-        var maxX = float.MinValue;        
-        var maxY = float.MinValue;        
-        var maxZ = float.MinValue;
-
-        for(var i = 0; i < vertices.Length; i++)
-        {
-            var position = vertices[i].Position;
-            minX = Math.Min(minX, position.X);
-            minY = Math.Min(minY, position.Y);
-            minZ = Math.Min(minZ, position.Z);
-
-            maxX = Math.Max(maxX, position.X);            
-            maxY = Math.Max(maxY, position.Y);
-            maxZ = Math.Max(maxZ, position.Z);
-        }
-
-        var bounds = new BoundingBox(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
-        var primitives = new Primitive[]
-        {
-            new Primitive("HeightMap", bounds, 0, 0, indices.Length)
-        };
-
-        var materials = new IMaterial[] { material };
-        return new Model(device, bounds, vertices, indices, primitives, materials, name);
-    }
+    }    
 }

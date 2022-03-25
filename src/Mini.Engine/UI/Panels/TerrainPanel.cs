@@ -2,9 +2,6 @@
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.ECS;
-using Mini.Engine.ECS.Components;
-using Mini.Engine.ECS.Entities;
-using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.World;
 using Mini.Engine.UI.Components;
@@ -23,10 +20,10 @@ internal sealed class TerrainPanel : IPanel
     private Entity? world;
     private TerrainComponent? terrain;
 
-    public TerrainPanel(TerrainGenerator generator, TextureSelector selector, ContentManager content, ECSAdministrator administrator)
+    public TerrainPanel(TerrainGenerator generator, UITextureRegistry registry, ContentManager content, ECSAdministrator administrator)
     {
         this.Generator = generator;
-        this.Selector = selector;
+        this.Selector = new TextureSelector(registry);
         this.Content = content;
         this.Administrator = administrator;
         this.dimensions = 512;
@@ -43,7 +40,7 @@ internal sealed class TerrainPanel : IPanel
             this.GenerateTerrain();
         }
 
-        if (this.terrain != null && this.Selector.Begin("Terrain Resources"))
+        if (this.terrain != null && this.Selector.Begin("Terrain Resources", "heightmap", this.terrain.HeightMap))
         {
             this.Selector.Select("Height Map", this.terrain.HeightMap);
 

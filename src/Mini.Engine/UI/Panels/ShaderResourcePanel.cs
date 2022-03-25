@@ -11,18 +11,18 @@ internal sealed class ShaderResourcePanel : IPanel
     private readonly DebugFrameService DebugFrameService;
     private readonly TextureSelector Selector;
 
-    public ShaderResourcePanel(FrameService frameService, DebugFrameService debugFrameService, TextureSelector selector)
+    public ShaderResourcePanel(FrameService frameService, DebugFrameService debugFrameService, UITextureRegistry registry)
     {
         this.FrameService = frameService;
         this.DebugFrameService = debugFrameService;
-        this.Selector = selector;
+        this.Selector = new TextureSelector(registry);
     }
 
     public string Title => "Shader Resources";
 
     public void Update(float elapsed)
     {
-        if (this.Selector.Begin("Shader Resources"))
+        if (this.Selector.Begin("Shader Resources", nameof(this.FrameService.GBuffer.Albedo), this.FrameService.GBuffer.Albedo))
         {
             this.Selector.Select(nameof(this.FrameService.GBuffer.Albedo), this.FrameService.GBuffer.Albedo);
             this.Selector.Select(nameof(this.FrameService.GBuffer.Material), this.FrameService.GBuffer.Material);

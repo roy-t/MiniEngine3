@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Numerics;
 using ImGuiNET;
-using Mini.Engine.Configuration;
 using Mini.Engine.DirectX.Resources;
 
 namespace Mini.Engine.UI.Components;
 
-[Service]
 internal sealed class TextureSelector
 {
     private readonly UITextureRegistry TextureRegistry;
@@ -21,9 +19,16 @@ internal sealed class TextureSelector
         this.selectedName = string.Empty;
     }
     
-    public bool Begin(string name)
+    public bool Begin(string name, string fallbackName, ITexture2D fallbackTexture)
     {
         this.index = 0;
+
+        if (string.IsNullOrEmpty(this.selectedName) || this.selectedTexture == null)
+        {
+            this.selectedTexture = fallbackTexture;
+            this.selectedName = fallbackName;
+        }
+
         return ImGui.BeginCombo(name, this.selectedName);
     }
 
@@ -57,7 +62,7 @@ internal sealed class TextureSelector
         }
 
         if (isSelected)
-        {
+        {            
             ImGui.SetItemDefaultFocus();
         }
     }

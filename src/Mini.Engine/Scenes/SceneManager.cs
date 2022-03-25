@@ -3,7 +3,6 @@ using System.Linq;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.ECS;
-using Mini.Engine.ECS.Entities;
 
 namespace Mini.Engine.Scenes;
 

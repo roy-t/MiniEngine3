@@ -24,7 +24,7 @@ public sealed class SimplexNoiseGenerator
     {
         var context = this.Device.ImmediateContext;
 
-        var vertices = new float[dimensions * dimensions];
+        var length = dimensions * dimensions;
         var cBuffer = new Constants()
         {
             Stride = (uint)dimensions
@@ -32,19 +32,15 @@ public sealed class SimplexNoiseGenerator
         this.ConstantBuffer.MapData(context, cBuffer);
         context.CS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
 
-        using var input = new StructuredBuffer<float>(this.Device, "input");
-        input.MapData(context, vertices);
-
-        using var output = new RWStructuredBuffer<float>(this.Device, "output", vertices.Length);
+        using var output = new RWStructuredBuffer<float>(this.Device, "output", length);
 
         context.CS.SetShader(this.Kernel);
-        context.CS.SetShaderResource(NoiseShader.Tile, input);
         context.CS.SetUnorderedAccessView(NoiseShader.World, output);
 
         var (x, y, z) = this.Kernel.GetDispatchSize(dimensions, dimensions, 1);
         context.CS.Dispatch(x, y, z);
 
-        var data = new float[vertices.Length];
+        var data = new float[length];
         output.ReadData(context, data);
 
         return data;

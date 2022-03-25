@@ -140,7 +140,7 @@ internal sealed class ImGuiRenderer
 
     private void SetupRenderState(ImDrawDataPtr drawData, DeferredDeviceContext context)
     {
-        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.VertexShader, this.Device.RasterizerStates.CullNone, 0, 0, (int)drawData.DisplaySize.X, (int)drawData.DisplaySize.Y, this.PixelShader, this.Device.BlendStates.NonPreMultiplied, this.Device.DepthStencilStates.None);
+        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.VertexShader, this.Device.RasterizerStates.CullCounterClockwiseScissor, 0, 0, (int)drawData.DisplaySize.X, (int)drawData.DisplaySize.Y, this.PixelShader, this.Device.BlendStates.NonPreMultiplied, this.Device.DepthStencilStates.None);
         context.OM.SetRenderTargetToBackBuffer();
 
         context.IA.SetVertexBuffer(this.VertexBuffer);
