@@ -14,14 +14,13 @@ public static class HeightMapTriangulator
     {
         var width = ((dimensions - 1) * 2) + 1;
         var elements = width * width;        
-        var positions = new Vector3[elements];        
+        var positions = new Vector3[elements];
 
-        // TODO: Multi thread!
-        for (var y = 0.0f; y <= dimensions - 1; y += 0.5f)
-        {
+        // TODO: Multi thread, a simple Parallel.For doesn't make it faster, which of all these loops is the slowest part?
+        for (var y = 0.0f; y <= dimensions - 1; y += 0.5f)        
+        {            
             for (var x = 0.0f; x <= dimensions - 1; x += 0.5f)
             {
-
                 var value = Sample(x, y, heightMap, dimensions);
                 var pi = Indexes.ToOneDimensional((int)(x * 2), (int)(y * 2), width);
                 positions[pi] = new Vector3(x, value, y);
