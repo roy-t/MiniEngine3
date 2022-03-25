@@ -4,19 +4,15 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
-using Mini.Engine.ECS.Components;
-using Mini.Engine.ECS.Entities;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
-using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Transforms;
-using Mini.Engine.Graphics.World;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Scenes;
 
 [Service]
-public sealed class GeneratorScene : IScene
+public sealed class EmptyScene : IScene
 {
     private static readonly float[] Cascades =
 {
@@ -28,24 +24,18 @@ public sealed class GeneratorScene : IScene
 
     private readonly Device Device;
     private readonly ContentManager Content;
-    private readonly EntityAdministrator Entities;
-    private readonly ComponentAdministrator Components;
+    private readonly ECSAdministrator Administrator;
     private readonly CubeMapGenerator CubeMapGenerator;
-    private readonly SimplexNoiseGenerator NoiseGenerator;
 
-    private Entity? world;
-
-    public GeneratorScene(Device device, ContentManager content, EntityAdministrator entities, ComponentAdministrator components, CubeMapGenerator cubeMapGenerator, SimplexNoiseGenerator noiseGenerator)
+    public EmptyScene(Device device, ContentManager content, ECSAdministrator administrator, CubeMapGenerator cubeMapGenerator)
     {
         this.Device = device;
         this.Content = content;
-        this.Entities = entities;
-        this.Components = components;
+        this.Administrator = administrator;
         this.CubeMapGenerator = cubeMapGenerator;
-        this.NoiseGenerator = noiseGenerator;
     }
 
-    public string Title => "Generator";
+    public string Title => "Empty";
 
     public IReadOnlyList<LoadAction> Load()
     {
@@ -53,16 +43,16 @@ public sealed class GeneratorScene : IScene
         {
             new LoadAction("Lighting", () =>
             {
-                var sun = this.Entities.Create();
-                this.Components.Add(new SunLightComponent(sun, Color4.White, 3.0f));
-                this.Components.Add(new CascadedShadowMapComponent(sun, this.Device, 2048, Cascades[0], Cascades[1], Cascades[2], Cascades[3]));
-                this.Components.Add(new TransformComponent(sun)
+                var sun = this.Administrator.Entities.Create();
+                this.Administrator.Components.Add(new SunLightComponent(sun, Color4.White, 3.0f));
+                this.Administrator.Components.Add(new CascadedShadowMapComponent(sun, this.Device, 2048, Cascades[0], Cascades[1], Cascades[2], Cascades[3]));
+                this.Administrator.Components.Add(new TransformComponent(sun)
                     .MoveTo(Vector3.UnitY)
                     .FaceTargetConstrained((-Vector3.UnitX * 0.75f) + (Vector3.UnitZ * 0.1f), Vector3.UnitY));
             }),
             new LoadAction("Skybox", () =>
             {
-                var sky = this.Entities.Create();
+                var sky = this.Administrator.Entities.Create();
                 var texture = this.Content.LoadTexture(@"Skyboxes\industrial.hdr");
                 var albedo = this.CubeMapGenerator.GenerateAlbedo(texture, false, "skybox_albedo");
                 var irradiance = this.CubeMapGenerator.GenerateIrradiance(texture, "skybox_irradiance");
@@ -73,7 +63,7 @@ public sealed class GeneratorScene : IScene
                 this.Content.Link(irradiance, irradiance.Name);
                 this.Content.Link(environment, environment.Name);
 
-                this.Components.Add(new SkyboxComponent(sky, albedo, irradiance, environment, 0.1f));
+                this.Administrator.Components.Add(new SkyboxComponent(sky, albedo, irradiance, environment, 0.1f));
             })
         };
     }   

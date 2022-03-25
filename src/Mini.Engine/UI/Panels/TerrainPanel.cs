@@ -17,20 +17,18 @@ internal sealed class TerrainPanel : IPanel
     private readonly TerrainGenerator Generator;
     private readonly TextureSelector Selector;
     private readonly ContentManager Content;
-    private readonly EntityAdministrator Entities;
-    private readonly ComponentAdministrator Components;
+    private readonly ECSAdministrator Administrator;
 
     private int dimensions;
     private Entity? world;
-    private Terrain? terrain;
+    private TerrainComponent? terrain;
 
-    public TerrainPanel(TerrainGenerator generator, TextureSelector selector, ContentManager content, EntityAdministrator entities, ComponentAdministrator components)
+    public TerrainPanel(TerrainGenerator generator, TextureSelector selector, ContentManager content, ECSAdministrator administrator)
     {
         this.Generator = generator;
         this.Selector = selector;
         this.Content = content;
-        this.Entities = entities;
-        this.Components = components;
+        this.Administrator = administrator;
         this.dimensions = 512;
 
         this.Content.OnReloadCallback(new ContentId(@"Shaders\Noise\NoiseShader.hlsl", "Kernel"), _ => this.GenerateTerrain());
@@ -59,14 +57,14 @@ internal sealed class TerrainPanel : IPanel
     {
         if (this.world.HasValue)
         {
-            this.Components.MarkForRemoval(this.world.Value);
+            this.Administrator.Components.MarkForRemoval(this.world.Value);
         }
 
-        var world = this.Entities.Create();
+        var world = this.Administrator.Entities.Create();
 
-        this.terrain = this.Generator.Generate(this.dimensions, "terrain");
-        this.Components.Add(new ModelComponent(world, this.terrain.Mesh));
-        this.Components.Add(new TransformComponent(world).SetScale(0.02f));
+        this.terrain = this.Generator.Generate(world, this.dimensions, "terrain");
+        this.Administrator.Components.Add(new TerrainComponent(world, this.terrain.HeightMap, this.terrain.Mesh));
+        this.Administrator.Components.Add(new TransformComponent(world).SetScale(0.02f));
 
         this.world = world;
     }

@@ -1,5 +1,9 @@
 # TODO
 
+- Are we leaking memory, looks like some stuff keeps working even after it is popped from the content stack!
+
+- Quiting during loading screen doesn't really quit?
+
 - Sun shadows: front faces rendered with slope-scaled depth bias?? https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias
 - See https://www.realtimeshadows.com/sites/default/files/Playing%20with%20Real-Time%20Shadows_0.pdf for shadow map ideas, especially from slide 59
 - See https://www.realtimeshadows.com/sites/default/files/Playing%20with%20Real-Time%20Shadows_0.pdf starting form slide 42 on FOG

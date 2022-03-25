@@ -23,8 +23,8 @@ public sealed class ComponentAdministrator
         where T : Component
         where U : Component
     {
-        this.ContainerStore.GetContainer<T>().Add(componentA);
-        this.ContainerStore.GetContainer<U>().Add(componentB);
+        this.Add(componentA);
+        this.Add(componentB);
     }
 
     public void Add<T, U, V>(T componentA, U componentB, V componentC)
@@ -32,9 +32,9 @@ public sealed class ComponentAdministrator
         where U : Component
         where V : Component
     {
-        this.ContainerStore.GetContainer<T>().Add(componentA);
-        this.ContainerStore.GetContainer<U>().Add(componentB);
-        this.ContainerStore.GetContainer<V>().Add(componentC);
+        this.Add(componentA);
+        this.Add(componentB);
+        this.Add(componentC);
     }
 
     public void Add<T, U, V, W>(T componentA, U componentB, V componentC, W componentD)
@@ -43,10 +43,10 @@ public sealed class ComponentAdministrator
         where V : Component
         where W : Component
     {
-        this.ContainerStore.GetContainer<T>().Add(componentA);
-        this.ContainerStore.GetContainer<U>().Add(componentB);
-        this.ContainerStore.GetContainer<V>().Add(componentC);
-        this.ContainerStore.GetContainer<W>().Add(componentD);
+        this.Add(componentA);
+        this.Add(componentB);
+        this.Add(componentC);
+        this.Add(componentD);
     }
 
     public T GetComponent<T>(Entity entity)

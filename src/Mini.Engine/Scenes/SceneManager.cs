@@ -2,6 +2,8 @@
 using System.Linq;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
+using Mini.Engine.ECS;
+using Mini.Engine.ECS.Entities;
 
 namespace Mini.Engine.Scenes;
 
@@ -9,14 +11,16 @@ namespace Mini.Engine.Scenes;
 public sealed class SceneManager
 {
     private readonly LoadingScreen LoadingScreen;
-    private readonly ContentManager Content;    
+    private readonly ContentManager Content;
+    private readonly ECSAdministrator Administrator;
     private int activeScene;
     private int nextScene;
 
-    public SceneManager(LoadingScreen loadingScreen, ContentManager content, IEnumerable<IScene> scenes)
+    public SceneManager(LoadingScreen loadingScreen, ContentManager content, ECSAdministrator administrator, IEnumerable<IScene> scenes)
     {
         this.LoadingScreen = loadingScreen;
         this.Content = content;
+        this.Administrator = administrator;
         this.Scenes = scenes.ToList();
 
         this.activeScene = -1;
@@ -43,6 +47,7 @@ public sealed class SceneManager
         if (this.activeScene >= 0)
         {
             this.Content.Pop();
+            this.Administrator.RemoveAll();
         }
 
         this.activeScene = index;
@@ -51,5 +56,5 @@ public sealed class SceneManager
         var title = this.Scenes[this.activeScene].Title;
         this.Content.Push($"Scene{title}");
         this.LoadingScreen.Load(actions, title);
-    }
+    }    
 }

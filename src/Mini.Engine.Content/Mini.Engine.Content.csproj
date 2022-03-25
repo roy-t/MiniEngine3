@@ -8,6 +8,7 @@
     <None Remove="Assets\Shaders\Lighting\SunLight.hlsl" />
     <None Remove="Assets\Shaders\Noise\Includes\SimplexNoise.hlsl" />
     <None Remove="Assets\Shaders\Noise\NoiseShader.hlsl" />
+    <None Remove="Assets\Shaders\Terrain.hlsl" />
   </ItemGroup> 
   <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
@@ -21,6 +22,7 @@
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
+    <AdditionalFiles Include="Assets\Shaders\Terrain.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Indexes.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\CubeMapGenerator.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\ImageBasedLight.hlsl" />

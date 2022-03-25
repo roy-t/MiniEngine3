@@ -7,26 +7,28 @@ namespace Mini.Engine.ECS.Entities;
 [Service]
 public sealed class EntityAdministrator
 {
-    private readonly List<Entity> Entities;
+    // TODO: class assumes single threaded entity creation
+
+    private readonly List<Entity> EntityList;
     private int nextId = 0;
 
     public EntityAdministrator()
     {
-        this.Entities = new List<Entity>();
+        this.EntityList = new List<Entity>();
     }
 
+    public IReadOnlyList<Entity> Entities => this.EntityList;
+
     public Entity Create()
-    {
-        var id = Interlocked.Increment(ref this.nextId);
-        var entity = new Entity(id);
-        this.Entities.Add(entity);
+    {        
+        var entity = new Entity(++this.nextId);
+        this.EntityList.Add(entity);
 
         return entity;
     }
-
-    public IReadOnlyList<Entity> GetAllEntities()
-        => this.Entities.ToArray();
-
+       
     public void Remove(Entity entity)
-        => this.Entities.Remove(entity);
+    {
+        this.EntityList.Remove(entity);
+    }    
 }

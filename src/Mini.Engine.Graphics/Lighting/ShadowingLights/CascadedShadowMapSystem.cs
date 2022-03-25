@@ -17,7 +17,7 @@ using Vortice.Direct3D11;
 namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 
 [Service]
-public sealed partial class CascadedShadowMapSystem : IRenderServiceCallBack, ISystem, IDisposable
+public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISystem, IDisposable
 {
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
@@ -95,8 +95,8 @@ public sealed partial class CascadedShadowMapSystem : IRenderServiceCallBack, IS
 
         this.Context.Clear(depthStencilBuffers, slice, DepthStencilClearFlags.Depth, 1.0f, 0);
 
-
         this.RenderService.DrawAllModels(this, this.Context, viewVolume, viewProjection);
+        this.RenderService.DrawAllTerrain(this, this.Context, viewVolume, viewProjection);
     }
 
     public void SetConstants(Matrix4x4 worldViewProjection, Matrix4x4 world)
