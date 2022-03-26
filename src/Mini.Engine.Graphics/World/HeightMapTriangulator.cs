@@ -43,7 +43,7 @@ public static class HeightMapTriangulator
             {
                 var value = Sample(x / 2.0f, y / 2.0f, heightMap, stride);
                 var pi = Indexes.ToOneDimensional(x, y, width);
-                positions[pi] = new Vector3((x / (float)stride) - 0.5f, value, (y / (float)stride) - 0.5f);
+                positions[pi] = new Vector3((x / (float)width) - 0.5f, value, (y / (float)width) - 0.5f);
             }
         });
 
