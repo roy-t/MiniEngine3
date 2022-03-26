@@ -36,7 +36,7 @@ PS_INPUT VS(VS_INPUT input)
 float PS(PS_INPUT input) : SV_TARGET
 {
     float mask = Albedo.Sample(TextureSampler, input.texcoord).w;
-    clip(mask - 1.0f);
+    clip(mask - 0.5f);
     
     return input.world.z / input.world.w;
 }

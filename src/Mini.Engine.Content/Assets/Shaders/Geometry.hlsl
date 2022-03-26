@@ -59,7 +59,7 @@ PS_INPUT VS(VS_INPUT input)
 OUTPUT PS(PS_INPUT input)
 {
     float4 albedo = Albedo.Sample(TextureSampler, input.texcoord);
-    clip(albedo.a - 1.0f);
+    clip(albedo.a - 0.5f);
 
     float3 V = normalize(CameraPosition - input.world);
     float3 normal = PerturbNormal(Normal, TextureSampler, input.normal, V, input.texcoord);
