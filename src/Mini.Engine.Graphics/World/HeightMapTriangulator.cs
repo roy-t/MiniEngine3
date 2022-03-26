@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
 using Mini.Engine.Core;
@@ -197,10 +196,5 @@ public static class HeightMapTriangulator
     private static float GetHeight(int x, int y, float[] heightMap, int stride)
     {
         return heightMap[Indexes.ToOneDimensional(x, y, stride)];
-    }
-
-    private static float GetHeight(int x, int y, IReadOnlyList<Vector3> vertices, int stride)
-    {
-        return vertices[Indexes.ToOneDimensional(x, y, stride)].Y;
     }
 }
