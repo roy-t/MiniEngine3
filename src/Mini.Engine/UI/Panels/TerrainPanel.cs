@@ -19,8 +19,8 @@ internal sealed class TerrainPanel : IPanel
 
     private int dimensions = 512;
     private Vector2 offset = Vector2.Zero;
-    private float amplitude = 75.0f;
-    private float frequency = 1.0f / 500.0f;
+    private float amplitude = 0.30f;
+    private float frequency = 1.0f;
     private int octaves = 7;
     private float lacunarity = 2.25f;
     private float persistance = 0.35f;
@@ -47,13 +47,12 @@ internal sealed class TerrainPanel : IPanel
         var changed =
             ImGui.SliderInt("Dimensions", ref this.dimensions, 4, 4096) ||
             ImGui.DragFloat2("Offset", ref this.offset, 10.0f) ||
-            ImGui.SliderFloat("Amplitude", ref this.amplitude, 1.0f, 100) ||
+            ImGui.SliderFloat("Amplitude", ref this.amplitude, 0.01f, 2.0f) ||
             ImGui.SliderFloat("Frequency", ref this.frequency, 0.1f, 10.0f) ||
             ImGui.SliderInt("Octaves", ref this.octaves, 1, 10) ||
             ImGui.SliderFloat("Lacunarity", ref this.lacunarity, 1.0f, 10.0f) ||
             ImGui.SliderFloat("Persistance", ref this.persistance, 0.1f, 1.0f) ||
             ImGui.Button("Generate");
-
 
         if (changed)
         {
@@ -82,12 +81,11 @@ internal sealed class TerrainPanel : IPanel
         this.terrain = this.Generator.Generate(world, this.dimensions, this.offset, this.amplitude, this.frequency, this.octaves, this.lacunarity, this.persistance, "terrain");
         this.Administrator.Components.Add(new TerrainComponent(world, this.terrain.HeightMap, this.terrain.Mesh));
 
-        var width = this.terrain.Mesh.Bounds.Extent.X;
+        var width = this.terrain.Mesh.Bounds.Maximum.X - this.terrain.Mesh.Bounds.Minimum.X;
         var desiredWidth = 10.0f;
-        var scale = desiredWidth / width;
-        //var vScale = new Vector3(scale, 1.0f, scale);
+        var scale = desiredWidth / width;        
         this.Administrator.Components.Add(new TransformComponent(world).SetScale(scale));
 
-        this.world = world;
+         this.world = world;
     }
 }

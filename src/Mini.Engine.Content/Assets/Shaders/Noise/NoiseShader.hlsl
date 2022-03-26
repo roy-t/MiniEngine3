@@ -20,11 +20,18 @@ RWStructuredBuffer<float> World : register(u0);
 [numthreads(8, 8, 1)]
 void Kernel(in uint3 dispatchId : SV_DispatchThreadID)
 {
-    int index = ToOneDimensional(dispatchId.x, dispatchId.y, Stride);
-    float2 coord = Offset + float2(dispatchId.x, dispatchId.y);
+    // When not using a power of two input we might be out-of-bounds
+    if (dispatchId.x >= Stride || dispatchId.y >= Stride)
+    {
+        return;
+    }
+        
+    uint index = ToOneDimensional(dispatchId.x, dispatchId.y, Stride);
+            
+    float scale = 1.0f / Stride;
+    float2 coord = Offset + float2(dispatchId.x, dispatchId.y) * scale;    
     
     float sum = 0.0f;
-
     for (int i = 0; i < Octaves; i++)
     {
         float frequency = Frequency * pow(abs(Lacunarity), i);
