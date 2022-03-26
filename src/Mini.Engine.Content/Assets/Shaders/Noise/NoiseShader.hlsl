@@ -21,7 +21,10 @@ RWStructuredBuffer<float> World : register(u0);
 void Kernel(in uint3 dispatchId : SV_DispatchThreadID)
 {
     int index = ToOneDimensional(dispatchId.x, dispatchId.y, Stride);
-    float2 coord = Offset + float2(dispatchId.x, dispatchId.y);
+
+    float scale = 1.0f / Stride;
+
+    float2 coord = Offset + float2(dispatchId.x, dispatchId.y) * scale;
     
     float sum = 0.0f;
 
