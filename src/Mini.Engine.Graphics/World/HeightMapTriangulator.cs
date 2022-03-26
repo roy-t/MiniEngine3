@@ -19,7 +19,7 @@ public static class HeightMapTriangulator
 
         var positionsTask = CalculatePositions(heightMap, width, stride);
         var indicesTask = CalculateIndices(width);
-        
+
         positionsTask.Wait();
         var positions = positionsTask.Result;
 
@@ -109,15 +109,29 @@ public static class HeightMapTriangulator
             // TODO: what about the border?
             if (x > 0 && x < stride - 1 && y > 0 && y < stride - 1)
             {
-                var xm = GetHeight(x - 1, y, positions, stride);
-                var xp = GetHeight(x + 1, y, positions, stride);
-                var ym = GetHeight(x, y - 1, positions, stride);
-                var yp = GetHeight(x, y + 1, positions, stride);
+                // There are 8 triangles of which this position is part of
+                // compute the normal of the center vertex for each triangle and then average it
+                var c = positions[Indexes.ToOneDimensional(x, y, stride)];
 
-                var B = new Vector3(1.0f, (xp - xm) * stride, 0);
-                var T = new Vector3(0, (yp - ym) * stride, 1.0f );
-                var N = Vector3.Cross(T, B);
-                normal = Vector3.Normalize(N);
+                var nw = positions[Indexes.ToOneDimensional(x - 1, y - 1, stride)];
+                var n = positions[Indexes.ToOneDimensional(x, y - 1, stride)];
+                var ne = positions[Indexes.ToOneDimensional(x + 1, y - 1, stride)];
+                var e = positions[Indexes.ToOneDimensional(x + 1, y, stride)];
+                var se = positions[Indexes.ToOneDimensional(x + 1, y + 1, stride)];
+                var s = positions[Indexes.ToOneDimensional(x, y + 1, stride)];
+                var sw = positions[Indexes.ToOneDimensional(x - 1, y + 1, stride)];
+                var w = positions[Indexes.ToOneDimensional(x - 1, y, stride)];
+                
+                var nwXn = Vector3.Normalize(Vector3.Cross(c - n, c - nw));
+                var nXne = Vector3.Normalize(Vector3.Cross(c - ne, c - n));
+                var neXe = Vector3.Normalize(Vector3.Cross(c - e, c - ne));
+                var eXse = Vector3.Normalize(Vector3.Cross(c - se, c - e));
+                var seXs = Vector3.Normalize(Vector3.Cross(c - s, c - se));
+                var sXsw = Vector3.Normalize(Vector3.Cross(c - sw, c - s));
+                var swXw = Vector3.Normalize(Vector3.Cross(c - w, c - sw));
+                var wXnw = Vector3.Normalize(Vector3.Cross(c - nw, c - w));
+
+                normal = Vector3.Normalize((nwXn + nXne + neXe + eXse + seXs + sXsw + swXw + wXnw) / 8.0f);
             }
 
             vertices[vi] = new ModelVertex(position, texcoord, normal);

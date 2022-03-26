@@ -54,7 +54,6 @@ internal sealed class TerrainPanel : IPanel
             ImGui.SliderFloat("Persistance", ref this.persistance, 0.1f, 1.0f) ||
             ImGui.Button("Generate");
 
-
         if (changed)
         {
             this.GenerateTerrain();
