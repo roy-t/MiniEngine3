@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Configuration;
+﻿using System.Numerics;
+using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.NoiseShader;
 using Mini.Engine.DirectX;
@@ -20,14 +21,30 @@ public sealed class SimplexNoiseGenerator
         this.Kernel = noiseShader;
     }
 
-    public float[] Generate(int dimensions)
+    /// <summary>
+    /// Generates 2-dimensional simplex noise
+    /// </summary>
+    /// <param name="dimensions">Length of each dimension</param>
+    /// <param name="amplitude">Amplitude of first octave</param>
+    /// <param name="frequency">Frequency of first octave</param>
+    /// <param name="octaves">Number of layers of noise</param>
+    /// <param name="lacunarity">(1..) Increase in frequency for each consecutive octave, l * f ^ 0, l * f ^1, ...</param>
+    /// <param name="persistance">[0..1), Decrease of amplitude for each consecutive octage, p * f ^ 0, p * f ^ 1, ...</param>
+    /// <returns></returns>
+    public float[] Generate(int dimensions, Vector2 offset, float amplitude, float frequency, int octaves, float lacunarity, float persistance)
     {
         var context = this.Device.ImmediateContext;
 
         var length = dimensions * dimensions;
         var cBuffer = new Constants()
-        {
-            Stride = (uint)dimensions
+        {            
+            Stride = (uint)dimensions,
+            Offset = offset,
+            Amplitude = amplitude,
+            Frequency = frequency,
+            Octaves = octaves,
+            Lacunarity = lacunarity,
+            Persistance = persistance
         };
         this.ConstantBuffer.MapData(context, cBuffer);
         context.CS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);

@@ -1,7 +1,6 @@
 ﻿using System;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
-using Mini.Engine.Graphics.World;
 using Mini.Engine.Windows;
 
 namespace Mini.Engine;
@@ -11,13 +10,11 @@ internal sealed class SingleFrameLoop : IGameLoop
 {
     private int drawCalls;
     private readonly Win32Window Window;
-    private readonly SimplexNoiseGenerator NoiseGenerator;
     private readonly RenderDoc? RenderDoc;
 
-    public SingleFrameLoop(Win32Window window, SimplexNoiseGenerator noiseGenerator, Services services)
+    public SingleFrameLoop(Win32Window window, Services services)
     {
         this.Window = window;
-        this.NoiseGenerator = noiseGenerator;
         if (services.TryResolve<RenderDoc>(out var instance))
         {
             this.RenderDoc = instance;
@@ -26,9 +23,7 @@ internal sealed class SingleFrameLoop : IGameLoop
 
     private void DrawExperiment()
     {
-        var dimensions = 64;
-        var heightMap = this.NoiseGenerator.Generate(dimensions);
-        var model = HeightMapTriangulator.Triangulate(heightMap, dimensions);
+        // ...
     }
 
     public void Update(float time, float elapsed) { }

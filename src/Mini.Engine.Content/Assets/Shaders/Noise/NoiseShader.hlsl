@@ -2,9 +2,14 @@
 #include "Includes/SimplexNoise.hlsl"
 
 cbuffer Constants : register(b0)
-{
-    uint Stride;    
-    float3 unused;
+{    
+    uint Stride;
+    float2 Offset;
+    float Amplitude;
+    float Frequency;
+    int Octaves;
+    float Lacunarity;
+    float Persistance;    
 };
 
 RWStructuredBuffer<float> World : register(u0);
@@ -16,11 +21,18 @@ RWStructuredBuffer<float> World : register(u0);
 void Kernel(in uint3 dispatchId : SV_DispatchThreadID)
 {
     int index = ToOneDimensional(dispatchId.x, dispatchId.y, Stride);
-    float2 coord = float2(dispatchId.x, dispatchId.y);
+    float2 coord = Offset + float2(dispatchId.x, dispatchId.y);
+    
+    float sum = 0.0f;
 
-    float high = snoise(coord / 30.0f) * 1;
-    float medium = snoise(coord / 100.0f) * 10;
-    float low = snoise(coord / 500.0f) * 100;
+    for (int i = 0; i < Octaves; i++)
+    {
+        float frequency = Frequency * pow(abs(Lacunarity), i);
+        float amplitude = Amplitude * pow(abs(Persistance), i);
+        float noise = snoise(coord * frequency) * amplitude;
 
-    World[index] = low + medium + high;
+        sum += noise;
+    }
+
+    World[index] = sum;
 }

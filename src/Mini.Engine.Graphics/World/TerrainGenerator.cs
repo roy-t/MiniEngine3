@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.DirectX;
@@ -25,12 +26,12 @@ public sealed class TerrainGenerator
         this.Content = content;
     }
 
-    public TerrainComponent Generate(Entity entity, int dimensions, string name)
+    public TerrainComponent Generate(Entity entity, int dimensions, Vector2 offset, float amplitude, float frequency, int octaves, float lacunarity, float persistance, string name)
     {
         var stopwatch = new Stopwatch();
 
         stopwatch.Restart();
-        var heightMap = this.NoiseGenerator.Generate(dimensions);
+        var heightMap = this.NoiseGenerator.Generate(dimensions, offset, amplitude, frequency, octaves, lacunarity, persistance);
 
         this.Logger.Information("Noise generator took {@miliseconds}", stopwatch.ElapsedMilliseconds);
                 

@@ -25,8 +25,8 @@ public static class HeightMapTriangulator
 
         var verticesTask = CalculateVertices(positions, width);
         var boundsTask = CalculateBounds(positions);
-        Task.WaitAll(indicesTask, verticesTask, boundsTask);
 
+        Task.WaitAll(indicesTask, verticesTask, boundsTask);
         var indices = indicesTask.Result;
         var vertices = verticesTask.Result;
         var bounds = boundsTask.Result;
@@ -67,7 +67,7 @@ public static class HeightMapTriangulator
 
                 var indexBase = Indexes.ToOneDimensional(x, y, intervals) * 6;
 
-                // Choose the where to slice the quad into two triangles
+                // Choose where to slice the quad into two triangles
                 // so that for a 2x2 quad all diagonals connect to the center
                 if ((x % 2 == 0) == (y % 2 == 0))
                 {
