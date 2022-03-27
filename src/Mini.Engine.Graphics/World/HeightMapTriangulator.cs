@@ -94,6 +94,51 @@ public static class HeightMapTriangulator
         return indices;
     }
 
+    public static int[] CalculateIndicesPlain(int width)
+    {
+        var intervals = width - 1;
+        var quads = intervals * intervals;
+        var triangles = quads * 2;
+        var indices = new int[triangles * 3];
+        for(var y = 0; y < intervals; y++)
+        {
+            for (var x = 0; x < intervals; x++)
+            {
+                var tl = Indexes.ToOneDimensional(x, y, width);
+                var tr = Indexes.ToOneDimensional(x + 1, y, width);
+                var br = Indexes.ToOneDimensional(x + 1, y + 1, width);
+                var bl = Indexes.ToOneDimensional(x, y + 1, width);
+
+                var indexBase = Indexes.ToOneDimensional(x, y, intervals) * 6;
+
+                // Choose where to slice the quad into two triangles
+                // so that for a 2x2 quad all diagonals connect to the center
+                if ((x % 2 == 0) == (y % 2 == 0))
+                {
+                    indices[indexBase + 0] = tl;
+                    indices[indexBase + 1] = tr;
+                    indices[indexBase + 2] = br;
+
+                    indices[indexBase + 3] = br;
+                    indices[indexBase + 4] = bl;
+                    indices[indexBase + 5] = tl;
+                }
+                else
+                {
+                    indices[indexBase + 0] = tr;
+                    indices[indexBase + 1] = br;
+                    indices[indexBase + 2] = bl;
+
+                    indices[indexBase + 3] = bl;
+                    indices[indexBase + 4] = tl;
+                    indices[indexBase + 5] = tr;
+                }
+            }
+        }
+
+        return indices;
+    }
+
     private static async Task<ModelVertex[]> CalculateVertices(Vector3[] positions, int stride)
     {
         var vertices = new ModelVertex[positions.Length];

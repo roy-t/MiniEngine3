@@ -43,10 +43,9 @@ internal sealed class TerrainPanel : IPanel
 
     public void Update(float elapsed)
     {
-        // TODO: there is an assumption about power of 2 somewhere that makes non-power of 2 noise weird!
         var changed =
             ImGui.SliderInt("Dimensions", ref this.dimensions, 4, 4096) ||
-            ImGui.DragFloat2("Offset", ref this.offset, 10.0f) ||
+            ImGui.DragFloat2("Offset", ref this.offset, 0.1f) ||
             ImGui.SliderFloat("Amplitude", ref this.amplitude, 0.01f, 2.0f) ||
             ImGui.SliderFloat("Frequency", ref this.frequency, 0.1f, 10.0f) ||
             ImGui.SliderInt("Octaves", ref this.octaves, 1, 10) ||
