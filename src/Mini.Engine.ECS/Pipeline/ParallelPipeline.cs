@@ -91,7 +91,7 @@ public sealed class ParallelPipeline : IDisposable
     {
         try
         {
-            while (true)
+            while (!this.CancellationToken.IsCancellationRequested)
             {
                 this.StageStartEvent.Wait(this.CancellationToken.Token);
 

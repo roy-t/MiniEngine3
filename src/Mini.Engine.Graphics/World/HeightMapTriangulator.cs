@@ -16,27 +16,26 @@ public static class HeightMapTriangulator
         // and have nicer normals
         var width = (stride * 2) - 1;
 
-        var positionsTask = CalculatePositions(heightMap, width, stride);
-        var indicesTask = CalculateIndices(width);
+        using var pool = new WorkPool(8);
 
-        positionsTask.Wait();
-        var positions = positionsTask.Result;
+        var positions = CalculatePositions(pool, heightMap, width, stride);
+        var indices = CalculateIndices(pool, width);
 
-        var verticesTask = CalculateVertices(positions, width);
-        var boundsTask = CalculateBounds(positions);
+        pool.WaitUntilWorkIsFinished();
+        
 
-        Task.WaitAll(indicesTask, verticesTask, boundsTask);
-        var indices = indicesTask.Result;
-        var vertices = verticesTask.Result;
-        var bounds = boundsTask.Result;
+        var vertices = CalculateVertices(pool, positions, width);
+        var bounds = CalculateBounds(pool, positions);
 
+        pool.WaitUntilWorkIsFinished();
+        
         return (indices, vertices, bounds);
     }
 
-    private async static Task<Vector3[]> CalculatePositions(float[] heightMap, int width, int stride)
+    private static Vector3[] CalculatePositions(WorkPool pool, float[] heightMap, int width, int stride)
     {
         var positions = new Vector3[width * width];
-        await BackgroundTasks.ForAsync(0, width, y =>
+        BackgroundTasks.For(pool, 0, width, y =>
         {
             for (var x = 0; x < width; x++)
             {
@@ -49,13 +48,13 @@ public static class HeightMapTriangulator
         return positions;
     }
 
-    private async static Task<int[]> CalculateIndices(int width)
+    private static int[] CalculateIndices(WorkPool pool, int width)
     {
         var intervals = width - 1;
         var quads = intervals * intervals;
         var triangles = quads * 2;
         var indices = new int[triangles * 3];
-        await BackgroundTasks.ForAsync(0, intervals, y =>
+        BackgroundTasks.For(pool, 0, intervals, y =>
         {
             for (var x = 0; x < intervals; x++)
             {
@@ -94,11 +93,11 @@ public static class HeightMapTriangulator
         return indices;
     }
 
-    private static async Task<ModelVertex[]> CalculateVertices(Vector3[] positions, int stride)
+    private static ModelVertex[] CalculateVertices(WorkPool pool, Vector3[] positions, int stride)
     {
         var vertices = new ModelVertex[positions.Length];
 
-        await BackgroundTasks.ForAsync(0, positions.Length, vi =>
+        BackgroundTasks.For(pool, 0, positions.Length, vi =>
         {
             var (x, y) = Indexes.ToTwoDimensional(vi, stride);
             var texcoord = new Vector2(x / (float)stride, y / (float)stride);
@@ -139,33 +138,35 @@ public static class HeightMapTriangulator
         return vertices;
     }
 
-    private static Task<BoundingBox> CalculateBounds(Vector3[] positions)
+    private static BoundingBox CalculateBounds(WorkPool pool, Vector3[] positions)
     {
-        return Task.Run(() =>
-        {
-            var minX = float.MaxValue;
-            var minY = float.MaxValue;
-            var minZ = float.MaxValue;
+        // TODO
+        return new BoundingBox(Vector3.One * -0.5f, Vector3.One * 0.5f);
+        //return Task.Run(() =>
+        //{
+        //    var minX = float.MaxValue;
+        //    var minY = float.MaxValue;
+        //    var minZ = float.MaxValue;
 
-            var maxX = float.MinValue;
-            var maxY = float.MinValue;
-            var maxZ = float.MinValue;
+        //    var maxX = float.MinValue;
+        //    var maxY = float.MinValue;
+        //    var maxZ = float.MinValue;
 
-            for (var i = 0; i < positions.Length; i++)
-            {
-                var position = positions[i];
-                minX = Math.Min(minX, position.X);
-                minY = Math.Min(minY, position.Y);
-                minZ = Math.Min(minZ, position.Z);
+        //    for (var i = 0; i < positions.Length; i++)
+        //    {
+        //        var position = positions[i];
+        //        minX = Math.Min(minX, position.X);
+        //        minY = Math.Min(minY, position.Y);
+        //        minZ = Math.Min(minZ, position.Z);
 
-                maxX = Math.Max(maxX, position.X);
-                maxY = Math.Max(maxY, position.Y);
-                maxZ = Math.Max(maxZ, position.Z);
-            }
+        //        maxX = Math.Max(maxX, position.X);
+        //        maxY = Math.Max(maxY, position.Y);
+        //        maxZ = Math.Max(maxZ, position.Z);
+        //    }
 
-            var bounds = new BoundingBox(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
-            return bounds;
-        });
+        //    var bounds = new BoundingBox(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
+        //    return bounds;
+        //});
     }
 
     private static float Sample(float x, float y, float[] heightMap, int stride)
