@@ -28,7 +28,7 @@ public sealed class RasterizerStates : IDisposable
     {
         this.CullNone = Create(device, RasterizerDescription.CullNone, nameof(this.CullNone));
         this.CullCounterClockwise = Create(device, RasterizerDescription.Cullback, nameof(this.CullCounterClockwise));
-        this.CullCounterClockwiseScissor = Create(device, CreateCullCounterClockwiseScissor(), nameof(this.CullCounterClockwiseScissor));
+        this.CullNoneCounterClockwiseScissor = Create(device, CreateCullNoneCounterClockwiseScissor(), nameof(this.CullNoneCounterClockwiseScissor));
         this.CullClockwise = Create(device, RasterizerDescription.CullFront, nameof(this.CullClockwise));
 
         this.CullNoneNoDepthClip = Create(device, CreateCullNoneNoDepthClip(), nameof(this.CullNoneNoDepthClip));
@@ -37,8 +37,8 @@ public sealed class RasterizerStates : IDisposable
     }
 
     public RasterizerState CullNone { get; }
-    public RasterizerState CullCounterClockwise { get; }
-    public RasterizerState CullCounterClockwiseScissor { get; }
+    public RasterizerState CullNoneCounterClockwiseScissor { get; }
+    public RasterizerState CullCounterClockwise { get; }    
     public RasterizerState CullClockwise { get; }
 
     public RasterizerState CullNoneNoDepthClip { get; }
@@ -51,11 +51,11 @@ public sealed class RasterizerStates : IDisposable
         return new RasterizerState(state, name);
     }
 
-    private static RasterizerDescription CreateCullCounterClockwiseScissor()
+    private static RasterizerDescription CreateCullNoneCounterClockwiseScissor()
     {
         return new RasterizerDescription()
         {
-            CullMode = CullMode.Back,
+            CullMode = CullMode.None,
             FillMode = FillMode.Solid,
             FrontCounterClockwise = false,
             DepthBias = 0,

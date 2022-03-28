@@ -7,12 +7,15 @@ using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.ColorShader;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
+using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
+using Mini.Engine.Graphics.World;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
+using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Models;
 
@@ -116,6 +119,27 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
             }
         }
     }
+
+    [Process(Query = ProcessQuery.All)]
+    public void DrawOutline(TerrainComponent component, TransformComponent transform)
+    {
+        if (this.DebugFrameService.ShowBounds)
+        {
+            var camera = this.FrameService.Camera;
+
+            var world = transform.AsMatrix();
+            var bounds = component.Mesh.Bounds.Transform(world);
+
+            if (camera.Frustum.ContainsOrIntersects(bounds))
+            {
+                var context = this.Device.ImmediateContext;
+                var corners = bounds.GetCorners();
+                this.VertexBuffer.MapData(context, corners);
+
+                context.DrawIndexed(24, 0, 0);
+            }
+        }
+    }   
 
     public void OnUnSet() { }
 

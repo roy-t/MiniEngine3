@@ -60,9 +60,7 @@ public sealed class HeightMapGenerator
         this.NoiseConstantBuffer.MapData(context, cBuffer);
         context.CS.SetConstantBuffer(NoiseConstants.Slot, this.NoiseConstantBuffer);
 
-        var length = dimensions * dimensions;
-        
-
+        var length = dimensions * dimensions;        
         using var output = new RWStructuredBuffer<ModelVertex>(this.Device, "output", length);
 
         context.CS.SetShader(this.NoiseKernel);
