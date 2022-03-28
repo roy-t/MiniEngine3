@@ -6,8 +6,8 @@
     <None Remove="Assets\Shaders\Lighting\Includes\Shadows.hlsl" />
     <None Remove="Assets\Shaders\Lighting\ShadowMap.hlsl" />
     <None Remove="Assets\Shaders\Lighting\SunLight.hlsl" />
+    <None Remove="Assets\Shaders\Noise\HeightMapShader.hlsl" />
     <None Remove="Assets\Shaders\Noise\Includes\SimplexNoise.hlsl" />
-    <None Remove="Assets\Shaders\Noise\NoiseShader.hlsl" />
     <None Remove="Assets\Shaders\Terrain.hlsl" />
   </ItemGroup> 
   <ItemGroup>
@@ -46,7 +46,7 @@
     <AdditionalFiles Include="Assets\Shaders\TextureShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\ColorShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\UserInterface.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\Noise\NoiseShader.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Noise\HeightMapShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.11.0-dev-01371" />

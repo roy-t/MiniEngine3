@@ -43,10 +43,9 @@ internal sealed class TerrainPanel : IPanel
 
     public void Update(float elapsed)
     {
-        // TODO: there is an assumption about power of 2 somewhere that makes non-power of 2 noise weird!
         var changed =
             ImGui.SliderInt("Dimensions", ref this.dimensions, 4, 4096) ||
-            ImGui.DragFloat2("Offset", ref this.offset, 10.0f) ||
+            ImGui.DragFloat2("Offset", ref this.offset, 0.1f) ||
             ImGui.SliderFloat("Amplitude", ref this.amplitude, 0.01f, 2.0f) ||
             ImGui.SliderFloat("Frequency", ref this.frequency, 0.1f, 10.0f) ||
             ImGui.SliderInt("Octaves", ref this.octaves, 1, 10) ||
@@ -59,12 +58,12 @@ internal sealed class TerrainPanel : IPanel
             this.GenerateTerrain();
         }
 
-        if (this.terrain != null && this.Selector.Begin("Terrain Resources", "heightmap", this.terrain.HeightMap))
-        {
-            this.Selector.Select("Height Map", this.terrain.HeightMap);
+        //if (this.terrain != null && this.Selector.Begin("Terrain Resources", "heightmap", this.terrain.HeightMap))
+        //{
+        //    this.Selector.Select("Height Map", this.terrain.HeightMap);
 
-            this.Selector.End();
-        }
+        //    this.Selector.End();
+        //}
 
         this.Selector.ShowSelected();
     }
@@ -79,7 +78,7 @@ internal sealed class TerrainPanel : IPanel
         var world = this.Administrator.Entities.Create();
 
         this.terrain = this.Generator.Generate(world, this.dimensions, this.offset, this.amplitude, this.frequency, this.octaves, this.lacunarity, this.persistance, "terrain");
-        this.Administrator.Components.Add(new TerrainComponent(world, this.terrain.HeightMap, this.terrain.Mesh));
+        this.Administrator.Components.Add(new TerrainComponent(world, this.terrain.Mesh));
 
         var width = this.terrain.Mesh.Bounds.Maximum.X - this.terrain.Mesh.Bounds.Minimum.X;
         var desiredWidth = 10.0f;
