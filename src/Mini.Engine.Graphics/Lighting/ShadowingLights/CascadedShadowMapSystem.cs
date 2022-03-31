@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using Mini.Engine.Configuration;
+using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.ShadowMap;
 using Mini.Engine.DirectX;
@@ -28,8 +29,9 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
     private readonly InputLayout InputLayout;
     private readonly ConstantBuffer<Constants> ConstantBuffer;
     private readonly LightFrustum Frustum;
+    private readonly IMaterial DefaultMaterial;
 
-    public CascadedShadowMapSystem(Device device, FrameService frameService, RenderService renderService, ShadowMapVs vertexShader, ShadowMapPs pixelShader)
+    public CascadedShadowMapSystem(Device device, FrameService frameService, RenderService renderService, ShadowMapVs vertexShader, ShadowMapPs pixelShader, ContentManager content)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<CascadedShadowMapSystem>();
@@ -42,6 +44,8 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(CascadedShadowMapSystem)}_CB");
 
         this.Frustum = new LightFrustum();
+
+        this.DefaultMaterial = content.LoadDefaultMaterial();
     }
 
     public void OnSet()
@@ -96,6 +100,8 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         this.Context.Clear(depthStencilBuffers, slice, DepthStencilClearFlags.Depth, 1.0f, 0);
 
         this.RenderService.DrawAllModels(this, this.Context, viewVolume, viewProjection);
+
+        this.Context.PS.SetShaderResource(ShadowMap.Albedo, this.DefaultMaterial.Albedo);
         this.RenderService.DrawAllTerrain(this, this.Context, viewVolume, viewProjection);
     }
 
