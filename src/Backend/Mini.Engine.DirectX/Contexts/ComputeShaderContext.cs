@@ -54,17 +54,27 @@ public sealed class ComputeShaderContext : DeviceContextPart
         this.ID3D11DeviceContext.CSSetConstantBuffer(slot, buffer.Buffer);
     }
 
+    public void SetUnorderedAccessView(int slot, RWTexture2D texture)
+    {
+        this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, texture.UnorderedAccessViews[0]);
+    }
+
+    public void SetUnorderedAccessView(int slot, RWTexture2D texture, int mipMapSlice)
+    {
+        this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, texture.UnorderedAccessViews[mipMapSlice]);
+    }
+
     public void SetUnorderedAccessView<T>(int slot, RWStructuredBuffer<T> buffer)
         where T : unmanaged
     {
         this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, buffer.GetUnorderedAccessView());
-    }
+    }    
 
     public void SetUnorderedAccessView<T>(int slot, RWStructuredBuffer<T> buffer, int firstElement, int length)
         where T : unmanaged
     {
         this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, buffer.GetUnorderedAccessView(firstElement, length));
-    }
+    }   
 
     public void Dispatch(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ)
     {

@@ -58,12 +58,13 @@ internal sealed class TerrainPanel : IPanel
             this.GenerateTerrain();
         }
 
-        //if (this.terrain != null && this.Selector.Begin("Terrain Resources", "heightmap", this.terrain.HeightMap))
-        //{
-        //    this.Selector.Select("Height Map", this.terrain.HeightMap);
+        if (this.terrain != null && this.Selector.Begin("Terrain Resources", "heightmap", this.terrain.Height))
+        {
+            this.Selector.Select("Height", this.terrain.Height);
+            this.Selector.Select("Normals", this.terrain.Normals);
 
-        //    this.Selector.End();
-        //}
+            this.Selector.End();
+        }
 
         this.Selector.ShowSelected();
     }
@@ -78,7 +79,7 @@ internal sealed class TerrainPanel : IPanel
         var world = this.Administrator.Entities.Create();
 
         this.terrain = this.Generator.Generate(world, this.dimensions, this.offset, this.amplitude, this.frequency, this.octaves, this.lacunarity, this.persistance, "terrain");
-        this.Administrator.Components.Add(new TerrainComponent(world, this.terrain.Mesh));
+        this.Administrator.Components.Add(this.terrain);
 
         var width = this.terrain.Mesh.Bounds.Maximum.X - this.terrain.Mesh.Bounds.Minimum.X;
         var desiredWidth = 10.0f;
