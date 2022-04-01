@@ -2,7 +2,6 @@
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Shaders.HeightMapShader;
-using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
@@ -16,7 +15,6 @@ public sealed class HeightMapGenerator
     private readonly Device Device;
     private readonly ConstantBuffer<NoiseConstants> NoiseConstantBuffer;
     private readonly ConstantBuffer<TriangulateConstants> TriangulateConstantBuffer;
-    private readonly ConstantBuffer<IndicesConstants> IndicesConstantBuffer;
 
     private readonly HeightMapShaderNoiseMapKernel NoiseMapKernel;
     private readonly HeightMapShaderTriangulateKernel TriangulateKernel;
@@ -27,7 +25,6 @@ public sealed class HeightMapGenerator
         this.Device = device;
         this.NoiseConstantBuffer = new ConstantBuffer<NoiseConstants>(device, $"{nameof(HeightMapGenerator)}_Noise_CB");
         this.TriangulateConstantBuffer = new ConstantBuffer<TriangulateConstants>(device, $"{nameof(HeightMapGenerator)}_Triangulate_CB");
-        this.IndicesConstantBuffer = new ConstantBuffer<IndicesConstants>(device, $"{nameof(HeightMapGenerator)}_Indices_CB");
         this.NoiseMapKernel = noiseMapKernel;
         this.TriangulateKernel = triangulateKernel;
         this.IndicesKernel = indicesKernel;
@@ -107,16 +104,16 @@ public sealed class HeightMapGenerator
         var indices = triangles * 3;
 
         var context = this.Device.ImmediateContext;
-        var cBuffer = new IndicesConstants()
+        var cBuffer = new TriangulateConstants()
         {
+            Width = (uint)width,
+            Height = (uint)height,
             Count = (uint)indices,
-            Intervals = (uint)intervals,
-            Nwidth = (uint)width,
-            Nheight = (uint)height,            
+            Intervals = (uint)intervals,            
         };
 
-        this.IndicesConstantBuffer.MapData(context, cBuffer);
-        context.CS.SetConstantBuffer(IndicesConstants.Slot, this.IndicesConstantBuffer);
+        this.TriangulateConstantBuffer.MapData(context, cBuffer);
+        context.CS.SetConstantBuffer(TriangulateConstants.Slot, this.TriangulateConstantBuffer);
 
         using var output = new RWStructuredBuffer<int>(this.Device, "output", indices);
 

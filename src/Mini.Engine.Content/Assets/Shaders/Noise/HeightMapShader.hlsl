@@ -16,17 +16,10 @@ cbuffer TriangulateConstants : register(b1)
 {
     uint Width;
     uint Height;
-    float2 Unused;
-};
-
-cbuffer IndicesConstants : register(b2)
-{
-    uint NWidth;
-    uint NHeight;
-    uint Count;    
+    uint Count;
     uint Intervals;
 };
-    
+
 struct Vertex
 {
     float3 position;
@@ -109,7 +102,7 @@ void TriangulateKernel(in uint3 dispatchId : SV_DispatchThreadID)
     
     
     uint2 textureIndex = uint2(dispatchId.x, dispatchId.y);
-    float height = NoiseMapHeight[textureIndex];
+    float height = NoiseMapHeight[textureIndex] * 0.5f;
     float3 normal = NoiseMapNormal[textureIndex].xyz;
     float2 texcoord = float2(dispatchId.x, dispatchId.y) * scale;
         
@@ -147,22 +140,22 @@ void IndicesKernel(in uint3 dispatchId : SV_DispatchThreadID)
         switch (remainder)
         {
             case 0:
-                index = ToOneDimensional(x, y, NWidth);
+                index = ToOneDimensional(x, y, Width);
                 break;
             case 1:
-                index = ToOneDimensional(x + 1, y, NWidth);
+                index = ToOneDimensional(x + 1, y, Width);
                 break;
             case 2:
-                index = ToOneDimensional(x + 1, y + 1, NWidth);
+                index = ToOneDimensional(x + 1, y + 1, Width);
                 break;
             case 3:
-                index = ToOneDimensional(x + 1, y + 1, NWidth);
+                index = ToOneDimensional(x + 1, y + 1, Width);
                 break;
             case 4:
-                index = ToOneDimensional(x, y + 1, NWidth);
+                index = ToOneDimensional(x, y + 1, Width);
                 break;
             case 5:
-                index = ToOneDimensional(x, y, NWidth);
+                index = ToOneDimensional(x, y, Width);
                 break;
         }
     }
@@ -171,22 +164,22 @@ void IndicesKernel(in uint3 dispatchId : SV_DispatchThreadID)
         switch (remainder)
         {
             case 0:
-                index = ToOneDimensional(x + 1, y, NWidth);
+                index = ToOneDimensional(x + 1, y, Width);
                 break;
             case 1:
-                index = ToOneDimensional(x + 1, y + 1, NWidth);
+                index = ToOneDimensional(x + 1, y + 1, Width);
                 break;
             case 2:
-                index = ToOneDimensional(x, y + 1, NWidth);
+                index = ToOneDimensional(x, y + 1, Width);
                 break;
             case 3:
-                index = ToOneDimensional(x, y + 1, NWidth);
+                index = ToOneDimensional(x, y + 1, Width);
                 break;
             case 4:
-                index = ToOneDimensional(x, y, NWidth);
+                index = ToOneDimensional(x, y, Width);
                 break;
             case 5:
-                index = ToOneDimensional(x + 1, y, NWidth);
+                index = ToOneDimensional(x + 1, y, Width);
                 break;
         }
     }
