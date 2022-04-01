@@ -17,24 +17,29 @@ public sealed class TerrainGenerator
     private readonly ILogger Logger;
     private readonly Device Device;
     private readonly HeightMapGenerator HeightMapGenerator;
+    private readonly ErosionBrush ErosionBrush;
     private readonly ContentManager Content;
 
-    public TerrainGenerator(ILogger logger, Device device, HeightMapGenerator noiseGenerator, ContentManager content)
+    public TerrainGenerator(ILogger logger, Device device, ContentManager content, HeightMapGenerator noiseGenerator, ErosionBrush erosionBrush)
     {
         this.Logger = logger.ForContext<TerrainGenerator>();
         this.Device = device;
         this.HeightMapGenerator = noiseGenerator;
         this.Content = content;
+        this.ErosionBrush = erosionBrush;
     }
 
     public TerrainComponent Generate(Entity entity, int dimensions, Vector2 offset, float amplitude, float frequency, int octaves, float lacunarity, float persistance, string name)
     {
         var stopwatch = Stopwatch.StartNew();
         (var height, var normals) = this.HeightMapGenerator.GenerateMap(dimensions, offset, amplitude, frequency, octaves, lacunarity, persistance, "terrain");
+
+        this.ErosionBrush.Apply(height, normals);
+
         var vertices = this.HeightMapGenerator.GenerateVertices(height, normals);
         var indices = this.HeightMapGenerator.GenerateIndices(height.Width, height.Height);
 
-        this.Logger.Information("Noise generator took {@miliseconds}", stopwatch.ElapsedMilliseconds);
+        this.Logger.Information("Terrain generator took {@miliseconds}", stopwatch.ElapsedMilliseconds);
 
         var weight = 0.0f;
         for(var i = 0; i < octaves; i++)

@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.HeightMapShader;
+using Mini.Engine.Content.Shaders.HeightMap;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
@@ -16,11 +16,11 @@ public sealed class HeightMapGenerator
     private readonly ConstantBuffer<NoiseConstants> NoiseConstantBuffer;
     private readonly ConstantBuffer<TriangulateConstants> TriangulateConstantBuffer;
 
-    private readonly HeightMapShaderNoiseMapKernel NoiseMapKernel;
-    private readonly HeightMapShaderTriangulateKernel TriangulateKernel;
-    private readonly HeightMapShaderIndicesKernel IndicesKernel;
+    private readonly HeightMapNoiseMapKernel NoiseMapKernel;
+    private readonly HeightMapTriangulateKernel TriangulateKernel;
+    private readonly HeightMapIndicesKernel IndicesKernel;
 
-    public HeightMapGenerator(Device device, HeightMapShaderNoiseMapKernel noiseMapKernel, HeightMapShaderTriangulateKernel triangulateKernel, HeightMapShaderIndicesKernel indicesKernel)
+    public HeightMapGenerator(Device device, HeightMapNoiseMapKernel noiseMapKernel, HeightMapTriangulateKernel triangulateKernel, HeightMapIndicesKernel indicesKernel)
     {
         this.Device = device;
         this.NoiseConstantBuffer = new ConstantBuffer<NoiseConstants>(device, $"{nameof(HeightMapGenerator)}_Noise_CB");
@@ -60,8 +60,8 @@ public sealed class HeightMapGenerator
         var normals = new RWTexture2D(this.Device, dimensions, dimensions, Format.R32G32B32A32_Float, false, $"{name}_normalmap");
 
         context.CS.SetShader(this.NoiseMapKernel);
-        context.CS.SetUnorderedAccessView(HeightMapShader.NoiseMapHeight, height);
-        context.CS.SetUnorderedAccessView(HeightMapShader.NoiseMapNormal, normals);
+        context.CS.SetUnorderedAccessView(HeightMap.MapHeight, height);
+        context.CS.SetUnorderedAccessView(HeightMap.MapNormal, normals);
 
         var (x, y, z) = this.NoiseMapKernel.GetDispatchSize(dimensions, dimensions, 1);
         context.CS.Dispatch(x, y, z);
@@ -84,9 +84,9 @@ public sealed class HeightMapGenerator
         using var output = new RWStructuredBuffer<ModelVertex>(this.Device, "output", length);
 
         context.CS.SetShader(this.TriangulateKernel);
-        context.CS.SetUnorderedAccessView(HeightMapShader.NoiseMapHeight, heightMap);
-        context.CS.SetUnorderedAccessView(HeightMapShader.NoiseMapNormal, normalMap);
-        context.CS.SetUnorderedAccessView(HeightMapShader.HeightMap, output);
+        context.CS.SetUnorderedAccessView(HeightMap.MapHeight, heightMap);
+        context.CS.SetUnorderedAccessView(HeightMap.MapNormal, normalMap);
+        context.CS.SetUnorderedAccessView(HeightMap.Vertices, output);
         var (x, y, z) = this.TriangulateKernel.GetDispatchSize(heightMap.Width, heightMap.Height, 1);
         context.CS.Dispatch(x, y, z);
 
@@ -118,7 +118,7 @@ public sealed class HeightMapGenerator
         using var output = new RWStructuredBuffer<int>(this.Device, "output", indices);
 
         context.CS.SetShader(this.IndicesKernel);
-        context.CS.SetUnorderedAccessView(HeightMapShader.Indices, output);
+        context.CS.SetUnorderedAccessView(HeightMap.Indices, output);
         var (x, y, z) = this.IndicesKernel.GetDispatchSize(indices, 1, 1);
         context.CS.Dispatch(x, y, z);
 

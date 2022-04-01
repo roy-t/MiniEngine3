@@ -45,12 +45,12 @@ public sealed class Device : IDisposable
 
         this.CreateSwapChain(width, height);
 
-        this.ImmediateContext = new ImmediateDeviceContext(this, context, "ImmediateDeviceContext");
-
         this.SamplerStates = new SamplerStates(device);
         this.BlendStates = new BlendStates(device);
         this.DepthStencilStates = new DepthStencilStates(device);
         this.RasterizerStates = new RasterizerStates(device);
+
+        this.ImmediateContext = new ImmediateDeviceContext(this, context, "ImmediateDeviceContext");
     }
 
     public ImmediateDeviceContext ImmediateContext { get; }

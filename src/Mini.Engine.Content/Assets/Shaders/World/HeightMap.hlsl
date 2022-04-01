@@ -27,11 +27,11 @@ struct Vertex
     float3 normal;
 };
 
-RWStructuredBuffer<Vertex> HeightMap : register(u0);
+RWStructuredBuffer<Vertex> Vertices : register(u0);
 RWStructuredBuffer<int> Indices : register(u1);
 
-RWTexture2D<float> NoiseMapHeight : register(u2);
-RWTexture2D<float4> NoiseMapNormal : register(u3);
+RWTexture2D<float> MapHeight : register(u2);
+RWTexture2D<float4> MapNormal : register(u3);
 
 float Noise(float2 coord)
 {
@@ -81,8 +81,8 @@ void NoiseMapKernel(in uint3 dispatchId : SV_DispatchThreadID)
     float3 normal = normalize((wXn + eXS) / 2.0f);
     
     uint2 index = uint2(dispatchId.x, dispatchId.y);
-    NoiseMapHeight[index] = position.y;
-    NoiseMapNormal[index] = float4(normal, 1.0f);
+    MapHeight[index] = position.y;
+    MapNormal[index] = float4(normal, 1.0f);
 }
 
 // Run 8x8x1=64 threads per thread group, which means one full warp for AMD
@@ -102,8 +102,8 @@ void TriangulateKernel(in uint3 dispatchId : SV_DispatchThreadID)
     
     
     uint2 textureIndex = uint2(dispatchId.x, dispatchId.y);
-    float height = NoiseMapHeight[textureIndex] * 0.5f;
-    float3 normal = NoiseMapNormal[textureIndex].xyz;
+    float height = MapHeight[textureIndex] * 0.5f;
+    float3 normal = MapNormal[textureIndex].xyz;
     float2 texcoord = float2(dispatchId.x, dispatchId.y) * scale;
         
     Vertex vertex;
@@ -112,9 +112,8 @@ void TriangulateKernel(in uint3 dispatchId : SV_DispatchThreadID)
     vertex.texcoord = texcoord;
     
     uint index = ToOneDimensional(dispatchId.x, dispatchId.y, Stride);            
-    HeightMap[index] = vertex;
+    Vertices[index] = vertex;
 }
-
 
 #pragma ComputeShader
 [numthreads(64, 1, 1)]

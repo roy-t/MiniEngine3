@@ -6,8 +6,9 @@
     <None Remove="Assets\Shaders\Lighting\Includes\Shadows.hlsl" />
     <None Remove="Assets\Shaders\Lighting\ShadowMap.hlsl" />
     <None Remove="Assets\Shaders\Lighting\SunLight.hlsl" />
-    <None Remove="Assets\Shaders\Noise\HeightMapShader.hlsl" />
-    <None Remove="Assets\Shaders\Noise\Includes\SimplexNoise.hlsl" />
+    <None Remove="Assets\Shaders\World\Erosion.hlsl" />
+    <None Remove="Assets\Shaders\World\HeightMap.hlsl" />
+    <None Remove="Assets\Shaders\World\Includes\SimplexNoise.hlsl" />
     <None Remove="Assets\Shaders\Terrain.hlsl" />
   </ItemGroup> 
   <ItemGroup>
@@ -22,14 +23,15 @@
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
-    <AdditionalFiles Include="Assets\Shaders\Terrain.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\World\Erosion.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\World\Terrain.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Indexes.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\CubeMapGenerator.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\ImageBasedLight.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\Includes\Shadows.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\SunLight.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\ShadowMap.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\Noise\Includes\SimplexNoise.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\World\Includes\SimplexNoise.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Skybox.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\GBuffer.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Coordinates.hlsl" />
@@ -46,7 +48,7 @@
     <AdditionalFiles Include="Assets\Shaders\TextureShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\ColorShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\UserInterface.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\Noise\HeightMapShader.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\World\HeightMap.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.11.0-dev-01371" />
