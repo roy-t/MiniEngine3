@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Mini.Engine.Content.Generators;
 using Mini.Engine.ECS.Generators;
@@ -18,17 +14,23 @@ partial class Program
         var sourceArgs = args.Where(f => Path.GetExtension(f).Equals(".cs", StringComparison.InvariantCultureIgnoreCase));
         var shaderArgs = args.Where(f => Path.GetExtension(f).Equals(".hlsl", StringComparison.InvariantCultureIgnoreCase));
 
-        ISourceGenerator generator = sourceArgs.Any()
-            ? new SystemGenerator()
-            : new ShaderGenerator();
+        var sources = new List<GeneratedSourceResult>();
+        foreach (var arg in args)
+        {
+            var source = File.ReadAllText(arg);
+            var compilation = Compiler.CreateCompilationFromSource(source);
+            
+            if (Path.GetExtension(arg).Equals(".cs", StringComparison.InvariantCultureIgnoreCase))
+            {
+                sources.AddRange(Compiler.Test(compilation, new SystemGenerator(), args));
+            }
+            else if (Path.GetExtension(arg).Equals(".hlsl", StringComparison.InvariantCultureIgnoreCase))
+            {
+                //sources.AddRange(Compiler.Test(compilation, new ShaderGenerator(), args));
+                sources.AddRange(Compiler.Test(compilation, new AltShaderGenerator(), args));
+            }
+        }
 
-        IEnumerable<string> fileArgs = sourceArgs.Any()
-            ? sourceArgs
-            : shaderArgs;
-
-        var compilation = Compiler.CreateCompilationFromSource(File.ReadAllText(fileArgs.First()));
-
-        var sources = Compiler.Test(compilation, generator, fileArgs);
         foreach (var source in sources)
         {
             Console.WriteLine("/// <generated>");
