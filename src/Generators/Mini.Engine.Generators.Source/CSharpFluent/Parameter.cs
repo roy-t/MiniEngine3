@@ -1,4 +1,4 @@
-﻿namespace Mini.Engine.Generators.Source.CSharp
+﻿namespace Mini.Engine.Generators.Source.CSharpFluent
 {
     public sealed class Parameter : ISource
     {

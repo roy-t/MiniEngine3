@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Mini.Engine.Generators.Source.CSharp
+namespace Mini.Engine.Generators.Source.CSharpFluent
 {
     public sealed class Using : ISource, IEquatable<Using>
     {

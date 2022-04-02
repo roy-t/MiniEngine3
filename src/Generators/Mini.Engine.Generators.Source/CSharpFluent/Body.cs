@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Mini.Engine.Generators.Source.CSharp
+namespace Mini.Engine.Generators.Source.CSharpFluent
 {
     public sealed class Body : ISource
     {

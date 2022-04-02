@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
 
-namespace Mini.Engine.Generators.Source.CSharp
+namespace Mini.Engine.Generators.Source.CSharpFluent
 {
     public static class SourceUtilities
     {
