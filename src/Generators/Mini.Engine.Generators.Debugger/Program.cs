@@ -26,8 +26,8 @@ partial class Program
             }
             else if (Path.GetExtension(arg).Equals(".hlsl", StringComparison.InvariantCultureIgnoreCase))
             {
-                //sources.AddRange(Compiler.Test(compilation, new ShaderGenerator(), args));
-                sources.AddRange(Compiler.Test(compilation, new AltShaderGenerator(), args));
+                sources.AddRange(Compiler.Test(compilation, new ShaderGenerator(), args));
+                //sources.AddRange(Compiler.Test(compilation, new AltShaderGenerator(), args));
             }
         }
 
