@@ -9,10 +9,28 @@ namespace Mini.Engine.Generators.Source.CSharp
         public string Namespace { get; }
 
         public void Generate(SourceWriter writer)
-            => writer.WriteLine($"using {this.Namespace};");
+        {
+            writer.WriteLine($"using {this.Namespace};");
+        }
 
-        public bool Equals(Using other) => this.Namespace.Equals(other.Namespace);
-        public override bool Equals(object obj) => this.Equals(obj as Using);
-        public override int GetHashCode() => this.Namespace.GetHashCode();
+        public bool Equals(Using other)
+        {
+            return this.Namespace.Equals(other.Namespace);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if(obj is Using other)
+            {
+                return this.Equals(other);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Namespace.GetHashCode();
+        }
     }
 }

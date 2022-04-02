@@ -19,7 +19,7 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
         private static string FindName(AttributeDeclarationSyntax syntax)
         {
             var attribute = syntax.Attribute;
-            return (attribute.Name as IdentifierNameSyntax).Name.ValueText ?? string.Empty;
+            return (attribute.Name as IdentifierNameSyntax)?.Name.ValueText ?? string.Empty;
         }
 
         private static IReadOnlyList<string> FindArguments(AttributeDeclarationSyntax syntax)

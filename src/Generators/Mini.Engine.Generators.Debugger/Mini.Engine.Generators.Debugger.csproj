@@ -1,11 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+  <PropertyGroup>
+	<IncludeBuildOutput>false</IncludeBuildOutput>
+	<Nullable>enable</Nullable>
+	<WarningsAsErrors>nullable</WarningsAsErrors>
+  </PropertyGroup>
+	
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0-windows</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
+	<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.1.0" />
+	<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />
+  </ItemGroup>
+
+	<ItemGroup>
     <ProjectReference Include="..\Mini.Engine.Content.Generators\Mini.Engine.Content.Generators.csproj" />
     <ProjectReference Include="..\Mini.Engine.ECS.Generators\Mini.Engine.ECS.Generators.csproj" />
   </ItemGroup>

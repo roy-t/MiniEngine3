@@ -1,3 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+  <PropertyGroup>
+	<IncludeBuildOutput>false</IncludeBuildOutput>
+	<Nullable>enable</Nullable>
+	<WarningsAsErrors>nullable</WarningsAsErrors>
+  </PropertyGroup>
 </Project>

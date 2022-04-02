@@ -6,6 +6,7 @@
         {
             this.Type = type;
             this.Name = name;
+            this.Value = string.Empty;
             this.Modifiers = modifiers;
         }
 

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Mini.Engine.ECS.Generators.Shared;
 
@@ -40,7 +38,10 @@ namespace Mini.Engine.ECS.Generators
                     {
                         if (AttributeMatcher.Matches(attribute, this.TargetAttributeType))
                         {
-                            this.ClassList.Add(method.Parent as ClassDeclarationSyntax);
+                            if (method.Parent is ClassDeclarationSyntax declaration)
+                            {
+                                this.ClassList.Add(declaration);
+                            }
                         }
                     }
                 }

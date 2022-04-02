@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Mini.Engine.ECS.Generators.Shared;
 
@@ -38,9 +36,9 @@ namespace Mini.Engine.ECS.Generators
             var names = new List<string>();
             do
             {
-                names.Insert(0, symbol.Name);
-                symbol = symbol.ContainingNamespace;
-            } while (symbol.ContainingNamespace != null);
+                names.Insert(0, symbol?.Name ?? string.Empty);
+                symbol = symbol?.ContainingNamespace;
+            } while (symbol?.ContainingNamespace != null);
             return string.Join(".", names);
         }
 
@@ -50,7 +48,7 @@ namespace Mini.Engine.ECS.Generators
             return usings.Select(u => u.Name.ToString()).ToList();
         }
 
-        private static IEnumerable<T> SearchUpForNodesOfType<T>(SyntaxNode node)
+        private static IEnumerable<T> SearchUpForNodesOfType<T>(SyntaxNode? node)
         {
             while (node != null)
             {

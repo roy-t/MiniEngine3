@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Mini.Engine.ECS.Generators.Shared;
 
 namespace Mini.Engine.ECS.Generators
@@ -13,7 +10,7 @@ namespace Mini.Engine.ECS.Generators
             this.Name = method.Identifier.ValueText;
 
             this.Components = method.ParameterList.Parameters
-                .Select(parameter => GetTypeName(parameter.Type))
+                .Select(parameter => GetTypeName(parameter?.Type))
                 .ToList();
 
             this.Query = method.AttributeLists
@@ -37,8 +34,13 @@ namespace Mini.Engine.ECS.Generators
             return queryValue;
         }
 
-        private static string GetTypeName(TypeSyntax type)
+        private static string GetTypeName(TypeSyntax? type)
         {
+            if (type == null)
+            {
+                throw new Exception($"Unexpected parameter type null");
+            }
+
             if (type is IdentifierNameSyntax identifierName)
             {
                 return identifierName.Identifier.ValueText;

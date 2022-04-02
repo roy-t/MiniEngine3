@@ -3,6 +3,8 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>x64</Platforms>
+    <ImplicitUsings>true</ImplicitUsings>
+		<LangVersion>Latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>
