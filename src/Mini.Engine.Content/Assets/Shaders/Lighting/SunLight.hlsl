@@ -10,7 +10,7 @@ struct PS_INPUT
     float2 tex : TEXCOORD;
 };
 
-cbuffer Constants : register(b0)
+struct SunlightProperties
 {
     float4 Color;
     float3 SurfaceToLight;
@@ -19,7 +19,9 @@ cbuffer Constants : register(b0)
     float3 CameraPosition;
     float unused;
     ShadowProperties Shadow;
-}
+};
+
+ConstantBuffer<SunlightProperties> Constants : register(b0);
 
 sampler TextureSampler : register(s0);
 Texture2D Albedo : register(t0);
@@ -35,19 +37,20 @@ float4 PS(PS_INPUT input) : SV_TARGET
 {
     float3 albedo = ReadAlbedo(Albedo, TextureSampler, input.tex);
     float3 normal = ReadNormal(Normal, TextureSampler, input.tex);
-    float3 position = ReadPosition(Depth, TextureSampler, input.tex, InverseViewProjection);
+    float3 position = ReadPosition(Depth, TextureSampler, input.tex, Constants.InverseViewProjection);
     Mat material = ReadMaterial(Material, TextureSampler, input.tex);
 
-    float3 worldPosition = ReadPosition(Depth, TextureSampler, input.tex, InverseViewProjection);
-    float depth = distance(worldPosition, CameraPosition);
+    float3 worldPosition = ReadPosition(Depth, TextureSampler, input.tex, Constants.InverseViewProjection);
+    float depth = distance(worldPosition, Constants.CameraPosition);
 
-    float lightFactor = ComputeLightFactorPCF(worldPosition, depth, Shadow, ShadowMap, ShadowSampler);
+    float lightFactor = ComputeLightFactorPCF(worldPosition, depth, Constants.Shadow, ShadowMap, ShadowSampler);
     float3 Lo = float3(0.0f, 0.0f, 0.0f);
 
     if (lightFactor > 0)
     {
         // No attenuation since sunlight has already crossed an extreme distance
-        Lo = ComputeLight(albedo, normal, material, position, CameraPosition, SurfaceToLight, Color, Strength);
+        Lo = ComputeLight(albedo, normal, material, position,
+                Constants.CameraPosition, Constants.SurfaceToLight, Constants.Color, Constants.Strength);
     }    
 
     return float4(Lo * lightFactor, 1.0f);

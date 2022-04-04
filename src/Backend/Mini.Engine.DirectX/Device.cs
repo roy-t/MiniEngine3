@@ -35,7 +35,7 @@ public sealed class Device : IDisposable
         this.Height = height;
 
 #nullable disable
-        _ = D3D11CreateDevice(null, DriverType.Hardware, Flags, null, out var device, out var context);
+        _ = D3D11CreateDevice(null, DriverType.Hardware, Flags, new[] { FeatureLevel.Level_11_1 }, out var device, out var context);
 #nullable restore
         this.ID3D11Device = device;
 #if DEBUG

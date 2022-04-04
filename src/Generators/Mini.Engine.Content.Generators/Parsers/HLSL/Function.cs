@@ -54,11 +54,11 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
             switch (type)
             {
                 case ProgramDirectives.VertexShader:
-                    return "vs_5_0";
+                    return "vs_5_1";
                 case ProgramDirectives.PixelShader:
-                    return "ps_5_0";
+                    return "ps_5_1";
                 case ProgramDirectives.ComputeShader:
-                    return "cs_5_0";
+                    return "cs_5_1";
                 default:
                     throw new InvalidOperationException($"Cannot get profile for program directive: {type}");
             }
