@@ -36,6 +36,6 @@ public class ComputeShaderContent : ShaderContent<ID3D11ComputeShader>, ICompute
 
     protected override ID3D11ComputeShader Create(Blob blob)
     {
-        return this.Device.ID3D11Device.CreateComputeShader(blob.GetBytes());
+        return this.Device.ID3D11Device.CreateComputeShader(blob);
     }
 }

@@ -22,7 +22,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
     private readonly FullScreenTriangleTextureVs VertexShader;
     private readonly SunLightPs PixelShader;
 
-    private readonly ConstantBuffer<SunlightProperties> ConstantBuffer;
+    private readonly ConstantBuffer<Constants> ConstantBuffer;
 
     public SunLightSystem(Device device, FrameService frameService, FullScreenTriangleTextureVs vertexShader, SunLightPs pixelShader)
     {
@@ -32,7 +32,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
         this.VertexShader = vertexShader;
         this.PixelShader = pixelShader;
 
-        this.ConstantBuffer = new ConstantBuffer<SunlightProperties>(device, $"{nameof(SunLightSystem)}_CB");
+        this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(SunLightSystem)}_CB");
     }
 
     public void OnSet()
@@ -48,7 +48,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
 
         this.Context.PS.SetSampler(SunLight.ShadowSampler, this.Device.SamplerStates.CompareLessEqualClamp);
 
-        this.Context.PS.SetConstantBuffer(0, this.ConstantBuffer);
+        this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
     }
 
     [Process(Query = ProcessQuery.All)]
@@ -65,7 +65,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
             ShadowMatrix = shadowMap.GlobalShadowMatrix
         };
 
-        var properties = new SunlightProperties()
+        var constants = new Constants()
         {
             CameraPosition = camera.Transform.Position,
             Color = sunlight.Color,
@@ -75,7 +75,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
             Shadow = shadow
         };
 
-        this.ConstantBuffer.MapData(this.Context, properties);
+        this.ConstantBuffer.MapData(this.Context, constants);
 
         this.Context.PS.SetShaderResource(SunLight.ShadowMap, shadowMap.DepthBuffers);
 

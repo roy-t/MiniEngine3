@@ -37,7 +37,7 @@ public sealed class Frustum
         for (var i = 0; i < this.Planes.Length; i++)
         {
             var plane = this.Planes[i];
-            var intersection = box.Intersects(ref plane);
+            var intersection = box.Intersects(in plane);
 
             if (intersection == PlaneIntersectionType.Front)
             {

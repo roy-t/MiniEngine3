@@ -32,7 +32,7 @@ public sealed class BrdfLutGenerator
         context.SetupFullScreenTriangle(this.VertexShader, Resolution, Resolution, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
         context.OM.SetRenderTarget(renderTarget);
 
-        context.Clear(renderTarget, Color4.Black);
+        context.Clear(renderTarget, Colors.Black);
         context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
         context.Draw(3);
 

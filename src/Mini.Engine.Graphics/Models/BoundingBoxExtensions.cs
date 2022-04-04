@@ -7,7 +7,7 @@ public static class BoundingBoxExtensions
 {
     public static BoundingBox Transform(this BoundingBox box, in Matrix4x4 transform)
     {
-        var size = box.Maximum - box.Minimum;
+        var size = box.Max - box.Min;
         var newCenter = Vector3.Transform(box.Center, transform);
         var oldEdge = size * 0.5f;
 

@@ -26,10 +26,11 @@ public sealed class RasterizerStates : IDisposable
 {
     internal RasterizerStates(ID3D11Device device)
     {
-        this.WireFrame = Create(device, RasterizerDescription.Wireframe, nameof(this.WireFrame));
+        this.WireFrame = Create(device, RasterizerDescription.Wireframe, nameof(this.WireFrame));        
 
         this.CullNone = Create(device, RasterizerDescription.CullNone, nameof(this.CullNone));
-        this.CullCounterClockwise = Create(device, RasterizerDescription.Cullback, nameof(this.CullCounterClockwise));
+
+        this.CullCounterClockwise = Create(device, RasterizerDescription.CullBack, nameof(this.CullCounterClockwise));
         this.CullNoneCounterClockwiseScissor = Create(device, CreateCullNoneCounterClockwiseScissor(), nameof(this.CullNoneCounterClockwiseScissor));
         this.CullClockwise = Create(device, RasterizerDescription.CullFront, nameof(this.CullClockwise));
 

@@ -54,7 +54,7 @@ public sealed class SamplerStates : IDisposable
             AddressU = TextureAddressMode.Clamp,
             AddressV = TextureAddressMode.Clamp,
             AddressW = TextureAddressMode.Clamp,
-            BorderColor = Color4.White,
+            BorderColor = Colors.White,
             ComparisonFunction = ComparisonFunction.LessEqual,
             Filter = Filter.ComparisonAnisotropic, // Should this be ComparisonXYZ or not?
             MaxAnisotropy = 1,

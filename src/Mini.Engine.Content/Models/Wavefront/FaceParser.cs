@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Mini.Engine.Content.Parsers;
+﻿using Mini.Engine.Content.Parsers;
 using Mini.Engine.IO;
 using Vortice.Mathematics;
 
@@ -16,7 +14,7 @@ internal sealed class FaceParser : ObjStatementParser
 
     protected override void ParseArguments(ParseState state, SpanTokenEnumerator arguments, IVirtualFileSystem fileSystem)
     {
-        var face = new List<Point3>(4);
+        var face = new List<Int3>(4);
         foreach (var argument in arguments)
         {
             var triplet = ParseTriplet(argument);
@@ -26,9 +24,9 @@ internal sealed class FaceParser : ObjStatementParser
         state.Faces.Add(face.ToArray());
     }
 
-    private static Point3 ParseTriplet(ReadOnlySpan<char> slice)
+    private static Int3 ParseTriplet(ReadOnlySpan<char> slice)
     {
-        var point = Point3.Empty;
+        var point = Int3.Zero;
         var index = slice.IndexOf('/');
         point.X = int.Parse(slice[..index]);
 

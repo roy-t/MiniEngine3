@@ -9,8 +9,8 @@ public static class ShaderCompilationErrorFilter
     public static void ThrowOnWarningOrError(Blob errorBlob, params string[] ignores)
     {
         if (errorBlob != null)
-        {
-            var output = Encoding.ASCII.GetString(errorBlob.GetBytes()).Substring(0, errorBlob.BufferSize - 1);
+        {            
+            var output = Encoding.ASCII.GetString(errorBlob.AsBytes()).Substring(0, errorBlob.BufferSize - 1);
             var messages = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
             var error = new StringBuilder();

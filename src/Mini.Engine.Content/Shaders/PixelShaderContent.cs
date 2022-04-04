@@ -13,6 +13,6 @@ public class PixelShaderContent : ShaderContent<ID3D11PixelShader>, IPixelShader
 
     protected override ID3D11PixelShader Create(Blob blob)
     {
-        return this.Device.ID3D11Device.CreatePixelShader(blob.GetBytes());
+        return this.Device.ID3D11Device.CreatePixelShader(blob);
     }
 }

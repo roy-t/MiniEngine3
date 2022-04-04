@@ -13,6 +13,6 @@ public class VertexShaderContent : ShaderContent<ID3D11VertexShader>, IVertexSha
 
     protected override ID3D11VertexShader Create(Blob blob)
     {
-        return this.Device.ID3D11Device.CreateVertexShader(blob.GetBytes());
+        return this.Device.ID3D11Device.CreateVertexShader(blob);
     }
 }

@@ -81,7 +81,7 @@ internal sealed class TerrainPanel : IPanel
         this.terrain = this.Generator.Generate(world, this.dimensions, this.offset, this.amplitude, this.frequency, this.octaves, this.lacunarity, this.persistance, "terrain");
         this.Administrator.Components.Add(this.terrain);
 
-        var width = this.terrain.Mesh.Bounds.Maximum.X - this.terrain.Mesh.Bounds.Minimum.X;
+        var width = this.terrain.Mesh.Bounds.Max.X - this.terrain.Mesh.Bounds.Min.X;
         var desiredWidth = 10.0f;
         var scale = desiredWidth / width;        
         this.Administrator.Components.Add(new TransformComponent(world).SetScale(scale));
