@@ -20,9 +20,8 @@ public class ShaderGenerator : IIncrementalGenerator
             => (path: text.Path, source: text.GetText(cancellationToken)));
 
         context.RegisterSourceOutput(provider, (outputContext, nameAndText) =>
-        {
-            var name = Path.GetFileNameWithoutExtension(nameAndText.path);
-            var generated = GenerateFiles(nameAndText.path, name, nameAndText.source);
+        {            
+            var generated = GenerateFiles(nameAndText.path, nameAndText.source);
             foreach (var file in generated)
             {
                 var writer = new SourceWriter();
@@ -32,9 +31,9 @@ public class ShaderGenerator : IIncrementalGenerator
         });
     }
 
-    private static IEnumerable<SourceFile> GenerateFiles(string path, string name, SourceText? contents)
+    private static IEnumerable<SourceFile> GenerateFiles(string path, SourceText? contents)
     {
-        var shader = new Shader(path, name, contents);
+        var shader = new Shader(path, contents);
 
         var structuresFile = SourceFile.Build($"{shader.Name}Structures.cs")
             .Using("Mini.Engine.DirectX")
@@ -44,7 +43,7 @@ public class ShaderGenerator : IIncrementalGenerator
                 {
                     return Struct.Builder(Naming.ToPascalCase(structure.Name), "public")
                         .Attribute("StructLayout", "LayoutKind.Sequential")
-                        .Properties(structure.Variables.Select(v => new Property(TypeTranslator.GetDotNetType(v), Naming.ToPascalCase(v.Name), false, "public")))
+                        .Properties(structure.Variables.Select(v => new Property(Types.ToDotNetType(v), Naming.ToPascalCase(v.Name), false, "public")))
                         .Output;
                 }))
                 .Types(shader.CBuffers.Select(cBuffer =>
@@ -54,7 +53,7 @@ public class ShaderGenerator : IIncrementalGenerator
                         .Field("int", "Slot", "public", "const")
                             .Value($"{cBuffer.Slot}")
                             .Complete()
-                        .Properties(cBuffer.Variables.Select(v => new Property(TypeTranslator.GetDotNetType(v), Naming.ToPascalCase(v.Name), false, "public")))
+                        .Properties(cBuffer.Variables.Select(v => new Property(Types.ToDotNetType(v), Naming.ToPascalCase(v.Name), false, "public")))
                         .Output;
                 }))
                 .Complete()

@@ -1,17 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
-    <None Remove="Assets\Shaders\ColorShader.hlsl" />
-    <None Remove="Assets\Shaders\FullScreenTriangle.hlsl" />
-    <None Remove="Assets\Shaders\Includes\Indexes.hlsl" />
-    <None Remove="Assets\Shaders\Lighting\Includes\Shadows.hlsl" />
-    <None Remove="Assets\Shaders\Lighting\ShadowMap.hlsl" />
-    <None Remove="Assets\Shaders\Lighting\SunLight.hlsl" />
-    <None Remove="Assets\Shaders\World\Erosion.hlsl" />
-    <None Remove="Assets\Shaders\World\HeightMap.hlsl" />
-    <None Remove="Assets\Shaders\World\Includes\SimplexNoise.hlsl" />
-    <None Remove="Assets\Shaders\Terrain.hlsl" />
-  </ItemGroup> 
-  <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
     <ProjectReference Include="..\Backend\Mini.Engine.IO\Mini.Engine.IO.csproj" />
     <ProjectReference Include="..\Generators\Mini.Engine.Content.Generators\Mini.Engine.Content.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

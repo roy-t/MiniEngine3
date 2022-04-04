@@ -27,6 +27,7 @@ Texture2D Material : register(t1);
 Texture2D Depth : register(t2);
 Texture2D Normal : register(t3);
 
+
 Texture2DArray ShadowMap : register(t4);
 SamplerComparisonState ShadowSampler : register(s1);
 

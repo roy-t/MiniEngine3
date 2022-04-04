@@ -3,9 +3,9 @@ using Mini.Engine.Generators.Source;
 
 namespace Mini.Engine.Content.Generators.Parsers.HLSL
 {
-    public static class TypeTranslator
+    public static class Types
     {
-        public static string GetDotNetType(Variable variable)
+        public static string ToDotNetType(Variable variable)
         {
             if (variable.IsCustomType)
             {
