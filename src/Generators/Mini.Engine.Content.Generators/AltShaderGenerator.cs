@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Mini.Engine.Content.Generators.Parsers.HLSL;
 using Mini.Engine.Generators.Source;
+using Mini.Engine.Generators.Source.CSharp;
 
 namespace Mini.Engine.Content.Generators;
 
@@ -37,41 +38,115 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
 
         var builder = new StringBuilder();
         builder.Append($@"
-namespace Mini.Engine.Content.Shaders
+namespace Mini.Engine.Content.Shaders.Buffers
 {{
     public sealed class {shader.Name}
     {{
 ");
+        WriteConstructorAndProperties(shader.Name, builder);
         WriteStructures(shader.Structures, builder);
-
+        WriteConstantBufferStructures(shader.CBuffers, builder);
+        WriteResourceBindings(shader.Variables, builder);
+        WriteShaders(shader.FilePath, shader.Functions, builder);
         builder.Append($@"
     }}
-}}
-");
+}}");
 
-        return SourceText.From(builder.ToString(), Encoding.UTF8);
+        var formatted = CodeFormatter.Format(builder.ToString(), FormatOptions.Default);
+        return SourceText.From(formatted.ToString(), Encoding.UTF8);
+    }
+
+    private static void WriteConstructorAndProperties(string name, StringBuilder builder)
+    {
+        builder.Append($@"
+private readonly Mini.Engine.DirectX.Device Device;
+private readonly Mini.Engine.IO.IVirtualFileSystem FileSystem;
+private readonly Mini.Engine.Content.ContentManager Content;
+
+public {name}(Mini.Engine.DirectX.Device device, Mini.Engine.IO.IVirtualFileSystem fileSystem, Mini.Engine.Content.ContentManager content)
+{{
+    this.Device = device;
+    this.FileSystem = fileSystem;
+    this.Content = content;
+}}
+
+");
     }
 
     private static void WriteStructures(IReadOnlyList<Structure> structures, StringBuilder builder)
     {
         foreach (var structure in structures)
         {
-            builder.Append($@"
-        [System.Runtime.InteropServices.StructLayout(LayoutKind.Sequential)]
-        public struct {structure.Name}
-        {{");
-            foreach (var field in structure.Variables)
+            builder.Append($"[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]");
+            WriteStructure(structure.Name, structure.Variables, builder);
+        }
+    }
+
+    private static void WriteConstantBufferStructures(IReadOnlyList<CBuffer> cbuffers, StringBuilder builder)
+    {
+        foreach (var cbuffer in cbuffers)
+        {
+            builder.Append($"[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential, Pack = 4)]");
+            WriteStructure(cbuffer.Name, cbuffer.Variables, builder);
+        }
+    }
+
+    private static void WriteResourceBindings(IReadOnlyList<Variable> variables, StringBuilder builder)
+    {
+        foreach(var variable in variables)
+        {
+            if (variable.Slot != null)
             {
-                builder.Append($@"
-            public {Types.ToDotNetType(field)} {Naming.ToPascalCase(field.Name)} {{get; set; }}
-");
+                builder.AppendLine($"public static int {Naming.ToPascalCase(variable.Name)} = {variable.Slot}");
+            }
+        }
+    }
+
+    private static void WriteShaders(string filePath, IReadOnlyList<Function> functions, StringBuilder builder)
+    {
+        foreach(var function in functions)
+        {
+            var id = $"new ContentId({SourceUtilities.ToLiteral(filePath)},{SourceUtilities.ToLiteral(function.Name)})";
+            var interfaceType = string.Empty;
+            var concreteType = string.Empty;
+            switch (function.GetProgramDirective())
+            {
+                case ProgramDirectives.VertexShader:
+                    interfaceType = "Mini.Engine.DirectX.Resources.IVertexShader";
+                    concreteType = $"new Mini.Engine.Content.Shaders.VertexShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\");";
+                    break;
+                case ProgramDirectives.PixelShader:
+                    interfaceType = "Mini.Engine.DirectX.Resources.IPixelShader";
+                    concreteType = $"new Mini.Engine.Content.Shaders.PixelShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\");";
+                    break;
+                case ProgramDirectives.ComputeShader:
+                    interfaceType = "Mini.Engine.DirectX.Resources.IComputeShader";
+                    var x = function.Attributes["numthreads"][0];
+                    var y = function.Attributes["numthreads"][1];
+                    var z  =function.Attributes["numthreads"][2];
+                    concreteType = $"new Mini.Engine.Content.Shaders.ComputeShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\", {x}, {y}, {z});";
+                    break;
             }
 
-
-            builder.Append($@"
-        }}
-");
+            if (!string.IsNullOrEmpty(interfaceType))
+            {
+                builder.AppendLine($"public readonly {interfaceType} {Naming.ToPascalCase(function.Name)} = {concreteType}");
+            }
         }
+    }
+
+    private static void WriteStructure(string name, IReadOnlyList<Variable> properties, StringBuilder builder)
+    {
+        builder.Append($@"
+public struct {name}
+{{
+");
+        foreach (var property in properties)
+        {
+            builder.AppendLine($"public {Types.ToDotNetType(property)} {Naming.ToPascalCase(property.Name)} {{ get; set; }}");
+        }
+        builder.AppendLine("}");
+        builder.AppendLine();
     }
 }
 

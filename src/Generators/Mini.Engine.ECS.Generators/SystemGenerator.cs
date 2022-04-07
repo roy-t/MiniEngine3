@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Mini.Engine.Generators.Source.CSharpFluent;
+using Mini.Engine.Generators.Source.CSharp;
 
 namespace Mini.Engine.ECS.Generators
 {

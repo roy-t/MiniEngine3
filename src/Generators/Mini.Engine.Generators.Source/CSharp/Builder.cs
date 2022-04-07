@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Mini.Engine.Generators.Source.CSharpFluent
+namespace Mini.Engine.Generators.Source.CSharp
 {
     public abstract class Builder<TPreviousBuilder, TOutput>
     {

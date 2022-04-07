@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.Text;
 using Mini.Engine.Content.Generators.Parsers.HLSL;
 using Mini.Engine.Generators.Source;
-using Mini.Engine.Generators.Source.CSharpFluent;
+using Mini.Engine.Generators.Source.CSharp;
 
 
 namespace Mini.Engine.Content.Generators;

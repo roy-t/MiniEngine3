@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace Mini.Engine.Generators.Source.CSharpFluent
+namespace Mini.Engine.Generators.Source.CSharp
 {
     public sealed class SourceWriter
     {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Mini.Engine.Generators.Source.CSharpFluent
+namespace Mini.Engine.Generators.Source.CSharp
 {
     public sealed class Namespace : ISource
     {

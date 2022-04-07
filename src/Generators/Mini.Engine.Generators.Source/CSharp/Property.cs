@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace Mini.Engine.Generators.Source.CSharpFluent
+namespace Mini.Engine.Generators.Source.CSharp
 {
     public sealed class Property : ISource
     {

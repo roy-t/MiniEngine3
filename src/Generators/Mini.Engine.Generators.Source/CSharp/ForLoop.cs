@@ -1,4 +1,4 @@
-﻿namespace Mini.Engine.Generators.Source.CSharpFluent
+﻿namespace Mini.Engine.Generators.Source.CSharp
 {
     public sealed class ForLoop : ICodeBlock
     {
