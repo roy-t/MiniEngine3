@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.CubeMapGenerator;
+using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.Core;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
+
+using Shaders = Mini.Engine.Content.Shaders.Generated;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
@@ -16,29 +16,20 @@ public sealed class CubeMapGenerator
     private const int IrradianceResolution = 32;
     private const int EnvironmentResolution = 512;
 
-    private const int TextureSampler = Mini.Engine.Content.Shaders.CubeMapGenerator.CubeMapGenerator.TextureSampler;
-    private const int Texture = Mini.Engine.Content.Shaders.CubeMapGenerator.CubeMapGenerator.Texture;
+    private const int TextureSampler = Shaders.CubeMapGenerator.TextureSampler;
+    private const int Texture = Shaders.CubeMapGenerator.Texture;
 
     private static readonly CubeMapFace[] Faces = Enum.GetValues<CubeMapFace>();
 
     private readonly Device Device;
-    private readonly CubeMapGeneratorVs VertexShader;
-    private readonly CubeMapGeneratorAlbedoPs AlbedoPs;
-    private readonly CubeMapGeneratorIrradiancePs IrradiancePs;
-    private readonly CubeMapGeneratorEnvironmentPs EnvironmentPs;
-    private readonly ConstantBuffer<Constants> ConstantBuffer;
-    private readonly ConstantBuffer<EnvironmentConstants> EnvironmentConstantBuffer;
+    private readonly Shaders.CubeMapGenerator Shader;
+    private readonly Shaders.CubeMapGenerator.User User;
 
-    public CubeMapGenerator(Device device, CubeMapGeneratorVs vertexShader, CubeMapGeneratorAlbedoPs albedoPs, CubeMapGeneratorIrradiancePs irradiancePs, CubeMapGeneratorEnvironmentPs environmentPs)
+    public CubeMapGenerator(Device device, Shaders.CubeMapGenerator shader)
     {
         this.Device = device;
-        this.VertexShader = vertexShader;
-        this.AlbedoPs = albedoPs;
-        this.IrradiancePs = irradiancePs;
-        this.EnvironmentPs = environmentPs;
-
-        this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(CubeMapGenerator)}_CB");
-        this.EnvironmentConstantBuffer = new ConstantBuffer<EnvironmentConstants>(device, $"{nameof(CubeMapGenerator)}_Environment_CB");
+        this.Shader = shader;
+        this.User = shader.CreateUser();
     }
 
     public ITextureCube GenerateAlbedo(ITexture2D equirectangular, bool generateMipMaps, string name)
@@ -50,7 +41,7 @@ public sealed class CubeMapGenerator
         var depth = this.Device.DepthStencilStates.None;
 
         var context = this.Device.ImmediateContext;
-        context.SetupFullScreenTriangle(this.VertexShader, resolution, resolution, this.AlbedoPs, blend, depth);
+        context.SetupFullScreenTriangle(this.Shader.Vs, resolution, resolution, this.Shader.AlbedoPs, blend, depth);
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, equirectangular);
 
@@ -67,7 +58,7 @@ public sealed class CubeMapGenerator
         var depth = this.Device.DepthStencilStates.None;
 
         var context = this.Device.ImmediateContext;
-        context.SetupFullScreenTriangle(this.VertexShader, resolution, resolution, this.IrradiancePs, blend, depth);
+        context.SetupFullScreenTriangle(this.Shader.Vs, resolution, resolution, this.Shader.IrradiancePs, blend, depth);
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, equirectangular);
 
@@ -84,7 +75,7 @@ public sealed class CubeMapGenerator
         var depth = this.Device.DepthStencilStates.None;
 
         var context = this.Device.ImmediateContext;
-        context.SetupFullScreenTriangle(this.VertexShader, resolution, resolution, this.EnvironmentPs, blend, depth);
+        context.SetupFullScreenTriangle(this.Shader.Vs, resolution, resolution, this.Shader.EnvironmentPs, blend, depth);
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, equirectangular);
 
@@ -93,13 +84,10 @@ public sealed class CubeMapGenerator
         {
             var roughness = slice / (mipSlices - 1.0f);
 
-            var constants = new EnvironmentConstants()
-            {
-                Roughness = roughness
-            };
-            this.EnvironmentConstantBuffer.MapData(context, constants);
+            this.User.MapEnvironmentConstants(context, roughness);
+
             context.RS.SetViewPort(0, 0, resolution >> slice, resolution >> slice);
-            context.PS.SetConstantBuffer(EnvironmentConstants.Slot, this.EnvironmentConstantBuffer);
+            context.PS.SetConstantBuffer(Shaders.CubeMapGenerator.EnvironmentConstantsSlot, this.User.EnvironmentConstantsBuffer);
 
             this.RenderFaces(texture, slice);
         }
@@ -119,13 +107,10 @@ public sealed class CubeMapGenerator
             var view = GetViewMatrixForFace(face);
             var worldViewProjection = view * projection;
             Matrix4x4.Invert(worldViewProjection, out var inverse);
+            
+            this.User.MapConstants(context, inverse);
 
-            var constants = new Constants()
-            {
-                InverseWorldViewProjection = inverse
-            };
-            this.ConstantBuffer.MapData(context, constants);
-            context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+            context.VS.SetConstantBuffer(Shaders.CubeMapGenerator.ConstantsSlot, this.User.ConstantsBuffer);
 
             context.OM.SetRenderTarget(target, face, mipSlice);
             context.Draw(3);

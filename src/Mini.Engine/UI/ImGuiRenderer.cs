@@ -1,8 +1,6 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using ImGuiNET;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.UserInterface;
+using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
@@ -23,15 +21,14 @@ internal sealed class ImGuiRenderer
 
     // Created resources
     private readonly DeferredDeviceContext DeferredContext;
-    private readonly UserInterfaceVs VertexShader;
-    private readonly UserInterfacePs PixelShader;
+    private readonly UserInterface Shader;
+    private readonly UserInterface.User User;
     private readonly ITexture2D FontTexture;
     private readonly InputLayout InputLayout;
     private readonly VertexBuffer<ImDrawVert> VertexBuffer;
-    private readonly IndexBuffer<ImDrawIdx> IndexBuffer;
-    private readonly ConstantBuffer<Constants> ConstantBuffer;
+    private readonly IndexBuffer<ImDrawIdx> IndexBuffer;    
 
-    public ImGuiRenderer(Device device, UITextureRegistry textureRegistry, UserInterfaceVs vertexShader, UserInterfacePs pixelShader)
+    public ImGuiRenderer(Device device, UITextureRegistry textureRegistry, UserInterface shader)
     {
         this.Device = device;
         this.TextureRegistry = textureRegistry;
@@ -40,12 +37,11 @@ internal sealed class ImGuiRenderer
 
         this.VertexBuffer = new VertexBuffer<ImDrawVert>(device, $"{nameof(ImGuiRenderer)}_VB");
         this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device, $"{nameof(ImGuiRenderer)}_IB");
-        this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(ImGuiRenderer)}_CB");
 
-        this.VertexShader = vertexShader;
-        this.PixelShader = pixelShader;
+        this.Shader = shader;
+        this.User = shader.CreateUser();
 
-        this.InputLayout = this.VertexShader.CreateInputLayout
+        this.InputLayout = this.Shader.Vs.CreateInputLayout
         (
             device,
             new InputElementDescription("POSITION", 0, Format.R32G32_Float, 0, 0, InputClassification.PerVertexData, 0),
@@ -91,8 +87,7 @@ internal sealed class ImGuiRenderer
         }
 
         // Setup orthographic projection matrix into our constant buffer
-        var cBufferData = new Constants() { ProjectionMatrix = Matrix4x4.CreateOrthographicOffCenter(0, data.DisplaySize.X, data.DisplaySize.Y, 0, -1.0f, 1.0f) };
-        this.ConstantBuffer.MapData(this.DeferredContext, cBufferData);
+        this.User.MapConstants(this.DeferredContext, Matrix4x4.CreateOrthographicOffCenter(0, data.DisplaySize.X, data.DisplaySize.Y, 0, -1.0f, 1.0f));
 
         this.SetupRenderState(data, this.DeferredContext);
 
@@ -128,24 +123,22 @@ internal sealed class ImGuiRenderer
 
     public void Dispose()
     {
-        this.DeferredContext.Dispose();
-        this.VertexShader.Dispose();
-        this.PixelShader.Dispose();
-        this.ConstantBuffer.Dispose();
+        this.DeferredContext.Dispose();        
         this.IndexBuffer.Dispose();
         this.VertexBuffer.Dispose();
         this.FontTexture.Dispose();
         this.InputLayout.Dispose();
+        this.User.Dispose();
     }
 
     private void SetupRenderState(ImDrawDataPtr drawData, DeferredDeviceContext context)
     {
-        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.VertexShader, this.Device.RasterizerStates.CullNoneCounterClockwiseScissor, 0, 0, (int)drawData.DisplaySize.X, (int)drawData.DisplaySize.Y, this.PixelShader, this.Device.BlendStates.NonPreMultiplied, this.Device.DepthStencilStates.None);
+        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.Device.RasterizerStates.CullNoneCounterClockwiseScissor, 0, 0, (int)drawData.DisplaySize.X, (int)drawData.DisplaySize.Y, this.Shader.Ps, this.Device.BlendStates.NonPreMultiplied, this.Device.DepthStencilStates.None);
         context.OM.SetRenderTargetToBackBuffer();
 
         context.IA.SetVertexBuffer(this.VertexBuffer);
         context.IA.SetIndexBuffer(this.IndexBuffer);
-        context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+        context.VS.SetConstantBuffer(UserInterface.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
     }
 

@@ -20,7 +20,7 @@ public class ShaderGenerator : IIncrementalGenerator
             => (path: text.Path, source: text.GetText(cancellationToken)));
 
         context.RegisterSourceOutput(provider, (outputContext, nameAndText) =>
-        {            
+        {
             var generated = GenerateFiles(nameAndText.path, nameAndText.source);
             foreach (var file in generated)
             {

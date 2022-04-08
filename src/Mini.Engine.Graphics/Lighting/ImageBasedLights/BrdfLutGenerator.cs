@@ -1,9 +1,11 @@
 ﻿using Mini.Engine.Configuration;
-using Mini.Engine.Content.Shaders;
+using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Vortice.DXGI;
 using Vortice.Mathematics;
+
+using Shaders = Mini.Engine.Content.Shaders.Generated;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
@@ -13,14 +15,14 @@ public sealed class BrdfLutGenerator
     private const int Resolution = 512;
 
     private readonly Device Device;
-    private readonly FullScreenTriangleTextureVs VertexShader;
-    private readonly BrdfLutGeneratorPs PixelShader;
+    private readonly FullScreenTriangle FullScreenTriangle;
+    private readonly Shaders.BrdfLutGenerator Shader;
 
-    public BrdfLutGenerator(Device device, FullScreenTriangleTextureVs vertexShader, BrdfLutGeneratorPs pixelShader)
-    {
+    public BrdfLutGenerator(Device device, FullScreenTriangle fullScreenTriangle, Shaders.BrdfLutGenerator shader)
+    {        
         this.Device = device;
-        this.VertexShader = vertexShader;
-        this.PixelShader = pixelShader;
+        this.FullScreenTriangle = fullScreenTriangle;
+        this.Shader = shader;        
     }
 
     public ITexture2D Generate()
@@ -29,7 +31,7 @@ public sealed class BrdfLutGenerator
 
         var renderTarget = new RenderTarget2D(this.Device, Resolution, Resolution, Format.R16G16_Float, "BrdfLut");
 
-        context.SetupFullScreenTriangle(this.VertexShader, Resolution, Resolution, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
+        context.SetupFullScreenTriangle(this.FullScreenTriangle.TextureVs, Resolution, Resolution, this.Shader.Ps, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
         context.OM.SetRenderTarget(renderTarget);
 
         context.Clear(renderTarget, Colors.Black);

@@ -1,5 +1,7 @@
 # TODO
 
+- Start using AltShaderGenerator everywhere, search for "using Mini.Engine.Content.Shaders;" references to get rid off!
+
 - Are we leaking memory, looks like some stuff keeps working even after it is popped from the content stack!
 
 - Quiting during loading screen doesn't really quit?

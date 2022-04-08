@@ -8,6 +8,7 @@ using Mini.Engine.Generators.Source.CSharp;
 namespace Mini.Engine.Content.Generators;
 
 // Based on: https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.md
+// Use View -> Other Windows -> Shader Syntax Visualizer to help create the right code
 [Generator]
 public sealed class AltShaderGenerator : IIncrementalGenerator
 {
@@ -53,9 +54,15 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
 
         var structures = GenerateStructures(shader.Structures) + GenerateConstantBufferStructures(shader.CBuffers);
 
+        var methods = string.Empty;
+        if (shader.CBuffers.Count > 0)
+        {
+            methods = $"public {@class}.User CreateUser() {{ return new {@class}.User(this.Device); }}";
+        }
+
         var innerClass = GenerateShaderUser(shader);
 
-        var code = FormatFileSkeleton(@namespace, @class, constants, fields, arguments, assignments, properties, structures, innerClass);
+        var code = FormatFileSkeleton(@namespace, @class, constants, fields, arguments, assignments, properties, structures, methods, innerClass);
 
         var formatted = CodeFormatter.Format(code, FormatOptions.Default);
         return SourceText.From(formatted, Encoding.UTF8);
@@ -305,7 +312,7 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
             }}";
     }
 
-    private static string FormatFileSkeleton(string @namespace, string @class, string constants, string fields, string arguments, string assignments, string properties, string structures, string innerClass)
+    private static string FormatFileSkeleton(string @namespace, string @class, string constants, string fields, string arguments, string assignments, string properties, string structures, string methods, string innerClass)
     {
         return $@"
             namespace {@namespace}
@@ -325,6 +332,8 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
                     {properties}
 
                     {structures}
+
+                    {methods}
 
                     {innerClass}
                 }}
