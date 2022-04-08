@@ -1,10 +1,7 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.SunLight;
+using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
@@ -19,25 +16,25 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
 
-    private readonly FullScreenTriangleTextureVs VertexShader;
-    private readonly SunLightPs PixelShader;
+    private readonly FullScreenTriangle FullScreenTriangle;
 
-    private readonly ConstantBuffer<Constants> ConstantBuffer;
+    private readonly SunLight SunLight;
+    private readonly SunLight.User User;
 
-    public SunLightSystem(Device device, FrameService frameService, FullScreenTriangleTextureVs vertexShader, SunLightPs pixelShader)
+    public SunLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangle, SunLight sunLight)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<SunLightSystem>();
         this.FrameService = frameService;
-        this.VertexShader = vertexShader;
-        this.PixelShader = pixelShader;
+        this.FullScreenTriangle = fullScreenTriangle;
 
-        this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(SunLightSystem)}_CB");
+        this.SunLight = sunLight;
+        this.User = new SunLight.User(device);
     }
 
     public void OnSet()
     {
-        this.Context.SetupFullScreenTriangle(this.VertexShader, this.PixelShader, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
+        this.Context.SetupFullScreenTriangle(this.FullScreenTriangle.TextureVs, this.SunLight.Ps, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
         this.Context.PS.SetSampler(SunLight.TextureSampler, this.Device.SamplerStates.LinearClamp);
@@ -48,7 +45,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
 
         this.Context.PS.SetSampler(SunLight.ShadowSampler, this.Device.SamplerStates.CompareLessEqualClamp);
 
-        this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+        this.Context.PS.SetConstantBuffer(SunLight.ConstantsSlot, this.User.ConstantsBuffer);
     }
 
     [Process(Query = ProcessQuery.All)]
@@ -57,7 +54,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
         var camera = this.FrameService.Camera;
         Matrix4x4.Invert(camera.ViewProjection, out var inverse);
 
-        var shadow = new ShadowProperties()
+        var shadow = new SunLight.ShadowProperties()
         {
             Offsets = Pack(shadowMap.Offsets),
             Scales = Pack(shadowMap.Scales),
@@ -65,17 +62,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
             ShadowMatrix = shadowMap.GlobalShadowMatrix
         };
 
-        var constants = new Constants()
-        {
-            CameraPosition = camera.Transform.Position,
-            Color = sunlight.Color,
-            Strength = sunlight.Strength,
-            SurfaceToLight = -viewPoint.Transform.Forward,
-            InverseViewProjection = inverse,
-            Shadow = shadow
-        };
-
-        this.ConstantBuffer.MapData(this.Context, constants);
+        this.User.MapConstants(this.Context, sunlight.Color, -viewPoint.Transform.Forward, sunlight.Strength, inverse, camera.Transform.Position, shadow);
 
         this.Context.PS.SetShaderResource(SunLight.ShadowMap, shadowMap.DepthBuffers);
 
@@ -106,7 +93,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
 
     public void Dispose()
     {
-        this.ConstantBuffer.Dispose();
+        this.User.Dispose();
         this.Context.Dispose();
     }
 }

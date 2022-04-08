@@ -18,7 +18,7 @@ cbuffer Constants : register(b0)
 cbuffer EnvironmentConstants : register(b1)
 {
     float Roughness;
-    float3 Padding;
+    float3 __Padding;
 };
 
 sampler TextureSampler : register(s0);

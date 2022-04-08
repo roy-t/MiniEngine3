@@ -17,7 +17,7 @@ cbuffer Constants : register(b0)
     float Strength;
     float4x4 InverseViewProjection;
     float3 CameraPosition;
-    float unused;
+    float __Padding;
     ShadowProperties Shadow;
 }
 

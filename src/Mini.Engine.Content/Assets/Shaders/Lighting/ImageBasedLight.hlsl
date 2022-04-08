@@ -11,14 +11,14 @@ cbuffer Constants : register(b0)
 {
     float4x4 InverseViewProjection;
     float3 CameraPosition;
-    float Unused;
+    float __Padding;
 };
 
 cbuffer PerLightConstants : register(b1)
 {    
     int MaxReflectionLod;
     float Strength;
-    float2 Unused2;
+    float2 __Padding_PLC;
 };
 
 sampler TextureSampler : register(s0);

@@ -18,7 +18,7 @@ cbuffer Constants : register(b0)
 {
     float4x4 InverseViewProjection;
     float3 CameraPosition;
-    float Unused;
+    float __Padding;
 };
 
 cbuffer PerLightConstants : register(b1)

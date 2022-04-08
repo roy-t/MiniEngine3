@@ -30,7 +30,7 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
     private static SourceText? GenerateShaderFile(string path, SourceText? text, CancellationToken cancellationToken)
     {
         var shader = Shader.Parse(path, text, cancellationToken);
-        if (shader.Functions.Count == 0)
+        if (!HasRelevantFunction(shader))
         {
             return null;
         }
@@ -38,7 +38,7 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
         var @namespace = "Mini.Engine.Content.Shaders.Generated";
         var @class = Naming.ToPascalCase(shader.Name);
 
-        var constants = GenerateResourceSlotConstants(shader.Variables);
+        var constants = GenerateResourceSlotConstants(shader.Variables, shader.CBuffers);
 
         var fields = @"private readonly Mini.Engine.DirectX.Device Device;
                        private readonly Mini.Engine.IO.IVirtualFileSystem FileSystem;
@@ -59,9 +59,14 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
 
         var formatted = CodeFormatter.Format(code, FormatOptions.Default);
         return SourceText.From(formatted, Encoding.UTF8);
-    }    
+    }
 
-    private static string GenerateResourceSlotConstants(IReadOnlyList<Variable> variables)
+    private static bool HasRelevantFunction(Shader shader)
+    {
+        return shader.Functions.Any(f => f.GetProgramDirective() != ProgramDirectives.None);
+    }
+
+    private static string GenerateResourceSlotConstants(IReadOnlyList<Variable> variables, IReadOnlyList<CBuffer> cbuffers)
     {
         var builder = new StringBuilder();
 
@@ -71,6 +76,11 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
             {
                 builder.AppendLine($"public const int {Naming.ToPascalCase(variable.Name)} = {variable.Slot};");
             }
+        }
+
+        foreach (var cbuffer in cbuffers)
+        {
+            builder.AppendLine($"public const int {Naming.ToPascalCase(cbuffer.Name)}Slot = {cbuffer.Slot};");
         }
 
         return builder.ToString();
@@ -93,16 +103,16 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
             switch (function.GetProgramDirective())
             {
                 case ProgramDirectives.VertexShader:
-                    instantation = $"new Mini.Engine.Content.Shaders.VertexShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\");";
+                    instantation = $"new Mini.Engine.Content.Shaders.VertexShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\")";
                     break;
                 case ProgramDirectives.PixelShader:
-                    instantation = $"new Mini.Engine.Content.Shaders.PixelShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\");";
+                    instantation = $"new Mini.Engine.Content.Shaders.PixelShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\")";
                     break;
                 case ProgramDirectives.ComputeShader:
                     var x = function.Attributes["numthreads"][0];
                     var y = function.Attributes["numthreads"][1];
                     var z = function.Attributes["numthreads"][2];
-                    instantation = $"new Mini.Engine.Content.Shaders.ComputeShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\", {x}, {y}, {z});";
+                    instantation = $"new Mini.Engine.Content.Shaders.ComputeShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\", {x}, {y}, {z})";
                     break;
             }
 
@@ -137,7 +147,7 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
 
             if (!string.IsNullOrEmpty(interfaceType))
             {
-                builder.AppendLine($"public {interfaceType} {Naming.ToPascalCase(function.Name)} {{get; }}");
+                builder.AppendLine($"public {interfaceType} {Naming.ToPascalCase(function.Name)} {{ get; }}");
             }
         }
 
@@ -187,6 +197,11 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
 
     private static string GenerateShaderUser(Shader shader)
     {
+        if (shader.CBuffers.Count == 0)
+        {
+            return string.Empty;
+        }
+
         var @class = "User";
 
         var fields = GenerateConstantBufferFields(shader.CBuffers);
@@ -208,7 +223,7 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
         foreach (var cbuffer in cbuffers)
         {
             var structName = Naming.ToPascalCase(cbuffer.Name);
-            builder.AppendLine($"private readonly Mini.Engine.DirectX.Buffers.ConstantBuffer<{structName}> {structName}Buffer;");
+            builder.AppendLine($"public readonly Mini.Engine.DirectX.Buffers.ConstantBuffer<{structName}> {structName}Buffer;");
         }
 
         return builder.ToString();
@@ -255,7 +270,7 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
         }
 
         return builder.ToString();
-    }    
+    }
 
     private static string GenerateDisposeCalls(IReadOnlyList<CBuffer> cBuffers)
     {
@@ -295,6 +310,7 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
         return $@"
             namespace {@namespace}
             {{
+                [Mini.Engine.Configuration.Content]
                 public sealed class {@class}
                 {{
                     {constants}

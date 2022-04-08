@@ -2,7 +2,7 @@
 cbuffer ErosionConstants : register(b0)
 {    
     uint Stride;
-    float3 Unused;
+    float3 __Padding;
 };
 
 RWTexture2D<float> MapHeight : register(u0);
