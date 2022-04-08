@@ -11,12 +11,34 @@ public sealed class FormatOptions
 
 public static class CodeFormatter
 {
-    public static StringBuilder Format(string code, FormatOptions options)
+    public static string Format(string code, FormatOptions options)
     {
-        return IndentEachScope(code, options);
+        return IndentEachScope(RemoveDuplicateNewLines(code), options);
     }
 
-    private static StringBuilder IndentEachScope(string code, FormatOptions options)
+    private static string RemoveDuplicateNewLines(string code)
+    {
+        var builder = new StringBuilder();
+        var lines = code.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+
+        var wasEmpty = false;
+
+        foreach(var line in lines)
+        {
+            var isEmpty = string.IsNullOrWhiteSpace(line);
+
+            if (!isEmpty || !wasEmpty)
+            {
+                builder.AppendLine(line.Trim());
+            }
+
+            wasEmpty = isEmpty;
+        }
+
+        return builder.ToString();
+    }
+
+    private static string IndentEachScope(string code, FormatOptions options)
     {
         var builder = new StringBuilder();
 
@@ -36,6 +58,6 @@ public static class CodeFormatter
             if (openScope) { indentation++; }
         }
 
-        return builder;
+        return builder.ToString();
     } 
 }

@@ -14,11 +14,10 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var shaderFiles = context.AdditionalTextsProvider.Where(static file => file.Path.EndsWith(".hlsl", StringComparison.InvariantCultureIgnoreCase));
-        var provider = shaderFiles.Select((text, cancellationToken)
-            => (path: text.Path, text: text.GetText(cancellationToken)));
+        var provider = shaderFiles.Select(static (text, cancellationToken) => (path: text.Path, text: text.GetText(cancellationToken)));
 
         context.RegisterSourceOutput(provider, static (outputContext, file) =>
-        {            
+        {
             var name = Path.GetFileNameWithoutExtension(file.path);
             var source = GenerateShaderFile(file.path, file.text, outputContext.CancellationToken);
             if (source != null)
@@ -36,117 +35,284 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
             return null;
         }
 
+        var @namespace = "Mini.Engine.Content.Shaders.Generated";
+        var @class = Naming.ToPascalCase(shader.Name);
+
+        var constants = GenerateResourceSlotConstants(shader.Variables);
+
+        var fields = @"private readonly Mini.Engine.DirectX.Device Device;
+                       private readonly Mini.Engine.IO.IVirtualFileSystem FileSystem;
+                       private readonly Mini.Engine.Content.ContentManager Content;";
+
+
+        var arguments = "Mini.Engine.DirectX.Device device, Mini.Engine.IO.IVirtualFileSystem fileSystem, Mini.Engine.Content.ContentManager content";
+
+        var assignments = GenerateFieldAssignments() + GenerateShaderPropertyAssignments(shader.FilePath, shader.Functions);
+
+        var properties = GenerateShaderProperties(shader.Functions);
+
+        var structures = GenerateStructures(shader.Structures) + GenerateConstantBufferStructures(shader.CBuffers);
+
+        var innerClass = GenerateShaderUser(shader);
+
+        var code = FormatFileSkeleton(@namespace, @class, constants, fields, arguments, assignments, properties, structures, innerClass);
+
+        var formatted = CodeFormatter.Format(code, FormatOptions.Default);
+        return SourceText.From(formatted, Encoding.UTF8);
+    }    
+
+    private static string GenerateResourceSlotConstants(IReadOnlyList<Variable> variables)
+    {
         var builder = new StringBuilder();
-        builder.Append($@"
-namespace Mini.Engine.Content.Shaders.Buffers
-{{
-    public sealed class {shader.Name}
-    {{
-");
-        WriteConstructorAndProperties(shader.Name, builder);
-        WriteStructures(shader.Structures, builder);
-        WriteConstantBufferStructures(shader.CBuffers, builder);
-        WriteResourceBindings(shader.Variables, builder);
-        WriteShaders(shader.FilePath, shader.Functions, builder);
-        builder.Append($@"
-    }}
-}}");
 
-        var formatted = CodeFormatter.Format(builder.ToString(), FormatOptions.Default);
-        return SourceText.From(formatted.ToString(), Encoding.UTF8);
-    }
-
-    private static void WriteConstructorAndProperties(string name, StringBuilder builder)
-    {
-        builder.Append($@"
-private readonly Mini.Engine.DirectX.Device Device;
-private readonly Mini.Engine.IO.IVirtualFileSystem FileSystem;
-private readonly Mini.Engine.Content.ContentManager Content;
-
-public {name}(Mini.Engine.DirectX.Device device, Mini.Engine.IO.IVirtualFileSystem fileSystem, Mini.Engine.Content.ContentManager content)
-{{
-    this.Device = device;
-    this.FileSystem = fileSystem;
-    this.Content = content;
-}}
-
-");
-    }
-
-    private static void WriteStructures(IReadOnlyList<Structure> structures, StringBuilder builder)
-    {
-        foreach (var structure in structures)
-        {
-            builder.Append($"[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]");
-            WriteStructure(structure.Name, structure.Variables, builder);
-        }
-    }
-
-    private static void WriteConstantBufferStructures(IReadOnlyList<CBuffer> cbuffers, StringBuilder builder)
-    {
-        foreach (var cbuffer in cbuffers)
-        {
-            builder.Append($"[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential, Pack = 4)]");
-            WriteStructure(cbuffer.Name, cbuffer.Variables, builder);
-        }
-    }
-
-    private static void WriteResourceBindings(IReadOnlyList<Variable> variables, StringBuilder builder)
-    {
-        foreach(var variable in variables)
+        foreach (var variable in variables)
         {
             if (variable.Slot != null)
             {
-                builder.AppendLine($"public static int {Naming.ToPascalCase(variable.Name)} = {variable.Slot}");
+                builder.AppendLine($"public const int {Naming.ToPascalCase(variable.Name)} = {variable.Slot};");
             }
         }
+
+        return builder.ToString();
     }
 
-    private static void WriteShaders(string filePath, IReadOnlyList<Function> functions, StringBuilder builder)
+    private static string GenerateFieldAssignments()
     {
-        foreach(var function in functions)
+        return @"this.Device = device;
+                 this.FileSystem = fileSystem;
+                 this.Content = content;";
+    }
+
+    private static string GenerateShaderPropertyAssignments(string filePath, IReadOnlyList<Function> functions)
+    {
+        var builder = new StringBuilder();
+        foreach (var function in functions)
         {
-            var id = $"new ContentId({SourceUtilities.ToLiteral(filePath)},{SourceUtilities.ToLiteral(function.Name)})";
+            var id = $"new Mini.Engine.Content.ContentId({SourceUtilities.ToLiteral(filePath)},{SourceUtilities.ToLiteral(function.Name)})";
+            var instantation = string.Empty;
+            switch (function.GetProgramDirective())
+            {
+                case ProgramDirectives.VertexShader:
+                    instantation = $"new Mini.Engine.Content.Shaders.VertexShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\");";
+                    break;
+                case ProgramDirectives.PixelShader:
+                    instantation = $"new Mini.Engine.Content.Shaders.PixelShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\");";
+                    break;
+                case ProgramDirectives.ComputeShader:
+                    var x = function.Attributes["numthreads"][0];
+                    var y = function.Attributes["numthreads"][1];
+                    var z = function.Attributes["numthreads"][2];
+                    instantation = $"new Mini.Engine.Content.Shaders.ComputeShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\", {x}, {y}, {z});";
+                    break;
+            }
+
+            if (!string.IsNullOrEmpty(instantation))
+            {
+                builder.AppendLine($"this.{Naming.ToPascalCase(function.Name)} = {instantation};");
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    private static string GenerateShaderProperties(IReadOnlyList<Function> functions)
+    {
+        var builder = new StringBuilder();
+
+        foreach (var function in functions)
+        {
             var interfaceType = string.Empty;
-            var concreteType = string.Empty;
             switch (function.GetProgramDirective())
             {
                 case ProgramDirectives.VertexShader:
                     interfaceType = "Mini.Engine.DirectX.Resources.IVertexShader";
-                    concreteType = $"new Mini.Engine.Content.Shaders.VertexShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\");";
                     break;
                 case ProgramDirectives.PixelShader:
                     interfaceType = "Mini.Engine.DirectX.Resources.IPixelShader";
-                    concreteType = $"new Mini.Engine.Content.Shaders.PixelShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\");";
                     break;
                 case ProgramDirectives.ComputeShader:
                     interfaceType = "Mini.Engine.DirectX.Resources.IComputeShader";
-                    var x = function.Attributes["numthreads"][0];
-                    var y = function.Attributes["numthreads"][1];
-                    var z  =function.Attributes["numthreads"][2];
-                    concreteType = $"new Mini.Engine.Content.Shaders.ComputeShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\", {x}, {y}, {z});";
                     break;
             }
 
             if (!string.IsNullOrEmpty(interfaceType))
             {
-                builder.AppendLine($"public readonly {interfaceType} {Naming.ToPascalCase(function.Name)} = {concreteType}");
+                builder.AppendLine($"public {interfaceType} {Naming.ToPascalCase(function.Name)} {{get; }}");
             }
         }
+
+        return builder.ToString();
     }
 
-    private static void WriteStructure(string name, IReadOnlyList<Variable> properties, StringBuilder builder)
+    private static string GenerateStructures(IReadOnlyList<Structure> structures)
+    {
+        var builder = new StringBuilder();
+
+        foreach (var structure in structures)
+        {
+            builder.Append($"[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]");
+            GenerateStructureBody(structure.Name, structure.Variables, builder);
+            builder.AppendLine();
+        }
+
+        return builder.ToString();
+    }
+
+    private static string GenerateConstantBufferStructures(IReadOnlyList<CBuffer> cbuffers)
+    {
+        var builder = new StringBuilder();
+
+        foreach (var cbuffer in cbuffers)
+        {
+            builder.Append($"[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential, Pack = 4)]");
+            GenerateStructureBody(cbuffer.Name, cbuffer.Variables, builder);
+            builder.AppendLine();
+        }
+
+        return builder.ToString();
+    }
+
+    private static void GenerateStructureBody(string name, IReadOnlyList<Variable> properties, StringBuilder builder)
     {
         builder.Append($@"
-public struct {name}
-{{
-");
+        public struct {name}
+        {{
+        ");
         foreach (var property in properties)
         {
             builder.AppendLine($"public {Types.ToDotNetType(property)} {Naming.ToPascalCase(property.Name)} {{ get; set; }}");
         }
         builder.AppendLine("}");
-        builder.AppendLine();
+    }
+
+    private static string GenerateShaderUser(Shader shader)
+    {
+        var @class = "User";
+
+        var fields = GenerateConstantBufferFields(shader.CBuffers);
+
+        var arguments = "Mini.Engine.DirectX.Device device";
+
+        var assignments = GenerateConstantBufferAssignments(shader.CBuffers, shader.Name);
+
+        var methods = GenerateConstantBufferMethods(shader.CBuffers);
+
+        var disposes = GenerateDisposeCalls(shader.CBuffers);
+
+        return FormatInnerClassSkeleton(@class, fields, arguments, assignments, methods, disposes);
+    }
+
+    private static string GenerateConstantBufferFields(IReadOnlyList<CBuffer> cbuffers)
+    {
+        var builder = new StringBuilder();
+        foreach (var cbuffer in cbuffers)
+        {
+            var structName = Naming.ToPascalCase(cbuffer.Name);
+            builder.AppendLine($"private readonly Mini.Engine.DirectX.Buffers.ConstantBuffer<{structName}> {structName}Buffer;");
+        }
+
+        return builder.ToString();
+    }
+
+    private static string GenerateConstantBufferAssignments(IReadOnlyList<CBuffer> cbuffers, string name)
+    {
+        var builder = new StringBuilder();
+        foreach (var cbuffer in cbuffers)
+        {
+            var structName = Naming.ToPascalCase(cbuffer.Name);
+            var userName = $"{Naming.ToPascalCase(name)}_Buffers_CB";
+            builder.AppendLine($"this.{structName}Buffer = new Mini.Engine.DirectX.Buffers.ConstantBuffer<{structName}>(device, \"{userName}\");");
+        }
+
+        return builder.ToString();
+    }
+
+    private static string GenerateConstantBufferMethods(IReadOnlyList<CBuffer> cBuffers)
+    {
+        var builder = new StringBuilder();
+
+        foreach (var cbuffer in cBuffers)
+        {
+            var name = Naming.ToPascalCase(cbuffer.Name);
+
+            var variables = cbuffer.Variables.Where(v => !v.Name.StartsWith("__"));
+
+            var arguments = string.Join(", ", variables.Select(v => $"{Types.ToDotNetType(v)} {Naming.ToCamelCase(v.Name)}"));
+            var assignments = string.Join($",{Environment.NewLine}", variables.Select(v => $"{Naming.ToPascalCase(v.Name)} = {Naming.ToCamelCase(v.Name)}"));
+            var fieldName = $"{Naming.ToPascalCase(cbuffer.Name)}Buffer";
+            var method = $@"            
+            public void Map{name}(Mini.Engine.DirectX.Contexts.DeviceContext context, {arguments})
+            {{
+                var constants = new {name}()
+                {{
+                    {assignments}
+                }};
+
+                this.{fieldName}.MapData(context, constants);
+            }}";
+
+            builder.AppendLine(method);
+        }
+
+        return builder.ToString();
+    }    
+
+    private static string GenerateDisposeCalls(IReadOnlyList<CBuffer> cBuffers)
+    {
+        var builder = new StringBuilder();
+
+        foreach (var cbuffer in cBuffers)
+        {
+            builder.AppendLine($"this.{Naming.ToPascalCase(cbuffer.Name)}Buffer.Dispose();");
+        }
+
+        return builder.ToString();
+    }
+
+    private static string FormatInnerClassSkeleton(string @class, string fields, string arguments, string assignments, string methods, string disposes)
+    {
+        return $@"            
+            public sealed class {@class} : System.IDisposable
+            {{
+                {fields}
+
+                public {@class}({arguments})
+                {{
+                    {assignments}
+                }}
+
+                {methods}
+
+                public void Dispose()
+                {{
+                    {disposes}
+                }}
+            }}";
+    }
+
+    private static string FormatFileSkeleton(string @namespace, string @class, string constants, string fields, string arguments, string assignments, string properties, string structures, string innerClass)
+    {
+        return $@"
+            namespace {@namespace}
+            {{
+                public sealed class {@class}
+                {{
+                    {constants}
+
+                    {fields}
+
+                    public {@class}({arguments})
+                    {{
+                        {assignments}
+                    }}
+
+                    {properties}
+
+                    {structures}
+
+                    {innerClass}
+                }}
+            }}";
     }
 }
 
