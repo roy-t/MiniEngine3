@@ -1,10 +1,7 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.Skybox;
+using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
@@ -17,26 +14,24 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
 {
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
-    private readonly SkyboxVs VertexShader;
-    private readonly SkyboxPs PixelShader;
+    private readonly Skybox Shader;
+    private readonly Skybox.User User;
     private readonly FrameService FrameService;
-    private readonly ConstantBuffer<Constants> ConstantBuffer;
 
-    public SkyboxSystem(Device device, CubeMapGenerator cubeMapGenerator, FrameService frameService, SkyboxVs vertexShader, SkyboxPs pixelShader)
+    public SkyboxSystem(Device device, FrameService frameService, Skybox shader)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<SkyboxSystem>();
-        this.VertexShader = vertexShader;
-        this.PixelShader = pixelShader;
+        this.Shader = shader;
+        this.User = shader.CreateUser();
         this.FrameService = frameService;
-        this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(SkyboxSystem)}_CB");
     }
 
     public void OnSet()
     {
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.ReadOnly;
-        this.Context.SetupFullScreenTriangle(this.VertexShader, this.PixelShader, blend, depth);
+        this.Context.SetupFullScreenTriangle(this.Shader.Vs, this.Shader.Ps, blend, depth);
 
         this.Context.PS.SetSampler(Skybox.TextureSampler, this.Device.SamplerStates.LinearClamp);
 
@@ -52,13 +47,8 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
         var projection = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 2.0f, camera.AspectRatio, 0.1f, 1.5f);
         var worldViewProjection = view * projection;
         Matrix4x4.Invert(worldViewProjection, out var inverse);
-
-        var constants = new Constants()
-        {
-            InverseWorldViewProjection = inverse
-        };
-        this.ConstantBuffer.MapData(this.Context, constants);
-        this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+        this.User.MapConstants(this.Context, inverse);
+        this.Context.VS.SetConstantBuffer(Skybox.ConstantsSlot, this.User.ConstantsBuffer);
 
         this.Context.PS.SetShaderResource(Skybox.CubeMap, skybox.Albedo);
         this.Context.Draw(3);
@@ -72,9 +62,7 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
 
     public void Dispose()
     {
-        this.ConstantBuffer.Dispose();
-        this.PixelShader.Dispose();
-        this.VertexShader.Dispose();
+        this.User.Dispose();
         this.Context.Dispose();
     }
 }

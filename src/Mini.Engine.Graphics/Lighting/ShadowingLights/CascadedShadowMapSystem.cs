@@ -1,9 +1,7 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.ShadowMap;
+using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
@@ -24,25 +22,22 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
     private readonly RenderService RenderService;
-    private readonly ShadowMapVs VertexShader;
-    private readonly ShadowMapPs PixelShader;
+    private readonly ShadowMap Shader;
+    private readonly ShadowMap.User User;
     private readonly InputLayout InputLayout;
-    private readonly ConstantBuffer<Constants> ConstantBuffer;
     private readonly LightFrustum Frustum;
     private readonly IMaterial DefaultMaterial;
 
-    public CascadedShadowMapSystem(Device device, FrameService frameService, RenderService renderService, ShadowMapVs vertexShader, ShadowMapPs pixelShader, ContentManager content)
+    public CascadedShadowMapSystem(Device device, FrameService frameService, RenderService renderService, ShadowMap shader, ContentManager content)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<CascadedShadowMapSystem>();
         this.FrameService = frameService;
         this.RenderService = renderService;
-        this.VertexShader = vertexShader;
-        this.PixelShader = pixelShader;
+        this.Shader = shader;
+        this.User = shader.CreateUser();
 
-        this.InputLayout = this.VertexShader.CreateInputLayout(device, ModelVertex.Elements);
-        this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(CascadedShadowMapSystem)}_CB");
-
+        this.InputLayout = this.Shader.Vs.CreateInputLayout(device, ModelVertex.Elements);
         this.Frustum = new LightFrustum();
 
         this.DefaultMaterial = content.LoadDefaultMaterial();
@@ -50,8 +45,8 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
 
     public void OnSet()
     {
-        this.Context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.VertexShader, this.Device.RasterizerStates.CullNoneNoDepthClip, 0, 0, 1024, 1024, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.Default);
-        this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+        this.Context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.Device.RasterizerStates.CullNoneNoDepthClip, 0, 0, 1024, 1024, this.Shader.Ps, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.Default);
+        this.Context.VS.SetConstantBuffer(ShadowMap.ConstantsSlot, this.User.ConstantsBuffer);
         this.Context.PS.SetSampler(ShadowMap.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);
     }
 
@@ -107,11 +102,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
 
     public void SetConstants(Matrix4x4 worldViewProjection, Matrix4x4 world)
     {
-        var cBuffer = new Constants()
-        {
-            WorldViewProjection = worldViewProjection,
-        };
-        this.ConstantBuffer.MapData(this.Context, cBuffer);
+        this.User.MapConstants(this.Context, worldViewProjection);
     }
 
     public void SetMaterial(IMaterial material)
@@ -191,6 +182,6 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
     {
         this.InputLayout.Dispose();
         this.Context.Dispose();
-        this.ConstantBuffer.Dispose();
+        this.User.Dispose();
     }
 }

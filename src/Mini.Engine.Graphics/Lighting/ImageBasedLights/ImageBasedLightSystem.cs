@@ -1,10 +1,7 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.ImageBasedLight;
+using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS.Generators.Shared;
@@ -18,24 +15,20 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
-    private readonly FullScreenTriangleTextureVs VertexShader;
-    private readonly ImageBasedLightPs PixelShader;
-    private readonly ConstantBuffer<Constants> ConstantBuffer;
-    private readonly ConstantBuffer<PerLightConstants> PerLightConstantBuffer;
+    private readonly FullScreenTriangle FullScreenTriangleShader;
+    private readonly ImageBasedLight Shader;
+    private readonly ImageBasedLight.User User;
 
     private readonly ITexture2D BrdfLut;
 
-    public ImageBasedLightSystem(Device device, FrameService frameService, BrdfLutGenerator generator, FullScreenTriangleTextureVs vertexShader, ImageBasedLightPs pixelShader)
+    public ImageBasedLightSystem(Device device, FrameService frameService, BrdfLutGenerator generator, FullScreenTriangle fullScreenTriangleShader, ImageBasedLight shader)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<ImageBasedLightSystem>();
         this.FrameService = frameService;
-
-        this.VertexShader = vertexShader;
-        this.PixelShader = pixelShader;
-
-        this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(ImageBasedLightSystem)}_CB");
-        this.PerLightConstantBuffer = new ConstantBuffer<PerLightConstants>(device, $"{nameof(ImageBasedLightSystem)}_per_light_CB");
+        this.FullScreenTriangleShader = fullScreenTriangleShader;
+        this.Shader = shader;
+        this.User = shader.CreateUser();
 
         this.BrdfLut = generator.Generate();
     }
@@ -44,7 +37,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
     {
         var blendState = this.Device.BlendStates.Additive;
         var depthStencilState = this.Device.DepthStencilStates.None;
-        this.Context.SetupFullScreenTriangle(this.VertexShader, this.PixelShader, blendState, depthStencilState);
+        this.Context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, this.Shader.Ps, blendState, depthStencilState);
 
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
@@ -57,25 +50,16 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
 
         Matrix4x4.Invert(this.FrameService.Camera.ViewProjection, out var inverseViewProjection);
         var cameraPosition = this.FrameService.Camera.Transform.Position;
-        var constants = new Constants
-        {
-            InverseViewProjection = inverseViewProjection,
-            CameraPosition = cameraPosition
-        };
-        this.ConstantBuffer.MapData(this.Context, constants);
-        this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+        this.User.MapConstants(this.Context, inverseViewProjection, cameraPosition);
+
+        this.Context.PS.SetConstantBuffer(ImageBasedLight.ConstantsSlot, this.User.ConstantsBuffer);
+        this.Context.PS.SetConstantBuffer(ImageBasedLight.PerLightConstantsSlot, this.User.PerLightConstantsBuffer);
     }
 
     [Process(Query = ProcessQuery.All)]
     public void Render(SkyboxComponent skybox)
     {
-        var constants = new PerLightConstants
-        {
-            MaxReflectionLod = skybox.Environment.MipMapSlices,
-            Strength = skybox.Strength,
-        };
-        this.PerLightConstantBuffer.MapData(this.Context, constants);
-        this.Context.PS.SetConstantBuffer(PerLightConstants.Slot, this.PerLightConstantBuffer);
+        this.User.MapPerLightConstants(this.Context, skybox.Environment.MipMapSlices, skybox.Strength);
 
         this.Context.PS.SetShaderResource(ImageBasedLight.Irradiance, skybox.Irradiance);
         this.Context.PS.SetShaderResource(ImageBasedLight.Environment, skybox.Environment);
@@ -92,8 +76,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
     public void Dispose()
     {
         this.BrdfLut.Dispose();
-        this.ConstantBuffer.Dispose();
-        this.PerLightConstantBuffer.Dispose();
+        this.User.Dispose();
         this.Context.Dispose();
     }
 }

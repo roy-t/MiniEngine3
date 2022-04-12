@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Materials;
 using Mini.Engine.Content.Models;

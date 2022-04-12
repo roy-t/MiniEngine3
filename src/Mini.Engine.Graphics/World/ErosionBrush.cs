@@ -1,43 +1,41 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Buffers;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.Erosion;
+using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX.Resources;
 
 namespace Mini.Engine.Graphics.World;
 
 [Service]
-public sealed class ErosionBrush
+public sealed class ErosionBrush : IDisposable
 {
-    private readonly Device Device;
-    private readonly ConstantBuffer<ErosionConstants> Constants;
-    private readonly ErosionKernel Kernel;
+    private readonly Device Device;    
+    private readonly Erosion Shader;
+    private readonly Erosion.User User;
 
-    public ErosionBrush(Device device, ErosionKernel kernel)
+    public ErosionBrush(Device device, Erosion shader)
     {
         this.Device = device;
-        this.Kernel = kernel;
-
-        this.Constants = new ConstantBuffer<ErosionConstants>(device, $"{nameof(ErosionBrush)}_CB");
+        this.Shader = shader;
+        this.User = shader.CreateUser();
     }
 
     public void Apply(RWTexture2D height, RWTexture2D normals)
     {
-        var context = this.Device.ImmediateContext;
-        var cBuffer = new ErosionConstants()
-        {
-            Stride = (uint)height.Width
-        };
+        var context = this.Device.ImmediateContext;        
+        this.User.MapErosionConstants(context, (uint)height.Width);
+        
 
-        this.Constants.MapData(context, cBuffer);
-
-        context.CS.SetShader(this.Kernel);
-        context.CS.SetConstantBuffer(ErosionConstants.Slot, this.Constants);
+        context.CS.SetShader(this.Shader.Kernel);
+        context.CS.SetConstantBuffer(Erosion.ErosionConstantsSlot, this.User.ErosionConstantsBuffer);
         context.CS.SetUnorderedAccessView(Erosion.MapHeight, height);
         context.CS.SetUnorderedAccessView(Erosion.MapNormal, normals);
 
-        var (x, y, z) = this.Kernel.GetDispatchSize(height.Width, height.Height, 1);
+        var (x, y, z) = this.Shader.Kernel.GetDispatchSize(height.Width, height.Height, 1);
         context.CS.Dispatch(x, y, z);
+    }
+
+    public void Dispose()
+    {
+        this.User.Dispose();
     }
 }

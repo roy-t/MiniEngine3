@@ -2,8 +2,7 @@
 using System.Diagnostics;
 using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.Geometry;
+using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
@@ -21,29 +20,28 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
     private readonly RenderService RenderService;
-    private readonly GeometryVs VertexShader;
-    private readonly GeometryPs PixelShader;
+    private readonly Geometry Shader;
+    private readonly Geometry.User User;
     private readonly InputLayout InputLayout;
-    private readonly ConstantBuffer<Constants> ConstantBuffer;
 
-    public ModelSystem(Device device, FrameService frameService, RenderService renderService, GeometryVs vertexShader, GeometryPs pixelShader)
+    public ModelSystem(Device device, FrameService frameService, RenderService renderService, Geometry shader)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<ModelSystem>();
         this.FrameService = frameService;
         this.RenderService = renderService;
-        this.VertexShader = vertexShader;
-        this.PixelShader = pixelShader;
-        this.InputLayout = this.VertexShader.CreateInputLayout(device, ModelVertex.Elements);
-        this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(ModelSystem)}_CB");
+        this.Shader = shader;
+        this.User = shader.CreateUser();
+
+        this.InputLayout = this.Shader.Vs.CreateInputLayout(device, ModelVertex.Elements);
     }
 
     public void OnSet()
     {
-        this.Context.Setup(this.InputLayout, this.VertexShader, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.Default);
+        this.Context.Setup(this.InputLayout, this.Shader.Vs, this.Shader.Ps, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.Default);
 
-        this.Context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
-        this.Context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+        this.Context.VS.SetConstantBuffer(Geometry.ConstantsSlot, this.User.ConstantsBuffer);
+        this.Context.PS.SetConstantBuffer(Geometry.ConstantsSlot, this.User.ConstantsBuffer);
         this.Context.PS.SetSampler(Geometry.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);
         this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal);
     }
@@ -56,13 +54,7 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
 
     public void SetConstants(Matrix4x4 worldViewProjection, Matrix4x4 world)
     {
-        var cBuffer = new Constants()
-        {
-            WorldViewProjection = worldViewProjection,
-            World = world,
-            CameraPosition = this.FrameService.Camera.Transform.Position
-        };
-        this.ConstantBuffer.MapData(this.Context, cBuffer);
+        this.User.MapConstants(this.Context, worldViewProjection, world, this.FrameService.Camera.Transform.Position);
     }
 
     public void SetMaterial(IMaterial material)
@@ -83,7 +75,7 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
 
     public void Dispose()
     {
-        this.ConstantBuffer.Dispose();
+        this.User.Dispose();
         this.InputLayout.Dispose();
         this.Context.Dispose();
     }

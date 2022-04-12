@@ -1,6 +1,5 @@
 ﻿using Mini.Engine.Configuration;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.TextureShader;
+using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources;
@@ -11,28 +10,26 @@ namespace Mini.Engine.Graphics;
 public class RenderHelper
 {
     private readonly Device Device;
-    private readonly FullScreenTriangleTextureVs VertexShader;
-    private readonly TextureShaderPs PixelShader;
-    private readonly TextureShaderFxaaPs FxaaPixelShader;
+    private readonly FullScreenTriangle FullScreenTriangleShader;
+    private readonly TextureShader TextureShader;    
 
-    public RenderHelper(Device device, FullScreenTriangleTextureVs vertexShader, TextureShaderPs pixelShader, TextureShaderFxaaPs fxaaPixelShader)
+    public RenderHelper(Device device, FullScreenTriangle fullScreenTriangleShader, TextureShader textureShader)
     {
         this.Device = device;
 
-        this.VertexShader = vertexShader;
-        this.PixelShader = pixelShader;
-        this.FxaaPixelShader = fxaaPixelShader;
+        this.FullScreenTriangleShader = fullScreenTriangleShader;
+        this.TextureShader = textureShader;
     }
 
     public void Render(DeviceContext context, ITexture2D texture, int x, int y, int width, int height)
     {
-        context.SetupFullScreenTriangle(this.VertexShader, x, y, width, height, this.PixelShader, this.Device.BlendStates.AlphaBlend, this.Device.DepthStencilStates.None);
+        context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, x, y, width, height, this.TextureShader.Ps, this.Device.BlendStates.AlphaBlend, this.Device.DepthStencilStates.None);
         this.Render(context, texture);
     }
 
     public void RenderFXAA(DeviceContext context, ITexture2D texture, int x, int y, int width, int height)
     {
-        context.SetupFullScreenTriangle(this.VertexShader, x, y, width, height, this.FxaaPixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
+        context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, x, y, width, height, this.TextureShader.FxaaPs, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
         this.Render(context, texture);
     }
 

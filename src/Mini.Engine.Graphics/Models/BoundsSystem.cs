@@ -1,13 +1,10 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content.Shaders;
-using Mini.Engine.Content.Shaders.ColorShader;
+using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
-using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
@@ -15,7 +12,6 @@ using Mini.Engine.Graphics.World;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
-using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Models;
 
@@ -27,22 +23,21 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
     private readonly FrameService FrameService;
     private readonly DebugFrameService DebugFrameService;
     private readonly InputLayout InputLayout;
-    private readonly ColorShaderVs VertexShader;
-    private readonly ColorShaderPs PixelShader;
+    private readonly ColorShader Shader;
+    private readonly ColorShader.User User;
     private readonly VertexBuffer<Vector3> VertexBuffer;
     private readonly IndexBuffer<ushort> IndexBuffer;
-    private readonly ConstantBuffer<Constants> ConstantBuffer;
 
     private readonly ImDrawVert[] Buffer;
 
-    public BoundsSystem(Device device, FrameService frameService, DebugFrameService debugFrameService, ColorShaderVs vertexShader, ColorShaderPs pixelShader)
+    public BoundsSystem(Device device, FrameService frameService, DebugFrameService debugFrameService, ColorShader shader)
     {
         this.Device = device;
         this.FrameService = frameService;
         this.DebugFrameService = debugFrameService;
 
-        this.VertexShader = vertexShader;
-        this.PixelShader = pixelShader;
+        this.Shader = shader;
+        this.User = shader.CreateUser();
 
         this.VertexBuffer = new VertexBuffer<Vector3>(device, $"{nameof(BoundsSystem)}_VB");
         this.IndexBuffer = new IndexBuffer<ushort>(device, $"{nameof(BoundsSystem)}_IB");
@@ -52,9 +47,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
             0, 4, 1, 5, 2, 6, 3, 7
         );
 
-        this.ConstantBuffer = new ConstantBuffer<Constants>(device, $"{nameof(BoundsSystem)}_CB");
-
-        this.InputLayout = this.VertexShader.CreateInputLayout
+        this.InputLayout = this.Shader.Vs.CreateInputLayout
         (
             device,
             new InputElementDescription("POSITION", 0, Format.R32G32B32_Float, 0, 0, InputClassification.PerVertexData, 0)
@@ -68,21 +61,16 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
         if (this.DebugFrameService.ShowBounds)
         {
             var context = this.Device.ImmediateContext;
+            
+            this.User.MapConstants(context, this.FrameService.Camera.ViewProjection, Vector4.One);
 
-            var cBuffer = new Constants()
-            {
-                WorldViewProjection = this.FrameService.Camera.ViewProjection,
-                Color = Vector4.One
-            };
-            this.ConstantBuffer.MapData(context, cBuffer);
-
-            context.Setup(this.InputLayout, PrimitiveTopology.LineList, this.VertexShader, this.Device.RasterizerStates.CullNone, 0, 0, this.Device.Width, this.Device.Height, this.PixelShader, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
+            context.Setup(this.InputLayout, PrimitiveTopology.LineList, this.Shader.Vs, this.Device.RasterizerStates.CullNone, 0, 0, this.Device.Width, this.Device.Height, this.Shader.Ps, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
             context.OM.SetRenderTarget(this.DebugFrameService.DebugOverlay);
 
             context.IA.SetVertexBuffer(this.VertexBuffer);
             context.IA.SetIndexBuffer(this.IndexBuffer);
-            context.VS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
-            context.PS.SetConstantBuffer(Constants.Slot, this.ConstantBuffer);
+            context.VS.SetConstantBuffer(ColorShader.ConstantsSlot, this.User.ConstantsBuffer);
+            context.PS.SetConstantBuffer(ColorShader.ConstantsSlot, this.User.ConstantsBuffer);
         }
     }
 
@@ -145,7 +133,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
 
     public void Dispose()
     {
-        this.ConstantBuffer.Dispose();
+        this.User.Dispose();
         this.InputLayout.Dispose();
     }
 }
