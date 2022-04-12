@@ -31,7 +31,7 @@ public sealed partial class TerrainSystem : IMeshRenderCallBack, ISystem, IDispo
         this.Shader = terrain;
 
         this.InputLayout = this.Shader.Vs.CreateInputLayout(device, ModelVertex.Elements);
-        this.User = terrain.CreateUser();
+        this.User = terrain.CreateUserFor<TerrainSystem>();
     }
 
     public void OnSet()

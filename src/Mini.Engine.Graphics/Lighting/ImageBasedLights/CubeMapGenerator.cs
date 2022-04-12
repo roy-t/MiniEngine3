@@ -29,13 +29,13 @@ public sealed class CubeMapGenerator
     {
         this.Device = device;
         this.Shader = shader;
-        this.User = shader.CreateUser();
+        this.User = shader.CreateUserFor<CubeMapGenerator>();
     }
 
-    public ITextureCube GenerateAlbedo(ITexture2D equirectangular, bool generateMipMaps, string name)
+    public ITextureCube GenerateAlbedo(ITexture2D equirectangular, bool generateMipMaps, string user)
     {
         var resolution = equirectangular.Height / 2;
-        var texture = new RenderTargetCube(this.Device, resolution, equirectangular.Format, generateMipMaps, name);
+        var texture = new RenderTargetCube(this.Device, resolution, equirectangular.Format, generateMipMaps, user, "Albedo");
 
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;
@@ -50,9 +50,9 @@ public sealed class CubeMapGenerator
         return texture;
     }
 
-    public ITextureCube GenerateIrradiance(ITexture2D equirectangular, string name, int resolution = IrradianceResolution)
+    public ITextureCube GenerateIrradiance(ITexture2D equirectangular, string user, int resolution = IrradianceResolution)
     {
-        var texture = new RenderTargetCube(this.Device, resolution, equirectangular.Format, false, name);
+        var texture = new RenderTargetCube(this.Device, resolution, equirectangular.Format, false, user, "Irradiance");
 
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;
@@ -67,9 +67,9 @@ public sealed class CubeMapGenerator
         return texture;
     }
 
-    public ITextureCube GenerateEnvironment(ITexture2D equirectangular, string name, int resolution = EnvironmentResolution)
+    public ITextureCube GenerateEnvironment(ITexture2D equirectangular, string user, int resolution = EnvironmentResolution)
     {
-        var texture = new RenderTargetCube(this.Device, resolution, equirectangular.Format, true, name);
+        var texture = new RenderTargetCube(this.Device, resolution, equirectangular.Format, true, user, "Environment");
 
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;

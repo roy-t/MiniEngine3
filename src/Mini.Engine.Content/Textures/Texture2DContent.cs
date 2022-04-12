@@ -40,7 +40,7 @@ internal sealed class Texture2DContent : ITexture2D, IContent
 
         var data = this.Loader.Load(device, this.Id, this.Settings);
 
-        var texture = new Texture2D(device, data.Width, data.Height, data.Format, true, data.Id.ToString());
+        var texture = new Texture2D(device, data.Width, data.Height, data.Format, true, data.Id.ToString(), string.Empty);
         texture.SetPixels<byte>(device, data.Data);
 
         this.texture = texture;        

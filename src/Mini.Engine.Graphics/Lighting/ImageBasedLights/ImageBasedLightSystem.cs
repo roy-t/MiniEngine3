@@ -28,9 +28,9 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.FrameService = frameService;
         this.FullScreenTriangleShader = fullScreenTriangleShader;
         this.Shader = shader;
-        this.User = shader.CreateUser();
+        this.User = shader.CreateUserFor<ImageBasedLightSystem>();
 
-        this.BrdfLut = generator.Generate();
+        this.BrdfLut = generator.Generate(nameof(ImageBasedLightSystem));
     }
 
     public void OnSet()

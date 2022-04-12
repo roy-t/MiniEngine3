@@ -4,11 +4,16 @@ namespace Mini.Engine.DirectX.Contexts;
 
 public sealed class DeferredDeviceContext : DeviceContext
 {
-    public DeferredDeviceContext(Device device, ID3D11DeviceContext context, string name)
-        : base(device, context, name) { }
+    private readonly string User;
+
+    public DeferredDeviceContext(Device device, ID3D11DeviceContext context, string user)
+        : base(device, context, user, nameof(DeferredDeviceContext))
+    {
+        this.User = user;
+    }
 
     public CommandList FinishCommandList()
     {
-        return new(this.ID3D11DeviceContext.FinishCommandList(false));
+        return new(this.ID3D11DeviceContext.FinishCommandList(false), this.User);
     }
 }

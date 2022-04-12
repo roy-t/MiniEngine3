@@ -35,7 +35,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         this.FrameService = frameService;
         this.RenderService = renderService;
         this.Shader = shader;
-        this.User = shader.CreateUser();
+        this.User = shader.CreateUserFor<CascadedShadowMapSystem>();
 
         this.InputLayout = this.Shader.Vs.CreateInputLayout(device, ModelVertex.Elements);
         this.Frustum = new LightFrustum();

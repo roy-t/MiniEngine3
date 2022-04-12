@@ -5,11 +5,12 @@ namespace Mini.Engine.DirectX.Contexts.States;
 
 public sealed class RasterizerState : IDisposable
 {
-    internal RasterizerState(ID3D11RasterizerState state, string name)
+    internal RasterizerState(ID3D11RasterizerState state, string meaning)
     {
+        this.Name = DebugNameGenerator.GetName(nameof(RasterizerState), meaning);
+
         this.State = state;
-        this.State.DebugName = name;
-        this.Name = name;
+        this.State.DebugName = this.Name;
     }
 
     public string Name { get; }

@@ -23,7 +23,7 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<SkyboxSystem>();
         this.Shader = shader;
-        this.User = shader.CreateUser();
+        this.User = shader.CreateUserFor<SkyboxSystem>();
         this.FrameService = frameService;
     }
 

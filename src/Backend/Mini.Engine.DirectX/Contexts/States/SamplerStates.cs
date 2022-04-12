@@ -1,16 +1,16 @@
-﻿using System;
-using Vortice.Direct3D11;
+﻿using Vortice.Direct3D11;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.DirectX.Contexts.States;
 
 public sealed class SamplerState : IDisposable
 {
-    internal SamplerState(ID3D11SamplerState state, string name)
+    internal SamplerState(ID3D11SamplerState state, string meaning)
     {
+        this.Name = DebugNameGenerator.GetName(nameof(SamplerState), meaning);
+
         this.State = state;
-        this.State.DebugName = name;
-        this.Name = name;
+        this.State.DebugName = this.Name;
     }
 
     public string Name { get; }

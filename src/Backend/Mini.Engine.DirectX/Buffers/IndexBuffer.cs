@@ -1,5 +1,4 @@
-﻿using System;
-using Vortice.Direct3D11;
+﻿using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Buffers;
@@ -7,8 +6,8 @@ namespace Mini.Engine.DirectX.Buffers;
 public sealed class IndexBuffer<T> : DeviceBuffer<T>
     where T : unmanaged
 {
-    public IndexBuffer(Device device, string name)
-        : base(device, name)
+    public IndexBuffer(Device device, string user)
+        : base(device, user, "IB")
     {
         if (this.PrimitiveSizeInBytes == 2)
         {

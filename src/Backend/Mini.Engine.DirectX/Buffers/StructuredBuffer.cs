@@ -1,5 +1,4 @@
-﻿using System;
-using Vortice.Direct3D11;
+﻿using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Buffers;
@@ -12,11 +11,14 @@ public class StructuredBuffer<T> : DeviceBuffer<T>
     private ID3D11ShaderResourceView? srv;
 
 
-    public StructuredBuffer(Device device, string name)
-        : base(device, name)
+    protected StructuredBuffer(Device device, string user, string abbreviation)
+        : base(device, user, abbreviation)
     {
         this.EnsureCapacity(1);
     }
+
+    public StructuredBuffer(Device device, string user)
+        : this(device, user, "R") { }
 
     internal ID3D11ShaderResourceView GetShaderResourceView()
     {

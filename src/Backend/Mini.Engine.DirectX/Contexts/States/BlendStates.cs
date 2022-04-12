@@ -1,15 +1,15 @@
-﻿using System;
-using Vortice.Direct3D11;
+﻿using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX.Contexts.States;
 
 public sealed class BlendState : IDisposable
 {
-    internal BlendState(ID3D11BlendState state, string name)
+    internal BlendState(ID3D11BlendState state, string meaning)
     {
+        this.Name = DebugNameGenerator.GetName(nameof(BlendState), meaning);
+
         this.ID3D11BlendState = state;
-        this.ID3D11BlendState.DebugName = name;
-        this.Name = name;
+        this.ID3D11BlendState.DebugName = this.Name;        
     }
 
     public string Name { get; }

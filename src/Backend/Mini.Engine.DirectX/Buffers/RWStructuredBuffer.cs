@@ -1,5 +1,4 @@
-﻿using System;
-using Mini.Engine.DirectX.Contexts;
+﻿using Mini.Engine.DirectX.Contexts;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -12,8 +11,8 @@ public sealed class RWStructuredBuffer<T> : StructuredBuffer<T>
     private int length;
     private ID3D11UnorderedAccessView? uav;
 
-    public RWStructuredBuffer(Device device, string name, int elements)
-        : base(device, name)
+    public RWStructuredBuffer(Device device, string user, int elements)
+        : base(device, user, "RW")
     {
         this.EnsureCapacity(elements);
     }

@@ -1,5 +1,4 @@
-﻿using System;
-using Mini.Engine.Core;
+﻿using Mini.Engine.Core;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -7,15 +6,15 @@ namespace Mini.Engine.DirectX.Resources;
 
 public sealed class RWTexture2D : ITexture2D
 {
-    public RWTexture2D(Device device, int width, int height, Format format, bool generateMipMaps, string name)
+    public RWTexture2D(Device device, int width, int height, Format format, bool generateMipMaps, string user, string meaning)
     {
         this.Width = width;
         this.Height = height;
         this.Format = format;
 
         this.MipMapSlices = generateMipMaps ? Dimensions.MipSlices(width, height) : 1;
-        this.Texture = Create(device, width, height, format, generateMipMaps, name);
-        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, name);
+        this.Texture = Create(device, width, height, format, generateMipMaps, user, meaning);
+        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, user, meaning);
         this.UnorderedAccessViews = new ID3D11UnorderedAccessView[this.MipMapSlices];
 
         for(var i = 0; i < this.UnorderedAccessViews.Length; i++)
@@ -24,7 +23,7 @@ public sealed class RWTexture2D : ITexture2D
             this.UnorderedAccessViews[i] = device.ID3D11Device.CreateUnorderedAccessView(this.Texture, description);
         }
 
-        this.Name = name;
+        this.Name = DebugNameGenerator.GetName(user, "RWTexture2D", meaning, format);
     }
 
     public void SetPixels<T>(Device device, Span<T> pixels)
@@ -58,7 +57,7 @@ public sealed class RWTexture2D : ITexture2D
     ID3D11ShaderResourceView ITexture.ShaderResourceView => this.ShaderResourceView;
     ID3D11Texture2D ITexture.Texture => this.Texture;
 
-    private static ID3D11Texture2D Create(Device device, int width, int height, Format format, bool generateMipMaps, string name)
+    private static ID3D11Texture2D Create(Device device, int width, int height, Format format, bool generateMipMaps, string user, string meaning)
     {
         var description = new Texture2DDescription
         {
@@ -75,7 +74,7 @@ public sealed class RWTexture2D : ITexture2D
         };
 
         var texture = device.ID3D11Device.CreateTexture2D(description);
-        texture.DebugName = name;
+        texture.DebugName = DebugNameGenerator.GetName(user, "Texture2D", meaning, format); ;
 
         return texture;
     }

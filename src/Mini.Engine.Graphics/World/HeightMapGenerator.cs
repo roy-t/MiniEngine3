@@ -19,7 +19,7 @@ public sealed class HeightMapGenerator : IDisposable
     {
         this.Device = device;
         this.Shader = shader;
-        this.User = this.Shader.CreateUser();
+        this.User = this.Shader.CreateUserFor<HeightMapGenerator>();
     }
 
     /// <summary>
@@ -39,8 +39,8 @@ public sealed class HeightMapGenerator : IDisposable
         this.User.MapNoiseConstants(context, (uint)dimensions, offset, amplitude, frequency, octaves, lacunarity, persistance);
         context.CS.SetConstantBuffer(HeightMap.NoiseConstantsSlot, this.User.NoiseConstantsBuffer);
 
-        var height = new RWTexture2D(this.Device, dimensions, dimensions, Format.R32_Float, false, $"{name}_heightmap");
-        var normals = new RWTexture2D(this.Device, dimensions, dimensions, Format.R32G32B32A32_Float, false, $"{name}_normalmap");
+        var height = new RWTexture2D(this.Device, dimensions, dimensions, Format.R32_Float, false, nameof(HeightMapGenerator), "HeightMap");
+        var normals = new RWTexture2D(this.Device, dimensions, dimensions, Format.R32G32B32A32_Float, false, nameof(HeightMapGenerator), "NormalMap");
 
         context.CS.SetShader(this.Shader.NoiseMapKernel);
         context.CS.SetUnorderedAccessView(HeightMap.MapHeight, height);

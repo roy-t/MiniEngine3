@@ -1,5 +1,4 @@
-﻿using System;
-using Vortice.Direct3D11;
+﻿using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
@@ -14,20 +13,20 @@ public enum DepthStencilFormat
 
 public sealed class DepthStencilBuffer : ITexture2D
 {
-    public DepthStencilBuffer(Device device, DepthStencilFormat format, int width, int height, string name)
+    public DepthStencilBuffer(Device device, DepthStencilFormat format, int width, int height, string user, string meaning)
     {
         this.Width = width;
         this.Height = height;
         this.Format = ToTextureFormat(format);
 
-        this.Texture = Textures.Create(device, width, height, ToTextureFormat(format), BindFlags.DepthStencil | BindFlags.ShaderResource, ResourceOptionFlags.None, 1, false, nameof(DepthStencilBuffer));
-        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, ToShaderResourceViewFormat(format), nameof(DepthStencilBuffer));
+        this.Texture = Textures.Create(device, width, height, ToTextureFormat(format), BindFlags.DepthStencil | BindFlags.ShaderResource, ResourceOptionFlags.None, 1, false, user, meaning);
+        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, ToShaderResourceViewFormat(format), user, meaning);
 
         var depthView = new DepthStencilViewDescription(DepthStencilViewDimension.Texture2D, ToDepthViewFormat(format));
         this.DepthStencilView = device.ID3D11Device.CreateDepthStencilView(this.Texture, depthView);
 
-        this.Name = name;
-        this.DepthStencilView.DebugName = $"{this.Name}_DSV";
+        this.Name = DebugNameGenerator.GetName(user, "DEPTH", meaning, format);
+        this.DepthStencilView.DebugName = DebugNameGenerator.GetName(user, "DSV", ToDepthViewFormat(format));
     }
 
     public string Name { get; }

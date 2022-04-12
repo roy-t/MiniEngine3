@@ -50,7 +50,7 @@ public sealed class Device : IDisposable
         this.DepthStencilStates = new DepthStencilStates(device);
         this.RasterizerStates = new RasterizerStates(device);
 
-        this.ImmediateContext = new ImmediateDeviceContext(this, context, "ImmediateDeviceContext");
+        this.ImmediateContext = new ImmediateDeviceContext(this, context, nameof(Device));
     }
 
     public ImmediateDeviceContext ImmediateContext { get; }
@@ -75,7 +75,7 @@ public sealed class Device : IDisposable
 
     public DeferredDeviceContext CreateDeferredContextFor<T>()
     {
-        return new(this, this.ID3D11Device.CreateDeferredContext(), $"{typeof(T).Name}DeferredContext");
+        return new(this, this.ID3D11Device.CreateDeferredContext(), typeof(T).Name);
     }
 
     public void Present()
@@ -116,7 +116,7 @@ public sealed class Device : IDisposable
         // let the output window be gamma corrected. See: https://docs.microsoft.com/en-us/windows/win32/direct3ddxgi/converting-data-color-space
         var view = new RenderTargetViewDescription(this.BackBuffer, RenderTargetViewDimension.Texture2D, RenderTargetViewFormat);
         this.BackBufferView = this.ID3D11Device.CreateRenderTargetView(this.BackBuffer, view);
-        this.BackBufferView.DebugName = "BackBufferView";
+        this.BackBufferView.DebugName = DebugNameGenerator.GetName(nameof(Device), "BackBufferView");
     }
 
     private IDXGIFactory5 GetDxgiFactory()

@@ -31,7 +31,7 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
         this.FrameService = frameService;
         this.RenderService = renderService;
         this.Shader = shader;
-        this.User = shader.CreateUser();
+        this.User = shader.CreateUserFor<ModelSystem>();
 
         this.InputLayout = this.Shader.Vs.CreateInputLayout(device, ModelVertex.Elements);
     }

@@ -18,23 +18,23 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
 
     private readonly FullScreenTriangle FullScreenTriangle;
 
-    private readonly SunLight SunLight;
+    private readonly SunLight Shader;
     private readonly SunLight.User User;
 
-    public SunLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangle, SunLight sunLight)
+    public SunLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangle, SunLight shader)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<SunLightSystem>();
         this.FrameService = frameService;
         this.FullScreenTriangle = fullScreenTriangle;
 
-        this.SunLight = sunLight;
-        this.User = new SunLight.User(device);
+        this.Shader = shader;
+        this.User = shader.CreateUserFor<SunLightSystem>();
     }
 
     public void OnSet()
     {
-        this.Context.SetupFullScreenTriangle(this.FullScreenTriangle.TextureVs, this.SunLight.Ps, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
+        this.Context.SetupFullScreenTriangle(this.FullScreenTriangle.TextureVs, this.Shader.Ps, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
         this.Context.PS.SetSampler(SunLight.TextureSampler, this.Device.SamplerStates.LinearClamp);

@@ -1,28 +1,27 @@
-﻿using System;
-using Vortice.Direct3D;
+﻿using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
 public sealed class DepthStencilBufferArray : ITexture2D
 {
-    public DepthStencilBufferArray(Device device, DepthStencilFormat format, int width, int height, int length, string name)
+    public DepthStencilBufferArray(Device device, DepthStencilFormat format, int width, int height, int length, string user, string meaning)
     {
         this.Width = width;
         this.Height = height;
         this.Length = length;
         this.Format = ToTextureFormat(format);
-        this.Name = name;
+        this.Name = DebugNameGenerator.GetName(user, "DEPTH_ARRAY", meaning);
 
-        this.Texture = Textures.Create(device, width, height, ToTextureFormat(format), BindFlags.DepthStencil | BindFlags.ShaderResource, ResourceOptionFlags.None, length, false, nameof(DepthStencilBuffer));
-        this.ShaderResourceView = CreateSRV(device, this.Texture, length, ToShaderResourceViewFormat(format), nameof(DepthStencilBuffer));
+        this.Texture = Textures.Create(device, width, height, ToTextureFormat(format), BindFlags.DepthStencil | BindFlags.ShaderResource, ResourceOptionFlags.None, length, false, user, meaning);
+        this.ShaderResourceView = CreateSRV(device, this.Texture, length, ToShaderResourceViewFormat(format), user, meaning);
 
         this.DepthStencilViews = new ID3D11DepthStencilView[length];
         for (var i = 0; i < length; i++)
         {
             var depthView = new DepthStencilViewDescription(DepthStencilViewDimension.Texture2DArray, ToDepthViewFormat(format), 0, i, 1);
             this.DepthStencilViews[i] = device.ID3D11Device.CreateDepthStencilView(this.Texture, depthView);
-            this.DepthStencilViews[i].DebugName = $"{this.Name}_{i}_DSV";
+            this.DepthStencilViews[i].DebugName = DebugNameGenerator.GetName(user, "DSV", ToDepthViewFormat(format), i);
         }
     }
 
@@ -40,11 +39,11 @@ public sealed class DepthStencilBufferArray : ITexture2D
     ID3D11ShaderResourceView ITexture.ShaderResourceView => this.ShaderResourceView;
     ID3D11Texture2D ITexture.Texture => this.Texture;
 
-    private static ID3D11ShaderResourceView CreateSRV(Device device, ID3D11Texture2D texture, int length, Format format, string name)
+    private static ID3D11ShaderResourceView CreateSRV(Device device, ID3D11Texture2D texture, int length, Format format, string user, string meaning)
     {
         var description = new ShaderResourceViewDescription(texture, ShaderResourceViewDimension.Texture2DArray, format, 0, -1, 0, length);
         var srv = device.ID3D11Device.CreateShaderResourceView(texture, description);
-        srv.DebugName = $"{name}_SRV";
+        srv.DebugName = DebugNameGenerator.GetName(user, "SRV", meaning, format);
 
         return srv;
     }

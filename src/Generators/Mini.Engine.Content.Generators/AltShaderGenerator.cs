@@ -57,7 +57,7 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
         var methods = string.Empty;
         if (shader.CBuffers.Count > 0)
         {
-            methods = $"public {@class}.User CreateUser() {{ return new {@class}.User(this.Device); }}";
+            methods = $"public {@class}.User CreateUserFor<T>() {{ return new {@class}.User(this.Device, typeof(T).Name); }}";
         }
 
         var innerClass = GenerateShaderUser(shader);
@@ -213,7 +213,7 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
 
         var fields = GenerateConstantBufferFields(shader.CBuffers);
 
-        var arguments = "Mini.Engine.DirectX.Device device";
+        var arguments = "Mini.Engine.DirectX.Device device, string user";
 
         var assignments = GenerateConstantBufferAssignments(shader.CBuffers, shader.Name);
 
@@ -241,9 +241,8 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
         var builder = new StringBuilder();
         foreach (var cbuffer in cbuffers)
         {
-            var structName = Naming.ToPascalCase(cbuffer.Name);
-            var userName = $"{Naming.ToPascalCase(name)}_Buffers_CB";
-            builder.AppendLine($"this.{structName}Buffer = new Mini.Engine.DirectX.Buffers.ConstantBuffer<{structName}>(device, \"{userName}\");");
+            var structName = Naming.ToPascalCase(cbuffer.Name);            
+            builder.AppendLine($"this.{structName}Buffer = new Mini.Engine.DirectX.Buffers.ConstantBuffer<{structName}>(device, user);");
         }
 
         return builder.ToString();

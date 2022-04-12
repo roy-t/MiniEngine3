@@ -7,17 +7,17 @@ namespace Mini.Engine.DirectX.Resources;
 
 public sealed class Texture2D : ITexture2D
 {
-    public Texture2D(Device device, int width, int height, Format format, bool generateMipMaps, string name)
+    public Texture2D(Device device, int width, int height, Format format, bool generateMipMaps, string user, string meaning)
     {
         this.Width = width;
         this.Height = height;
         this.Format = format;
 
         this.MipMapSlices = generateMipMaps ? Dimensions.MipSlices(width, height) : 1;
-        this.Texture = Textures.Create(device, width, height, format, generateMipMaps, name);
-        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, name);
+        this.Texture = Textures.Create(device, width, height, format, generateMipMaps, user, meaning);
+        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, user, meaning);
 
-        this.Name = name;
+        this.Name = DebugNameGenerator.GetName(user, "Texture2D", meaning, format);
     }
 
     public void SetPixels<T>(Device device, Span<T> pixels)

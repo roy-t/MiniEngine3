@@ -7,13 +7,13 @@ namespace Mini.Engine.DirectX.Resources;
 
 public sealed class RenderTargetCube : ITextureCube
 {
-    public RenderTargetCube(Device device, int resolution, Format format, bool generateMipMaps, string name)
+    public RenderTargetCube(Device device, int resolution, Format format, bool generateMipMaps, string user, string meaning)
     {
         this.Resolution = resolution;
         this.Format = format;
 
-        this.Texture = Textures.Create(device, resolution, resolution, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.TextureCube, 6, generateMipMaps, name);
-        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, ShaderResourceViewDimension.TextureCube, name);
+        this.Texture = Textures.Create(device, resolution, resolution, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.TextureCube, 6, generateMipMaps, user, meaning);
+        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, ShaderResourceViewDimension.TextureCube, user, meaning);
 
         this.MipMapSlices = generateMipMaps ? Dimensions.MipSlices(resolution) : 1;
         this.FaceRenderTargetViews = new ID3D11RenderTargetView[TextureCube.Faces * this.MipMapSlices];
@@ -22,11 +22,11 @@ public sealed class RenderTargetCube : ITextureCube
             for (var slice = 0; slice < this.MipMapSlices; slice++)
             {
                 var index = Indexes.ToOneDimensional(face, slice, TextureCube.Faces);
-                this.FaceRenderTargetViews[index] = RenderTargetViews.Create(device, this.Texture, format, face, slice, name);
+                this.FaceRenderTargetViews[index] = RenderTargetViews.Create(device, this.Texture, format, face, slice, user, meaning);
             }
         }
 
-        this.Name = name;
+        this.Name = user;
     }
 
     public string Name { get; }

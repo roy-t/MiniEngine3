@@ -1,5 +1,4 @@
-﻿using System;
-using Mini.Engine.DirectX.Contexts;
+﻿using Mini.Engine.DirectX.Contexts;
 using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX.Buffers;
@@ -7,18 +6,17 @@ namespace Mini.Engine.DirectX.Buffers;
 public abstract class DeviceBuffer<T> : IDisposable
     where T : unmanaged
 {
-    private static int Counter = 0;
+
     protected readonly ID3D11Device Device;
 
-    internal DeviceBuffer(Device device, string name)
+    internal DeviceBuffer(Device device, string user, string abbreviation)
     {
         this.Device = device.ID3D11Device;
         unsafe
         {
             this.PrimitiveSizeInBytes = sizeof(T);
         }
-
-        this.Name = $"{name}#{++Counter}";
+        this.Name = DebugNameGenerator.GetName<T>(user, abbreviation);
     }
 
     internal int PrimitiveSizeInBytes { get; }

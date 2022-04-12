@@ -48,7 +48,7 @@ public abstract class ShaderContent<TShader> : Shader<TShader>, IShaderContent
 
         this.blob = shaderBlob;
         this.ID3D11Shader = this.Create(this.blob);
-        this.ID3D11Shader.DebugName = this.Id.ToString();
+        this.ID3D11Shader.DebugName = DebugNameGenerator.GetName(this.Id.ToString(), "SHADER");
 
         foreach (var pathRelativeToShader in include.Included)
         {

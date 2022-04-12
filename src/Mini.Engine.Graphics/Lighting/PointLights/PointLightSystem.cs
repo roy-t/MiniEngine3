@@ -30,7 +30,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
         this.Context = device.CreateDeferredContextFor<PointLightSystem>();
         this.FrameService = frameService;
         this.Shader = shader;
-        this.User = shader.CreateUser();
+        this.User = shader.CreateUserFor<PointLightSystem>();
         this.InputLayout = this.Shader.Vs.CreateInputLayout(device, ModelVertex.Elements);
 
         this.Sphere = SphereGenerator.Generate(device, 3, content.LoadDefaultMaterial(), "PointLight");

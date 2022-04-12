@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS;
@@ -17,7 +16,7 @@ public sealed class CascadedShadowMapComponent : Component, IDisposable
         this.Splits = new float[this.Cascades.Length];
         this.Offsets = new Vector4[this.Cascades.Length];
         this.Scales = new Vector4[this.Cascades.Length];
-        this.DepthBuffers = new DepthStencilBufferArray(device, DepthStencilFormat.D32_Float, resolution, resolution, this.Cascades.Length, $"{entity}_Depth");
+        this.DepthBuffers = new DepthStencilBufferArray(device, DepthStencilFormat.D32_Float, resolution, resolution, this.Cascades.Length, entity.ToString(), nameof(CascadedShadowMapComponent));
     }
 
     public int Resolution { get; }

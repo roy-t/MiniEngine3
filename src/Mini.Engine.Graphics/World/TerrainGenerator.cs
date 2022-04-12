@@ -51,7 +51,7 @@ public sealed class TerrainGenerator
         var max = new Vector3(0.5f, 0.5f * weight, 0.5f);
 
         var bounds = new BoundingBox(min, max);
-        var mesh = new Mesh(this.Device, bounds, vertices, indices, $"{name}_mesh");
+        var mesh = new Mesh(this.Device, bounds, vertices, indices, name, "mesh");
                
         this.Content.Link(mesh, $"{name}#terrain");
 

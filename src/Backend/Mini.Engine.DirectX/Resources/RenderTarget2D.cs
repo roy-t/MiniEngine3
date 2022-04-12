@@ -5,17 +5,17 @@ namespace Mini.Engine.DirectX.Resources;
 
 public sealed class RenderTarget2D : ITexture2D
 {
-    public RenderTarget2D(Device device, int width, int height, Format format, string name)
+    public RenderTarget2D(Device device, int width, int height, Format format, string user, string meaning)
     {
         this.Width = width;
         this.Height = height;
         this.Format = format;
 
-        this.Texture = Textures.Create(device, width, height, format, name);
-        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, name);
-        this.ID3D11RenderTargetView = RenderTargetViews.Create(device, this.Texture, format, name);
+        this.Texture = Textures.Create(device, width, height, format, user, meaning);
+        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, user, meaning);
+        this.ID3D11RenderTargetView = RenderTargetViews.Create(device, this.Texture, format, user, meaning);
 
-        this.Name = name;
+        this.Name = DebugNameGenerator.GetName(user, "RT", meaning, format);
     }
 
     public string Name { get; }

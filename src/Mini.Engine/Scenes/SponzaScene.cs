@@ -69,9 +69,9 @@ public sealed class SponzaScene : IScene
             {
                 var sky = this.Administrator.Entities.Create();
                 var texture = this.Content.LoadTexture(@"Skyboxes\circus.hdr");
-                var albedo = this.CubeMapGenerator.GenerateAlbedo(texture, false, "skybox_albedo");
-                var irradiance = this.CubeMapGenerator.GenerateIrradiance(texture, "skybox_irradiance");
-                var environment = this.CubeMapGenerator.GenerateEnvironment(texture, "skybox_environment");
+                var albedo = this.CubeMapGenerator.GenerateAlbedo(texture, false, sky.ToString());
+                var irradiance = this.CubeMapGenerator.GenerateIrradiance(texture, sky.ToString());
+                var environment = this.CubeMapGenerator.GenerateEnvironment(texture, sky.ToString());
 
                 // Make sure the items are disposed whenever this content frame is
                 this.Content.Link(albedo, albedo.Name);

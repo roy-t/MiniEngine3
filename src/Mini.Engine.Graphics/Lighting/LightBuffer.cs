@@ -1,5 +1,4 @@
-﻿using System;
-using Mini.Engine.DirectX;
+﻿using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Vortice.DXGI;
 
@@ -9,7 +8,7 @@ public sealed class LightBuffer : IDisposable
 {
     public LightBuffer(Device device)
     {
-        this.Light = new RenderTarget2D(device, device.Width, device.Height, Format.R16G16B16A16_Float, "LightBuffer_Light");
+        this.Light = new RenderTarget2D(device, device.Width, device.Height, Format.R16G16B16A16_Float, nameof(LightBuffer), nameof(this.Light));
     }
 
     public RenderTarget2D Light { get; }

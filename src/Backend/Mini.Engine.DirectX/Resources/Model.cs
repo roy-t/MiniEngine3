@@ -9,8 +9,8 @@ public sealed class Model : IModel
 {
     public Model(Device device, BoundingBox bounds, ModelVertex[] vertices, int[] indices, Primitive[] primitives, IMaterial[] materials, string name)
     {
-        this.Indices = new IndexBuffer<int>(device, $"{name}_IB");
-        this.Vertices = new VertexBuffer<ModelVertex>(device, $"{name}_IB");
+        this.Indices = new IndexBuffer<int>(device, name);
+        this.Vertices = new VertexBuffer<ModelVertex>(device, name);
         this.Bounds = bounds;
         this.Primitives = primitives;
         this.Materials = materials;

@@ -2,9 +2,9 @@
 
 public sealed class Material : IMaterial
 {
-    public Material(ITexture2D albedo, ITexture2D metalicness, ITexture2D normal, ITexture2D roughness, ITexture2D ambientOcclusion, string name)
+    public Material(ITexture2D albedo, ITexture2D metalicness, ITexture2D normal, ITexture2D roughness, ITexture2D ambientOcclusion, string user)
     {
-        this.Name = name;
+        this.Name = DebugNameGenerator.GetName(user);
         this.Albedo = albedo;
         this.Metalicness = metalicness;
         this.Normal = normal;

@@ -5,22 +5,22 @@ namespace Mini.Engine.DirectX.Resources;
 
 public static class Textures
 {
-    internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, string name)
+    internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, string user, string meaning)
     {
-        return Create(device, width, height, format, 1, false, name);
+        return Create(device, width, height, format, 1, false, user, meaning);
     }
 
-    internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, bool generateMipMaps, string name)
+    internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, bool generateMipMaps, string user, string meaning)
     {
-        return Create(device, width, height, format, 1, generateMipMaps, name);
+        return Create(device, width, height, format, 1, generateMipMaps, user, meaning);
     }
 
-    internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, int arraySize, bool generateMipMaps, string name)
+    internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, int arraySize, bool generateMipMaps, string user, string meaning)
     {
-        return Create(device, width, height, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.None, arraySize, generateMipMaps, name);
+        return Create(device, width, height, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.None, arraySize, generateMipMaps, user, meaning);
     }
 
-    internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, BindFlags bindFlags, ResourceOptionFlags optionFlags, int arraySize, bool generateMipMaps, string name)
+    internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, BindFlags bindFlags, ResourceOptionFlags optionFlags, int arraySize, bool generateMipMaps, string user, string meaning)
     {
         var description = new Texture2DDescription
         {
@@ -37,7 +37,7 @@ public static class Textures
         };
 
         var texture = device.ID3D11Device.CreateTexture2D(description);
-        texture.DebugName = name;
+        texture.DebugName = DebugNameGenerator.GetName(user, "Texture2D", meaning, format);
 
         return texture;
     }

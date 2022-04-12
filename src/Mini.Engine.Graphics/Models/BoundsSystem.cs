@@ -37,7 +37,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
         this.DebugFrameService = debugFrameService;
 
         this.Shader = shader;
-        this.User = shader.CreateUser();
+        this.User = shader.CreateUserFor<BoundsSystem>();
 
         this.VertexBuffer = new VertexBuffer<Vector3>(device, $"{nameof(BoundsSystem)}_VB");
         this.IndexBuffer = new IndexBuffer<ushort>(device, $"{nameof(BoundsSystem)}_IB");

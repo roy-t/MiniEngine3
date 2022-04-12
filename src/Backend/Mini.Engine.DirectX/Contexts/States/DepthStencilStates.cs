@@ -1,15 +1,16 @@
-﻿using System;
-using Vortice.Direct3D11;
+﻿using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX.Contexts.States;
 
 public sealed class DepthStencilState : IDisposable
 {
-    internal DepthStencilState(ID3D11DepthStencilState state, string name)
+    internal DepthStencilState(ID3D11DepthStencilState state, string meaning)
     {
+        this.Name = DebugNameGenerator.GetName(nameof(DepthStencilState), meaning);
+
         this.ID3D11DepthStencilState = state;
-        this.ID3D11DepthStencilState.DebugName = name;
-        this.Name = name;
+        this.ID3D11DepthStencilState.DebugName = this.Name;
+        
     }
 
     public string Name { get; }

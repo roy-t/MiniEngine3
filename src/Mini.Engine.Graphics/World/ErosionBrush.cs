@@ -16,7 +16,7 @@ public sealed class ErosionBrush : IDisposable
     {
         this.Device = device;
         this.Shader = shader;
-        this.User = shader.CreateUser();
+        this.User = shader.CreateUserFor<ErosionBrush>();
     }
 
     public void Apply(RWTexture2D height, RWTexture2D normals)

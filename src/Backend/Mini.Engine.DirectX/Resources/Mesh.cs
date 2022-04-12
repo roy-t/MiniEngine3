@@ -5,10 +5,10 @@ namespace Mini.Engine.DirectX.Resources;
 
 public sealed class Mesh : IMesh
 {
-    public Mesh(Device device, BoundingBox bounds, ModelVertex[] vertices, int[] indices, string name)
+    public Mesh(Device device, BoundingBox bounds, ModelVertex[] vertices, int[] indices, string user, string name)
     {
-        this.Indices = new IndexBuffer<int>(device, $"{name}_IB");
-        this.Vertices = new VertexBuffer<ModelVertex>(device, $"{name}_IB");
+        this.Indices = new IndexBuffer<int>(device, $"{user}::{name}");
+        this.Vertices = new VertexBuffer<ModelVertex>(device, $"{user}::{name}");
         this.Bounds = bounds;
 
         this.Vertices.MapData(device.ImmediateContext, vertices);

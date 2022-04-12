@@ -1,5 +1,4 @@
-﻿using System;
-using Mini.Engine.DirectX.Buffers;
+﻿using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources;
 using Vortice.Direct3D;
@@ -10,11 +9,11 @@ namespace Mini.Engine.DirectX.Contexts;
 
 public abstract class DeviceContext : IDisposable
 {    
-    internal DeviceContext(Device device, ID3D11DeviceContext context, string name)
+    internal DeviceContext(Device device, ID3D11DeviceContext context, string user, string meaning)
     {
         this.Device = device;
         this.ID3D11DeviceContext = context;
-        this.ID3D11DeviceContext.DebugName = name;
+        this.ID3D11DeviceContext.DebugName = DebugNameGenerator.GetName(user, user, meaning);
 
         this.IA = new InputAssemblerContext(this);
         this.VS = new VertexShaderContext(this);
