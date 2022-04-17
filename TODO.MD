@@ -1,4 +1,5 @@
 # TODO
+- Texture compression? https://github.com/BinomialLLC/basis_universal
 
 - Are we leaking memory, looks like some stuff keeps working even after it is popped from the content stack!
 

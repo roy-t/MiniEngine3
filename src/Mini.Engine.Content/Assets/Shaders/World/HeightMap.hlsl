@@ -10,7 +10,7 @@ cbuffer NoiseConstants : register(b0)
     int Octaves;
     float Lacunarity;
     float Persistance;    
-};
+};  
 
 cbuffer TriangulateConstants : register(b1)
 {
@@ -63,33 +63,61 @@ void NoiseMapKernel(in uint3 dispatchId : SV_DispatchThreadID)
     float scale = 1.0f / Stride;
     
     float2 center = (float2(dispatchId.x, dispatchId.y) * scale) - float2(0.5f, 0.5f);
+    float3 position = float3(center.x, Noise(Offset + center), center.y);
+
+    MapHeight[dispatchId.xy] = position.y;
+}
+    
+float SampleHeight(uint2 position, uint stride)
+{    
+    uint2 index = uint2(clamp(position.x, 0, stride), clamp(position.y, 0, stride));
+    return MapHeight[index];
+}
+    
+// Run 8x8x1=64 threads per thread group, which means one full warp for AMD
+// or two warps for NVIDIA. Leaving no threads idle.
+#pragma ComputeShader
+[numthreads(8, 8, 1)]
+void NormalMapKernel(in uint3 dispatchId : SV_DispatchThreadID)
+{
+    // When not using a power of two input we might be out-of-bounds
+    if (dispatchId.x >= Stride || dispatchId.y >= Stride)
+    {
+        return;
+    }
+            
+    float scale = 1.0f / Stride;
+    
+    float2 center = (float2(dispatchId.x, dispatchId.y) * scale) - float2(0.5f, 0.5f);
     float2 west = center + (float2(-1.0f, 0.0f) * scale);
     float2 north = center + (float2(0.0f, -1.0f) * scale);
     float2 east = center + (float2(1.0f, 0.0f) * scale);
     float2 south = center + (float2(0.0f, 1.0f) * scale);
     
-    float3 vWest = float3(west.x, Noise(Offset + west), west.y);
-    float3 vNorth = float3(north.x, Noise(Offset + north), north.y);
-    float3 vEast = float3(east.x, Noise(Offset + east), east.y);
-    float3 vSouth = float3(south.x, Noise(Offset + south), south.y);
+    uint2 uWest = dispatchId.xy + uint2(-1, 0);
+    uint2 uNorth = dispatchId.xy + uint2(0, -1);
+    uint2 uEast = dispatchId.xy + uint2(1, 0);
+    uint2 uSouth = dispatchId.xy + uint2(0, 1);
     
+    float3 vWest = float3(west.x, SampleHeight(uWest, Stride), west.y);
+    float3 vNorth = float3(north.x, SampleHeight(uNorth, Stride), north.y);
+    float3 vEast = float3(east.x, SampleHeight(uEast, Stride), east.y);
+    float3 vSouth = float3(south.x, SampleHeight(uSouth, Stride), south.y);
+        
     float3 position = (vWest + vNorth + vEast + vSouth) / 4.0f;
-    
     float3 wXn = normalize(cross(position - vNorth, position - vWest));
     float3 eXS = normalize(cross(position - vSouth, position - vEast));
     
     float3 normal = normalize((wXn + eXS) / 2.0f);
-    
-    uint2 index = uint2(dispatchId.x, dispatchId.y);
-    MapHeight[index] = position.y;
-    MapNormal[index] = float4(normal, 1.0f);
+            
+    MapNormal[dispatchId.xy] = float4(normal, 1.0f);
 }
 
 // Run 8x8x1=64 threads per thread group, which means one full warp for AMD
 // or two warps for NVIDIA. Leaving no threads idle.
 #pragma ComputeShader
 [numthreads(8, 8, 1)]
-void TriangulateKernel(in uint3 dispatchId : SV_DispatchThreadID)
+void TriangulateKernel (in uint3 dispatchId : SV_DispatchThreadID)
 {
     // When not using a power of two input we might be out-of-bounds
     if (dispatchId.x >= Width || dispatchId.y >= Height)
@@ -111,13 +139,13 @@ void TriangulateKernel(in uint3 dispatchId : SV_DispatchThreadID)
     vertex.normal = normal;
     vertex.texcoord = texcoord;
     
-    uint index = ToOneDimensional(dispatchId.x, dispatchId.y, Stride);            
+    uint index = ToOneDimensional(dispatchId.x, dispatchId.y, Stride);
     Vertices[index] = vertex;
 }
 
 #pragma ComputeShader
 [numthreads(64, 1, 1)]
-void IndicesKernel(in uint3 dispatchId : SV_DispatchThreadID)
+void IndicesKernel (in uint3 dispatchId : SV_DispatchThreadID)
 {
     // When not using a power of two input we might be out-of-bounds
     if (dispatchId.x >= Count)

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
@@ -32,9 +31,10 @@ public sealed class TerrainGenerator
     public TerrainComponent Generate(Entity entity, int dimensions, Vector2 offset, float amplitude, float frequency, int octaves, float lacunarity, float persistance, string name)
     {
         var stopwatch = Stopwatch.StartNew();
-        (var height, var normals) = this.HeightMapGenerator.GenerateMap(dimensions, offset, amplitude, frequency, octaves, lacunarity, persistance, "terrain");
+        var height = this.HeightMapGenerator.GenerateHeights(dimensions, offset, amplitude, frequency, octaves, lacunarity, persistance, entity);
+        var normals = this.HeightMapGenerator.GenerateNormals(height, offset, amplitude, frequency, octaves, lacunarity, persistance, entity);
 
-        this.ErosionBrush.Apply(height, normals);
+        //this.ErosionBrush.Apply(height, normals);
 
         var vertices = this.HeightMapGenerator.GenerateVertices(height, normals);
         var indices = this.HeightMapGenerator.GenerateIndices(height.Width, height.Height);
@@ -42,7 +42,7 @@ public sealed class TerrainGenerator
         this.Logger.Information("Terrain generator took {@miliseconds}", stopwatch.ElapsedMilliseconds);
 
         var weight = 0.0f;
-        for(var i = 0; i < octaves; i++)
+        for (var i = 0; i < octaves; i++)
         {
             weight += MathF.Pow(Math.Abs(persistance), i) * amplitude;
         }
@@ -52,7 +52,7 @@ public sealed class TerrainGenerator
 
         var bounds = new BoundingBox(min, max);
         var mesh = new Mesh(this.Device, bounds, vertices, indices, name, "mesh");
-               
+
         this.Content.Link(mesh, $"{name}#terrain");
 
         return new TerrainComponent(entity, height, normals, mesh);
