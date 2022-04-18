@@ -40,13 +40,14 @@ public sealed partial class TerrainSystem : IMeshRenderCallBack, ISystem, IDispo
 
         this.Context.VS.SetConstantBuffer(Terrain.ConstantsSlot, this.User.ConstantsBuffer);
         this.Context.PS.SetConstantBuffer(Terrain.ConstantsSlot, this.User.ConstantsBuffer);
-        //this.Context.PS.SetSampler(Terrain.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);
+        this.Context.PS.SetSampler(Terrain.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);        
         this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal);
     }
 
     [Process(Query = ProcessQuery.All)]
     public void DrawModel(TerrainComponent component, TransformComponent transform)
     {
+        this.Context.PS.SetShaderResource(Terrain.Normal, component.Normals);
         RenderService.DrawMesh(this, this.Context, this.FrameService.Camera.Frustum, this.FrameService.Camera.ViewProjection, component.Mesh, transform.Transform);
     }
 

@@ -10,10 +10,8 @@ struct VS_INPUT
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
-    float4 screen : SCREEN;
     float3 world :  WORLD;
     float2 texcoord : TEXCOORD;
-    float3 normal : NORMAL;
 };
 
 struct OUTPUT
@@ -31,9 +29,9 @@ cbuffer Constants : register(b0)
     float __Padding;
 };
 
-//sampler TextureSampler : register(s0);
-//Texture2D Albedo : register(t0);
-//Texture2D Normal : register(t1);
+sampler TextureSampler : register(s0);
+Texture2D Albedo : register(t0);
+Texture2D Normal : register(t1);
 //Texture2D Metalicness : register(t2);
 //Texture2D Roughness : register(t3);
 //Texture2D AmbientOcclusion : register(t4);
@@ -48,9 +46,7 @@ PS_INPUT VS(VS_INPUT input)
 
     output.position = mul(WorldViewProjection, position);
     output.world = mul(World, position).xyz;
-    output.normal = normalize(mul(rotation, input.normal));
     output.texcoord = input.texcoord;
-    output.screen = output.position;
 
     return output;
 }
@@ -59,8 +55,13 @@ PS_INPUT VS(VS_INPUT input)
 OUTPUT PS(PS_INPUT input)
 {
     OUTPUT output;
-    output.albedo = float4(1.0f, 0.0f, 1.0f, 1.0f);
-    output.normal = float4(PackNormal(input.normal), 1.0f);
+    // TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO
+    // TODO: use both normal map and vertex normal just like Geometry.hlsl, remember that the normal is not packed yet, fixed that in generator!
+    
+    float3 normal = Normal.Sample(TextureSampler, input.texcoord).xyz;
+    
+    output.albedo = float4(1, 0, 0, 1);// Albedo.Sample(TextureSampler, input.texcoord);
+    output.normal = float4(PackNormal(normal), 1.0f);
     output.material = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
 

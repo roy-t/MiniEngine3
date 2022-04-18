@@ -83,7 +83,6 @@ public sealed class HeightMapGenerator : IDisposable
 
         context.CS.SetShader(this.Shader.TriangulateKernel);
         context.CS.SetUnorderedAccessView(HeightMap.MapHeight, heightMap);
-        context.CS.SetUnorderedAccessView(HeightMap.MapNormal, normalMap);
         context.CS.SetUnorderedAccessView(HeightMap.Vertices, output);
         var (x, y, z) = this.Shader.TriangulateKernel.GetDispatchSize(heightMap.Width, heightMap.Height, 1);
         context.CS.Dispatch(x, y, z);

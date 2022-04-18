@@ -10,7 +10,6 @@ struct VS_INPUT
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
-    float4 screen : SCREEN;
     float3 world :  WORLD;
     float2 texcoord : TEXCOORD;
     float3 normal : NORMAL;
@@ -50,7 +49,6 @@ PS_INPUT VS(VS_INPUT input)
     output.world = mul(World, position).xyz;
     output.normal = normalize(mul(rotation, input.normal));
     output.texcoord = input.texcoord;
-    output.screen = output.position;
 
     return output;
 }
