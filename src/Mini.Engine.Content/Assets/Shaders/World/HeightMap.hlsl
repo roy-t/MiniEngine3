@@ -54,6 +54,8 @@ float Noise(float2 coord)
 [numthreads(8, 8, 1)]
 void NoiseMapKernel(in uint3 dispatchId : SV_DispatchThreadID)
 {
+    // Maybe incorporate tricks from here? https://www.youtube.com/watch?v=BFld4EBO2RE
+    
     // When not using a power of two input we might be out-of-bounds
     if (dispatchId.x >= Stride || dispatchId.y >= Stride)
     {

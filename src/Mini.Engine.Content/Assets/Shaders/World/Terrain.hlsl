@@ -55,8 +55,8 @@ PS_INPUT VS(VS_INPUT input)
 #pragma PixelShader
 OUTPUT PS(PS_INPUT input)
 {
-    OUTPUT output;
-     
+    OUTPUT output;        
+    
     static const uint3 RawUmber = uint3(140, 105, 75);
     float4 albedo = ToLinear(float4(RawUmber / 255.0f, 1.0f)); //Albedo.Sample(TextureSampler, input.texcoord);
     
