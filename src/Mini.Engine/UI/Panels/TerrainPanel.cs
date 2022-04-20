@@ -19,11 +19,11 @@ internal sealed class TerrainPanel : IPanel
 
     private int dimensions = 512;
     private Vector2 offset = Vector2.Zero;
-    private float amplitude = 0.30f;
-    private float frequency = 1.0f;
-    private int octaves = 7;
-    private float lacunarity = 2.25f;
-    private float persistance = 0.35f;
+    private float amplitude = 0.15f;
+    private float frequency = 1.5f;
+    private int octaves = 10;
+    private float lacunarity = 1.0f;
+    private float persistance = 0.55f;
 
     private Entity? world;
     private TerrainComponent? terrain;
@@ -44,13 +44,14 @@ internal sealed class TerrainPanel : IPanel
     public void Update(float elapsed)
     {
         var changed =
-            ImGui.SliderInt("Dimensions", ref this.dimensions, 4, 4096) ||
             ImGui.DragFloat2("Offset", ref this.offset, 0.1f) ||
+            ImGui.SliderInt("Dimensions", ref this.dimensions, 4, 4096) ||            
+            ImGui.SliderInt("Octaves", ref this.octaves, 1, 20) ||
             ImGui.SliderFloat("Amplitude", ref this.amplitude, 0.01f, 2.0f) ||
-            ImGui.SliderFloat("Frequency", ref this.frequency, 0.1f, 10.0f) ||
-            ImGui.SliderInt("Octaves", ref this.octaves, 1, 10) ||
-            ImGui.SliderFloat("Lacunarity", ref this.lacunarity, 1.0f, 10.0f) ||
             ImGui.SliderFloat("Persistance", ref this.persistance, 0.1f, 1.0f) ||
+            ImGui.SliderFloat("Frequency", ref this.frequency, 0.1f, 10.0f) ||
+            ImGui.SliderFloat("Lacunarity", ref this.lacunarity, 0.1f, 10.0f) ||
+            
             ImGui.Button("Generate");
 
         if (changed)

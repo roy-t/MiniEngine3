@@ -33,17 +33,25 @@ RWStructuredBuffer<int> Indices : register(u1);
 RWTexture2D<float> MapHeight : register(u2);
 RWTexture2D<float4> MapNormal : register(u3);
 
-float Noise(float2 coord)
-{
-    float sum = 0.0f;
-    for (int i = 0; i < Octaves; i++)
-    {
-        float frequency = Frequency * pow(abs(Lacunarity), i);
-        float amplitude = Amplitude * pow(abs(Persistance), i);
-        float noise = snoise(coord * frequency) * amplitude;
+static const float2x2 m2 = float2x2(0.80, 0.60,
+                            -0.60, 0.80);
 
+float FBM(float2 coord)
+{            
+    float sum = 0.0f;
+    
+    float frequency = Frequency;    
+    float amplitude = Amplitude;
+    for (int i = 0; i < Octaves; i++)
+    {        
+        float noise = snoise(coord * frequency) * amplitude;
+        frequency *= Lacunarity;
+        amplitude *= Persistance;
+
+        coord = Frequency * mul(m2, coord);
+        
         sum += noise;
-    }
+    }        
     
     return sum;
 }
@@ -65,7 +73,13 @@ void NoiseMapKernel(in uint3 dispatchId : SV_DispatchThreadID)
     float scale = 1.0f / Stride;
     
     float2 center = (float2(dispatchId.x, dispatchId.y) * scale) - float2(0.5f, 0.5f);
-    float3 position = float3(center.x, Noise(Offset + center), center.y);
+    
+    float height = FBM(Offset + center);
+    
+    // Add an extra dramatic cliff effect for the heighest parts of the map
+    height += (Amplitude * 0.55f) * smoothstep(Amplitude * 0.5f, Amplitude, height);
+    
+    float3 position = float3(center.x, height, center.y);
 
     MapHeight[dispatchId.xy] = position.y;
 }
