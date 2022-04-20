@@ -1,4 +1,5 @@
 #include "../Includes/Normals.hlsl"
+#include "../Includes/Gamma.hlsl"
 
 struct VS_INPUT
 {
@@ -55,14 +56,19 @@ PS_INPUT VS(VS_INPUT input)
 OUTPUT PS(PS_INPUT input)
 {
     OUTPUT output;
-    // TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO
-    // TODO: use both normal map and vertex normal just like Geometry.hlsl, remember that the normal is not packed yet, fixed that in generator!
+     
+    static const uint3 RawUmber = uint3(140, 105, 75);
+    float4 albedo = ToLinear(float4(RawUmber / 255.0f, 1.0f)); //Albedo.Sample(TextureSampler, input.texcoord);
     
     float3 normal = Normal.Sample(TextureSampler, input.texcoord).xyz;
     
-    output.albedo = float4(1, 0, 0, 1);// Albedo.Sample(TextureSampler, input.texcoord);
+    output.albedo = albedo;
     output.normal = float4(PackNormal(normal), 1.0f);
-    output.material = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    
+    float metalicness = 0.0f;
+    float roughness = 1.0f;
+    float ambientOcclusion = 1.0f;
+    output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
 
 
     //float4 albedo = Albedo.Sample(TextureSampler, input.texcoord);
