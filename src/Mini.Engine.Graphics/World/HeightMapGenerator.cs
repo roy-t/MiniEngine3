@@ -51,13 +51,13 @@ public sealed class HeightMapGenerator : IDisposable
         return height;
     }
 
-    public RWTexture2D GenerateNormals(RWTexture2D heightMap, Vector2 offset, float amplitude, float frequency, int octaves, float lacunarity, float persistance, Entity user)
+    public RWTexture2D GenerateNormals(RWTexture2D heightMap, Entity user)
     {
         var dimensions = heightMap.Width;
 
         var context = this.Device.ImmediateContext;
 
-        this.User.MapNoiseConstants(context, (uint)dimensions, offset, amplitude, frequency, octaves, lacunarity, persistance);
+        this.User.MapNoiseConstants(context, (uint)dimensions, Vector2.Zero, 0, 0, 0, 0, 0);
         context.CS.SetConstantBuffer(HeightMap.NoiseConstantsSlot, this.User.NoiseConstantsBuffer);
 
         var normals = new RWTexture2D(this.Device, dimensions, dimensions, Format.R32G32B32A32_Float, false, user.ToString(), "NormalMap");
