@@ -4,6 +4,7 @@ using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX.Resources;
 using Vortice.DXGI;
 using Mini.Engine.DirectX.Contexts;
+using System;
 
 namespace Mini.Engine.Graphics.World;
 
@@ -29,14 +30,21 @@ public sealed class ErosionBrush : IDisposable
         using var velocityA = new RWTexture2D(this.Device, height.Width, height.Height, Format.R32G32B32A32_Float, false, nameof(ErosionBrush), "velocityA");
         using var velocityB = new RWTexture2D(this.Device, height.Width, height.Height, Format.R32G32B32A32_Float, false, nameof(ErosionBrush), "velocityB");
 
+        using var massA = new RWTexture2D(this.Device, height.Width, height.Height, Format.R32G32B32A32_Float, false, nameof(ErosionBrush), "velocityA");
+        using var massB = new RWTexture2D(this.Device, height.Width, height.Height, Format.R32G32B32A32_Float, false, nameof(ErosionBrush), "velocityB");
+
         var velocityIn = velocityA;
         var velocityOut = velocityB;
 
+        var massIn = massA;
+        var massOut = massB;
 
         context.CS.SetConstantBuffer(Erosion.ErosionConstantsSlot, this.User.ErosionConstantsBuffer);
         context.CS.SetUnorderedAccessView(Erosion.MapHeight, height);
         context.CS.SetUnorderedAccessView(Erosion.MapVelocityIn, velocityIn);
         context.CS.SetUnorderedAccessView(Erosion.MapVelocityOut, velocityOut);
+        context.CS.SetUnorderedAccessView(Erosion.MapMassIn, massIn);
+        context.CS.SetUnorderedAccessView(Erosion.MapMassOut, massOut);
 
         this.Seed(context, height);
 
@@ -47,8 +55,11 @@ public sealed class ErosionBrush : IDisposable
         for (var i = 0; i < iterations; i++)
         {
             (velocityOut, velocityIn) = (velocityIn, velocityOut);
+            (massOut, massIn) = (massIn, massOut);
             context.CS.SetUnorderedAccessView(Erosion.MapVelocityIn, velocityIn);
             context.CS.SetUnorderedAccessView(Erosion.MapVelocityOut, velocityOut);
+            context.CS.SetUnorderedAccessView(Erosion.MapMassIn, massIn);
+            context.CS.SetUnorderedAccessView(Erosion.MapMassOut, massOut);
             context.CS.Dispatch(x, y, z);
         }
     }

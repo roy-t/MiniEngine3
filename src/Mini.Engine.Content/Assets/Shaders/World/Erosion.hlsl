@@ -10,10 +10,11 @@ cbuffer ErosionConstants : register(b0)
 RWTexture2D<float> MapHeight : register(u0);
 RWTexture2D<float4> MapVelocityIn : register(u1);
 RWTexture2D<float4> MapVelocityOut : register(u2);
-
+RWTexture2D<float4> MapMassIn : register(u3);
+RWTexture2D<float4> MapMassOut : register(u4);
 
 static const float SedimentCapacity = 0.001f;
-static const float MinLocalTilt = 0.00001f;
+static const float MinLocalTilt = 0.1f;
 
 static const float Gravity = 9.81;
 static const float3 Up = float3(0.0f, 1.0f, 0.0f);
@@ -29,16 +30,20 @@ float3 ComputeFlowDirection(float3 normal)
     return cross(Down, normal);
 }
 
-// Seed the erosion process.
-// Assume every pixel is a 1x1 patch of ground
-// Assume 1 liter (1Kg) of water falls on this patch of ground
-// This 1Kg of water is accelerated by gravity in the direction that points most down
-// Assume no erosion yet (so the water contains no sediment)
+float ComputeTransportCapacity(float3 normal)
+{
+    const float force = 1.0f;
+    float localTilt = ComputeLocalTilt(normal);
+    
+    return SedimentCapacity * localTilt * force;
+}
+
+// Start with 1 unit of water on every pixel
 #pragma ComputeShader
 [numthreads(8, 8, 1)]
 void Seed(in uint3 dispatchId : SV_DispatchThreadID)
 {
-     // When not using a power of two input we might be out-of-bounds
+    // When not using a power of two input we might be out-of-bounds
     if (dispatchId.x >= Stride || dispatchId.y >= Stride)
     {
         return;
@@ -46,13 +51,12 @@ void Seed(in uint3 dispatchId : SV_DispatchThreadID)
         
     uint2 index = uint2(dispatchId.x, dispatchId.y);
     
-    const float WaterMass = 1.0f;
-    
     float3 normal = ComputeNormalFromHeightMap(MapHeight, dispatchId.xy, Stride);
-    float localTilt = ComputeLocalTilt(normal);
-    float3 force = ComputeFlowDirection(normal) * (localTilt * Gravity) * WaterMass;
-    
-    MapVelocityOut[index] = float4(force.x, force.y, force.z, 0.0f);
+    float3 flowDirection = ComputeFlowDirection(normal);
+    float water = SedimentCapacity * MinLocalTilt;
+    float mass = ComputeTransportCapacity(normal);
+    MapVelocityOut[index] = float4(flowDirection, 0.0f);
+    MapMassOut[index] = float4(water, mass, 0.0f, 0.0f);
 }
 
 
@@ -66,18 +70,17 @@ void Erode(in uint3 dispatchId : SV_DispatchThreadID)
         return;
     }
     
-    uint2 index = uint2(dispatchId.x, dispatchId.y);
+    uint2 index = uint2(dispatchId.x, dispatchId.y);            
     
-    float4 input = MapVelocityIn[index];
-        
-    float3 direction = normalize(input.xyz);
-    float force = length(input.xyz);
-    float absorbedSediment = input.w;
-    
+    // Check how much water and mass has flowed to our tile
+    float water = MapMassIn[index].x;
+    float absorbedSediment = MapMassIn[index].y;
+                        
+    // Check how much mass we can transport
     float3 normal = ComputeNormalFromHeightMap(MapHeight, index, Stride);
-    float localTilt = ComputeLocalTilt(normal);
-    float transportCapacity = SedimentCapacity * localTilt * force;
-    
+    float transportCapacity = ComputeTransportCapacity(normal) * water;
+        
+    // Erode or deposit based on how much mass the water transports away from here
     if (transportCapacity < absorbedSediment)
     {
         float deposit = absorbedSediment - transportCapacity;
@@ -90,10 +93,10 @@ void Erode(in uint3 dispatchId : SV_DispatchThreadID)
         float erosion = transportCapacity - absorbedSediment;
         MapHeight[index] -= erosion;
     }
-   
-    // Figure out what sediment is coming our way from our neighbours
     
-    float sum = 0;
+    // Now that all water, and the mass in it has flown away, update with how much we get from our neighbours
+    water = 0;
+    absorbedSediment = 0;
     
     [unroll]
     for (uint i = 0; i < 8; i++)
@@ -101,14 +104,21 @@ void Erode(in uint3 dispatchId : SV_DispatchThreadID)
         uint x = i < 4 ? -1 : 1;
         uint y = i % 2 == 0 ? -1 : 1;
         
-        float4 other = MapVelocityIn[index + uint2(x, y)];
-        float incoming = max(0, dot(normalize(float3(other.x, 0, other.z)),normalize(-float3(x, 0, y))));
-        sum += other.xyz * incoming;
-    }
+        uint2 position = index + uint2(x, y);
+        
+        // Compute how much of the water/abasored mass on the neighbouring tile is going to flow our way
+        float3 velocityIn = MapVelocityIn[position].xyz;
+        float factor = max(0, dot(normalize(float3(velocityIn.x, 0, velocityIn.z)), normalize(-float3(x, 0, y))));
+        
+        // Update our water and mass values
+        water += factor * MapMassIn[position].x;
+        absorbedSediment += factor * MapMassIn[position].y;
+    }       
     
-    sum = input.xyz;
+    float3 flowDirection = ComputeFlowDirection(normal);
     
-    MapVelocityOut[index] = float4(sum, transportCapacity);
+    MapVelocityOut[index] = float4(flowDirection, 0);
+    MapMassOut[index] = float4(water, absorbedSediment, 0, 0);
 }
 
 //#pragma ComputeShader
