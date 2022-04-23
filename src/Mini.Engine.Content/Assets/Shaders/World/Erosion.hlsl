@@ -7,6 +7,14 @@ cbuffer ErosionConstants : register(b0)
     float3 __Padding;
 };
 
+cbuffer DropletConstants : register(b1)
+{
+    float X;
+    float Y;
+    uint Dimensions;
+    float __Padding2;
+}
+
 RWTexture2D<float> MapHeight : register(u0);
 RWTexture2D<float4> MapVelocityIn : register(u1);
 RWTexture2D<float4> MapVelocityOut : register(u2);
@@ -19,6 +27,119 @@ static const float MinLocalTilt = 0.1f;
 static const float Gravity = 9.81;
 static const float3 Up = float3(0.0f, 1.0f, 0.0f);
 static const float3 Down = float3(0.0f, -1.0f, 0.0f);
+
+
+float3 ComputeHeightAndGradient(uint2 index, float2 position)
+{    
+    float x = position.x - float(index.x);
+    float y = position.y - float(index.y);
+                  
+    float nw = MapHeight[index + uint2(-1, -1)];
+    float ne = MapHeight[index + uint2(1, -1)];
+    float se = MapHeight[index + uint2(1, 1)];
+    float sw = MapHeight[index + uint2(-1, 1)];
+    
+    float gradientX = (ne - nw) * (1.0f - y) + (se - sw) * y;
+    float gradientY = (sw - nw) * (1.0f - x) + (se - ne) * x;
+
+    float c = nw * (1.0f - x) * (1.0f - y) + ne * x * (1.0f - y) + sw * (1.0f - x) * y + se * x * y;
+    
+    return float3(gradientX, gradientY, c);    
+}
+
+#pragma ComputeShader
+[numthreads(8, 8, 1)]
+void Droplet(in uint3 dispatchId : SV_DispatchThreadID)
+{
+    uint border = 2;
+    float2 direction = float2(0, 0);    
+    float speed = 0.75f;
+    float water = 0.1f;
+    float sediment = 0.0f;
+    float inertia = 0.25f;
+    float sedimentCapacityFactor = 0.1f;
+    float minSedimentCapacity = 0.01f;
+    float depositSpeed = 0.2f;
+    float erodeSpeed = 0.2f;
+    uint maxLifeTime = 30;
+    float evaporationSpeed = 1.0f / maxLifeTime;
+    
+    // TODO: I think the code sort of works now, but the variables are completely wrong probaby
+    // see also: https://github.com/SebLague/Hydraulic-Erosion/blob/master/Assets/Scripts/ComputeShaders/Erosion.compute
+    float2 position = float2(X, Y);
+    for (uint lifeTime = 0; lifeTime < maxLifeTime; lifeTime++)
+    {
+        uint2 index = uint2(position.x, position.y);
+        float2 offset = float2(position.x - index.x, position.y - index.y);
+        
+        // Calculate the droplet's height and the direction of flow
+        float3 heightAndGradiant = ComputeHeightAndGradient(index, position);
+        float2 gradiant = heightAndGradiant.xy;
+        float height = heightAndGradiant.z;
+        // Update the droplet's position
+        direction.x = (direction.x * inertia - gradiant.x * (1.0f - inertia));
+        direction.y = (direction.y * inertia - gradiant.y * (1.0f - inertia));
+                
+        if (length(gradiant) < 0.00001f)
+        {
+            MapHeight[index] = 10;
+            break;
+        }                
+        
+        direction = normalize(direction);
+        
+        position += direction;
+        uint2 nextIndex = uint2(position.x, position.y);
+        if (nextIndex.x < border || nextIndex.y < border || nextIndex.x > (Dimensions - 1 - border) || nextIndex.y > (Dimensions - 1 - border))
+        {
+            MapHeight[index] = -10;
+            break;
+        }
+        
+        float newHeight = MapHeight[index];
+        float delta = newHeight - height;
+        
+        float sedimentCapacity = max(-delta * speed * water * sedimentCapacityFactor, minSedimentCapacity);
+        
+        if (sediment > sedimentCapacity || delta > 0)
+        {
+            float deposit = (delta > 0) ? min(delta, sediment) : (sediment - SedimentCapacity) * depositSpeed;
+            sediment -= deposit;
+            
+            MapHeight[index + uint2(-1, -1)] += deposit * (1.0f - offset.x) * (1.0f - offset.y);
+            MapHeight[index + uint2(1, -1)] += deposit * offset.x * (1.0f - offset.y);
+            MapHeight[index + uint2(1, 1)] += deposit * (1.0f - offset.x) * offset.y;
+            MapHeight[index + uint2(-1, 1)] += deposit * offset.x * offset.y;
+        }
+        else
+        {
+            float erosion = min((sedimentCapacity - sediment) * erodeSpeed, -delta);
+            MapHeight[index + uint2(-1, -1)] = erosion * 0.25f;
+            MapHeight[index + uint2(1, -1)] -= erosion * 0.25f;
+            MapHeight[index + uint2(1, 1)] -= erosion * 0.25f;
+            MapHeight[index + uint2(-1, 1)] -= erosion * 0.25f;
+            
+            sediment += erosion;
+        }
+        
+        speed = sqrt(max(0, speed * speed + delta * 9.81f));
+        water *= (1.0f - evaporationSpeed);
+        
+        // Find the droplet's new height and calculate the delta
+        
+        // Calculate the droplet's sediment capacity
+        
+        // - If carrying more sediment than capacity, or if flowing up a slope
+        // deposit a fraction of the sediment to the surrounding nodes (with bilinear interpolation)
+        
+        // - Otherwise
+        // erode a fraction of the droplet's remaining capacity from the soild, distributed over the radius of the droplet
+        // Note: don't erode more than deltaHeight to avoid digging holes behind the droplet and creating spikes
+        
+        // Update droplet's speed base don deltaHeight
+        // Evaporate a fraction of the droplet's water
+    }
+}
 
 float ComputeLocalTilt(float3 normal)
 {
