@@ -1,5 +1,6 @@
 #include "../Includes/Indexes.hlsl"
 #include "Includes/SimplexNoise.hlsl"
+#include "Includes/Utilities.hlsl"
 
 cbuffer NoiseConstants : register(b0)
 {    
@@ -84,12 +85,6 @@ void NoiseMapKernel(in uint3 dispatchId : SV_DispatchThreadID)
     MapHeight[dispatchId.xy] = position.y;
 }
     
-float SampleHeight(uint2 position, uint stride)
-{    
-    uint2 index = uint2(clamp(position.x, 0, stride), clamp(position.y, 0, stride));
-    return MapHeight[index];
-}
-    
 // Run 8x8x1=64 threads per thread group, which means one full warp for AMD
 // or two warps for NVIDIA. Leaving no threads idle.
 #pragma ComputeShader
@@ -102,30 +97,8 @@ void NormalMapKernel(in uint3 dispatchId : SV_DispatchThreadID)
         return;
     }
             
-    float scale = 1.0f / Stride;
-    
-    float2 center = (float2(dispatchId.x, dispatchId.y) * scale) - float2(0.5f, 0.5f);
-    float2 west = center + (float2(-1.0f, 0.0f) * scale);
-    float2 north = center + (float2(0.0f, -1.0f) * scale);
-    float2 east = center + (float2(1.0f, 0.0f) * scale);
-    float2 south = center + (float2(0.0f, 1.0f) * scale);
-    
-    uint2 uWest = dispatchId.xy + uint2(-1, 0);
-    uint2 uNorth = dispatchId.xy + uint2(0, -1);
-    uint2 uEast = dispatchId.xy + uint2(1, 0);
-    uint2 uSouth = dispatchId.xy + uint2(0, 1);
-    
-    float3 vWest = float3(west.x, SampleHeight(uWest, Stride), west.y);
-    float3 vNorth = float3(north.x, SampleHeight(uNorth, Stride), north.y);
-    float3 vEast = float3(east.x, SampleHeight(uEast, Stride), east.y);
-    float3 vSouth = float3(south.x, SampleHeight(uSouth, Stride), south.y);
-        
-    float3 position = (vWest + vNorth + vEast + vSouth) / 4.0f;
-    float3 wXn = normalize(cross(position - vNorth, position - vWest));
-    float3 eXS = normalize(cross(position - vSouth, position - vEast));
-    
-    float3 normal = normalize((wXn + eXS) / 2.0f);
-            
+    float3 normal = ComputeNormalFromHeightMap(MapHeight, dispatchId.xy, Stride);
+
     MapNormal[dispatchId.xy] = float4(normal, 1.0f);
 }
 

@@ -25,6 +25,8 @@ internal sealed class TerrainPanel : IPanel
     private float lacunarity = 1.0f;
     private float persistance = 0.55f;
 
+    private int erosionIterations = 2;
+
     private Entity? world;
     private TerrainComponent? terrain;
 
@@ -61,6 +63,9 @@ internal sealed class TerrainPanel : IPanel
             this.Recreate(this.ApplyTerrain);            
         }
 
+
+        ImGui.SliderInt("Iterations", ref this.erosionIterations, 1, 100);
+
         if (ImGui.Button("Erode"))
         {
             this.Recreate(this.ErodeTerrain);
@@ -86,7 +91,7 @@ internal sealed class TerrainPanel : IPanel
     {
         if (this.terrain is not null)
         {
-            return this.Generator.Erode(world, this.terrain, "terrain");
+            return this.Generator.Erode(world, this.terrain, this.erosionIterations, "terrain");
         }
 
         throw new NotSupportedException("Cannot erode null terrain");

@@ -21,29 +21,36 @@ public sealed class ErosionBrush : IDisposable
         this.User = shader.CreateUserFor<ErosionBrush>();
     }
 
-    public void Apply(RWTexture2D height, RWTexture2D normals)
+    public void Apply(RWTexture2D height, int iterations)
     {
         var context = this.Device.ImmediateContext;        
         this.User.MapErosionConstants(context, (uint)height.Width);
 
-        using var velocity = new RWTexture2D(this.Device, height.Width, height.Height, Format.R32G32B32A32_Float, false, nameof(ErosionBrush), "velocity");
+        using var velocityA = new RWTexture2D(this.Device, height.Width, height.Height, Format.R32G32B32A32_Float, false, nameof(ErosionBrush), "velocityA");
+        using var velocityB = new RWTexture2D(this.Device, height.Width, height.Height, Format.R32G32B32A32_Float, false, nameof(ErosionBrush), "velocityB");
 
-        
+        var velocityIn = velocityA;
+        var velocityOut = velocityB;
+
+
         context.CS.SetConstantBuffer(Erosion.ErosionConstantsSlot, this.User.ErosionConstantsBuffer);
         context.CS.SetUnorderedAccessView(Erosion.MapHeight, height);
-        context.CS.SetUnorderedAccessView(Erosion.MapNormal, normals);
-        context.CS.SetUnorderedAccessView(Erosion.MapVelocity, velocity);
+        context.CS.SetUnorderedAccessView(Erosion.MapVelocityIn, velocityIn);
+        context.CS.SetUnorderedAccessView(Erosion.MapVelocityOut, velocityOut);
 
         this.Seed(context, height);
 
-        context.CS.SetShader(this.Shader.Kernel);
+        context.CS.SetShader(this.Shader.Erode);
 
-        //var (x, y, z) = this.Shader.Kernel.GetDispatchSize(height.Width, height.Height, 1);
+        var (x, y, z) = this.Shader.Erode.GetDispatchSize(height.Width, height.Height, 1);
 
-        //for (var i = 0; i < 100; i++)
-        //{
-        //    context.CS.Dispatch(x, y, z);
-        //}
+        for (var i = 0; i < iterations; i++)
+        {
+            (velocityOut, velocityIn) = (velocityIn, velocityOut);
+            context.CS.SetUnorderedAccessView(Erosion.MapVelocityIn, velocityIn);
+            context.CS.SetUnorderedAccessView(Erosion.MapVelocityOut, velocityOut);
+            context.CS.Dispatch(x, y, z);
+        }
     }
 
     private void Seed(DeviceContext context, RWTexture2D height)

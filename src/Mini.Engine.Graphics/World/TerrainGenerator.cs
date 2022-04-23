@@ -42,14 +42,13 @@ public sealed class TerrainGenerator
         return new TerrainComponent(entity, height, normals, mesh);
     }
 
-    public TerrainComponent Erode(Entity world, TerrainComponent terrain, string name)
+    public TerrainComponent Erode(Entity world, TerrainComponent terrain, int iterations, string name)
     {
         var height = (RWTexture2D)terrain.Height;
-        var normals = (RWTexture2D)terrain.Normals;
 
-        this.ErosionBrush.Apply(height, normals);
+        this.ErosionBrush.Apply(height, iterations);
 
-        normals = this.HeightMapGenerator.GenerateNormals(height, world);
+        var normals = this.HeightMapGenerator.GenerateNormals(height, world);
         var mesh = this.GenerateMesh(height, normals, terrain.Mesh.Bounds, name);
 
         return new TerrainComponent(world, height, normals, mesh);

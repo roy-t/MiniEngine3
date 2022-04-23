@@ -1,5 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
+    <None Remove="Assets\Shaders\World\Includes\Utilities.hlsl" />
+  </ItemGroup> 
+  <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
     <ProjectReference Include="..\Backend\Mini.Engine.IO\Mini.Engine.IO.csproj" />
     <ProjectReference Include="..\Generators\Mini.Engine.Content.Generators\Mini.Engine.Content.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
@@ -12,6 +15,7 @@
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
     <AdditionalFiles Include="Assets\Shaders\World\Erosion.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\World\Includes\Utilities.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\Terrain.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Indexes.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\CubeMapGenerator.hlsl" />
