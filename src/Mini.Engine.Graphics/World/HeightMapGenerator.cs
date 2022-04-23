@@ -6,6 +6,7 @@ using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS;
 using Vortice.DXGI;
+using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.World;
 
@@ -71,6 +72,14 @@ public sealed class HeightMapGenerator : IDisposable
 
         return normals;
     }
+
+    public RWTexture2D GenerateTint(int dimensions, Color4 tint, Entity user)
+    {
+        var texture = new RWTexture2D(this.Device, dimensions, dimensions, Format.R8G8B8A8_UNorm, false, user.ToString(), "Tint");
+        this.Device.ImmediateContext.Clear(texture, tint);
+
+        return texture;
+    }    
 
     public ModelVertex[] GenerateVertices(RWTexture2D heightMap, RWTexture2D normalMap)
     {

@@ -39,6 +39,7 @@ internal sealed class TerrainPanel : IPanel
         this.dimensions = 512;
 
         this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HeightMap.hlsl", "NoiseMapKernel"), _ => this.Recreate(this.ApplyTerrain));
+        this.Content.OnReloadCallback(new ContentId(@"Shaders\World\Erosion.hlsl", "Droplet"), _ => { this.Recreate(this.ApplyTerrain); this.Recreate(this.ErodeTerrain); });
     }
 
     public string Title => "Terrain";
@@ -75,7 +76,7 @@ internal sealed class TerrainPanel : IPanel
         {
             this.Selector.Select("Height", this.terrain.Height);
             this.Selector.Select("Normals", this.terrain.Normals);
-
+            this.Selector.Select("Tint", this.terrain.Tint);
             this.Selector.End();
         }
 

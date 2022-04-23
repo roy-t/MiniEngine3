@@ -2,9 +2,8 @@
 using Mini.Engine.DirectX;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX.Resources;
-using Vortice.DXGI;
-using Mini.Engine.DirectX.Contexts;
-using System;
+using Mini.Engine.DirectX.Buffers;
+using System.Numerics;
 
 namespace Mini.Engine.Graphics.World;
 
@@ -22,69 +21,40 @@ public sealed class ErosionBrush : IDisposable
         this.User = shader.CreateUserFor<ErosionBrush>();
     }
 
-    public void Apply(RWTexture2D height, int iterations)
-    {      
-        var context = this.Device.ImmediateContext;        
+    public void Apply(RWTexture2D height, RWTexture2D tint, int iterations)
+    {
+        var context = this.Device.ImmediateContext;
 
+        using var input = this.CreatePositionBuffer(height, iterations, context);
+
+        context.CS.SetShaderResource(Erosion.Positions, input);
         context.CS.SetConstantBuffer(Erosion.DropletConstantsSlot, this.User.DropletConstantsBuffer);
         context.CS.SetUnorderedAccessView(Erosion.MapHeight, height);
+        context.CS.SetUnorderedAccessView(Erosion.MapTint, tint);
         context.CS.SetShader(this.Shader.Droplet);
 
-        var (x, y, z) = this.Shader.Droplet.GetDispatchSize(1, 1, 1);
+        this.User.MapDropletConstants(context, (uint)height.Width, 3, (uint)iterations);
 
+        var (x, y, z) = this.Shader.Droplet.GetDispatchSize(iterations, 1, 1);                
+        context.CS.Dispatch(x, y, z);
+    }
+
+    private StructuredBuffer<Vector2> CreatePositionBuffer(RWTexture2D height, int iterations, DirectX.Contexts.ImmediateDeviceContext context)
+    {
+        var input = new StructuredBuffer<Vector2>(this.Device, nameof(ErosionBrush));
+
+        var positions = new Vector2[iterations];
         for (var i = 0; i < iterations; i++)
         {
             var startX = Random.Shared.NextSingle() * height.Width;
-            var startY = Random.Shared.NextSingle() *height.Height;
+            var startY = Random.Shared.NextSingle() * height.Height;
 
-            this.User.MapDropletConstants(context, startX, startY, (uint)height.Width);
-            context.CS.Dispatch(x, y, z);
+            positions[i] = new Vector2(startX, startY);
         }
 
-
-        //using var velocityA = new RWTexture2D(this.Device, height.Width, height.Height, Format.R32G32B32A32_Float, false, nameof(ErosionBrush), "velocityA");
-        //using var velocityB = new RWTexture2D(this.Device, height.Width, height.Height, Format.R32G32B32A32_Float, false, nameof(ErosionBrush), "velocityB");
-
-        //using var massA = new RWTexture2D(this.Device, height.Width, height.Height, Format.R32G32B32A32_Float, false, nameof(ErosionBrush), "velocityA");
-        //using var massB = new RWTexture2D(this.Device, height.Width, height.Height, Format.R32G32B32A32_Float, false, nameof(ErosionBrush), "velocityB");
-
-        //var velocityIn = velocityA;
-        //var velocityOut = velocityB;
-
-        //var massIn = massA;
-        //var massOut = massB;
-
-        //context.CS.SetConstantBuffer(Erosion.ErosionConstantsSlot, this.User.ErosionConstantsBuffer);
-        //context.CS.SetUnorderedAccessView(Erosion.MapHeight, height);
-        //context.CS.SetUnorderedAccessView(Erosion.MapVelocityIn, velocityIn);
-        //context.CS.SetUnorderedAccessView(Erosion.MapVelocityOut, velocityOut);
-        //context.CS.SetUnorderedAccessView(Erosion.MapMassIn, massIn);
-        //context.CS.SetUnorderedAccessView(Erosion.MapMassOut, massOut);
-
-        //this.Seed(context, height);
-
-        //context.CS.SetShader(this.Shader.Erode);
-
-        //var (x, y, z) = this.Shader.Erode.GetDispatchSize(height.Width, height.Height, 1);
-
-        //for (var i = 0; i < iterations; i++)
-        //{
-        //    (velocityOut, velocityIn) = (velocityIn, velocityOut);
-        //    (massOut, massIn) = (massIn, massOut);
-        //    context.CS.SetUnorderedAccessView(Erosion.MapVelocityIn, velocityIn);
-        //    context.CS.SetUnorderedAccessView(Erosion.MapVelocityOut, velocityOut);
-        //    context.CS.SetUnorderedAccessView(Erosion.MapMassIn, massIn);
-        //    context.CS.SetUnorderedAccessView(Erosion.MapMassOut, massOut);
-        //    context.CS.Dispatch(x, y, z);
-        //}
+        input.MapData(context, positions);
+        return input;
     }
-
-    //private void Seed(DeviceContext context, RWTexture2D height)
-    //{
-    //    context.CS.SetShader(this.Shader.Seed);
-    //    var (x, y, z) = this.Shader.Seed.GetDispatchSize(height.Width, height.Height, 1);
-    //    context.CS.Dispatch(x, y, z);
-    //}
 
     public void Dispose()
     {

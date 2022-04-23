@@ -48,6 +48,7 @@ public sealed partial class TerrainSystem : IMeshRenderCallBack, ISystem, IDispo
     public void DrawModel(TerrainComponent component, TransformComponent transform)
     {
         this.Context.PS.SetShaderResource(Terrain.Normal, component.Normals);
+        this.Context.PS.SetShaderResource(Terrain.Albedo, component.Tint);
         RenderService.DrawMesh(this, this.Context, this.FrameService.Camera.Frustum, this.FrameService.Camera.ViewProjection, component.Mesh, transform.Transform);
     }
 

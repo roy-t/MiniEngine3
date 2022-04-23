@@ -19,6 +19,8 @@ public sealed class TerrainGenerator
     private readonly ErosionBrush ErosionBrush;
     private readonly ContentManager Content;
 
+    private static readonly Color4 Umber = new Color4(140.0f / 255.0f, 105.0f / 255.0f, 75.0f / 255.0f);
+
     public TerrainGenerator(ILogger logger, Device device, ContentManager content, HeightMapGenerator noiseGenerator, ErosionBrush erosionBrush)
     {
         this.Logger = logger.ForContext<TerrainGenerator>();
@@ -27,31 +29,35 @@ public sealed class TerrainGenerator
         this.Content = content;
         this.ErosionBrush = erosionBrush;
     }
+    // TODO: double check which resources should be tied to the content manager and/or should be disposed
 
     public TerrainComponent Generate(Entity entity, int dimensions, Vector2 offset, float amplitude, float frequency, int octaves, float lacunarity, float persistance, string name)
     {
         var stopwatch = Stopwatch.StartNew();
         var height = this.HeightMapGenerator.GenerateHeights(dimensions, offset, amplitude, frequency, octaves, lacunarity, persistance, entity);
         var normals = this.HeightMapGenerator.GenerateNormals(height, entity);
+        var tint = this.HeightMapGenerator.GenerateTint(dimensions, Umber, entity);
 
         this.Logger.Information("Terrain generator took {@miliseconds}", stopwatch.ElapsedMilliseconds);
 
         var bounds = ComputeBounds(amplitude, octaves, persistance);
-        var mesh = this.GenerateMesh(height, normals, bounds, name);
+        var mesh = this.GenerateMesh(height, normals, bounds, name);        
+        
 
-        return new TerrainComponent(entity, height, normals, mesh);
+        return new TerrainComponent(entity, height, normals, tint, mesh);
     }
 
     public TerrainComponent Erode(Entity world, TerrainComponent terrain, int iterations, string name)
     {
         var height = (RWTexture2D)terrain.Height;
+        var tint = (RWTexture2D)terrain.Tint;
 
-        this.ErosionBrush.Apply(height, iterations);
+        this.ErosionBrush.Apply(height, tint, iterations);
 
         var normals = this.HeightMapGenerator.GenerateNormals(height, world);
         var mesh = this.GenerateMesh(height, normals, terrain.Mesh.Bounds, name);
 
-        return new TerrainComponent(world, height, normals, mesh);
+        return new TerrainComponent(world, height, normals, terrain.Tint, mesh);
     }
 
     private IMesh GenerateMesh(RWTexture2D height, RWTexture2D normals, BoundingBox bounds, string name)

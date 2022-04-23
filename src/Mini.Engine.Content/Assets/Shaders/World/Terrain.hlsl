@@ -56,9 +56,9 @@ PS_INPUT VS(VS_INPUT input)
 OUTPUT PS(PS_INPUT input)
 {
     OUTPUT output;        
-    
-    static const uint3 RawUmber = uint3(140, 105, 75);
-    float4 albedo = ToLinear(float4(RawUmber / 255.0f, 1.0f)); //Albedo.Sample(TextureSampler, input.texcoord);
+        
+    // TODO: let directx do this by itself or make clear it needs to be manually done
+    float4 albedo = ToLinear(Albedo.Sample(TextureSampler, input.texcoord)); 
     
     float3 normal = Normal.Sample(TextureSampler, input.texcoord).xyz;
     

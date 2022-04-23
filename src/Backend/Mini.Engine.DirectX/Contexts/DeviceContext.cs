@@ -40,6 +40,11 @@ public abstract class DeviceContext : IDisposable
         this.ID3D11DeviceContext.Draw(vertexCount, startVertexLocation);
     }
 
+    public void Clear(RWTexture2D texture, Color4 color)
+    {
+        this.ID3D11DeviceContext.ClearUnorderedAccessView(texture.UnorderedAccessViews[0], color);
+    }
+
     public void Clear(RenderTarget2D renderTarget, Color4 color)
     {
         this.ID3D11DeviceContext.ClearRenderTargetView(renderTarget.ID3D11RenderTargetView, color);
