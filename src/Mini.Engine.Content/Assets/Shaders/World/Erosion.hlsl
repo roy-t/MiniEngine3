@@ -43,11 +43,16 @@ void Droplet(in uint3 dispatchId : SV_DispatchThreadID)
         return;
     }
     
+    // TODO: make these CBuffer variables
     const uint MaxLifeTime = 300;
-    const float inertia = 0.51f;
+    const float inertia = 0.55f;
         
+    // Get a randomized position from the input buffer and place it at the center of the pixel
     float2 position = Positions[dispatchId.x];
-    float2 direction = float2(0, 0);
+    
+    // Make sure that droplets move, through inertia, even when 
+    // they start on a flat surface
+    float2 direction = normalize(position - PositionsLength);
     
     uint2 startIndex = (uint2) position;
     MapTint[startIndex] = float4(1, 1, 1, 1);
@@ -60,21 +65,37 @@ void Droplet(in uint3 dispatchId : SV_DispatchThreadID)
         float2 gradiant = heightAndGradient.xy;
         float height = heightAndGradient.z;
         
-        if (length(gradiant) < 0.0001f)
+        // On a flat surface the gradiant vector might be {0, 0}
+        if (length(gradiant) > 0.0001f)
         {
-            break;
+            gradiant = normalize(gradiant);
+        }
+                
+        // Base the droplets direction on the gradiant and its inertia
+        direction = normalize(direction * inertia - gradiant * (1.0f - inertia));
+       
+        // Scale the direction vector so that the droplet moves to the center of the next pixel
+        float deltaX = frac(position.x) + 0.5f;
+        if (direction.x > 0.0f)
+        {
+            deltaX = 1.5f - frac(position.x);
         }
         
-        gradiant = normalize(gradiant);        
-        direction = normalize(direction * inertia - gradiant * (1.0f - inertia));
-               
-        // TODO: somehow flooring doesn't work? I still see skips even though floor(X + 1.5) should be equal to (X + 1)
-        // I need the * 1.5 to get outside of a diagonal 
-        position = floor(position + direction * 1.5f);
-        position.x = (uint) floor(position.x);
-        position.y = (uint) floor(position.y);
-        MapTint[(uint2) position] = float4(1, 0, 0, 1);
+        float deltaY = frac(position.y) + 0.5f;
+        if (direction.y > 0)
+        {
+            deltaY = 1.5f - frac(position.y);
 
+        }
+        
+        float diffX = abs(deltaX / direction.x);
+        float diffY = abs(deltaY / direction.y);
+            
+        direction *= min(diffX, diffY);
+                        
+        position += direction;
+        
+        MapTint[(uint2) position] = float4(1, 0, 0, 1);
     }
                 
     uint2 endIndex = (uint2) position;

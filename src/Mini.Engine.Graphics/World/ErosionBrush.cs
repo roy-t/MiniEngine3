@@ -46,8 +46,8 @@ public sealed class ErosionBrush : IDisposable
         var positions = new Vector2[iterations];
         for (var i = 0; i < iterations; i++)
         {
-            var startX = Random.Shared.NextSingle() * height.Width;
-            var startY = Random.Shared.NextSingle() * height.Height;
+            var startX = Random.Shared.Next(0, height.Width) + 0.5f;
+            var startY = Random.Shared.Next(0, height.Height) + 0.5f;
 
             positions[i] = new Vector2(startX, startY);
         }
