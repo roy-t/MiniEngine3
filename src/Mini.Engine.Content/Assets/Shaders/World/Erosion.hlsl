@@ -47,7 +47,7 @@ void Droplet(in uint3 dispatchId : SV_DispatchThreadID)
     // TODO: make these CBuffer variables
     const uint MaxLifeTime = 300;
     const float inertia = 0.55f;
-    const float sedimentCapacityFactor = 0.05f;
+    const float sedimentCapacityFactor = 0.02f;
     const float minSedimentCapacity = 0.0001f;
     const float MinSpeed = 0.01f;
     const float MaxSpeed = 7.0f;
@@ -65,7 +65,7 @@ void Droplet(in uint3 dispatchId : SV_DispatchThreadID)
     float2 direction = normalize(position - PositionsLength);
     
     uint2 startIndex = (uint2) position;
-    MapTint[startIndex] = float4(0, 1, 0, 1);
+    //MapTint[startIndex] = float4(0, 1, 0, 1);
     
     for (uint i = 0; i < MaxLifeTime; i++)
     {
@@ -115,27 +115,24 @@ void Droplet(in uint3 dispatchId : SV_DispatchThreadID)
         //float deltaHeight =   MapHeight[nextIndex] - height;
         float3 normal = ComputeNormalFromHeightMap(MapHeight, nextIndex, Dimensions);
         float localTilt = 1.0f - dot(normal, float3(0, 1, 0));
-        float sedimentCapacity = max(minSedimentCapacity, speed * sedimentCapacityFactor * localTilt); //max(localTilt * speed * water * sedimentCapacityFactor, minSedimentCapacity);
+        float sedimentCapacity = max(minSedimentCapacity, speed * sedimentCapacityFactor * localTilt); // TODO: add water vaporization
         
         
         if (sedimentCapacity < sediment)
         {
             float deposit = sediment - sedimentCapacity;
-            MapHeight[nextIndex] += deposit;            
+            //MapHeight[nextIndex] += deposit;            
         }
-        else if(sedimentCapacity > sediment)
+        else if(sedimentCapacity > sediment && i > 3) // TODO: hack, i > 3 because apparently start makes deep holes?
         {
             float erosion = sedimentCapacity - sediment;
+            int2 offset = -int2(BrushStride / 2, BrushStride / 2);
             
-            // TODO: use brush buffer here!
-            for (int x = -4; x < 5; x++)
+            for (uint i = 0; i < BrushStride * BrushStride; i++)
             {
-                for (int y = -4; y < 5; y++)
-                {
-                    uint2 erodeIndex = nextIndex + int2(x, y);
-                    MapHeight[erodeIndex] -= erosion / 25.0f;
-                }
-            }                
+                int2 erodeIndex = ToTwoDimensional(i, BrushStride) + offset + nextIndex;
+                MapHeight[erodeIndex] -= erosion * Brush[i]; 
+            }
         }
         
         sediment = sedimentCapacity;
@@ -157,7 +154,7 @@ void Droplet(in uint3 dispatchId : SV_DispatchThreadID)
     }
                 
     uint2 endIndex = (uint2) position;
-    MapTint[endIndex] = float4(1, 0, 0, 1);    
+    //MapTint[endIndex] = float4(1, 0, 0, 1);    
     
     
 }

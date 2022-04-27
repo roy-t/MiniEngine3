@@ -23,13 +23,13 @@ public sealed class ErosionBrush : IDisposable
         this.User = shader.CreateUserFor<ErosionBrush>();
     }
 
-    public void Apply(RWTexture2D height, RWTexture2D tint, int iterations)
+    public void Apply(RWTexture2D height, RWTexture2D tint, int droplets)
     {
         var context = this.Device.ImmediateContext;
 
         const int brushWidth = 5;
 
-        using var input = this.CreatePositionBuffer(height, iterations, context);
+        using var input = this.CreatePositionBuffer(height, droplets, context);
         using var brush = this.CreateBrushBuffer(brushWidth, context);
 
         context.CS.SetShaderResource(Erosion.Positions, input);
@@ -39,18 +39,18 @@ public sealed class ErosionBrush : IDisposable
         context.CS.SetUnorderedAccessView(Erosion.MapTint, tint);
         context.CS.SetShader(this.Shader.Droplet);
 
-        this.User.MapDropletConstants(context, (uint)height.Width, 3, (uint)iterations, (uint)brushWidth);
+        this.User.MapDropletConstants(context, (uint)height.Width, 3, (uint)droplets, (uint)brushWidth);
 
-        var (x, y, z) = this.Shader.Droplet.GetDispatchSize(iterations, 1, 1);                
+        var (x, y, z) = this.Shader.Droplet.GetDispatchSize(droplets, 1, 1);                
         context.CS.Dispatch(x, y, z);
     }
 
-    private StructuredBuffer<Vector2> CreatePositionBuffer(RWTexture2D height, int iterations, DeviceContext context)
+    private StructuredBuffer<Vector2> CreatePositionBuffer(RWTexture2D height, int droplets, DeviceContext context)
     {
         var input = new StructuredBuffer<Vector2>(this.Device, nameof(ErosionBrush));
 
-        var positions = new Vector2[iterations];
-        for (var i = 0; i < iterations; i++)
+        var positions = new Vector2[droplets];
+        for (var i = 0; i < droplets; i++)
         {
             var startX = Random.Shared.Next(0, height.Width) + 0.5f;
             var startY = Random.Shared.Next(0, height.Height) + 0.5f;
@@ -67,13 +67,27 @@ public sealed class ErosionBrush : IDisposable
         var buffer = new StructuredBuffer<float>(this.Device, nameof(ErosionBrush));
 
         var weights = new float[dimensions * dimensions];
-        for(var x = 0; x < dimensions; x++)
+
+        var center = MathF.Floor(dimensions / 2.0f);
+        var maxDistance = MathF.Sqrt(center * center + center * center);
+
+        var sum = 0.0f;
+        for(var y = 0; y < dimensions; y++)
         {
-            for(var y = 0; y < dimensions; y++)
+            for(var x = 0; x < dimensions; x++)
             {
                 var index = Indexes.ToOneDimensional(x, y, dimensions);
-                weights[index] = 0.5f;
+
+                var distance = MathF.Sqrt(((center - x) * (center - x)) + ((center - y) * (center - y)));
+                var weight = maxDistance - distance;
+                sum += weight;                
+                weights[index] = weight;
             }
+        }
+
+        for(var i = 0; i < weights.Length; i++)
+        {
+            weights[i] /= sum;
         }
 
         buffer.MapData(context, weights);
