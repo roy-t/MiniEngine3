@@ -12,12 +12,13 @@ cbuffer DropletConstants : register(b1)
     uint Dimensions;
     uint Border;
     uint PositionsLength;
-    float __Padding2;
+    uint BrushStride;
 }
 
 RWTexture2D<float> MapHeight : register(u0);
 RWTexture2D<float4> MapTint : register(u1);
 StructuredBuffer<float2> Positions : register(t0);
+StructuredBuffer<float> Brush : register(t1);
 
 float3 ComputeHeightAndGradient(uint2 index)
 {                  
@@ -46,16 +47,25 @@ void Droplet(in uint3 dispatchId : SV_DispatchThreadID)
     // TODO: make these CBuffer variables
     const uint MaxLifeTime = 300;
     const float inertia = 0.55f;
-        
+    const float sedimentCapacityFactor = 0.05f;
+    const float minSedimentCapacity = 0.0001f;
+    const float MinSpeed = 0.01f;
+    const float MaxSpeed = 7.0f;
+    
+    float speed = MinSpeed;
+    float water = 1.0f;        
+    float sediment = 0.0f;
+    
     // Get a randomized position from the input buffer and place it at the center of the pixel
     float2 position = Positions[dispatchId.x];
     
+    // TODO: initial direction has a chance to push a droplet 'up' a cliff for 1 step
     // Make sure that droplets move, through inertia, even when 
     // they start on a flat surface
     float2 direction = normalize(position - PositionsLength);
     
     uint2 startIndex = (uint2) position;
-    MapTint[startIndex] = float4(1, 1, 1, 1);
+    MapTint[startIndex] = float4(0, 1, 0, 1);
     
     for (uint i = 0; i < MaxLifeTime; i++)
     {
@@ -94,12 +104,62 @@ void Droplet(in uint3 dispatchId : SV_DispatchThreadID)
         direction *= min(diffX, diffY);
                         
         position += direction;
+
+        // Make sure the droplet stays inside the heightmap and border
+        uint2 nextIndex = (uint2) position;
+        if (nextIndex.x < Border || nextIndex.y < Border || nextIndex.x > (Dimensions - 1 - Border) || nextIndex.y > (Dimensions - 1 - Border))
+        {
+            break;
+        }
         
-        MapTint[(uint2) position] = float4(1, 0, 0, 1);
+        //float deltaHeight =   MapHeight[nextIndex] - height;
+        float3 normal = ComputeNormalFromHeightMap(MapHeight, nextIndex, Dimensions);
+        float localTilt = 1.0f - dot(normal, float3(0, 1, 0));
+        float sedimentCapacity = max(minSedimentCapacity, speed * sedimentCapacityFactor * localTilt); //max(localTilt * speed * water * sedimentCapacityFactor, minSedimentCapacity);
+        
+        
+        if (sedimentCapacity < sediment)
+        {
+            float deposit = sediment - sedimentCapacity;
+            MapHeight[nextIndex] += deposit;            
+        }
+        else if(sedimentCapacity > sediment)
+        {
+            float erosion = sedimentCapacity - sediment;
+            
+            // TODO: use brush buffer here!
+            for (int x = -4; x < 5; x++)
+            {
+                for (int y = -4; y < 5; y++)
+                {
+                    uint2 erodeIndex = nextIndex + int2(x, y);
+                    MapHeight[erodeIndex] -= erosion / 25.0f;
+                }
+            }                
+        }
+        
+        sediment = sedimentCapacity;
+                        
+        float deltaHeight = height - MapHeight[nextIndex];
+        float gravity = 4.0f;
+        float s = sign(deltaHeight);
+        float distanceTravelled = length(direction) / Dimensions;
+        float timePassed = distanceTravelled / speed;
+        float acceleration = s * localTilt * gravity * timePassed;
+        
+        speed = max(MinSpeed, min(MaxSpeed, speed + acceleration));
+        //MapTint[(uint2) position] = float4(speed, speed, speed, 1);
+        //timePassed *= 100;
+        //MapTint[(uint2) position] = float4(speed, speed, speed, 1);
+        
+        //float foo = (localTilt - 0.5f) * 0.01f;
+        //MapHeight[nextIndex] -= foo;
     }
                 
     uint2 endIndex = (uint2) position;
-    MapTint[endIndex] = float4(0, 0, 0, 1);    
+    MapTint[endIndex] = float4(1, 0, 0, 1);    
+    
+    
 }
 
 //RWTexture2D<float4> MapVelocityIn : register(u1);
