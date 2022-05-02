@@ -45,7 +45,7 @@ void Droplet(in uint3 dispatchId : SV_DispatchThreadID)
     }
     
     // TODO: make these CBuffer variables
-    const uint MaxLifeTime = 300;
+    const uint MaxLifeTime = 75;
     const float inertia = 0.55f;
     const float sedimentCapacityFactor = 0.02f;
     const float minSedimentCapacity = 0.001f;
@@ -116,10 +116,7 @@ void Droplet(in uint3 dispatchId : SV_DispatchThreadID)
         //float deltaHeight =   MapHeight[nextIndex] - height;
         float3 normal = ComputeNormalFromHeightMap(MapHeight, nextIndex, Dimensions);
         float localTilt = 1.0f - dot(normal, float3(0, 1, 0));
-        float sedimentCapacity = max(minSedimentCapacity, speed * sedimentCapacityFactor * localTilt); // TODO: add water vaporization
-                
-        
-        AllMemoryBarrier(); 
+        float sedimentCapacity = max(minSedimentCapacity, speed * sedimentCapacityFactor * localTilt); // TODO: add water vaporization                       
         
         if (sedimentCapacity < sediment && i > 3)
         {            
