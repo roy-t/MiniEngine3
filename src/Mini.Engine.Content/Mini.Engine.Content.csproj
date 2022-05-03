@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
+    <None Remove="Assets\Shaders\Includes\Easings.hlsl" />
     <None Remove="Assets\Shaders\World\Includes\Utilities.hlsl" />
   </ItemGroup> 
   <ItemGroup>
@@ -14,7 +15,8 @@
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
-    <AdditionalFiles Include="Assets\Shaders\World\Erosion.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Includes\Easings.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\World\HydrolicErosion.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\Includes\Utilities.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\Terrain.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Indexes.hlsl" />

@@ -13,10 +13,10 @@ namespace Mini.Engine.Graphics.World;
 public sealed class ErosionBrush : IDisposable
 {
     private readonly Device Device;    
-    private readonly Erosion Shader;
-    private readonly Erosion.User User;
+    private readonly HydrolicErosion Shader;
+    private readonly HydrolicErosion.User User;
 
-    public ErosionBrush(Device device, Erosion shader)
+    public ErosionBrush(Device device, HydrolicErosion shader)
     {
         this.Device = device;
         this.Shader = shader;
@@ -32,16 +32,16 @@ public sealed class ErosionBrush : IDisposable
         using var input = this.CreatePositionBuffer(height, droplets, context);
         using var brush = this.CreateBrushBuffer(brushWidth, context);
 
-        context.CS.SetShaderResource(Erosion.Positions, input);
-        context.CS.SetShaderResource(Erosion.Brush, brush);
-        context.CS.SetConstantBuffer(Erosion.DropletConstantsSlot, this.User.DropletConstantsBuffer);
-        context.CS.SetUnorderedAccessView(Erosion.MapHeight, height);
-        context.CS.SetUnorderedAccessView(Erosion.MapTint, tint);
-        context.CS.SetShader(this.Shader.Droplet);
+        context.CS.SetShaderResource(HydrolicErosion.Positions, input);
+        context.CS.SetShaderResource(HydrolicErosion.Brush, brush);
+        context.CS.SetConstantBuffer(HydrolicErosion.DropletConstantsSlot, this.User.DropletConstantsBuffer);
+        context.CS.SetUnorderedAccessView(HydrolicErosion.MapHeight, height);
+        context.CS.SetUnorderedAccessView(HydrolicErosion.MapTint, tint);
+        context.CS.SetShader(this.Shader.Kernel);
 
         this.User.MapDropletConstants(context, (uint)height.Width, 3, (uint)droplets, (uint)brushWidth);
 
-        var (x, y, z) = this.Shader.Droplet.GetDispatchSize(droplets, 1, 1);                
+        var (x, y, z) = this.Shader.Kernel.GetDispatchSize(droplets, 1, 1);                
         context.CS.Dispatch(x, y, z);
     }
 

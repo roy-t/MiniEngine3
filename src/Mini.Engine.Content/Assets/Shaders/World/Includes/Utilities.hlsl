@@ -7,6 +7,21 @@ float SampleHeight(RWTexture2D<float> heightMap, uint2 position, uint stride)
     return heightMap[index];
 }
 
+float3 ComputeHeightAndGradient(RWTexture2D<float> heightMap, uint2 index, uint stride)
+{
+    float nw = SampleHeight(heightMap, index + uint2(-1, -1), stride);
+    float ne = SampleHeight(heightMap, index + uint2(1, -1), stride);
+    float se = SampleHeight(heightMap, index + uint2(1, 1), stride);
+    float sw = SampleHeight(heightMap, index + uint2(-1, 1), stride);
+    
+    float gradientX = (ne - nw) * 0.5f + (se - sw) * 0.5f;
+    float gradientY = (sw - nw) * 0.5f + (se - ne) * 0.5f;
+
+    float c = SampleHeight(heightMap, index, stride);
+    
+    return float3(gradientX, gradientY, c);
+}
+
 float3 ComputeNormalFromHeightMap(RWTexture2D<float> heightMap, uint2 index, uint stride)
 {
     float scale = 1.0f / stride;
