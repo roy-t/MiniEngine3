@@ -25,7 +25,7 @@ internal sealed class TerrainPanel : IPanel
     private float lacunarity = 1.0f;
     private float persistance = 0.55f;
 
-    private int droplets = 1000;
+    private readonly HydrolicErosionBrushSettings erosionSettings;
 
     private Entity? world;
     private TerrainComponent? terrain;
@@ -38,6 +38,8 @@ internal sealed class TerrainPanel : IPanel
         this.Administrator = administrator;
         this.dimensions = 512;
 
+        this.erosionSettings = new HydrolicErosionBrushSettings();
+
         this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HeightMap.hlsl", "NoiseMapKernel"), _ => this.Recreate(this.ApplyTerrain));
         this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HydrolicErosion.hlsl", "Kernel"), _ => { this.Recreate(this.ApplyTerrain); this.Recreate(this.ErodeTerrain); });
     }
@@ -46,7 +48,7 @@ internal sealed class TerrainPanel : IPanel
 
     public void Update(float elapsed)
     {
-        var changed =
+        var terrainChanged =
             ImGui.DragFloat2("Offset", ref this.offset, 0.1f) ||
             ImGui.SliderInt("Dimensions", ref this.dimensions, 4, 4096) ||
             ImGui.SliderInt("Octaves", ref this.octaves, 1, 20) ||
@@ -59,15 +61,23 @@ internal sealed class TerrainPanel : IPanel
 
             ImGui.Button("Generate");
 
-        if (changed)
+        if (terrainChanged)
         {
             this.Recreate(this.ApplyTerrain);            
         }
 
+        var erosionChanged =
+            ImGui.SliderInt("Droplets", ref this.erosionSettings.Droplets, 1, 1_000_000) ||
+            ImGui.SliderInt("DropletStride", ref this.erosionSettings.DropletStride, 1, 15) ||
+            ImGui.SliderFloat("SedimentFactor", ref this.erosionSettings.SedimentFactor, 0.01f, 5.0f) ||
+            ImGui.SliderFloat("MinSedimentCapacity", ref this.erosionSettings.MinSedimentCapacity, 0.0f, 0.01f) ||
+            ImGui.SliderFloat("MinSpeed", ref this.erosionSettings.MinSpeed, 0.0025f, 1.0f) ||
+            ImGui.SliderFloat("MaxSpeed", ref this.erosionSettings.MaxSpeed, 1, 10.0f) ||
+            ImGui.SliderFloat("Inertia", ref this.erosionSettings.Inertia, 0.0f, 0.99f) ||
+            ImGui.SliderFloat("Gravity", ref this.erosionSettings.Gravity, 1.0f, 4.0f) ||
+            ImGui.Button("Erode");
 
-        ImGui.SliderInt("Droplets", ref this.droplets, 1, 100000);
-
-        if (ImGui.Button("Erode"))
+        if (erosionChanged)
         {
             this.Recreate(this.ErodeTerrain);
         }
@@ -92,7 +102,7 @@ internal sealed class TerrainPanel : IPanel
     {
         if (this.terrain is not null)
         {
-            return this.Generator.Erode(world, this.terrain, this.droplets, "terrain");
+            return this.Generator.Erode(world, this.terrain, this.erosionSettings, "terrain");
         }
 
         throw new NotSupportedException("Cannot erode null terrain");
