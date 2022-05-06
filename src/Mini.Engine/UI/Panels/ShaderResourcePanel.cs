@@ -22,7 +22,7 @@ internal sealed class ShaderResourcePanel : IPanel
 
     public void Update(float elapsed)
     {
-        if (this.Selector.Begin("Shader Resources", nameof(this.FrameService.GBuffer.Albedo), this.FrameService.GBuffer.Albedo))
+        if (this.Selector.Begin("Shader Resources", nameof(this.FrameService.GBuffer.Albedo)))
         {
             this.Selector.Select(nameof(this.FrameService.GBuffer.Albedo), this.FrameService.GBuffer.Albedo);
             this.Selector.Select(nameof(this.FrameService.GBuffer.Material), this.FrameService.GBuffer.Material);
@@ -34,6 +34,6 @@ internal sealed class ShaderResourcePanel : IPanel
             this.Selector.End();
         }
 
-        this.Selector.ShowSelected();
+        this.Selector.ShowSelected(this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal, this.FrameService.LBuffer.Light, this.FrameService.GBuffer.DepthStencilBuffer, this.DebugFrameService.DebugOverlay);
     }
 }

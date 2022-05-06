@@ -82,15 +82,17 @@ internal sealed class TerrainPanel : IPanel
             this.Recreate(this.ErodeTerrain);
         }
 
-        if (this.terrain != null && this.Selector.Begin("Terrain Resources", "heightmap", this.terrain.Height))
+        if (this.terrain != null)
         {
-            this.Selector.Select("Height", this.terrain.Height);
-            this.Selector.Select("Normals", this.terrain.Normals);
-            this.Selector.Select("Tint", this.terrain.Tint);
-            this.Selector.End();
+            if (this.Selector.Begin("Terrain Resources", "heightmap"))
+            {
+                this.Selector.Select("Height", this.terrain.Height);
+                this.Selector.Select("Normals", this.terrain.Normals);
+                this.Selector.Select("Tint", this.terrain.Tint);
+                this.Selector.End();
+            }
+            this.Selector.ShowSelected(this.terrain.Height, this.terrain.Normals, this.terrain.Tint);
         }
-
-        this.Selector.ShowSelected();
     }
 
     private TerrainComponent ApplyTerrain(Entity world)

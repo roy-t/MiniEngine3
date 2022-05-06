@@ -11,24 +11,22 @@ internal sealed class TextureSelector
     private int index;
     private int selected;
     private string selectedName;
-    private ITexture2D? selectedTexture;
 
     public TextureSelector(UITextureRegistry textureRegistry)
     {
         this.TextureRegistry = textureRegistry;
         this.selectedName = string.Empty;
+        this.selected = -1;
     }
     
-    public bool Begin(string name, string fallbackName, ITexture2D fallbackTexture)
+    public bool Begin(string name, string fallbackName, int defaultSelection = 0)
     {
         this.index = 0;
-
-        if (string.IsNullOrEmpty(this.selectedName) || this.selectedTexture == null)
+        if(this.selected == -1)
         {
-            this.selectedTexture = fallbackTexture;
-            this.selectedName = fallbackName;
+            this.selected = defaultSelection;
         }
-
+        
         return ImGui.BeginCombo(name, this.selectedName);
     }
 
@@ -43,11 +41,13 @@ internal sealed class TextureSelector
         ImGui.EndCombo();        
     }
 
-    public void ShowSelected()
-    {
-        if (this.selectedTexture != null)
+    public void ShowSelected(params ITexture2D[] textures)
+    {        
+        if (textures.Length > 0)
         {
-            ImGui.Image(this.TextureRegistry.Get(this.selectedTexture), Fit(this.selectedTexture, ImGui.GetWindowContentRegionMax().X));
+            var index = this.selected < textures.Length ? this.selected : 0;
+            var selectedTexture = textures[index];
+            ImGui.Image(this.TextureRegistry.Get(selectedTexture), Fit(selectedTexture, ImGui.GetWindowContentRegionMax().X));
         }
     }
 
@@ -58,7 +58,6 @@ internal sealed class TextureSelector
         {
             this.selected = index;
             this.selectedName = name;
-            this.selectedTexture = texture;
         }
 
         if (isSelected)

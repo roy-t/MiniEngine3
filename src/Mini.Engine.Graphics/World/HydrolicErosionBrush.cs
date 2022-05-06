@@ -106,8 +106,6 @@ public sealed class HydrolicErosionBrush : IDisposable
         context.CS.SetUnorderedAccessView(HydrolicErosion.MapTint, tint);
         context.CS.SetShader(this.Shader.Kernel);
 
-        //this.User.MapConstants(context, (uint)height.Width, 3, (uint)droplets, (uint)brushWidth);
-
         this.User.MapConstants(context, (uint)height.Width, (uint)Math.Ceiling(settings.DropletStride / 2.0f), (uint)settings.Droplets, (uint)settings.DropletStride,
             settings.Inertia, settings.MinSedimentCapacity, settings.MinSpeed, settings.MaxSpeed, settings.Gravity, settings.SedimentFactor);
 
