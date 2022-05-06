@@ -7,19 +7,26 @@ float SampleHeight(RWTexture2D<float> heightMap, uint2 position, uint stride)
     return heightMap[index];
 }
 
-float3 ComputeHeightAndGradient(RWTexture2D<float> heightMap, uint2 index, uint stride)
+float3 ComputeHeightAndGradient(RWTexture2D<float> heightMap, float2 position, uint stride)
 {
+    uint2 index = uint2((uint) position.x, (uint) position.y);
+    float2 offset = float2(position.x - index.x, position.y - index.y);
+    
     float nw = SampleHeight(heightMap, index + uint2(-1, -1), stride);
     float ne = SampleHeight(heightMap, index + uint2(1, -1), stride);
-    float se = SampleHeight(heightMap, index + uint2(1, 1), stride);
     float sw = SampleHeight(heightMap, index + uint2(-1, 1), stride);
-    
-    float gradientX = (ne - nw) * 0.5f + (se - sw) * 0.5f;
-    float gradientY = (sw - nw) * 0.5f + (se - ne) * 0.5f;
+    float se = SampleHeight(heightMap, index + uint2(1, 1), stride);
+        
+    float gradientX = (ne - nw) * (1.0f - offset.y) + (se - sw) * offset.y;
+    float gradientY = (sw - nw) * (1.0f - offset.x) + (se - ne) * offset.x;
 
-    float c = SampleHeight(heightMap, index, stride);
+    float c =   nw * (1.0f - offset.x) * (1.0f - offset.y) +
+                ne * offset.x * (1.0f - offset.y) +
+                sw * (1.0f - offset.x) * offset.y +
+                se * offset.x * offset.y;
     
-    return float3(gradientX, gradientY, c);
+    float length = max(0.01f, sqrt(gradientX * gradientX + gradientY * gradientY));        
+    return float3(gradientX / length, gradientY / length, c);
 }
 
 float3 ComputeNormalFromHeightMap(RWTexture2D<float> heightMap, uint2 index, uint stride)

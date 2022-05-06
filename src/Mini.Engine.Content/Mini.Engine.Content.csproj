@@ -16,7 +16,7 @@
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Easings.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\World\HydrolicErosion.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\World\HydraulicErosion.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\Includes\Utilities.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\Terrain.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Indexes.hlsl" />

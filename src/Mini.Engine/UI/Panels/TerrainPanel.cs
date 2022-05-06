@@ -25,7 +25,7 @@ internal sealed class TerrainPanel : IPanel
     private float lacunarity = 1.0f;
     private float persistance = 0.55f;
 
-    private readonly HydrolicErosionBrushSettings erosionSettings;
+    private readonly HydraulicErosionBrushSettings erosionSettings;
 
     private Entity? world;
     private TerrainComponent? terrain;
@@ -38,10 +38,10 @@ internal sealed class TerrainPanel : IPanel
         this.Administrator = administrator;
         this.dimensions = 512;
 
-        this.erosionSettings = new HydrolicErosionBrushSettings();
+        this.erosionSettings = new HydraulicErosionBrushSettings();
 
         this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HeightMap.hlsl", "NoiseMapKernel"), _ => this.Recreate(this.ApplyTerrain));
-        this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HydrolicErosion.hlsl", "Kernel"), _ => { this.Recreate(this.ApplyTerrain); this.Recreate(this.ErodeTerrain); });
+        this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HydraulicErosion.hlsl", "Kernel"), _ => { this.Recreate(this.ApplyTerrain); this.Recreate(this.ErodeTerrain); });
     }
 
     public string Title => "Terrain";
@@ -70,7 +70,8 @@ internal sealed class TerrainPanel : IPanel
             ImGui.SliderInt("Droplets", ref this.erosionSettings.Droplets, 1, 1_000_000) ||
             ImGui.SliderInt("DropletStride", ref this.erosionSettings.DropletStride, 1, 15) ||
             ImGui.SliderFloat("SedimentFactor", ref this.erosionSettings.SedimentFactor, 0.01f, 5.0f) ||
-            ImGui.SliderFloat("MinSedimentCapacity", ref this.erosionSettings.MinSedimentCapacity, 0.0f, 0.01f) ||
+            ImGui.SliderFloat("MinSedimentCapacity", ref this.erosionSettings.MinSedimentCapacity, 0.0f, 0.001f) ||
+            ImGui.SliderFloat("DepositSpeed", ref this.erosionSettings.DepositSpeed, 0.005f, 0.05f) ||
             ImGui.SliderFloat("MinSpeed", ref this.erosionSettings.MinSpeed, 0.0025f, 1.0f) ||
             ImGui.SliderFloat("MaxSpeed", ref this.erosionSettings.MaxSpeed, 1, 10.0f) ||
             ImGui.SliderFloat("Inertia", ref this.erosionSettings.Inertia, 0.0f, 0.99f) ||

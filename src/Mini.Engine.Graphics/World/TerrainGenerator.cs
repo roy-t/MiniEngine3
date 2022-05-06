@@ -16,12 +16,12 @@ public sealed class TerrainGenerator
     private readonly ILogger Logger;
     private readonly Device Device;
     private readonly HeightMapGenerator HeightMapGenerator;
-    private readonly HydrolicErosionBrush ErosionBrush;
+    private readonly HydraulicErosionBrush ErosionBrush;
     private readonly ContentManager Content;
 
     private static readonly Color4 Umber = new Color4(140.0f / 255.0f, 105.0f / 255.0f, 75.0f / 255.0f);
 
-    public TerrainGenerator(ILogger logger, Device device, ContentManager content, HeightMapGenerator noiseGenerator, HydrolicErosionBrush erosionBrush)
+    public TerrainGenerator(ILogger logger, Device device, ContentManager content, HeightMapGenerator noiseGenerator, HydraulicErosionBrush erosionBrush)
     {
         this.Logger = logger.ForContext<TerrainGenerator>();
         this.Device = device;
@@ -47,7 +47,7 @@ public sealed class TerrainGenerator
         return new TerrainComponent(entity, height, normals, tint, mesh);
     }
 
-    public TerrainComponent Erode(Entity world, TerrainComponent terrain, HydrolicErosionBrushSettings settings, string name)
+    public TerrainComponent Erode(Entity world, TerrainComponent terrain, HydraulicErosionBrushSettings settings, string name)
     {
         var height = (RWTexture2D)terrain.Height;
         var tint = (RWTexture2D)terrain.Tint;

@@ -9,7 +9,7 @@ using Mini.Engine.Core;
 
 namespace Mini.Engine.Graphics.World;
 
-public sealed class HydrolicErosionBrushSettings
+public sealed class HydraulicErosionBrushSettings
 {
     /// <summary>
     /// Number of simulated droplets
@@ -35,6 +35,14 @@ public sealed class HydrolicErosionBrushSettings
     /// Range: [0..0.01]
     /// </summary>
     public float MinSedimentCapacity;
+
+    /// <summary>
+    /// Scales the speed of deposition when the droplet is going to slow to have enough capacity for all the sediment it
+    /// has acquired. Lower numbers might allows the sediment to travel further and release slower. Higher numbers might lead
+    /// to abrupt depositions, leading to spikey terrain.
+    /// Range: [0.001f..1f]
+    /// </summary>
+    public float DepositSpeed;
 
     /// <summary>
     /// Minimum speed, in meters per second, that water flows at. The speed of the water affects its sediment capacity.
@@ -65,12 +73,13 @@ public sealed class HydrolicErosionBrushSettings
     /// </summary>
     public float Gravity;
 
-    public HydrolicErosionBrushSettings(int droplets = 100_000, int dropletStride = 5, float sedimentFactor = 1.0f, float minSedimentCapacity = 0.001f, float minSpeed = 0.01f, float maxSpeed = 7.0f, float inertia = 0.55f, float gravity = 4.0f)
+    public HydraulicErosionBrushSettings(int droplets = 100_000, int dropletStride = 5, float sedimentFactor = 1.0f, float minSedimentCapacity = 0.000f, float depositSpeed = 0.01f, float minSpeed = 0.01f, float maxSpeed = 7.0f, float inertia = 0.55f, float gravity = 4.0f)
     {
         this.Droplets = droplets;
         this.DropletStride = dropletStride;
         this.SedimentFactor = sedimentFactor;
         this.MinSedimentCapacity= minSedimentCapacity;
+        this.DepositSpeed = depositSpeed;
         this.MinSpeed = minSpeed;
         this.MaxSpeed = maxSpeed;
         this.Inertia = inertia;
@@ -79,35 +88,35 @@ public sealed class HydrolicErosionBrushSettings
 }
 
 [Service]
-public sealed class HydrolicErosionBrush : IDisposable
+public sealed class HydraulicErosionBrush : IDisposable
 {
     private readonly Device Device;    
-    private readonly HydrolicErosion Shader;
-    private readonly HydrolicErosion.User User;
+    private readonly HydraulicErosion Shader;
+    private readonly HydraulicErosion.User User;
 
-    public HydrolicErosionBrush(Device device, HydrolicErosion shader)
+    public HydraulicErosionBrush(Device device, HydraulicErosion shader)
     {
         this.Device = device;
         this.Shader = shader;
-        this.User = shader.CreateUserFor<HydrolicErosionBrush>();
+        this.User = shader.CreateUserFor<HydraulicErosionBrush>();
     }
 
-    public void Apply(RWTexture2D height, RWTexture2D tint, HydrolicErosionBrushSettings settings)
+    public void Apply(RWTexture2D height, RWTexture2D tint, HydraulicErosionBrushSettings settings)
     {
         var context = this.Device.ImmediateContext;        
 
         using var input = this.CreatePositionBuffer(height, settings.Droplets, context);
         using var dropletMask = this.CreateDropletMaskBuffer(settings.DropletStride, context);
 
-        context.CS.SetShaderResource(HydrolicErosion.Positions, input);
-        context.CS.SetShaderResource(HydrolicErosion.DropletMask, dropletMask);
-        context.CS.SetConstantBuffer(HydrolicErosion.ConstantsSlot, this.User.ConstantsBuffer);
-        context.CS.SetUnorderedAccessView(HydrolicErosion.MapHeight, height);
-        context.CS.SetUnorderedAccessView(HydrolicErosion.MapTint, tint);
+        context.CS.SetShaderResource(HydraulicErosion.Positions, input);
+        context.CS.SetShaderResource(HydraulicErosion.DropletMask, dropletMask);
+        context.CS.SetConstantBuffer(HydraulicErosion.ConstantsSlot, this.User.ConstantsBuffer);
+        context.CS.SetUnorderedAccessView(HydraulicErosion.MapHeight, height);
+        context.CS.SetUnorderedAccessView(HydraulicErosion.MapTint, tint);
         context.CS.SetShader(this.Shader.Kernel);
 
         this.User.MapConstants(context, (uint)height.Width, (uint)Math.Ceiling(settings.DropletStride / 2.0f), (uint)settings.Droplets, (uint)settings.DropletStride,
-            settings.Inertia, settings.MinSedimentCapacity, settings.MinSpeed, settings.MaxSpeed, settings.Gravity, settings.SedimentFactor);
+            settings.Inertia, settings.MinSedimentCapacity, settings.MinSpeed, settings.MaxSpeed, settings.Gravity, settings.SedimentFactor, settings.DepositSpeed);
 
         var (x, y, z) = this.Shader.Kernel.GetDispatchSize((int)settings.Droplets, 1, 1);                
         context.CS.Dispatch(x, y, z);
@@ -115,7 +124,7 @@ public sealed class HydrolicErosionBrush : IDisposable
 
     private StructuredBuffer<Vector2> CreatePositionBuffer(RWTexture2D height, int droplets, DeviceContext context)
     {
-        var input = new StructuredBuffer<Vector2>(this.Device, nameof(HydrolicErosionBrush));
+        var input = new StructuredBuffer<Vector2>(this.Device, nameof(HydraulicErosionBrush));
 
         var positions = new Vector2[droplets];
         for (var i = 0; i < droplets; i++)
@@ -132,7 +141,7 @@ public sealed class HydrolicErosionBrush : IDisposable
 
     private StructuredBuffer<float> CreateDropletMaskBuffer(int dimensions, DeviceContext context)
     {
-        var buffer = new StructuredBuffer<float>(this.Device, nameof(HydrolicErosionBrush));
+        var buffer = new StructuredBuffer<float>(this.Device, nameof(HydraulicErosionBrush));
 
         var weights = new float[dimensions * dimensions];
 
