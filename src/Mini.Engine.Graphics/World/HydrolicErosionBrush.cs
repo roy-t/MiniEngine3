@@ -65,7 +65,7 @@ public sealed class HydrolicErosionBrushSettings
     /// </summary>
     public float Gravity;
 
-    public HydrolicErosionBrushSettings(int droplets = 1_000_000, int dropletStride = 5, float sedimentFactor = 1.0f, float minSedimentCapacity = 0.001f, float minSpeed = 0.01f, float maxSpeed = 7.0f, float inertia = 0.55f, float gravity = 4.0f)
+    public HydrolicErosionBrushSettings(int droplets = 100_000, int dropletStride = 5, float sedimentFactor = 1.0f, float minSedimentCapacity = 0.001f, float minSpeed = 0.01f, float maxSpeed = 7.0f, float inertia = 0.55f, float gravity = 4.0f)
     {
         this.Droplets = droplets;
         this.DropletStride = dropletStride;
@@ -77,7 +77,6 @@ public sealed class HydrolicErosionBrushSettings
         this.Gravity = gravity;
     }
 }
-
 
 [Service]
 public sealed class HydrolicErosionBrush : IDisposable
@@ -109,7 +108,7 @@ public sealed class HydrolicErosionBrush : IDisposable
 
         //this.User.MapConstants(context, (uint)height.Width, 3, (uint)droplets, (uint)brushWidth);
 
-        this.User.MapConstants(context, (uint)height.Width, (uint)settings.DropletStride / 2u, (uint)settings.Droplets, (uint)settings.DropletStride,
+        this.User.MapConstants(context, (uint)height.Width, (uint)Math.Ceiling(settings.DropletStride / 2.0f), (uint)settings.Droplets, (uint)settings.DropletStride,
             settings.Inertia, settings.MinSedimentCapacity, settings.MinSpeed, settings.MaxSpeed, settings.Gravity, settings.SedimentFactor);
 
         var (x, y, z) = this.Shader.Kernel.GetDispatchSize((int)settings.Droplets, 1, 1);                
