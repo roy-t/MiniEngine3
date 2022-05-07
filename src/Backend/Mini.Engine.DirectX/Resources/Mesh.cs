@@ -17,7 +17,7 @@ public sealed class Mesh : IMesh
 
     public VertexBuffer<ModelVertex> Vertices { get; }
     public IndexBuffer<int> Indices { get; }
-    public BoundingBox Bounds { get; }
+    public BoundingBox Bounds { get; set; }
 
     public void Dispose()
     {

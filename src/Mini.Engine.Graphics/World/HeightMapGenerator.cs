@@ -4,7 +4,7 @@ using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
-using Mini.Engine.ECS;
+using Vortice.Direct3D11;
 using Vortice.DXGI;
 using Vortice.Mathematics;
 
@@ -34,34 +34,46 @@ public sealed class HeightMapGenerator : IDisposable
     /// <param name="lacunarity">(1..) Increase in frequency for each consecutive octave, l * f ^ 0, l * f ^1, ...</param>
     /// <param name="persistance">[0..1), Decrease of amplitude for each consecutive octage, p * f ^ 0, p * f ^ 1, ...</param>
     /// <returns></returns>
-    public RWTexture2D GenerateHeights(int dimensions, Vector2 offset, float amplitude, float frequency, int octaves, float lacunarity, float persistance, Entity user)
+    public RWTexture2D GenerateHeights(int dimensions, Vector2 offset, float amplitude, float frequency, int octaves, float lacunarity, float persistance)
+    {        
+        var height = new RWTexture2D(this.Device, dimensions, dimensions, Format.R32_Float, false, nameof(HeightMapGenerator), "HeightMap");
+        this.UpdateHeights(height, offset, amplitude, frequency, octaves, lacunarity, persistance);
+
+        return height;
+    }   
+
+    public void UpdateHeights(RWTexture2D height, Vector2 offset, float amplitude, float frequency, int octaves, float lacunarity, float persistance)
     {
         var context = this.Device.ImmediateContext;
+        var dimensions = height.Width;
 
         this.User.MapNoiseConstants(context, (uint)dimensions, offset, amplitude, frequency, octaves, lacunarity, persistance);
         context.CS.SetConstantBuffer(HeightMap.NoiseConstantsSlot, this.User.NoiseConstantsBuffer);
-
-        var height = new RWTexture2D(this.Device, dimensions, dimensions, Format.R32_Float, false, user.ToString(), "HeightMap");
 
         context.CS.SetShader(this.Shader.NoiseMapKernel);
         context.CS.SetUnorderedAccessView(HeightMap.MapHeight, height);
 
         var (x, y, z) = this.Shader.NoiseMapKernel.GetDispatchSize(dimensions, dimensions, 1);
-        context.CS.Dispatch(x, y, z);
-
-        return height;
+        context.CS.Dispatch(x, y, z);        
     }
 
-    public RWTexture2D GenerateNormals(RWTexture2D heightMap, Entity user)
+    public RWTexture2D GenerateNormals(RWTexture2D heightMap)
     {
         var dimensions = heightMap.Width;
+        var normals = new RWTexture2D(this.Device, dimensions, dimensions, Format.R32G32B32A32_Float, false, nameof(HeightMapGenerator), "NormalMap");
 
+        this.UpdateNormals(heightMap, normals);
+
+        return normals;
+    }
+
+    public void UpdateNormals(RWTexture2D heightMap, RWTexture2D normals)
+    {
         var context = this.Device.ImmediateContext;
+        var dimensions = normals.Width;
 
         this.User.MapNoiseConstants(context, (uint)dimensions, Vector2.Zero, 0, 0, 0, 0, 0);
         context.CS.SetConstantBuffer(HeightMap.NoiseConstantsSlot, this.User.NoiseConstantsBuffer);
-
-        var normals = new RWTexture2D(this.Device, dimensions, dimensions, Format.R32G32B32A32_Float, false, user.ToString(), "NormalMap");
 
         context.CS.SetShader(this.Shader.NormalMapKernel);
         context.CS.SetUnorderedAccessView(HeightMap.MapHeight, heightMap);
@@ -69,19 +81,22 @@ public sealed class HeightMapGenerator : IDisposable
 
         var (x, y, z) = this.Shader.NormalMapKernel.GetDispatchSize(dimensions, dimensions, 1);
         context.CS.Dispatch(x, y, z);
-
-        return normals;
     }
 
-    public RWTexture2D GenerateTint(int dimensions, Color4 tint, Entity user)
+    public RWTexture2D GenerateTint(int dimensions, Color4 tint)
     {
-        var texture = new RWTexture2D(this.Device, dimensions, dimensions, Format.R8G8B8A8_UNorm, false, user.ToString(), "Tint");
-        this.Device.ImmediateContext.Clear(texture, tint);
+        var texture = new RWTexture2D(this.Device, dimensions, dimensions, Format.R8G8B8A8_UNorm, false, nameof(HeightMapGenerator), "Tint");
+        this.UpdateTint(texture, tint);
 
         return texture;
-    }    
+    }
 
-    public ModelVertex[] GenerateVertices(RWTexture2D heightMap, RWTexture2D normalMap)
+    public void UpdateTint(RWTexture2D texture, Color4 tint)
+{
+        this.Device.ImmediateContext.Clear(texture, tint);        
+    }
+
+    public ModelVertex[] GenerateVertices(RWTexture2D heightMap)
     {
         var context = this.Device.ImmediateContext;
         

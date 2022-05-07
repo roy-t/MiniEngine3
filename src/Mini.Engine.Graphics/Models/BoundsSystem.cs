@@ -116,7 +116,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
             var camera = this.FrameService.Camera;
 
             var world = transform.AsMatrix();
-            var bounds = component.Mesh.Bounds.Transform(world);
+            var bounds = component.Terrain.Mesh.Bounds.Transform(world);
 
             if (camera.Frustum.ContainsOrIntersects(bounds))
             {

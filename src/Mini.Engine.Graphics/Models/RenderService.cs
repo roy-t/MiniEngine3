@@ -46,7 +46,7 @@ public sealed class RenderService
         foreach(var terrain in this.Terrain.GetAllItems())
         {
             var transform = this.Transforms[terrain.Entity];
-            DrawMesh(callback, context, viewVolum, viewProjection, terrain.Mesh, transform.Transform);
+            DrawMesh(callback, context, viewVolum, viewProjection, terrain.Terrain.Mesh, transform.Transform);
         }
     }
 

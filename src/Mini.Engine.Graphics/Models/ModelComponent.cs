@@ -4,7 +4,7 @@ using Mini.Engine.ECS;
 
 namespace Mini.Engine.Graphics.Models;
 
-public sealed class ModelComponent : Component, IDisposable
+public sealed class ModelComponent : Component
 {
     public ModelComponent(Entity entity, IModel model)
         : base(entity)
@@ -13,9 +13,4 @@ public sealed class ModelComponent : Component, IDisposable
     }
 
     public IModel Model { get; }
-
-    public void Dispose()
-    {
-        this.Model.Dispose();
-    }
 }
