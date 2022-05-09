@@ -38,7 +38,7 @@ public sealed class HydraulicErosionBrush : IDisposable
         context.CS.SetShader(this.Shader.Kernel);
 
         this.User.MapConstants(context, (uint)height.Width, (uint)Math.Ceiling(settings.DropletStride / 2.0f), (uint)settings.Droplets, (uint)settings.DropletStride,
-            settings.Inertia, settings.MinSedimentCapacity, settings.Gravity, settings.SedimentFactor, settings.DepositSpeed);
+            settings.Inertia, settings.MinSedimentCapacity, settings.Gravity, settings.SedimentFactor, settings.DepositSpeed, settings.ErosionTintFactor, settings.BuildUpTintFactor);
 
         var (x, y, z) = this.Shader.Kernel.GetDispatchSize((int)settings.Droplets, 1, 1);                
         context.CS.Dispatch(x, y, z);

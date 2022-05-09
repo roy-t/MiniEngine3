@@ -87,7 +87,10 @@ internal sealed class TerrainPanel : IPanel
                 ImGui.SliderFloat("MinSedimentCapacity", ref this.erosionSettings.MinSedimentCapacity, 0.0f, 0.001f) ||
                 ImGui.SliderFloat("DepositSpeed", ref this.erosionSettings.DepositSpeed, 0.005f, 0.05f) ||
                 ImGui.SliderFloat("Inertia", ref this.erosionSettings.Inertia, 0.0f, 0.99f) ||
-                ImGui.SliderFloat("Gravity", ref this.erosionSettings.Gravity, 1.0f, 4.0f);                
+                ImGui.SliderFloat("Gravity", ref this.erosionSettings.Gravity, 1.0f, 4.0f) ||
+                ImGui.SliderFloat("ErosionTintFactor", ref this.erosionSettings.ErosionTintFactor, -50.0f, 50.0f) ||
+                ImGui.SliderFloat("BuildUpTintFactor", ref this.erosionSettings.BuildUpTintFactor, -50.0f, 50.0f);
+
 
             if (ImGui.Button("Randomize Seed"))
             {

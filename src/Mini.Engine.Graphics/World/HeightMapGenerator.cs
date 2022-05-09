@@ -84,7 +84,7 @@ public sealed class HeightMapGenerator : IDisposable
 
     public RWTexture2D GenerateTint(int dimensions, Color4 tint)
     {
-        var texture = new RWTexture2D(this.Device, dimensions, dimensions, Format.R8G8B8A8_UNorm, false, nameof(HeightMapGenerator), "Tint");
+        var texture = new RWTexture2D(this.Device, dimensions, dimensions, Format.R32G32B32A32_Float, false, nameof(HeightMapGenerator), "Tint");
         this.UpdateTint(texture, tint);
 
         return texture;

@@ -15,7 +15,11 @@ cbuffer Constants : register(b0)
     float Gravity;
     float SedimentFactor;
     float DepositSpeed;
-    float3 __Padding;
+    
+    // TODO: if we make this float4 colours than we can try to play with substracting only certain wavelengths
+    float ErosionTintFactor;
+    float BuildUpTintFactor;
+    float __Padding;
 }
 
 RWTexture2D<float> MapHeight : register(u0);
@@ -88,11 +92,22 @@ void Kernel(in uint3 dispatchId : SV_DispatchThreadID)
             deposit *= DepositSpeed;
             int2 offset = -int2(DropletStride / 2, DropletStride / 2);
             
-            MapHeight[index] += deposit * (1.0f - cellOffset.x) * (1.0f - cellOffset.y);
-            MapHeight[index + uint2(1, 0)] += deposit * cellOffset.x * (1.0f - cellOffset.y);
-            MapHeight[index + uint2(0, 1)] += deposit * (1.0f - cellOffset.x) * cellOffset.y;
-            MapHeight[index + uint2(1, 1)] += deposit * cellOffset.x * cellOffset.y;
-                        
+            float tl = deposit * (1.0f - cellOffset.x) * (1.0f - cellOffset.y);
+            float tr = deposit * cellOffset.x * (1.0f - cellOffset.y);
+            float bl = deposit * (1.0f - cellOffset.x) * cellOffset.y;
+            float br = deposit * cellOffset.x * cellOffset.y;
+    
+            MapHeight[index] += tl;
+            MapHeight[index + uint2(1, 0)] += tr;
+            MapHeight[index + uint2(0, 1)] += bl;
+            MapHeight[index + uint2(1, 1)] += br;
+                
+            // TODO: clamp tinting?
+            MapTint[index] += tl * BuildUpTintFactor;
+            MapTint[index + uint2(1, 0)] += tr * BuildUpTintFactor;
+            MapTint[index + uint2(0, 1)] += bl * BuildUpTintFactor;
+            MapTint[index + uint2(1, 1)] += br * BuildUpTintFactor;
+    
             sediment -= deposit;
         }
         else if (sedimentCapacity > sediment)
@@ -104,8 +119,11 @@ void Kernel(in uint3 dispatchId : SV_DispatchThreadID)
             {
                 int2 erodeIndex = ToTwoDimensional(i, DropletStride) + offset + index;
                 MapHeight[erodeIndex] -= erosion * DropletMask[i];
-            }
-            
+        
+                // TODO: clamp tinting?
+                MapTint[erodeIndex] -= ErosionTintFactor * erosion * DropletMask[i];
+
+            }                        
             sediment += erosion;
         }
         

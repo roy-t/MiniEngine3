@@ -55,15 +55,21 @@ public sealed class HydraulicErosionBrushSettings
     /// </summary>
     public float Gravity;
 
-    public HydraulicErosionBrushSettings(int seed = 404, int droplets = 1_000_000, int dropletStride = 5, float sedimentFactor = 1.0f, float minSedimentCapacity = 0.000f, float depositSpeed = 0.01f, float inertia = 0.55f, float gravity = 4.0f)
+    public float ErosionTintFactor;
+
+    public float BuildUpTintFactor;
+
+    public HydraulicErosionBrushSettings(int seed = 404, int droplets = 1_000_000, int dropletStride = 5, float sedimentFactor = 1.0f, float minSedimentCapacity = 0.000f, float depositSpeed = 0.01f, float inertia = 0.55f, float gravity = 4.0f, float erosionTintFactor = 5.0f, float buildUpTintFactor = 20.0f)
     {
         this.Seed = seed;
         this.Droplets = droplets;
         this.DropletStride = dropletStride;
         this.SedimentFactor = sedimentFactor;
-        this.MinSedimentCapacity= minSedimentCapacity;
+        this.MinSedimentCapacity = minSedimentCapacity;
         this.DepositSpeed = depositSpeed;
         this.Inertia = inertia;
         this.Gravity = gravity;
+        this.ErosionTintFactor = erosionTintFactor;
+        this.BuildUpTintFactor = buildUpTintFactor;
     }
 }
