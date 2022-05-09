@@ -4,7 +4,6 @@ using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
-using Vortice.Direct3D11;
 using Vortice.DXGI;
 using Vortice.Mathematics;
 
@@ -34,20 +33,20 @@ public sealed class HeightMapGenerator : IDisposable
     /// <param name="lacunarity">(1..) Increase in frequency for each consecutive octave, l * f ^ 0, l * f ^1, ...</param>
     /// <param name="persistance">[0..1), Decrease of amplitude for each consecutive octage, p * f ^ 0, p * f ^ 1, ...</param>
     /// <returns></returns>
-    public RWTexture2D GenerateHeights(int dimensions, Vector2 offset, float amplitude, float frequency, int octaves, float lacunarity, float persistance)
+    public RWTexture2D GenerateHeights(HeightMapGeneratorSettings settings)
     {        
-        var height = new RWTexture2D(this.Device, dimensions, dimensions, Format.R32_Float, false, nameof(HeightMapGenerator), "HeightMap");
-        this.UpdateHeights(height, offset, amplitude, frequency, octaves, lacunarity, persistance);
+        var height = new RWTexture2D(this.Device, settings.Dimensions, settings.Dimensions, Format.R32_Float, false, nameof(HeightMapGenerator), "HeightMap");
+        this.UpdateHeights(height, settings);
 
         return height;
     }   
 
-    public void UpdateHeights(RWTexture2D height, Vector2 offset, float amplitude, float frequency, int octaves, float lacunarity, float persistance)
+    public void UpdateHeights(RWTexture2D height, HeightMapGeneratorSettings settings)
     {
         var context = this.Device.ImmediateContext;
         var dimensions = height.Width;
 
-        this.User.MapNoiseConstants(context, (uint)dimensions, offset, amplitude, frequency, octaves, lacunarity, persistance);
+        this.User.MapNoiseConstants(context, (uint)dimensions, settings.Offset, settings.Amplitude, settings.Frequency, settings.Octaves, settings.Lacunarity, settings.Persistance);
         context.CS.SetConstantBuffer(HeightMap.NoiseConstantsSlot, this.User.NoiseConstantsBuffer);
 
         context.CS.SetShader(this.Shader.NoiseMapKernel);

@@ -11,13 +11,11 @@ cbuffer Constants : register(b0)
     
     float Inertia;
     float MinSedimentCapacity;
-    float MinSpeed;
-    float MaxSpeed;
     
     float Gravity;
     float SedimentFactor;
     float DepositSpeed;
-    float __Padding;
+    float3 __Padding;
 }
 
 RWTexture2D<float> MapHeight : register(u0);
@@ -40,7 +38,7 @@ void Kernel(in uint3 dispatchId : SV_DispatchThreadID)
     float sedimentCapacityFactor = (Stride / 51200.0f) * SedimentFactor;
     
     // Droplet property initialization
-    float speed = MinSpeed;
+    float speed = 0.01f;
     float water = 1.0f;      
     float evaporation = water / iterations;
     float sediment = 0.0f;

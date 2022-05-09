@@ -9,84 +9,6 @@ using Mini.Engine.Core;
 
 namespace Mini.Engine.Graphics.World;
 
-public sealed class HydraulicErosionBrushSettings
-{
-    /// <summary>
-    /// Number of simulated droplets
-    /// </summary>
-    public int Droplets;
-
-    /// <summary>
-    /// Size of an individual droplet
-    /// </summary>
-    public int DropletStride;
-
-    /// <summary>
-    /// Multiplier for the amount of sediment one droplet of water can carry. Lower numbers produce a softer effect. Higher
-    // numbers produce a stronger effect.
-    // Range: [0.01f..5.0f]
-    /// </summary>
-    public float SedimentFactor;
-
-    /// <summary>
-    /// Sediment capacity of slow moving or standing still water. Lower numbers prevent cratering but might stop a droplet
-    /// from affecting the terrain before the end of its lifetime. Higher numbers sometimes lead to craters and hills forming
-    /// on flat surfaces.
-    /// Range: [0..0.01]
-    /// </summary>
-    public float MinSedimentCapacity;
-
-    /// <summary>
-    /// Scales the speed of deposition when the droplet is going to slow to have enough capacity for all the sediment it
-    /// has acquired. Lower numbers might allows the sediment to travel further and release slower. Higher numbers might lead
-    /// to abrupt depositions, leading to spikey terrain.
-    /// Range: [0.001f..1f]
-    /// </summary>
-    public float DepositSpeed;
-
-    /// <summary>
-    /// Minimum speed, in meters per second, that water flows at. The speed of the water affects its sediment capacity.
-    /// Lower numbers create more deposits and thus a rougher terrain. Higher numbers create a smoother terrain with more erosion.
-    /// Range: [0.0025f..1.0f]
-    /// </summary>
-    public float MinSpeed;
-
-    /// <summary>
-    ///Maximum speed, in meters per second, that water flows at. The speed of the water affects its sediment capacity.
-    // Lower numbers create more deposits and thus a rougher terrain. Higher numbers create a smoother terrain with more erosion.
-    // Range: [1.0f..10.0f]
-    /// </summary>
-    public float MaxSpeed;
-
-    /// <summary>
-    /// Inertia. 
-    /// Controls how much water keeps going the same direction. Lower numbers make the water follow the contours of the 
-    /// terrain better. Higher numbers allow the water to maintain its momentum and even allow it to flow slightly up
-    /// Range: [0..1]
-    /// </summary>
-    public float Inertia;
-
-    /// <summary>
-    ///Affects the acceleration over time of water that is going up or down hill. Lower numbers reduce the effect on steep terrain.
-    // Higher numbers increase the effect on steep terrain.
-    // Range [1.0f, 20.0f]
-    /// </summary>
-    public float Gravity;
-
-    public HydraulicErosionBrushSettings(int droplets = 100_000, int dropletStride = 5, float sedimentFactor = 1.0f, float minSedimentCapacity = 0.000f, float depositSpeed = 0.01f, float minSpeed = 0.01f, float maxSpeed = 7.0f, float inertia = 0.55f, float gravity = 4.0f)
-    {
-        this.Droplets = droplets;
-        this.DropletStride = dropletStride;
-        this.SedimentFactor = sedimentFactor;
-        this.MinSedimentCapacity= minSedimentCapacity;
-        this.DepositSpeed = depositSpeed;
-        this.MinSpeed = minSpeed;
-        this.MaxSpeed = maxSpeed;
-        this.Inertia = inertia;
-        this.Gravity = gravity;
-    }
-}
-
 [Service]
 public sealed class HydraulicErosionBrush : IDisposable
 {
@@ -116,7 +38,7 @@ public sealed class HydraulicErosionBrush : IDisposable
         context.CS.SetShader(this.Shader.Kernel);
 
         this.User.MapConstants(context, (uint)height.Width, (uint)Math.Ceiling(settings.DropletStride / 2.0f), (uint)settings.Droplets, (uint)settings.DropletStride,
-            settings.Inertia, settings.MinSedimentCapacity, settings.MinSpeed, settings.MaxSpeed, settings.Gravity, settings.SedimentFactor, settings.DepositSpeed);
+            settings.Inertia, settings.MinSedimentCapacity, settings.Gravity, settings.SedimentFactor, settings.DepositSpeed);
 
         var (x, y, z) = this.Shader.Kernel.GetDispatchSize((int)settings.Droplets, 1, 1);                
         context.CS.Dispatch(x, y, z);

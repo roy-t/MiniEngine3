@@ -17,14 +17,8 @@ internal sealed class TerrainPanel : IPanel
     private readonly ContentManager Content;
     private readonly ECSAdministrator Administrator;
 
-    private int dimensions = 512;
-    private Vector2 offset = Vector2.Zero;
-    private float amplitude = 0.15f;
-    private float frequency = 1.5f;
-    private int octaves = 10;
-    private float lacunarity = 1.0f;
-    private float persistance = 0.55f;
 
+    private readonly HeightMapGeneratorSettings MapSettings;
     private readonly HydraulicErosionBrushSettings ErosionSettings;
 
     private Entity? world;
@@ -37,8 +31,8 @@ internal sealed class TerrainPanel : IPanel
         this.Selector = new TextureSelector(registry);
         this.Content = content;
         this.Administrator = administrator;
-        this.dimensions = 512;
 
+        this.MapSettings = new HeightMapGeneratorSettings();
         this.ErosionSettings = new HydraulicErosionBrushSettings();
 
         this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HeightMap.hlsl", "NoiseMapKernel"), _ => this.Recreate(this.ApplyTerrain));
@@ -51,7 +45,7 @@ internal sealed class TerrainPanel : IPanel
     {
         if (this.terrain == null)
         {
-            ImGui.SliderInt("Dimensions", ref this.dimensions, 4, 4096);                        
+            ImGui.SliderInt("Dimensions", ref this.MapSettings.Dimensions, 4, 4096);                        
             if (ImGui.Button("Generate"))
             {
                 this.Recreate(this.ApplyTerrain);
@@ -64,12 +58,12 @@ internal sealed class TerrainPanel : IPanel
             ImGui.Text("Terrain generator settings");
 
             var terrainChanged =
-                ImGui.DragFloat2("Offset", ref this.offset, 0.1f) ||
-                ImGui.SliderInt("Octaves", ref this.octaves, 1, 20) ||
-                ImGui.SliderFloat("Amplitude", ref this.amplitude, 0.01f, 2.0f) ||
-                ImGui.SliderFloat("Persistance", ref this.persistance, 0.1f, 1.0f) ||
-                ImGui.SliderFloat("Frequency", ref this.frequency, 0.1f, 10.0f) ||
-                ImGui.SliderFloat("Lacunarity", ref this.lacunarity, 0.1f, 10.0f);           
+                ImGui.DragFloat2("Offset", ref this.MapSettings.Offset, 0.1f) ||
+                ImGui.SliderInt("Octaves", ref this.MapSettings.Octaves, 1, 20) ||
+                ImGui.SliderFloat("Amplitude", ref this.MapSettings.Amplitude, 0.01f, 2.0f) ||
+                ImGui.SliderFloat("Persistance", ref this.MapSettings.Persistance, 0.1f, 1.0f) ||
+                ImGui.SliderFloat("Frequency", ref this.MapSettings.Frequency, 0.1f, 10.0f) ||
+                ImGui.SliderFloat("Lacunarity", ref this.MapSettings.Lacunarity, 0.1f, 10.0f);           
 
             // TODO: add cliff generation properties
 
@@ -86,8 +80,6 @@ internal sealed class TerrainPanel : IPanel
                 ImGui.SliderFloat("SedimentFactor", ref this.ErosionSettings.SedimentFactor, 0.01f, 5.0f) ||
                 ImGui.SliderFloat("MinSedimentCapacity", ref this.ErosionSettings.MinSedimentCapacity, 0.0f, 0.001f) ||
                 ImGui.SliderFloat("DepositSpeed", ref this.ErosionSettings.DepositSpeed, 0.005f, 0.05f) ||
-                ImGui.SliderFloat("MinSpeed", ref this.ErosionSettings.MinSpeed, 0.0025f, 1.0f) ||
-                ImGui.SliderFloat("MaxSpeed", ref this.ErosionSettings.MaxSpeed, 1, 10.0f) ||
                 ImGui.SliderFloat("Inertia", ref this.ErosionSettings.Inertia, 0.0f, 0.99f) ||
                 ImGui.SliderFloat("Gravity", ref this.ErosionSettings.Gravity, 1.0f, 4.0f) ||
                 ImGui.Button("Erode");
@@ -113,10 +105,10 @@ internal sealed class TerrainPanel : IPanel
     {
         if (input is not null)
         {
-            this.Generator.Update(input, this.offset, this.amplitude, this.frequency, this.octaves, this.lacunarity, this.persistance, "terrain");
+            this.Generator.Update(input, this.MapSettings, "terrain");
             return input;
         }
-        return this.Generator.Generate(this.dimensions, this.offset, this.amplitude, this.frequency, this.octaves, this.lacunarity, this.persistance, "terrain");    
+        return this.Generator.Generate(this.MapSettings, "terrain");    
     }
 
     private TerrainMesh ErodeTerrain(TerrainMesh? input)

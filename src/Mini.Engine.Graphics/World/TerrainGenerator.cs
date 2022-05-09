@@ -1,8 +1,6 @@
 ﻿using System.Numerics;
-using System.Xml.Linq;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
-using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Vortice.Mathematics;
@@ -17,7 +15,7 @@ public sealed class TerrainGenerator
     private readonly HydraulicErosionBrush ErosionBrush;
     private readonly ContentManager Content;
 
-    private static readonly Color4 Umber = new Color4(140.0f / 255.0f, 105.0f / 255.0f, 75.0f / 255.0f);
+    private static readonly Color4 Umber = new(140.0f / 255.0f, 105.0f / 255.0f, 75.0f / 255.0f);
 
     public TerrainGenerator(Device device, ContentManager content, HeightMapGenerator noiseGenerator, HydraulicErosionBrush erosionBrush)
     {
@@ -28,25 +26,25 @@ public sealed class TerrainGenerator
     }
     // TODO: double check which resources should be tied to the content manager and/or should be disposed
 
-    public TerrainMesh Generate(int dimensions, Vector2 offset, float amplitude, float frequency, int octaves, float lacunarity, float persistance, string name)
+    public TerrainMesh Generate(HeightMapGeneratorSettings settings, string name)
     {
-        var height = this.HeightMapGenerator.GenerateHeights(dimensions, offset, amplitude, frequency, octaves, lacunarity, persistance);
+        var height = this.HeightMapGenerator.GenerateHeights(settings);
         var normals = this.HeightMapGenerator.GenerateNormals(height);
-        var tint = this.HeightMapGenerator.GenerateTint(dimensions, Umber);
+        var tint = this.HeightMapGenerator.GenerateTint(settings.Dimensions, Umber);
 
-        var bounds = ComputeBounds(amplitude, octaves, persistance);
+        var bounds = ComputeBounds(settings.Amplitude, settings.Octaves, settings.Persistance);
         var mesh = this.GenerateMesh(height, bounds, name);        
         
         return new TerrainMesh(height, normals, tint, mesh);
     }
 
-    public void Update(TerrainMesh input, Vector2 offset, float amplitude, float frequency, int octaves, float lacunarity, float persistance, string name)
+    public void Update(TerrainMesh input, HeightMapGeneratorSettings settings, string name)
 {
-        this.HeightMapGenerator.UpdateHeights(input.Height, offset, amplitude, frequency, octaves, lacunarity, persistance);
+        this.HeightMapGenerator.UpdateHeights(input.Height, settings);
         this.HeightMapGenerator.UpdateNormals(input.Height, input.Normals);
         this.HeightMapGenerator.UpdateTint(input.Tint, Umber);
 
-        var bounds = ComputeBounds(amplitude, octaves, persistance);
+        var bounds = ComputeBounds(settings.Amplitude, settings.Octaves, settings.Persistance);
         this.UpdateMesh(input.Mesh, input.Height, bounds);
     }
 
