@@ -24,7 +24,6 @@ public sealed class TerrainGenerator
         this.Content = content;
         this.ErosionBrush = erosionBrush;
     }
-    // TODO: double check which resources should be tied to the content manager and/or should be disposed
 
     public TerrainMesh Generate(HeightMapGeneratorSettings settings, string name)
     {
@@ -33,8 +32,13 @@ public sealed class TerrainGenerator
         var tint = this.HeightMapGenerator.GenerateTint(settings.Dimensions, Umber);
 
         var bounds = ComputeBounds(settings.Amplitude, settings.Octaves, settings.Persistance);
-        var mesh = this.GenerateMesh(height, bounds, name);        
-        
+        var mesh = this.GenerateMesh(height, bounds, name);
+
+        this.Content.Link(height, $"{name}#{height.Name}");
+        this.Content.Link(normals, $"{name}#{normals.Name}");
+        this.Content.Link(tint, $"{name}#{tint.Name}");
+        this.Content.Link(mesh, $"{name}#{mesh}");
+
         return new TerrainMesh(height, normals, tint, mesh);
     }
 
@@ -60,8 +64,6 @@ public sealed class TerrainGenerator
         var vertices = this.HeightMapGenerator.GenerateVertices(height);
         var indices = this.HeightMapGenerator.GenerateIndices(height.Width, height.Height);
         var mesh = new Mesh(this.Device, bounds, vertices, indices, name, "mesh");
-        this.Content.Link(mesh, $"{name}#terrain");
-
         return mesh;
     }
 

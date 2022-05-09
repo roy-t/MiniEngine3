@@ -3,6 +3,11 @@
 public sealed class HydraulicErosionBrushSettings
 {
     /// <summary>
+    /// Seed for randomizer
+    /// </summary>
+    public int Seed;
+
+    /// <summary>
     /// Number of simulated droplets
     /// </summary>
     public int Droplets;
@@ -50,8 +55,9 @@ public sealed class HydraulicErosionBrushSettings
     /// </summary>
     public float Gravity;
 
-    public HydraulicErosionBrushSettings(int droplets = 1_000_000, int dropletStride = 5, float sedimentFactor = 1.0f, float minSedimentCapacity = 0.000f, float depositSpeed = 0.01f, float inertia = 0.55f, float gravity = 4.0f)
+    public HydraulicErosionBrushSettings(int seed = 404, int droplets = 1_000_000, int dropletStride = 5, float sedimentFactor = 1.0f, float minSedimentCapacity = 0.000f, float depositSpeed = 0.01f, float inertia = 0.55f, float gravity = 4.0f)
     {
+        this.Seed = seed;
         this.Droplets = droplets;
         this.DropletStride = dropletStride;
         this.SedimentFactor = sedimentFactor;

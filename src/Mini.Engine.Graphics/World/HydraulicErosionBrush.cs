@@ -27,7 +27,7 @@ public sealed class HydraulicErosionBrush : IDisposable
     {
         var context = this.Device.ImmediateContext;        
 
-        using var input = this.CreatePositionBuffer(height, settings.Droplets, context);
+        using var input = this.CreatePositionBuffer(height, settings.Seed, settings.Droplets, context);
         using var dropletMask = this.CreateDropletMaskBuffer(settings.DropletStride, context);
 
         context.CS.SetShaderResource(HydraulicErosion.Positions, input);
@@ -44,15 +44,16 @@ public sealed class HydraulicErosionBrush : IDisposable
         context.CS.Dispatch(x, y, z);
     }
 
-    private StructuredBuffer<Vector2> CreatePositionBuffer(RWTexture2D height, int droplets, DeviceContext context)
+    private StructuredBuffer<Vector2> CreatePositionBuffer(RWTexture2D height, int seed, int droplets, DeviceContext context)
     {
+        var random = new Random(seed);
         var input = new StructuredBuffer<Vector2>(this.Device, nameof(HydraulicErosionBrush));
 
         var positions = new Vector2[droplets];
         for (var i = 0; i < droplets; i++)
         {
-            var startX = Random.Shared.Next(0, height.Width) + 0.5f;
-            var startY = Random.Shared.Next(0, height.Height) + 0.5f;
+            var startX = random.Next(0, height.Width) + 0.5f;
+            var startY = random.Next(0, height.Height) + 0.5f;
 
             positions[i] = new Vector2(startX, startY);
         }

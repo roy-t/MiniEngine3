@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using ImGuiNET;
+﻿using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.ECS;
@@ -18,8 +17,8 @@ internal sealed class TerrainPanel : IPanel
     private readonly ECSAdministrator Administrator;
 
 
-    private readonly HeightMapGeneratorSettings MapSettings;
-    private readonly HydraulicErosionBrushSettings ErosionSettings;
+    private HeightMapGeneratorSettings mapSettings;
+    private HydraulicErosionBrushSettings erosionSettings;
 
     private Entity? world;
     private TerrainComponent? terrain;
@@ -32,8 +31,8 @@ internal sealed class TerrainPanel : IPanel
         this.Content = content;
         this.Administrator = administrator;
 
-        this.MapSettings = new HeightMapGeneratorSettings();
-        this.ErosionSettings = new HydraulicErosionBrushSettings();
+        this.mapSettings = new HeightMapGeneratorSettings();
+        this.erosionSettings = new HydraulicErosionBrushSettings();
 
         this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HeightMap.hlsl", "NoiseMapKernel"), _ => this.Recreate(this.ApplyTerrain));
         this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HydraulicErosion.hlsl", "Kernel"), _ => { this.Recreate(this.ApplyTerrain); this.Recreate(this.ErodeTerrain); });
@@ -45,7 +44,7 @@ internal sealed class TerrainPanel : IPanel
     {
         if (this.terrain == null)
         {
-            ImGui.SliderInt("Dimensions", ref this.MapSettings.Dimensions, 4, 4096);                        
+            ImGui.SliderInt("Dimensions", ref this.mapSettings.Dimensions, 4, 4096);                        
             if (ImGui.Button("Generate"))
             {
                 this.Recreate(this.ApplyTerrain);
@@ -53,20 +52,25 @@ internal sealed class TerrainPanel : IPanel
         }       
         else
         {
-            // TODO: improve UI!
-
             ImGui.Text("Terrain generator settings");
 
             var terrainChanged =
-                ImGui.DragFloat2("Offset", ref this.MapSettings.Offset, 0.1f) ||
-                ImGui.SliderInt("Octaves", ref this.MapSettings.Octaves, 1, 20) ||
-                ImGui.SliderFloat("Amplitude", ref this.MapSettings.Amplitude, 0.01f, 2.0f) ||
-                ImGui.SliderFloat("Persistance", ref this.MapSettings.Persistance, 0.1f, 1.0f) ||
-                ImGui.SliderFloat("Frequency", ref this.MapSettings.Frequency, 0.1f, 10.0f) ||
-                ImGui.SliderFloat("Lacunarity", ref this.MapSettings.Lacunarity, 0.1f, 10.0f) ||
-                ImGui.SliderFloat("CliffStart", ref this.MapSettings.CliffStart, 0.0f, 1.0f) ||
-                ImGui.SliderFloat("CliffEnd", ref this.MapSettings.CliffEnd, 0.0f, 1.0f) ||
-                ImGui.SliderFloat("CliffStrength", ref this.MapSettings.CliffStrength, 0.0f, 1.0f);
+                ImGui.DragFloat2("Offset", ref this.mapSettings.Offset, 0.1f) ||
+                ImGui.SliderInt("Octaves", ref this.mapSettings.Octaves, 1, 20) ||
+                ImGui.SliderFloat("Amplitude", ref this.mapSettings.Amplitude, 0.01f, 2.0f) ||
+                ImGui.SliderFloat("Persistance", ref this.mapSettings.Persistance, 0.1f, 1.0f) ||
+                ImGui.SliderFloat("Frequency", ref this.mapSettings.Frequency, 0.1f, 10.0f) ||
+                ImGui.SliderFloat("Lacunarity", ref this.mapSettings.Lacunarity, 0.1f, 10.0f) ||
+                ImGui.SliderFloat("CliffStart", ref this.mapSettings.CliffStart, 0.0f, 1.0f) ||
+                ImGui.SliderFloat("CliffEnd", ref this.mapSettings.CliffEnd, 0.0f, 1.0f) ||
+                ImGui.SliderFloat("CliffStrength", ref this.mapSettings.CliffStrength, 0.0f, 1.0f);
+
+            if (ImGui.Button("Reset Height Map Generator Settings"))
+            {
+                this.mapSettings = new HeightMapGeneratorSettings();
+                terrainChanged = true;
+                
+            }
 
             if (terrainChanged)
             {
@@ -76,14 +80,27 @@ internal sealed class TerrainPanel : IPanel
             ImGui.Text("Erosion brush settings");
 
             var erosionChanged =
-                ImGui.SliderInt("Droplets", ref this.ErosionSettings.Droplets, 1, 1_000_000) ||
-                ImGui.SliderInt("DropletStride", ref this.ErosionSettings.DropletStride, 1, 15) ||
-                ImGui.SliderFloat("SedimentFactor", ref this.ErosionSettings.SedimentFactor, 0.01f, 5.0f) ||
-                ImGui.SliderFloat("MinSedimentCapacity", ref this.ErosionSettings.MinSedimentCapacity, 0.0f, 0.001f) ||
-                ImGui.SliderFloat("DepositSpeed", ref this.ErosionSettings.DepositSpeed, 0.005f, 0.05f) ||
-                ImGui.SliderFloat("Inertia", ref this.ErosionSettings.Inertia, 0.0f, 0.99f) ||
-                ImGui.SliderFloat("Gravity", ref this.ErosionSettings.Gravity, 1.0f, 4.0f) ||
-                ImGui.Button("Erode");
+                ImGui.SliderInt("Seed", ref this.erosionSettings.Seed, 0, int.MaxValue) ||
+                ImGui.SliderInt("Droplets", ref this.erosionSettings.Droplets, 1, 1_000_000) ||
+                ImGui.SliderInt("DropletStride", ref this.erosionSettings.DropletStride, 1, 15) ||
+                ImGui.SliderFloat("SedimentFactor", ref this.erosionSettings.SedimentFactor, 0.01f, 5.0f) ||
+                ImGui.SliderFloat("MinSedimentCapacity", ref this.erosionSettings.MinSedimentCapacity, 0.0f, 0.001f) ||
+                ImGui.SliderFloat("DepositSpeed", ref this.erosionSettings.DepositSpeed, 0.005f, 0.05f) ||
+                ImGui.SliderFloat("Inertia", ref this.erosionSettings.Inertia, 0.0f, 0.99f) ||
+                ImGui.SliderFloat("Gravity", ref this.erosionSettings.Gravity, 1.0f, 4.0f);                
+
+            if (ImGui.Button("Randomize Seed"))
+            {
+                this.erosionSettings.Seed = Random.Shared.Next();
+                erosionChanged = true;
+            }
+
+            if (ImGui.Button("Reset Hydraulic Erosion Brush Settings"))
+            {
+                this.erosionSettings = new HydraulicErosionBrushSettings();
+                erosionChanged = true;
+
+            }
 
             if (erosionChanged)
             {
@@ -106,17 +123,17 @@ internal sealed class TerrainPanel : IPanel
     {
         if (input is not null)
         {
-            this.Generator.Update(input, this.MapSettings, "terrain");
+            this.Generator.Update(input, this.mapSettings, "terrain");
             return input;
         }
-        return this.Generator.Generate(this.MapSettings, "terrain");    
+        return this.Generator.Generate(this.mapSettings, "terrain");    
     }
 
     private TerrainMesh ErodeTerrain(TerrainMesh? input)
     {
         if (input is not null)
         {
-            this.Generator.Erode(input, this.ErosionSettings, "terrain");
+            this.Generator.Erode(input, this.erosionSettings, "terrain");
             return input;
         }
 
