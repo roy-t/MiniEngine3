@@ -10,7 +10,11 @@ cbuffer NoiseConstants : register(b0)
     float Frequency;
     int Octaves;
     float Lacunarity;
-    float Persistance;    
+    float Persistance;
+    float CliffStart;
+    float CliffEnd;
+    float CliffStrength;
+    float __Padding;
 };  
 
 cbuffer TriangulateConstants : register(b1)
@@ -34,8 +38,7 @@ RWStructuredBuffer<int> Indices : register(u1);
 RWTexture2D<float> MapHeight : register(u2);
 RWTexture2D<float4> MapNormal : register(u3);
 
-static const float2x2 m2 = float2x2(0.80, 0.60,
-                            -0.60, 0.80);
+static const float2x2 m2 = float2x2(0.80, 0.60, -0.60, 0.80);
 
 float FBM(float2 coord)
 {            
@@ -78,7 +81,7 @@ void NoiseMapKernel(in uint3 dispatchId : SV_DispatchThreadID)
     float height = FBM(Offset + center);
     
     // Add an extra dramatic cliff effect for the heighest parts of the map
-    height += (Amplitude * 0.55f) * smoothstep(Amplitude * 0.5f, Amplitude, height);
+    height += (Amplitude * CliffStrength) * smoothstep(Amplitude * CliffStart, Amplitude * CliffEnd, height);
     
     float3 position = float3(center.x, height, center.y);
 

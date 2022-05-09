@@ -63,9 +63,10 @@ internal sealed class TerrainPanel : IPanel
                 ImGui.SliderFloat("Amplitude", ref this.MapSettings.Amplitude, 0.01f, 2.0f) ||
                 ImGui.SliderFloat("Persistance", ref this.MapSettings.Persistance, 0.1f, 1.0f) ||
                 ImGui.SliderFloat("Frequency", ref this.MapSettings.Frequency, 0.1f, 10.0f) ||
-                ImGui.SliderFloat("Lacunarity", ref this.MapSettings.Lacunarity, 0.1f, 10.0f);           
-
-            // TODO: add cliff generation properties
+                ImGui.SliderFloat("Lacunarity", ref this.MapSettings.Lacunarity, 0.1f, 10.0f) ||
+                ImGui.SliderFloat("CliffStart", ref this.MapSettings.CliffStart, 0.0f, 1.0f) ||
+                ImGui.SliderFloat("CliffEnd", ref this.MapSettings.CliffEnd, 0.0f, 1.0f) ||
+                ImGui.SliderFloat("CliffStrength", ref this.MapSettings.CliffStrength, 0.0f, 1.0f);
 
             if (terrainChanged)
             {

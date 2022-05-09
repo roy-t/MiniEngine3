@@ -46,7 +46,7 @@ public sealed class HeightMapGenerator : IDisposable
         var context = this.Device.ImmediateContext;
         var dimensions = height.Width;
 
-        this.User.MapNoiseConstants(context, (uint)dimensions, settings.Offset, settings.Amplitude, settings.Frequency, settings.Octaves, settings.Lacunarity, settings.Persistance);
+        this.User.MapNoiseConstants(context, (uint)dimensions, settings.Offset, settings.Amplitude, settings.Frequency, settings.Octaves, settings.Lacunarity, settings.Persistance, settings.CliffStart, settings.CliffEnd, settings.CliffStrength);
         context.CS.SetConstantBuffer(HeightMap.NoiseConstantsSlot, this.User.NoiseConstantsBuffer);
 
         context.CS.SetShader(this.Shader.NoiseMapKernel);
@@ -71,7 +71,7 @@ public sealed class HeightMapGenerator : IDisposable
         var context = this.Device.ImmediateContext;
         var dimensions = normals.Width;
 
-        this.User.MapNoiseConstants(context, (uint)dimensions, Vector2.Zero, 0, 0, 0, 0, 0);
+        this.User.MapNoiseConstants(context, (uint)dimensions, Vector2.Zero, 0, 0, 0, 0, 0, 0, 0, 0);
         context.CS.SetConstantBuffer(HeightMap.NoiseConstantsSlot, this.User.NoiseConstantsBuffer);
 
         context.CS.SetShader(this.Shader.NormalMapKernel);

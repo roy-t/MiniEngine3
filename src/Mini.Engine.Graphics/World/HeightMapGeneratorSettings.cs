@@ -42,7 +42,22 @@ public sealed class HeightMapGeneratorSettings
     /// </summary>
     public float Persistance;
 
-    public HeightMapGeneratorSettings(int dimensions = 512, Vector2 offset = default, float amplitude = 0.15f, float frequency = 1.5f, int octaves = 10, float lacunarity = 1.0f, float persistance = 0.55f)
+    /// <summary>
+    /// Start of more vertical cliffs
+    /// </summary>
+    public float CliffStart;
+
+    /// <summary>
+    /// End of more vertical cliffs
+    /// </summary>
+    public float CliffEnd;
+
+    /// <summary>
+    /// Strength of cliff effect
+    /// </summary>
+    public float CliffStrength;
+
+    public HeightMapGeneratorSettings(int dimensions = 512, Vector2 offset = default, float amplitude = 0.15f, float frequency = 1.5f, int octaves = 10, float lacunarity = 1.0f, float persistance = 0.55f, float cliffStart = 0.5f, float cliffEnd = 1.0f, float cliffStrength = 0.55f)
     {
         this.Dimensions = dimensions;
         this.Offset = offset;
@@ -51,5 +66,8 @@ public sealed class HeightMapGeneratorSettings
         this.Octaves = octaves;
         this.Lacunarity = lacunarity;
         this.Persistance = persistance;
+        this.CliffStart = cliffStart;
+        this.CliffEnd = cliffEnd;
+        this.CliffStrength = cliffStrength;
     }
 }
