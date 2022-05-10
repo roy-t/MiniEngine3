@@ -95,23 +95,30 @@ public sealed class HeightMapGenerator : IDisposable
         this.Device.ImmediateContext.Clear(texture, tint);        
     }
 
-    public ModelVertex[] GenerateVertices(RWTexture2D heightMap)
+    public ModelVertex[] GenerateVertices(RWTexture2D heightMap, int width, int height)
     {
         var context = this.Device.ImmediateContext;
         
-        this.User.MapTriangulateConstants(context, (uint)heightMap.Width, (uint)heightMap.Height, 0, 0);
+        this.User.MapTriangulateConstants(context, (uint)width, (uint)height, (uint)heightMap.Width, (uint)heightMap.Height, 0, 0);
         context.CS.SetConstantBuffer(HeightMap.TriangulateConstantsSlot, this.User.TriangulateConstantsBuffer);
-        var length = heightMap.Width * heightMap.Height;        
+        var length = width * height;
         using var output = new RWStructuredBuffer<ModelVertex>(this.Device, nameof(HeightMapGenerator), length);
 
         context.CS.SetShader(this.Shader.TriangulateKernel);
         context.CS.SetUnorderedAccessView(HeightMap.MapHeight, heightMap);
         context.CS.SetUnorderedAccessView(HeightMap.Vertices, output);
-        var (x, y, z) = this.Shader.TriangulateKernel.GetDispatchSize(heightMap.Width, heightMap.Height, 1);
+        var (x, y, z) = this.Shader.TriangulateKernel.GetDispatchSize(width, height, 1);
         context.CS.Dispatch(x, y, z);
 
         var data = new ModelVertex[length];
         output.ReadData(context, data);
+
+        var minX = data.Min(foo => foo.Position.X);
+        var maxX = data.Max(foo => foo.Position.X);
+        var minY = data.Min(foo => foo.Position.Y);
+        var maxY = data.Max(foo => foo.Position.Y);
+        var minZ = data.Min(foo => foo.Position.Z);
+        var maxZ = data.Max(foo => foo.Position.Z);
 
         return data;
     }
@@ -125,7 +132,7 @@ public sealed class HeightMapGenerator : IDisposable
         var triangles = quads * 2;
         var indices = triangles * 3;
 
-        this.User.MapTriangulateConstants(context, (uint)width, (uint)height, (uint)indices, (uint)intervals);
+        this.User.MapTriangulateConstants(context, (uint)width, (uint)height, 0, 0, (uint)indices, (uint)intervals);
         context.CS.SetConstantBuffer(HeightMap.TriangulateConstantsSlot, this.User.TriangulateConstantsBuffer);
 
         using var output = new RWStructuredBuffer<int>(this.Device, nameof(HeightMapGenerator), indices);

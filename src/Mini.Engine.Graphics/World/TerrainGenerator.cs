@@ -32,7 +32,7 @@ public sealed class TerrainGenerator
         var tint = this.HeightMapGenerator.GenerateTint(settings.Dimensions, Umber);
 
         var bounds = ComputeBounds(settings.Amplitude, settings.Octaves, settings.Persistance);
-        var mesh = this.GenerateMesh(height, bounds, name);
+        var mesh = this.GenerateMesh(height, settings.MeshDefinition, bounds, name);
 
         this.Content.Link(height, $"{name}#{height.Name}");
         this.Content.Link(normals, $"{name}#{normals.Name}");
@@ -59,20 +59,22 @@ public sealed class TerrainGenerator
         this.UpdateMesh(terrain.Mesh, terrain.Height, terrain.Mesh.Bounds);
     }
 
-    private Mesh GenerateMesh(RWTexture2D height, BoundingBox bounds, string name)
-    {
-        var vertices = this.HeightMapGenerator.GenerateVertices(height);
-        var indices = this.HeightMapGenerator.GenerateIndices(height.Width, height.Height);
+    private Mesh GenerateMesh(RWTexture2D height, float definition, BoundingBox bounds, string name)
+    {        
+        var vertices = this.HeightMapGenerator.GenerateVertices(height, (int)(height.Width * definition), (int)(height.Height * definition));
+        var indices = this.HeightMapGenerator.GenerateIndices((int)(height.Width * definition), (int)(height.Height * definition));
         var mesh = new Mesh(this.Device, bounds, vertices, indices, name, "mesh");
         return mesh;
     }
 
     private void UpdateMesh(Mesh input, RWTexture2D height, BoundingBox bounds)
     {
-        var vertices = this.HeightMapGenerator.GenerateVertices(height);
+        var factor = 2;
+
+        var vertices = this.HeightMapGenerator.GenerateVertices(height, height.Width / factor, height.Height / factor);
         input.Vertices.MapData(this.Device.ImmediateContext, vertices);
 
-        var indices = this.HeightMapGenerator.GenerateIndices(height.Width, height.Height);
+        var indices = this.HeightMapGenerator.GenerateIndices(height.Width / factor , height.Height / factor);
         input.Indices.MapData(this.Device.ImmediateContext, indices);
 
         input.Bounds = bounds;

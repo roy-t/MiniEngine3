@@ -19,10 +19,13 @@ cbuffer NoiseConstants : register(b0)
 
 cbuffer TriangulateConstants : register(b1)
 {
-    uint Width;
-    uint Height;
+    uint MeshWidth;
+    uint MeshHeight;
+    uint HeightMapWidth;
+    uint HeightMapHeight;
     uint Count;
     uint Intervals;
+    float2 ___Padding;
 };
 
 struct Vertex
@@ -112,16 +115,19 @@ void NormalMapKernel(in uint3 dispatchId : SV_DispatchThreadID)
 void TriangulateKernel (in uint3 dispatchId : SV_DispatchThreadID)
 {
     // When not using a power of two input we might be out-of-bounds
-    if (dispatchId.x >= Width || dispatchId.y >= Height)
+    if (dispatchId.x >= MeshWidth || dispatchId.y >= MeshHeight)
     {
         return;
     }
     
-    float scale = 1.0f / Width;
+    float scale = 1.0f / MeshWidth;
     float2 center = (float2(dispatchId.x, dispatchId.y) * scale) - float2(0.5f, 0.5f);
     
     
-    uint2 textureIndex = uint2(dispatchId.x, dispatchId.y);
+    float textureScaleX = HeightMapWidth / (float) MeshWidth;
+    float textureScaleY = HeightMapHeight / (float) MeshHeight;
+    
+    uint2 textureIndex = uint2(dispatchId.x * textureScaleX, dispatchId.y * textureScaleY);
     float height = MapHeight[textureIndex] * 0.5f;
     float3 normal = MapNormal[textureIndex].xyz;
     float2 texcoord = float2(dispatchId.x, dispatchId.y) * scale;
@@ -131,7 +137,7 @@ void TriangulateKernel (in uint3 dispatchId : SV_DispatchThreadID)
     vertex.normal = normal;
     vertex.texcoord = texcoord;
     
-    uint index = ToOneDimensional(dispatchId.x, dispatchId.y, Stride);
+    uint index = ToOneDimensional(dispatchId.x, dispatchId.y, MeshWidth);
     Vertices[index] = vertex;
 }
 
@@ -159,22 +165,22 @@ void IndicesKernel (in uint3 dispatchId : SV_DispatchThreadID)
         switch (remainder)
         {
             case 0:
-                index = ToOneDimensional(x, y, Width);
+                index = ToOneDimensional(x, y, MeshWidth);
                 break;
             case 1:
-                index = ToOneDimensional(x + 1, y, Width);
+                index = ToOneDimensional(x + 1, y, MeshWidth);
                 break;
             case 2:
-                index = ToOneDimensional(x + 1, y + 1, Width);
+                index = ToOneDimensional(x + 1, y + 1, MeshWidth);
                 break;
             case 3:
-                index = ToOneDimensional(x + 1, y + 1, Width);
+                index = ToOneDimensional(x + 1, y + 1, MeshWidth);
                 break;
             case 4:
-                index = ToOneDimensional(x, y + 1, Width);
+                index = ToOneDimensional(x, y + 1, MeshWidth);
                 break;
             case 5:
-                index = ToOneDimensional(x, y, Width);
+                index = ToOneDimensional(x, y, MeshWidth);
                 break;
         }
     }
@@ -183,22 +189,22 @@ void IndicesKernel (in uint3 dispatchId : SV_DispatchThreadID)
         switch (remainder)
         {
             case 0:
-                index = ToOneDimensional(x + 1, y, Width);
+                index = ToOneDimensional(x + 1, y, MeshWidth);
                 break;
             case 1:
-                index = ToOneDimensional(x + 1, y + 1, Width);
+                index = ToOneDimensional(x + 1, y + 1, MeshWidth);
                 break;
             case 2:
-                index = ToOneDimensional(x, y + 1, Width);
+                index = ToOneDimensional(x, y + 1, MeshWidth);
                 break;
             case 3:
-                index = ToOneDimensional(x, y + 1, Width);
+                index = ToOneDimensional(x, y + 1, MeshWidth);
                 break;
             case 4:
-                index = ToOneDimensional(x, y, Width);
+                index = ToOneDimensional(x, y, MeshWidth);
                 break;
             case 5:
-                index = ToOneDimensional(x + 1, y, Width);
+                index = ToOneDimensional(x + 1, y, MeshWidth);
                 break;
         }
     }

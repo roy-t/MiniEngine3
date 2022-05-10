@@ -42,9 +42,11 @@ internal sealed class TerrainPanel : IPanel
 
     public void Update(float elapsed)
     {
+        // TODO: allow recreating the entire mesh
         if (this.terrain == null)
         {
-            ImGui.SliderInt("Dimensions", ref this.mapSettings.Dimensions, 4, 4096);                        
+            ImGui.SliderInt("Dimensions", ref this.mapSettings.Dimensions, 4, 4096);
+            ImGui.SliderFloat("MeshDefinition", ref this.mapSettings.MeshDefinition, 0.1f, 1.0f);
             if (ImGui.Button("Generate"))
             {
                 this.Recreate(this.ApplyTerrain);

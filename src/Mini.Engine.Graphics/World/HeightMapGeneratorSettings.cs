@@ -57,7 +57,13 @@ public sealed class HeightMapGeneratorSettings
     /// </summary>
     public float CliffStrength;
 
-    public HeightMapGeneratorSettings(int dimensions = 512, Vector2 offset = default, float amplitude = 0.15f, float frequency = 1.5f, int octaves = 10, float lacunarity = 1.0f, float persistance = 0.55f, float cliffStart = 0.5f, float cliffEnd = 1.0f, float cliffStrength = 0.55f)
+    /// <summary>
+    /// How many vertices are used to cover the height map
+    /// Range: (0..1]
+    /// </summary>
+    public float MeshDefinition;
+
+    public HeightMapGeneratorSettings(int dimensions = 512, Vector2 offset = default, float amplitude = 0.15f, float frequency = 1.5f, int octaves = 10, float lacunarity = 1.0f, float persistance = 0.55f, float cliffStart = 0.5f, float cliffEnd = 1.0f, float cliffStrength = 0.55f, float meshDefinition = 0.5f)
     {
         this.Dimensions = dimensions;
         this.Offset = offset;
@@ -69,5 +75,6 @@ public sealed class HeightMapGeneratorSettings
         this.CliffStart = cliffStart;
         this.CliffEnd = cliffEnd;
         this.CliffStrength = cliffStrength;
+        this.MeshDefinition = meshDefinition;
     }
 }
