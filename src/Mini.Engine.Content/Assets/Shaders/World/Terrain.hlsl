@@ -27,7 +27,6 @@ cbuffer Constants : register(b0)
     float4x4 WorldViewProjection;
     float4x4 World;
     float3 CameraPosition;
-    float __Padding;
 };
 
 sampler TextureSampler : register(s0);

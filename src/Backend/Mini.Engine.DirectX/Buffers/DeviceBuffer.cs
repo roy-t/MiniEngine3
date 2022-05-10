@@ -5,13 +5,16 @@ namespace Mini.Engine.DirectX.Buffers;
 
 public abstract class DeviceBuffer<T> : IDisposable
     where T : unmanaged
-{
-
+{    
     protected readonly ID3D11Device Device;
 
-    internal DeviceBuffer(Device device, string user, string abbreviation)
+    // Ensures that elements each take a multiple of the element packing size in the buffer
+    protected readonly int ElementPackingSize;
+
+    internal DeviceBuffer(Device device, string user, string abbreviation, int elementPackingSize = 1)
     {
         this.Device = device.ID3D11Device;
+        this.ElementPackingSize = elementPackingSize;
         unsafe
         {
             this.PrimitiveSizeInBytes = sizeof(T);
@@ -36,7 +39,16 @@ public abstract class DeviceBuffer<T> : IDisposable
             this.Buffer?.Dispose();
             this.Capacity = primitiveCount + reserveExtra;
             this.Length = primitiveCount;
-            this.Buffer = this.CreateBuffer(this.Capacity * this.PrimitiveSizeInBytes);
+
+            var bufferSize = this.Capacity * this.PrimitiveSizeInBytes;
+
+            var remainder = bufferSize % this.ElementPackingSize;            
+            if (remainder > 0)
+            {
+                bufferSize = bufferSize - remainder + this.ElementPackingSize;
+            }            
+
+            this.Buffer = this.CreateBuffer(bufferSize);
 #if DEBUG
             this.Buffer.DebugName = this.Name;
 #endif

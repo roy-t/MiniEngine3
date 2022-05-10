@@ -18,8 +18,7 @@ cbuffer Constants : register(b0)
     
     // TODO: if we make this float4 colours than we can try to play with substracting only certain wavelengths
     float ErosionTintFactor;
-    float BuildUpTintFactor;
-    float __Padding;
+    float BuildUpTintFactor; 
 }
 
 RWTexture2D<float> MapHeight : register(u0);

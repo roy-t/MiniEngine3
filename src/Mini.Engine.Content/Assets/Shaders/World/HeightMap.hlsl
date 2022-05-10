@@ -14,7 +14,6 @@ cbuffer NoiseConstants : register(b0)
     float CliffStart;
     float CliffEnd;
     float CliffStrength;
-    float __Padding;
 };  
 
 cbuffer TriangulateConstants : register(b1)
@@ -25,7 +24,6 @@ cbuffer TriangulateConstants : register(b1)
     uint HeightMapHeight;
     uint Count;
     uint Intervals;
-    float2 ___Padding;
 };
 
 struct Vertex
