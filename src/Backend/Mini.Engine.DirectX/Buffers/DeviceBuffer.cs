@@ -8,13 +8,9 @@ public abstract class DeviceBuffer<T> : IDisposable
 {    
     protected readonly ID3D11Device Device;
 
-    // Ensures that elements each take a multiple of the element packing size in the buffer
-    protected readonly int ElementPackingSize;
-
-    internal DeviceBuffer(Device device, string user, string abbreviation, int elementPackingSize = 1)
+    internal DeviceBuffer(Device device, string user, string abbreviation)
     {
         this.Device = device.ID3D11Device;
-        this.ElementPackingSize = elementPackingSize;
         unsafe
         {
             this.PrimitiveSizeInBytes = sizeof(T);
@@ -42,11 +38,7 @@ public abstract class DeviceBuffer<T> : IDisposable
 
             var bufferSize = this.Capacity * this.PrimitiveSizeInBytes;
 
-            var remainder = bufferSize % this.ElementPackingSize;            
-            if (remainder > 0)
-            {
-                bufferSize = bufferSize - remainder + this.ElementPackingSize;
-            }            
+                     
 
             this.Buffer = this.CreateBuffer(bufferSize);
 #if DEBUG

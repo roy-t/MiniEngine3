@@ -10,7 +10,7 @@ public sealed class ConstantBuffer<T> : DeviceBuffer<T>
     // matches the packing rules for CBuffers as described here:
     // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
     public ConstantBuffer(Device device, string user)
-        : base(device, user, "CB", 16)
+        : base(device, user, "CB")
     {
         this.EnsureCapacity(1);
     }

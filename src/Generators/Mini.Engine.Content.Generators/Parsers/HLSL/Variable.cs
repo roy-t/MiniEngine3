@@ -49,7 +49,7 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
 
         public string Name { get; }
         public int Dimensions { get; }
-        public int? Slot { get; }
+        public int? Slot { get; }        
 
         public static IReadOnlyList<Variable> FindAll(SyntaxNodeBase startingNode)
         {

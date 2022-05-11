@@ -46,6 +46,48 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
             }
         }
 
+        public static int GetSizeInBytes(Variable variable)
+        {
+            if (variable.IsCustomType)
+            {
+                throw new NotSupportedException($"Cannot compute size of custom type: {variable.Type}");
+            }
+
+            if (variable.Dimensions > 0)
+            {
+                throw new NotSupportedException($"Cannot compute size of array type: {variable.Type}");
+            }
+
+            switch (variable.Type)
+            {
+                case "bool":
+                case "int":
+                case "uint":
+                case "dword":
+                    return 4;
+
+                case "float":
+                    return 4;
+
+                case "double":
+                    return 8;
+
+                case "float2":
+                    return 4 * 2;
+
+                case "float3":
+                    return 4 * 3;
+
+                case "float4":
+                    return 4 * 4;
+
+                case "float4x4":
+                    return 4 * 4 * 4;
+                default:
+                    throw new NotSupportedException($"Cannot compute size of {variable.Type}");
+            }
+        }
+
         private static string Dimension(string type, int dimensions)
         {
             var arr = dimensions > 0 ? $"[{new string(',', dimensions - 1)}]" : string.Empty;
@@ -56,5 +98,7 @@ namespace Mini.Engine.Content.Generators.Parsers.HLSL
         {
             return $"System.Numerics.{type}";
         }
+
+        
     }
 }
