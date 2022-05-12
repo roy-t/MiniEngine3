@@ -4,8 +4,7 @@ using ShaderTools.CodeAnalysis.Hlsl.Syntax;
 using ShaderTools.CodeAnalysis.Hlsl.Text;
 using ShaderTools.CodeAnalysis.Text;
 
-namespace Mini.Engine.Content.Generators.Parsers.HLSL;
-
+namespace Mini.Engine.Content.Generators.HLSL.Parsers;
 public sealed class Shader
 {
     public Shader(Microsoft.CodeAnalysis.AdditionalText shader)

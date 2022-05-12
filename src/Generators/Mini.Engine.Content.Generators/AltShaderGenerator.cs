@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using Mini.Engine.Content.Generators.Parsers.HLSL;
+using Mini.Engine.Content.Generators.HLSL;
+using Mini.Engine.Content.Generators.HLSL.Parsers;
 using Mini.Engine.Generators.Source;
 using Mini.Engine.Generators.Source.CSharp;
 
@@ -54,7 +53,7 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
 
         var properties = GenerateShaderProperties(shader.Functions);
 
-        var structures = GenerateStructures(shader.Structures) + GenerateConstantBufferStructures(shader.CBuffers, shader.Structures);
+        var structures = StructGenerator.Generate(shader.Structures) + StructGenerator.Generate(shader.CBuffers, shader.Structures);
 
         var methods = string.Empty;
         if (shader.CBuffers.Count > 0)
@@ -163,90 +162,6 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
         return builder.ToString();
     }
 
-    private static string GenerateStructures(IReadOnlyList<Structure> structures)
-    {
-        var builder = new StringBuilder();
-
-        foreach (var structure in structures)
-        {
-            builder.Append($"[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]");
-            GenerateStructureBody(structure.Name, structure.Variables, builder);
-            builder.AppendLine();
-        }
-
-        return builder.ToString();
-    }
-
-    private static string GenerateConstantBufferStructures(IReadOnlyList<CBuffer> cbuffers, IReadOnlyList<Structure> knownStructures)
-    {
-        var builder = new StringBuilder();
-
-        foreach (var cbuffer in cbuffers)
-        {
-            var size = ComputeCBufferSizeInBytes(cbuffer, knownStructures);
-            builder.Append($"[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential, Pack = 4, Size = {size})]");
-            GenerateStructureBody(cbuffer.Name, cbuffer.Variables, builder);
-            builder.AppendLine();
-        }
-
-        return builder.ToString();
-    }
-
-    // TODO: we should not only compute the CBuffer size, we should also make sure that no structure crosses a 16 byte boundary
-    // see Sunlight.hlsl for an example
-    private static int ComputeCBufferSizeInBytes(CBuffer cbuffer, IReadOnlyList<Structure> knownStructures)
-    {
-        var size = 0;
-        foreach (var variable in cbuffer.Variables)
-        {
-            size += GetVariableSizeInBytes(variable, knownStructures);
-        }
-
-        // Make sure that the CBuffer structure size is a multiple of 16 bytes
-        var remainder = size % 16;
-        if (remainder > 0)
-        {
-            size = size - remainder + 16;
-        }
-
-        return size;
-    }
-
-    private static int ComputeStructureSizeInBytes(Structure structure, IReadOnlyList<Structure> knownStructures)
-    {
-        var size = 0;
-        foreach (var variable in structure.Variables)
-        {
-            size += GetVariableSizeInBytes(variable, knownStructures);
-        }
-
-        return size;
-    }
-
-    private static int GetVariableSizeInBytes(Variable variable, IReadOnlyList<Structure> knownStructures)
-    {
-        if (variable.IsCustomType)
-        {
-            var structure = knownStructures.First(s => s.Name.Equals(variable.Type, StringComparison.InvariantCultureIgnoreCase));
-            return ComputeStructureSizeInBytes(structure, knownStructures);
-        }
-
-        return Types.GetSizeInBytes(variable);
-    }
-
-    private static void GenerateStructureBody(string name, IReadOnlyList<Variable> properties, StringBuilder builder)
-    {
-        builder.Append($@"
-        public struct {name}
-        {{
-        ");
-        foreach (var property in properties)
-        {
-            builder.AppendLine($"public {Types.ToDotNetType(property)} {Naming.ToPascalCase(property.Name)} {{ get; set; }}");
-        }
-        builder.AppendLine("}");
-    }
-
     private static string GenerateShaderUser(Shader shader)
     {
         if (shader.CBuffers.Count == 0)
@@ -303,7 +218,7 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
 
             var variables = cbuffer.Variables.Where(v => !v.Name.StartsWith("__"));
 
-            var arguments = string.Join(", ", variables.Select(v => $"{Types.ToDotNetType(v)} {Naming.ToCamelCase(v.Name)}"));
+            var arguments = string.Join(", ", variables.Select(v => $"{PrimitiveTypeTranslator.ToDotNetType(v)} {Naming.ToCamelCase(v.Name)}"));
             var assignments = string.Join($",{Environment.NewLine}", variables.Select(v => $"{Naming.ToPascalCase(v.Name)} = {Naming.ToCamelCase(v.Name)}"));
             var fieldName = $"{Naming.ToPascalCase(cbuffer.Name)}Buffer";
             var method = $@"            
