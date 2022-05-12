@@ -22,7 +22,7 @@ internal static class ShaderUserGenerator
 
         var assignments = GenerateConstantBufferAssignments(shader.CBuffers, shader.Name);
 
-        var methods = GenerateConstantBufferMethods(shader.CBuffers);
+        var methods = GenerateConstantBufferMethods(shader.CBuffers, shader.Structures);
 
         var disposes = GenerateDisposeCalls(shader.CBuffers);
 
@@ -53,7 +53,7 @@ internal static class ShaderUserGenerator
         return builder.ToString();
     }
 
-    private static string GenerateConstantBufferMethods(IReadOnlyList<CBuffer> cBuffers)
+    private static string GenerateConstantBufferMethods(IReadOnlyList<CBuffer> cBuffers, IReadOnlyList<Structure> knownStructures)
     {
         var builder = new StringBuilder();
 
@@ -61,17 +61,17 @@ internal static class ShaderUserGenerator
         {
             var name = Naming.ToPascalCase(cbuffer.Name);
 
-            var variables = cbuffer.Variables.Where(v => !v.Name.StartsWith("__"));
+            var variables = cbuffer.Variables.Where(v => !v.Name.StartsWith("__")).ToList();
 
-            var arguments = string.Join(", ", variables.Select(v => $"{PrimitiveTypeTranslator.ToDotNetType(v)} {Naming.ToCamelCase(v.Name)}"));
-            var assignments = string.Join($",{Environment.NewLine}", variables.Select(v => $"{Naming.ToPascalCase(v.Name)} = {Naming.ToCamelCase(v.Name)}"));
+            var arguments = string.Join(", ", variables.Select(v => $"{PrimitiveTypeTranslator.ToDotNetType(v)} {Naming.ToCamelCase(v.Name)}"));            
+            var assignments = GenerateStructAssignments(variables, knownStructures);
             var fieldName = $"{Naming.ToPascalCase(cbuffer.Name)}Buffer";
             var method = $@"            
             public void Map{name}(Mini.Engine.DirectX.Contexts.DeviceContext context, {arguments})
             {{
                 var constants = new {name}()
                 {{
-                    {assignments}
+                    {assignments}                    
                 }};
 
                 this.{fieldName}.MapData(context, constants);
@@ -81,6 +81,30 @@ internal static class ShaderUserGenerator
         }
 
         return builder.ToString();
+    }
+
+    private static string GenerateStructAssignments(IReadOnlyList<Variable> variables, IReadOnlyList<Structure> knownStructures)
+    {
+        var lines = new List<string>();
+        foreach(var variable in variables)
+        {
+            if (variable.IsCustomType)
+            {
+                var type = knownStructures.First(ks => ks.Name.Equals(variable.Type, StringComparison.InvariantCultureIgnoreCase));
+                var flatten = StructGenerator.Flatten(Naming.ToCamelCase(variable.Name) + ".", type.Variables, knownStructures, true);
+                foreach (var v in flatten)
+                {
+                    var fieldName = string.Join(string.Empty, v.Name.Split('.').Select(p => Naming.ToPascalCase(p)));
+                    lines.Add($"{fieldName} = {v.Name}");
+                }
+            }
+            else
+            {
+                lines.Add($"{Naming.ToPascalCase(variable.Name)} = {Naming.ToCamelCase(variable.Name)}");
+            }
+        }
+
+        return string.Join($",{Environment.NewLine}", lines.ToArray());
     }
 
     private static string GenerateDisposeCalls(IReadOnlyList<CBuffer> cBuffers)

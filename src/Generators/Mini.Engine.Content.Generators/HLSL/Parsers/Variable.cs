@@ -40,6 +40,15 @@ public sealed class Variable
         }
     }
 
+    public Variable(string type, bool isPredefinedType, string name, int dimensions, int? slot)
+    {
+        this.Type = type;
+        this.IsPredefinedType = isPredefinedType;
+        this.Name = name;
+        this.Dimensions = dimensions;
+        this.Slot = slot;
+    }
+
     public string Type { get; }
     public bool IsPredefinedType { get; }
     public bool IsCustomType => !this.IsPredefinedType;

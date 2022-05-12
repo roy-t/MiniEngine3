@@ -12,9 +12,19 @@ internal static class StructGenerator
 
         foreach (var structure in structures)
         {
-            builder.AppendLine(Generate(structure, structures));
+            builder.AppendLine(Generate(structure));
             builder.AppendLine();
         }
+
+        return builder.ToString();
+    }
+
+    public static string Generate(Structure structure)
+    {
+        var builder = new StringBuilder();
+
+        builder.Append($"[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]");
+        GenerateBody(structure.Name, structure.Variables, builder);
 
         return builder.ToString();
     }
@@ -32,46 +42,86 @@ internal static class StructGenerator
         return builder.ToString();
     }
 
+    public static IReadOnlyList<Variable> Flatten(CBuffer cbuffer, IReadOnlyList<Structure> knownStructures)
+    {
+        return Flatten(string.Empty, cbuffer.Variables, knownStructures);
+    }
+
+    public static IReadOnlyList<Variable> Flatten(string prefix, IReadOnlyList<Variable> variables, IReadOnlyList<Structure> knownStructures, bool dot = false)
+    {
+        var output = new List<Variable>();
+        foreach(var variable in variables)
+        {
+            if(variable.IsCustomType)
+            {
+                var foo = dot? prefix + variable.Name + "." : prefix + variable.Name;
+                var type = knownStructures.First(ks => ks.Name.Equals(variable.Type, StringComparison.InvariantCultureIgnoreCase));
+                output.AddRange(Flatten(foo, type.Variables, knownStructures, dot));
+            }
+            else
+            {
+                output.Add(new Variable(variable.Type, variable.IsPredefinedType, $"{prefix}{variable.Name}", variable.Dimensions, variable.Slot));
+            }
+        }
+
+        return output;
+    }
+
+    // CBuffers have very explicit packing and block size rules so we explicitly layout such a structures fields
+    // more info: https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
     public static string Generate(CBuffer cbuffer, IReadOnlyList<Structure> knownStructures)
     {
         var builder = new StringBuilder();
-
-        var size = ComputeCBufferSizeInBytes(cbuffer, knownStructures);
-        builder.Append($"[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential, Pack = 4, Size = {size})]");
-        GenerateStructureBody(cbuffer.Name, cbuffer.Variables, builder);        
-
+        
+        var body = Generate(cbuffer.Name, cbuffer.Variables, knownStructures, 4, 16, out var size);
+        builder.AppendLine($"[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Explicit, Size = {size})]");
+        builder.Append(body);
+      
         return builder.ToString();
     }
 
-    public static string Generate(Structure structure, IReadOnlyList<Structure> knownStructures)
+    private static string Generate(string name, IReadOnlyList<Variable> variables, IReadOnlyList<Structure> knownStructures, int packSize, int blockSize, out int size)
     {
         var builder = new StringBuilder();
+        builder.AppendLine($"public struct {name}");
+        builder.AppendLine("{");
 
-        builder.Append($"[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]");
-        GenerateStructureBody(structure.Name, structure.Variables, builder);
+        var total = 0;
+        var block = 0;
 
-        return builder.ToString();
-    }
+        var allVariables = Flatten(string.Empty, variables, knownStructures);
 
-    // TODO: we should not only compute the CBuffer size, we should also make sure that no structure crosses a 16 byte boundary
-    // see Sunlight.hlsl for an example. What makes this extra tricky is that any structure used in a CBuffer should
-    // also play by these rules. For now users will need to add a few paddings if they end on an uneven structure before a big structure
-    private static int ComputeCBufferSizeInBytes(CBuffer cbuffer, IReadOnlyList<Structure> knownStructures)
-    {
-        var size = 0;
-        foreach (var variable in cbuffer.Variables)
+        foreach (var variable in allVariables)
         {
-            size += GetVariableSizeInBytes(variable, knownStructures);
+            var fieldOffset = total;
+
+            var variableSize = Math.Max(packSize, GetVariableSizeInBytes(variable, knownStructures));
+
+            if (block != 0 && block + variableSize > blockSize)
+            {
+                fieldOffset += blockSize - block;
+                block = 0;
+            }
+
+            builder.AppendLine($"[System.Runtime.InteropServices.FieldOffset({fieldOffset})]");
+            builder.AppendLine($"public {PrimitiveTypeTranslator.ToDotNetType(variable)} {variable.Name};");
+
+            total = fieldOffset + variableSize;
+            block = (block + variableSize) % blockSize;
         }
 
-        // Make sure that the CBuffer structure size is a multiple of 16 bytes
-        var remainder = size % 16;
+
+        builder.AppendLine("}");
+
+        var remainder = total % blockSize;
         if (remainder > 0)
         {
-            size = size - remainder + 16;
+            total += blockSize - remainder;
         }
 
-        return size;
+        size = total;
+
+        return builder.ToString();
     }
 
     private static int ComputeStructureSizeInBytes(Structure structure, IReadOnlyList<Structure> knownStructures)
@@ -96,7 +146,7 @@ internal static class StructGenerator
         return PrimitiveTypeTranslator.GetSizeInBytes(variable);
     }
 
-    private static void GenerateStructureBody(string name, IReadOnlyList<Variable> properties, StringBuilder builder)
+    private static void GenerateBody(string name, IReadOnlyList<Variable> properties, StringBuilder builder)
     {
         builder.Append($@"
         public struct {name}

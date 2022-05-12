@@ -17,7 +17,7 @@ public sealed class PerspectiveCamera : ITransformable<PerspectiveCamera>
     }
 
     public float NearPlane { get; } = 0.25f;
-    public float FarPlane { get; } = 25.0f;
+    public float FarPlane { get; } = 250.0f;
     public float FieldOfView { get; } = MathF.PI / 2.0f;
     public float AspectRatio { get; }
 
