@@ -11,7 +11,7 @@ namespace Mini.Engine.Content.Generators;
 // Based on: https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.md
 // Use View -> Other Windows -> Shader Syntax Visualizer to help create the right code
 [Generator]
-public sealed class AltShaderGenerator : IIncrementalGenerator
+public sealed class ShaderGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -61,7 +61,7 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
             methods = $"public {@class}.User CreateUserFor<T>() {{ return new {@class}.User(this.Device, typeof(T).Name); }}";
         }
 
-        var innerClass = GenerateShaderUser(shader);
+        var innerClass = ShaderUserGenerator.Generate(shader);
 
         var code = FormatFileSkeleton(@namespace, @class, constants, fields, arguments, assignments, properties, structures, methods, innerClass);
 
@@ -162,115 +162,6 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
         return builder.ToString();
     }
 
-    private static string GenerateShaderUser(Shader shader)
-    {
-        if (shader.CBuffers.Count == 0)
-        {
-            return string.Empty;
-        }
-
-        var @class = "User";
-
-        var fields = GenerateConstantBufferFields(shader.CBuffers);
-
-        var arguments = "Mini.Engine.DirectX.Device device, string user";
-
-        var assignments = GenerateConstantBufferAssignments(shader.CBuffers, shader.Name);
-
-        var methods = GenerateConstantBufferMethods(shader.CBuffers);
-
-        var disposes = GenerateDisposeCalls(shader.CBuffers);
-
-        return FormatInnerClassSkeleton(@class, fields, arguments, assignments, methods, disposes);
-    }
-
-    private static string GenerateConstantBufferFields(IReadOnlyList<CBuffer> cbuffers)
-    {
-        var builder = new StringBuilder();
-        foreach (var cbuffer in cbuffers)
-        {
-            var structName = Naming.ToPascalCase(cbuffer.Name);
-            builder.AppendLine($"public readonly Mini.Engine.DirectX.Buffers.ConstantBuffer<{structName}> {structName}Buffer;");
-        }
-
-        return builder.ToString();
-    }
-
-    private static string GenerateConstantBufferAssignments(IReadOnlyList<CBuffer> cbuffers, string name)
-    {
-        var builder = new StringBuilder();
-        foreach (var cbuffer in cbuffers)
-        {
-            var structName = Naming.ToPascalCase(cbuffer.Name);            
-            builder.AppendLine($"this.{structName}Buffer = new Mini.Engine.DirectX.Buffers.ConstantBuffer<{structName}>(device, user);");
-        }
-
-        return builder.ToString();
-    }
-
-    private static string GenerateConstantBufferMethods(IReadOnlyList<CBuffer> cBuffers)
-    {
-        var builder = new StringBuilder();
-
-        foreach (var cbuffer in cBuffers)
-        {
-            var name = Naming.ToPascalCase(cbuffer.Name);
-
-            var variables = cbuffer.Variables.Where(v => !v.Name.StartsWith("__"));
-
-            var arguments = string.Join(", ", variables.Select(v => $"{PrimitiveTypeTranslator.ToDotNetType(v)} {Naming.ToCamelCase(v.Name)}"));
-            var assignments = string.Join($",{Environment.NewLine}", variables.Select(v => $"{Naming.ToPascalCase(v.Name)} = {Naming.ToCamelCase(v.Name)}"));
-            var fieldName = $"{Naming.ToPascalCase(cbuffer.Name)}Buffer";
-            var method = $@"            
-            public void Map{name}(Mini.Engine.DirectX.Contexts.DeviceContext context, {arguments})
-            {{
-                var constants = new {name}()
-                {{
-                    {assignments}
-                }};
-
-                this.{fieldName}.MapData(context, constants);
-            }}";
-
-            builder.AppendLine(method);
-        }
-
-        return builder.ToString();
-    }
-
-    private static string GenerateDisposeCalls(IReadOnlyList<CBuffer> cBuffers)
-    {
-        var builder = new StringBuilder();
-
-        foreach (var cbuffer in cBuffers)
-        {
-            builder.AppendLine($"this.{Naming.ToPascalCase(cbuffer.Name)}Buffer.Dispose();");
-        }
-
-        return builder.ToString();
-    }
-
-    private static string FormatInnerClassSkeleton(string @class, string fields, string arguments, string assignments, string methods, string disposes)
-    {
-        return $@"            
-            public sealed class {@class} : System.IDisposable
-            {{
-                {fields}
-
-                public {@class}({arguments})
-                {{
-                    {assignments}
-                }}
-
-                {methods}
-
-                public void Dispose()
-                {{
-                    {disposes}
-                }}
-            }}";
-    }
-
     private static string FormatFileSkeleton(string @namespace, string @class, string constants, string fields, string arguments, string assignments, string properties, string structures, string methods, string innerClass)
     {
         return $@"
@@ -299,89 +190,3 @@ public sealed class AltShaderGenerator : IIncrementalGenerator
             }}";
     }
 }
-
-// What I would like to generate
-/*
-namespace Mini.Engine.Content.Shaders
-{
-    // File generated for a .hlsl file
-    public sealed class SunLight
-    {
-        // Struct defined in file itself
-        [System.Runtime.InteropServices.StructLayout(LayoutKind.Sequential)]
-        public struct PS_INPUT
-        {
-            System.Numerics.Vector4 pos;
-            System.Numerics.Vector2 tex;
-        }
-
-        // Struct defined in an included file
-        [System.Runtime.InteropServices.StructLayout(LayoutKind.Sequential)]
-        public struct ShadowProperties
-        {
-            // ..
-        };
-
-        // Struct and resource binding defined for a cbuffer declaration
-        public static int ConstantsBuffer = 0;
-        [System.Runtime.InteropServices.StructLayout(LayoutKind.Sequential, Pack = 4)]
-        public struct Constants
-        {
-            System.Numerics.Vector4 Color;
-            System.Numerics.Vector3 SurfaceToLight;
-            // ..
-        }
-
-        // Resource bindings
-        public static int TextureSampler = 0;
-        public static int Albedo = 0;
-        public static int Material = 1;
-        public static int Depth = 2;
-        public static int Normal = 3;
-        public static int ShadowMap = 4;
-        public static int ShadowSampler = 1;
-
-        // Shaders for each program
-        public Mini.Engine.DirectX.Resources.IPixelShader Ps { get; }
-        public Mini.Engine.DirectX.Resources.IVertexShader Vs { get; }
-        public Mini.Engine.DirectX.Resources.IComputeShader Cs { get; }
-
-        public Buffers CreateBuffers(Mini.Engine.DirectX.Device device, Mini.Engine.DirectX.DeviceContext context)
-        {
-            return new Buffers(device, context);
-        }
-
-        public sealed class Buffers : System.IDisposable
-        {
-            private readonly Mini.Engine.DirectX.Device Device;
-            private readonly Mini.Engine.DirectX.DeviceContext Context;
-
-            private readonly ConstantBuffer<Constants> ConstantsBuffer;
-            
-            private Binder(Mini.Engine.DirectX.Device device, Mini.Engine.DirectX.DeviceContext context, string name)
-            {
-                this.Device = device;
-                this.Context = context;
-
-                this.ConstantsBuffer = new ConstantsBuffer<Constants>(device, $"{name}_Constants_CB");
-            }
-
-            public void MapConstants(System.Numerics.Vector4 color, System.Numerics.Vector2 surfaceToLight)
-            {
-                var constants = new Constants()
-                {
-                    Color = color,
-                    SurfaceToLight = surfaceToLight
-                };
-
-                this.ConstantsBuffer.MapData(this.Context, constants);
-            }
-
-            public void Dispose()
-            {
-                this.ConstantsBuffer.Dispose();
-            }
-        }
-    }
-}
-*/
