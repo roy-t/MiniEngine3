@@ -7,42 +7,47 @@ public static class PrimitiveTypeTranslator
 {
     public static string ToDotNetType(Variable variable)
     {
-        if (variable.IsCustomType)
+        return ToDotNetType(variable.Type, variable.IsCustomType, variable.Dimensions);
+    }
+    
+    public static string ToDotNetType(string type, bool isCustomType, int dimensions)
+    {
+        if (isCustomType)
         {
-            return Naming.ToPascalCase(variable.Type);
+            return Naming.ToUpperCamelCase(type);
         }
 
-        switch (variable.Type)
+        switch (type)
         {
             case "bool":
-                return Dimension("bool", variable.Dimensions);
+                return Dimension("bool", dimensions);
 
             case "int":
-                return Dimension("int", variable.Dimensions);
+                return Dimension("int", dimensions);
 
             case "uint":
             case "dword":
-                return Dimension("uint", variable.Dimensions);
+                return Dimension("uint", dimensions);
 
             case "float":
-                return Dimension("float", variable.Dimensions);
+                return Dimension("float", dimensions);
 
             case "double":
-                return Dimension("double", variable.Dimensions);
+                return Dimension("double", dimensions);
 
             case "float2":
-                return Dimension(Numerics("Vector2"), variable.Dimensions);
+                return Dimension(Numerics("Vector2"), dimensions);
 
             case "float3":
-                return Dimension(Numerics("Vector3"), variable.Dimensions);
+                return Dimension(Numerics("Vector3"), dimensions);
 
             case "float4":
-                return Dimension(Numerics("Vector4"), variable.Dimensions);
+                return Dimension(Numerics("Vector4"), dimensions);
 
             case "float4x4":
-                return Dimension(Numerics("Matrix4x4"), variable.Dimensions);
+                return Dimension(Numerics("Matrix4x4"), dimensions);
             default:
-                throw new NotSupportedException($"Cannot translate HLSL type {variable.Type} to .NET");
+                throw new NotSupportedException($"Cannot translate HLSL type {type} to .NET");
         }
     }
 

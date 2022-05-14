@@ -4,10 +4,10 @@ namespace Mini.Engine.Generators.Source
 {
     public static class Naming
     {
-        public static string ToCamelCase(string name)
-             => LowerCaseFirstLetter(ToPascalCase(name));
+        public static string ToLowerCamelCase(string name)
+             => LowerCaseFirstLetter(ToUpperCamelCase(name));
 
-        public static string ToPascalCase(string name)
+        public static string ToUpperCamelCase(string name)
         {
             var builder = new StringBuilder(name.Length);
             var upperCase = false;

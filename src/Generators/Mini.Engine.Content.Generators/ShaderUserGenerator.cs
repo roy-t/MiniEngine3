@@ -1,6 +1,6 @@
 ﻿using System.Text;
-using Mini.Engine.Content.Generators.HLSL.Parsers;
 using Mini.Engine.Content.Generators.HLSL;
+using Mini.Engine.Content.Generators.HLSL.Parsers;
 using Mini.Engine.Generators.Source;
 
 namespace Mini.Engine.Content.Generators;
@@ -34,7 +34,7 @@ internal static class ShaderUserGenerator
         var builder = new StringBuilder();
         foreach (var cbuffer in cbuffers)
         {
-            var structName = Naming.ToPascalCase(cbuffer.Name);
+            var structName = Naming.ToUpperCamelCase(cbuffer.Name);
             builder.AppendLine($"public readonly Mini.Engine.DirectX.Buffers.ConstantBuffer<{structName}> {structName}Buffer;");
         }
 
@@ -46,7 +46,7 @@ internal static class ShaderUserGenerator
         var builder = new StringBuilder();
         foreach (var cbuffer in cbuffers)
         {
-            var structName = Naming.ToPascalCase(cbuffer.Name);
+            var structName = Naming.ToUpperCamelCase(cbuffer.Name);
             builder.AppendLine($"this.{structName}Buffer = new Mini.Engine.DirectX.Buffers.ConstantBuffer<{structName}>(device, user);");
         }
 
@@ -59,13 +59,14 @@ internal static class ShaderUserGenerator
 
         foreach (var cbuffer in cBuffers)
         {
-            var name = Naming.ToPascalCase(cbuffer.Name);
+            var name = Naming.ToUpperCamelCase(cbuffer.Name);
+            var mapping = StructMapping.Create(cbuffer, knownStructures);
 
-            var variables = cbuffer.Variables.Where(v => !v.Name.StartsWith("__")).ToList();
+            var parameters = mapping.GetParametersForStruct();
+            var arguments = string.Join(", ", parameters.Select(p => $"{PrimitiveTypeTranslator.ToDotNetType(p.Type, p.IsCustomType, 0)} {Naming.ToLowerCamelCase(p.Name)}"));
 
-            var arguments = string.Join(", ", variables.Select(v => $"{PrimitiveTypeTranslator.ToDotNetType(v)} {Naming.ToCamelCase(v.Name)}"));            
-            var assignments = GenerateStructAssignments(variables, knownStructures);
-            var fieldName = $"{Naming.ToPascalCase(cbuffer.Name)}Buffer";
+            var assignments = GenerateStructAssignments(mapping);
+            var fieldName = $"{Naming.ToUpperCamelCase(cbuffer.Name)}Buffer";
             var method = $@"            
             public void Map{name}(Mini.Engine.DirectX.Contexts.DeviceContext context, {arguments})
             {{
@@ -83,25 +84,14 @@ internal static class ShaderUserGenerator
         return builder.ToString();
     }
 
-    private static string GenerateStructAssignments(IReadOnlyList<Variable> variables, IReadOnlyList<Structure> knownStructures)
+    private static string GenerateStructAssignments(StructMapping mapping)
     {
         var lines = new List<string>();
-        foreach(var variable in variables)
+        foreach (var field in mapping.Fields)
         {
-            if (variable.IsCustomType)
-            {
-                var type = knownStructures.First(ks => ks.Name.Equals(variable.Type, StringComparison.InvariantCultureIgnoreCase));
-                var flatten = StructGenerator.Flatten(Naming.ToCamelCase(variable.Name) + ".", type.Variables, knownStructures, true);
-                foreach (var v in flatten)
-                {
-                    var fieldName = string.Join(string.Empty, v.Name.Split('.').Select(p => Naming.ToPascalCase(p)));
-                    lines.Add($"{fieldName} = {v.Name}");
-                }
-            }
-            else
-            {
-                lines.Add($"{Naming.ToPascalCase(variable.Name)} = {Naming.ToCamelCase(variable.Name)}");
-            }
+            var path = mapping.GetAssignmentForFlattenedStruct(field);
+            var fieldName = mapping.GetFieldForFlattenedStruct(field);
+            lines.Add($"{fieldName} = {path}");
         }
 
         return string.Join($",{Environment.NewLine}", lines.ToArray());
@@ -113,7 +103,7 @@ internal static class ShaderUserGenerator
 
         foreach (var cbuffer in cBuffers)
         {
-            builder.AppendLine($"this.{Naming.ToPascalCase(cbuffer.Name)}Buffer.Dispose();");
+            builder.AppendLine($"this.{Naming.ToUpperCamelCase(cbuffer.Name)}Buffer.Dispose();");
         }
 
         return builder.ToString();

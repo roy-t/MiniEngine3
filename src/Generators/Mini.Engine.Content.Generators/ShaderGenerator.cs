@@ -38,7 +38,7 @@ public sealed class ShaderGenerator : IIncrementalGenerator
         }
 
         var @namespace = "Mini.Engine.Content.Shaders.Generated";
-        var @class = Naming.ToPascalCase(shader.Name);
+        var @class = Naming.ToUpperCamelCase(shader.Name);
 
         var constants = GenerateResourceSlotConstants(shader.Variables, shader.CBuffers);
 
@@ -82,13 +82,13 @@ public sealed class ShaderGenerator : IIncrementalGenerator
         {
             if (variable.Slot != null)
             {
-                builder.AppendLine($"public const int {Naming.ToPascalCase(variable.Name)} = {variable.Slot};");
+                builder.AppendLine($"public const int {Naming.ToUpperCamelCase(variable.Name)} = {variable.Slot};");
             }
         }
 
         foreach (var cbuffer in cbuffers)
         {
-            builder.AppendLine($"public const int {Naming.ToPascalCase(cbuffer.Name)}Slot = {cbuffer.Slot};");
+            builder.AppendLine($"public const int {Naming.ToUpperCamelCase(cbuffer.Name)}Slot = {cbuffer.Slot};");
         }
 
         return builder.ToString();
@@ -126,7 +126,7 @@ public sealed class ShaderGenerator : IIncrementalGenerator
 
             if (!string.IsNullOrEmpty(instantation))
             {
-                builder.AppendLine($"this.{Naming.ToPascalCase(function.Name)} = {instantation};");
+                builder.AppendLine($"this.{Naming.ToUpperCamelCase(function.Name)} = {instantation};");
             }
         }
 
@@ -155,7 +155,7 @@ public sealed class ShaderGenerator : IIncrementalGenerator
 
             if (!string.IsNullOrEmpty(interfaceType))
             {
-                builder.AppendLine($"public {interfaceType} {Naming.ToPascalCase(function.Name)} {{ get; }}");
+                builder.AppendLine($"public {interfaceType} {Naming.ToUpperCamelCase(function.Name)} {{ get; }}");
             }
         }
 
