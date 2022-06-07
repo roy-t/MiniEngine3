@@ -21,13 +21,14 @@ internal sealed class CompressedTextureLoader : IContentDataLoader<TextureData>,
         this.Transcoder = new Transcoder();
     }    
 
-    public TextureData Load(Device device, ContentId id, ILoaderSettings settings)
+    public TextureData Load(Device device, ContentId id, ILoaderSettings loaderSettings)
     {
-        var dfs = (DiskFileSystem)this.FileSystem;
-        var path = dfs.ToAbsolute(id.Path);        
-        var data = this.Encoder.EncodeEtc1s(path);
+        var settings = loaderSettings is TextureLoaderSettings textureLoaderSettings ? textureLoaderSettings : TextureLoaderSettings.Default;
 
         // TODO: do not encode and then transcode, us pre-encoded files
+        var dfs = (DiskFileSystem)this.FileSystem;
+        var path = dfs.ToAbsolute(id.Path);        
+        var data = this.Encoder.EncodeEtc1s(path, generateMipmaps: settings.ShouldMipMap, renormalize: settings.IsNormalized);        
 
         //var data = this.FileSystem.ReadAllBytes(id.Path);
         var transcodedData = this.Transcoder.Transcode(data, out var width, out var height, out var pitch);

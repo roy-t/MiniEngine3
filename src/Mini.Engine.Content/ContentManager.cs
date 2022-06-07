@@ -50,19 +50,20 @@ public sealed partial class ContentManager : IDisposable
         this.Callbacks = new Dictionary<ContentId, List<ReloadCallback>>();
     }
 
-    public ITexture2D LoadTexture(string path, string key = "")
+    public ITexture2D LoadTexture(string path, string key = "", TextureLoaderSettings? settings = null)
     {
-        return this.TextureLoader.Load(this.Device, new ContentId(path, key), TextureLoaderSettings.Default);
+        
+        return this.TextureLoader.Load(this.Device, new ContentId(path, key), settings ?? TextureLoaderSettings.Default);
     }
 
-    public IMaterial LoadMaterial(string path, string key = "")
+    public IMaterial LoadMaterial(string path, string key = "", MaterialLoaderSettings? settings = null)
     {
-        return this.MaterialLoader.Load(this.Device, new ContentId(path, key), MaterialLoaderSettings.Default);
+        return this.MaterialLoader.Load(this.Device, new ContentId(path, key), settings ?? MaterialLoaderSettings.Default);
     }
 
-    public IModel LoadModel(string path, string key = "")
+    public IModel LoadModel(string path, string key = "", ModelLoaderSettings? settings = null)
     {
-        return this.ModelLoader.Load(this.Device, new ContentId(path, key), ModelLoaderSettings.Default);
+        return this.ModelLoader.Load(this.Device, new ContentId(path, key), settings ?? ModelLoaderSettings.Default);
     }
 
     public IModel LoadSponza()
@@ -82,7 +83,15 @@ public sealed partial class ContentManager : IDisposable
 
     public IMaterial LoadDefaultMaterial()
     {
-        return this.LoadMaterial("default.mtl", "default");
+        var settings = new MaterialLoaderSettings
+        (
+            new TextureLoaderSettings(true, false, false),
+            new TextureLoaderSettings(false, false, false),
+            new TextureLoaderSettings(false, true, false),
+            new TextureLoaderSettings(false, false, false),
+            new TextureLoaderSettings(false, false, false)
+        );
+        return this.LoadMaterial("default.mtl", "default", settings);
     }
 
     public void Push(string name)

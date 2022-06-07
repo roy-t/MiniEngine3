@@ -1,5 +1,4 @@
-﻿using System;
-using Mini.Engine.DirectX;
+﻿using Mini.Engine.DirectX;
 using Mini.Engine.IO;
 using StbImageSharp;
 using Vortice.DXGI;
@@ -18,7 +17,7 @@ internal sealed class HdrTextureDataLoader : IContentDataLoader<TextureData>
         this.FileSystem = fileSystem;
     }
 
-    public TextureData Load(Device device, ContentId id, ILoaderSettings settings)
+    public TextureData Load(Device device, ContentId id, ILoaderSettings loaderSettings)
     {
         using var stream = this.FileSystem.OpenRead(id.Path);
         var image = ImageResultFloat.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
@@ -28,11 +27,8 @@ internal sealed class HdrTextureDataLoader : IContentDataLoader<TextureData>
         Buffer.BlockCopy(image.Data, 0, bytes, 0, image.Data.Length * sizeof(float));
 
         var format = HdrFormat;
-        if (settings is TextureLoaderSettings textureLoaderSettings)
-        {
-            format = textureLoaderSettings.PreferredFormat ?? format;
-        }
-
-        return new TextureData(id, image.Width, image.Height, pitch, format, false, bytes);
+        var settings = loaderSettings is TextureLoaderSettings textureLoaderSetings ? textureLoaderSetings : TextureLoaderSettings.Default;
+        
+        return new TextureData(id, image.Width, image.Height, pitch, format, settings.ShouldMipMap, bytes);
     }
 }
