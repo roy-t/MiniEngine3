@@ -22,11 +22,10 @@ public sealed class TextureCube : ITextureCube
         this.Resolution = resolution;
         this.Format = format;
 
-        this.Texture = Textures.Create(device, resolution, resolution, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.TextureCube, 6, generateMipMaps, user, meaning);
-        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, ShaderResourceViewDimension.TextureCube, user, meaning);
-
         this.MipMapSlices = generateMipMaps ? Dimensions.MipSlices(resolution) : 1;
-
+        this.Texture = Textures.Create(device, resolution, resolution, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.TextureCube, 6, this.MipMapSlices, generateMipMaps, user, meaning);
+        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, ShaderResourceViewDimension.TextureCube, user, meaning);
+        
         this.Name = DebugNameGenerator.GetName(user, "TextureCube", meaning, format);
     }
 

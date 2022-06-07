@@ -29,6 +29,6 @@ internal sealed class HdrTextureDataLoader : IContentDataLoader<TextureData>
         var format = HdrFormat;
         var settings = loaderSettings is TextureLoaderSettings textureLoaderSetings ? textureLoaderSetings : TextureLoaderSettings.Default;
         
-        return new TextureData(id, image.Width, image.Height, pitch, format, settings.ShouldMipMap, bytes);
+        return new TextureData(id, image.Width, image.Height, pitch, format, settings.ShouldMipMap, new[] { bytes });
     }
 }

@@ -13,7 +13,7 @@ public sealed class DepthStencilBufferArray : ITexture2D
         this.Format = ToTextureFormat(format);
         this.Name = DebugNameGenerator.GetName(user, "DEPTH_ARRAY", meaning);
 
-        this.Texture = Textures.Create(device, width, height, ToTextureFormat(format), BindFlags.DepthStencil | BindFlags.ShaderResource, ResourceOptionFlags.None, length, false, user, meaning);
+        this.Texture = Textures.Create(device, width, height, ToTextureFormat(format), BindFlags.DepthStencil | BindFlags.ShaderResource, ResourceOptionFlags.None, length, 1, false, user, meaning);
         this.ShaderResourceView = CreateSRV(device, this.Texture, length, ToShaderResourceViewFormat(format), user, meaning);
 
         this.DepthStencilViews = new ID3D11DepthStencilView[length];

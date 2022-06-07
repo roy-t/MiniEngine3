@@ -19,7 +19,7 @@ public sealed class DepthStencilBuffer : ITexture2D
         this.Height = height;
         this.Format = ToTextureFormat(format);
 
-        this.Texture = Textures.Create(device, width, height, ToTextureFormat(format), BindFlags.DepthStencil | BindFlags.ShaderResource, ResourceOptionFlags.None, 1, false, user, meaning);
+        this.Texture = Textures.Create(device, width, height, ToTextureFormat(format), BindFlags.DepthStencil | BindFlags.ShaderResource, ResourceOptionFlags.None, 1, 1, false, user, meaning);
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, ToShaderResourceViewFormat(format), user, meaning);
 
         var depthView = new DepthStencilViewDescription(DepthStencilViewDimension.Texture2D, ToDepthViewFormat(format));

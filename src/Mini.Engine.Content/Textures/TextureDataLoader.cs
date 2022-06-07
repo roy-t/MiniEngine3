@@ -34,6 +34,6 @@ internal sealed class TextureDataLoader : IContentDataLoader<TextureData>
             format = Format.R8G8B8A8_UNorm;
         }
 
-        return new TextureData(id, image.Width, image.Height, pitch, format, settings.ShouldMipMap, image.Data);
+        return new TextureData(id, image.Width, image.Height, pitch, format, settings.ShouldMipMap, new[] { image.Data });
     }
 }
