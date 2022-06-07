@@ -11,15 +11,11 @@ public interface ITexture : IDisposable
     public string Name { get; }
     public Format Format { get; }
     public int MipMapSlices { get; }
+    public int ArraySize { get; }
 }
 
 public interface ITexture2D : ITexture
 {
     public int Width { get; }
     public int Height { get; }
-}
-
-public interface ITextureCube : ITexture
-{
-    public int Resolution { get; }
 }

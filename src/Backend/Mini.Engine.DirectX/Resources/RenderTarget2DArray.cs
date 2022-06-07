@@ -1,4 +1,5 @@
-﻿using Vortice.Direct3D;
+﻿using Mini.Engine.Core;
+using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -6,21 +7,31 @@ namespace Mini.Engine.DirectX.Resources;
 public sealed class RenderTarget2DArray : ITexture2D
 {
     // TODO: this is very similar to RenderTargetCube
-    public RenderTarget2DArray(Device device, int width, int height, int length, Format format, string user, string meaning)
+    public RenderTarget2DArray(Device device, ImageInfo imageInfo, MipMapInfo mipMapInfo, ResourceInfo resourceInfo, string user, string meaning)
     {
-        this.Width = width;
-        this.Height = height;
-        this.Length = length;
-        this.Format = format;
+        this.ImageInfo = imageInfo;
+        this.MipMapInfo = mipMapInfo;
+
+        this.Texture = Textures.Create(user, meaning, device, imageInfo, mipMapInfo, BindInfo.RenderTargetShaderResource, resourceInfo);
         this.Name = DebugNameGenerator.GetName(user, "RT", meaning);
 
-        this.Texture = Textures.Create(device, width, height, format, length, false, user, meaning);
-        this.ShaderResourceView = CreateSRV(device, this.Texture, length, format, user, meaning);
-
-        this.ID3D11RenderTargetViews = new ID3D11RenderTargetView[this.Length];
-        for (var i = 0; i < length; i++)
+        if (resourceInfo == ResourceInfo.Texture)
         {
-            this.ID3D11RenderTargetViews[i] = RenderTargetViews.Create(device, this.Texture, format, i, user, meaning);
+            this.ShaderResourceView = CreateSRV(device, this.Texture, imageInfo.ArraySize, imageInfo.Format, user, meaning);
+        }
+        else
+        {
+            this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, imageInfo.Format, ShaderResourceViewDimension.TextureCube, user, meaning);
+        }
+
+        this.ID3D11RenderTargetViews = new ID3D11RenderTargetView[this.ArraySize * mipMapInfo.Levels];
+        for (var i = 0; i < imageInfo.ArraySize; i++)
+        {
+            for (var s = 0; s < mipMapInfo.Levels; s++)
+            {
+                var index = Indexes.ToOneDimensional(i, s, imageInfo.ArraySize);
+                this.ID3D11RenderTargetViews[index] = RenderTargetViews.Create(device, this.Texture, imageInfo.Format, i, s, user, meaning);
+            }
         }
     }
 
@@ -33,13 +44,18 @@ public sealed class RenderTarget2DArray : ITexture2D
         return srv;
     }
 
-    public int Width { get; }
-    public int Height { get; }
-    public int Length { get; }
     public string Name { get; }
-    public Format Format { get; }
-    public int MipMapSlices { get; }
 
+    public ImageInfo ImageInfo { get; }
+    public MipMapInfo MipMapInfo { get; }
+    public ResourceInfo ResourceInfo { get; }
+
+    public int Width => this.ImageInfo.Width;
+    public int Height => this.ImageInfo.Height;
+    public int ArraySize => this.ImageInfo.ArraySize;
+    public int MipMapSlices => this.MipMapInfo.Levels;
+    public Format Format => this.ImageInfo.Format;
+    
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }
 

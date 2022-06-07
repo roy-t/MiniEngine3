@@ -11,7 +11,10 @@ public sealed class RenderTarget2D : ITexture2D
         this.Height = height;
         this.Format = format;
 
-        this.Texture = Textures.Create(device, width, height, format, user, meaning);
+        var image = new ImageInfo(width, height, format, Format.SizeOfInBytes() * width);
+        var mipmap = MipMapInfo.None();
+
+        this.Texture = Textures.Create(user, meaning, device, image, mipmap, BindInfo.RenderTargetShaderResource);
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, user, meaning);
         this.ID3D11RenderTargetView = RenderTargetViews.Create(device, this.Texture, format, user, meaning);
 
@@ -23,6 +26,7 @@ public sealed class RenderTarget2D : ITexture2D
     public int Height { get; }
     public Format Format { get; }
     public int MipMapSlices => 1;
+    public int ArraySize => 1;
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }

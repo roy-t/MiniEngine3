@@ -42,6 +42,7 @@ public sealed class Texture2D : ITexture2D
     public int Width => this.ImageInfo.Width;
     public int Height => this.ImageInfo.Height;
     public int MipMapSlices => this.MipMapInfo.Levels;
+    public int ArraySize => this.ImageInfo.ArraySize;
 
     public Format Format => this.ImageInfo.Format;
 

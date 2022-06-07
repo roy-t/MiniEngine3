@@ -69,7 +69,7 @@ public sealed class SponzaScene : IScene
             {
                 var sky = this.Administrator.Entities.Create();
                 var texture = this.Content.LoadTexture(@"Skyboxes\circus.hdr");
-                var albedo = this.CubeMapGenerator.GenerateAlbedo(texture, false, sky.ToString());
+                var albedo = this.CubeMapGenerator.GenerateAlbedo(texture, sky.ToString());
                 var irradiance = this.CubeMapGenerator.GenerateIrradiance(texture, sky.ToString());
                 var environment = this.CubeMapGenerator.GenerateEnvironment(texture, sky.ToString());
 

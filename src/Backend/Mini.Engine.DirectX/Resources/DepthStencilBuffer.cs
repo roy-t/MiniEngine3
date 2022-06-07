@@ -34,6 +34,7 @@ public sealed class DepthStencilBuffer : ITexture2D
     public int Height { get; }
     public Format Format { get; }
     public int MipMapSlices => 1;
+    public int ArraySize => 1;
 
     internal ID3D11Texture2D Texture { get; }
     internal ID3D11ShaderResourceView ShaderResourceView { get; }

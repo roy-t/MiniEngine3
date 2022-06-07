@@ -9,7 +9,7 @@ public sealed class DepthStencilBufferArray : ITexture2D
     {
         this.Width = width;
         this.Height = height;
-        this.Length = length;
+        this.ArraySize = length;
         this.Format = ToTextureFormat(format);
         this.Name = DebugNameGenerator.GetName(user, "DEPTH_ARRAY", meaning);
 
@@ -28,7 +28,7 @@ public sealed class DepthStencilBufferArray : ITexture2D
     public string Name { get; }
     public int Width { get; }
     public int Height { get; }
-    public int Length { get; }
+    public int ArraySize { get; }
     public Format Format { get; }
     public int MipMapSlices => 1;
 
@@ -86,7 +86,7 @@ public sealed class DepthStencilBufferArray : ITexture2D
 
     public void Dispose()
     {
-        for (var i = 0; i < this.Length; i++)
+        for (var i = 0; i < this.ArraySize; i++)
         {
             this.DepthStencilViews[i].Dispose();
         }

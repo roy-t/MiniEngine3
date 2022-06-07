@@ -49,6 +49,7 @@ public sealed class RWTexture2D : ITexture2D
     public int Height { get; }
     public Format Format { get; }
     public int MipMapSlices { get; }
+    public int ArraySize => 1;
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }

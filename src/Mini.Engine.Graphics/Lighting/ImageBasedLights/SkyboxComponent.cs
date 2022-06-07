@@ -5,7 +5,7 @@ namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 public sealed class SkyboxComponent : Component
 {
-    public SkyboxComponent(Entity entity, ITextureCube albedo, ITextureCube irradiance, ITextureCube environment, float strength)
+    public SkyboxComponent(Entity entity, ITexture2D albedo, ITexture2D irradiance, ITexture2D environment, float strength)
         : base(entity)
     {
         this.Albedo = albedo;
@@ -14,8 +14,8 @@ public sealed class SkyboxComponent : Component
         this.Strength = strength;
     }
 
-    public ITextureCube Albedo { get; }
-    public ITextureCube Irradiance { get; }
-    public ITextureCube Environment { get; }
+    public ITexture2D Albedo { get; }
+    public ITexture2D Irradiance { get; }
+    public ITexture2D Environment { get; }
     public float Strength { get; }
 }

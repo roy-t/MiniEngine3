@@ -15,7 +15,7 @@ public enum CubeMapFace
     NegativeZ = 5
 }
 
-public sealed class TextureCube : ITextureCube
+public sealed class TextureCube : ITexture2D
 {
     public TextureCube(Device device, int resolution, Format format, bool generateMipMaps, string user, string meaning)
     {
@@ -32,8 +32,11 @@ public sealed class TextureCube : ITextureCube
     public string Name { get; }
     public const int Faces = 6;
     public int Resolution { get; }
+    public int Width => Resolution;
+    public int Height => Resolution;
     public Format Format { get; }
     public int MipMapSlices { get; }
+    public int ArraySize => 1;
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }

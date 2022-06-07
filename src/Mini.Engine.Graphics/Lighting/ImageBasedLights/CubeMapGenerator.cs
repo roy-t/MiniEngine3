@@ -5,7 +5,7 @@ using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
-
+using Vortice.DXGI;
 using Shaders = Mini.Engine.Content.Shaders.Generated;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
@@ -32,10 +32,12 @@ public sealed class CubeMapGenerator
         this.User = shader.CreateUserFor<CubeMapGenerator>();
     }
 
-    public ITextureCube GenerateAlbedo(ITexture2D equirectangular, bool generateMipMaps, string user)
+    public ITexture2D GenerateAlbedo(ITexture2D equirectangular, string user)
     {
         var resolution = equirectangular.Height / 2;
-        var texture = new RenderTargetCube(this.Device, resolution, equirectangular.Format, generateMipMaps, user, "Albedo");
+        
+        var imageInfo = new ImageInfo(resolution, resolution, equirectangular.Format, equirectangular.Format.SizeOfInBytes() * resolution, 6);        
+        var texture = new RenderTarget2DArray(this.Device, imageInfo, MipMapInfo.None(), ResourceInfo.Cube, user, "Albedo");
 
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;
@@ -50,10 +52,10 @@ public sealed class CubeMapGenerator
         return texture;
     }
 
-    public ITextureCube GenerateIrradiance(ITexture2D equirectangular, string user, int resolution = IrradianceResolution)
+    public ITexture2D GenerateIrradiance(ITexture2D equirectangular, string user, int resolution = IrradianceResolution)
     {
-        var texture = new RenderTargetCube(this.Device, resolution, equirectangular.Format, false, user, "Irradiance");
-
+        var imageInfo = new ImageInfo(resolution, resolution, equirectangular.Format, equirectangular.Format.SizeOfInBytes() * resolution, 6);
+        var texture = new RenderTarget2DArray(this.Device, imageInfo, MipMapInfo.None(), ResourceInfo.Cube, user, "Irradiance");
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;
 
@@ -67,10 +69,10 @@ public sealed class CubeMapGenerator
         return texture;
     }
 
-    public ITextureCube GenerateEnvironment(ITexture2D equirectangular, string user, int resolution = EnvironmentResolution)
-    {
-        var texture = new RenderTargetCube(this.Device, resolution, equirectangular.Format, true, user, "Environment");
-
+    public ITexture2D GenerateEnvironment(ITexture2D equirectangular, string user, int resolution = EnvironmentResolution)
+    {        
+        var imageInfo = new ImageInfo(resolution, resolution, equirectangular.Format, equirectangular.Format.SizeOfInBytes() * resolution, 6);
+        var texture = new RenderTarget2DArray(this.Device, imageInfo, MipMapInfo.Provided(Dimensions.MipSlices(resolution)), ResourceInfo.Cube, user, "Irradiance");
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;
 
@@ -96,7 +98,7 @@ public sealed class CubeMapGenerator
         return texture;
     }
 
-    private void RenderFaces(RenderTargetCube target, int mipSlice = 0)
+    private void RenderFaces(RenderTarget2DArray target, int mipSlice = 0)
     {
         var context = this.Device.ImmediateContext;
         var projection = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 2.0f, 1.0f, 0.1f, 1.5f);
@@ -112,7 +114,7 @@ public sealed class CubeMapGenerator
 
             context.VS.SetConstantBuffer(Shaders.CubeMapGenerator.ConstantsSlot, this.User.ConstantsBuffer);
 
-            context.OM.SetRenderTarget(target, face, mipSlice);
+            context.OM.SetRenderTarget(target, i, mipSlice);
             context.Draw(3);
         }
     }

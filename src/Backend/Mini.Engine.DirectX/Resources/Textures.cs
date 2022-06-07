@@ -9,30 +9,14 @@ public readonly record struct MipMapInfo(MipMapFlags Flags, int Levels)
 {
     public static MipMapInfo Generated(int imageWidth) { return new MipMapInfo(MipMapFlags.Generated, Dimensions.MipSlices(imageWidth)); }
     public static MipMapInfo Provided(int levels) { return new MipMapInfo(MipMapFlags.Provided, levels); }
-    public static MipMapInfo None() { return new MipMapInfo(MipMapFlags.None, 1); }
-    public static MipMapInfo Compute(bool generateMipMaps, int imageWidth, int levels)
-    {
-        if (generateMipMaps) { return Generated(imageWidth); }
-        else if (levels > 1) { return Provided(levels); }
-        return None();
-    }
+    public static MipMapInfo None() { return new MipMapInfo(MipMapFlags.None, 1); }   
 }
 public enum MipMapFlags { None, Provided, Generated };
 public enum BindInfo { ShaderResource, RenderTargetShaderResource, DepthStencilShaderResource };
 public enum ResourceInfo { Texture, Cube };
 
 public static class Textures
-{
-    internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, string user, string meaning)
-    {
-        return Create(device, width, height, format, 1, false, user, meaning);
-    }
-
-    internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, int mipmapSlizes, bool generateMipMaps, string user, string meaning)
-    {
-        return Create(device, width, height, format, 1, mipmapSlizes, generateMipMaps, user, meaning);
-    }
-
+{        
     internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, int arraySize, int mipmapSlizes, bool generateMipMaps, string user, string meaning)
     {
         return Create(device, width, height, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.None, arraySize, mipmapSlizes, generateMipMaps, user, meaning);

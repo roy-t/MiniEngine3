@@ -55,11 +55,6 @@ public abstract class DeviceContext : IDisposable
         this.ID3D11DeviceContext.ClearRenderTargetView(renderTarget.ID3D11RenderTargetViews[slice], color);
     }
 
-    public void Clear(RenderTargetCube renderTarget, CubeMapFace face, Color4 color)
-    {
-        this.ID3D11DeviceContext.ClearRenderTargetView(renderTarget.FaceRenderTargetViews[(int)face], color);
-    }
-
     public void Clear(DepthStencilBuffer depthStencilBuffer, DepthStencilClearFlags flags, float depth, byte stencil)
     {
         this.ID3D11DeviceContext.ClearDepthStencilView(depthStencilBuffer.DepthStencilView, flags, depth, stencil);
