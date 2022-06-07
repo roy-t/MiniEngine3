@@ -5,28 +5,28 @@ namespace Mini.Engine.DirectX.Resources;
 
 public sealed class RenderTarget2D : ITexture2D
 {
-    public RenderTarget2D(Device device, int width, int height, Format format, string user, string meaning)
+    public RenderTarget2D(Device device, ImageInfo imageInfo, string user, string meaning)
     {
-        this.Width = width;
-        this.Height = height;
-        this.Format = format;
+        this.ImageInfo = imageInfo;
+        this.MipMapInfo = MipMapInfo.None();
 
-        var image = new ImageInfo(width, height, format, Format.SizeOfInBytes() * width);
-        var mipmap = MipMapInfo.None();
+        this.Texture = Textures.Create(user, meaning, device, imageInfo, this.MipMapInfo, BindInfo.RenderTargetShaderResource);
+        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, imageInfo.Format, user, meaning);
+        this.ID3D11RenderTargetView = RenderTargetViews.Create(device, this.Texture, imageInfo.Format, user, meaning);
 
-        this.Texture = Textures.Create(user, meaning, device, image, mipmap, BindInfo.RenderTargetShaderResource);
-        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, user, meaning);
-        this.ID3D11RenderTargetView = RenderTargetViews.Create(device, this.Texture, format, user, meaning);
-
-        this.Name = DebugNameGenerator.GetName(user, "RT", meaning, format);
+        this.Name = DebugNameGenerator.GetName(user, "RT", meaning, imageInfo.Format);
     }
 
     public string Name { get; }
-    public int Width { get; }
-    public int Height { get; }
-    public Format Format { get; }
-    public int MipMapSlices => 1;
-    public int ArraySize => 1;
+
+    public ImageInfo ImageInfo { get; }
+    public MipMapInfo MipMapInfo { get; }
+
+    public int Width => this.ImageInfo.Width;
+    public int Height => this.ImageInfo.Height;
+    public int ArraySize => this.ImageInfo.ArraySize;
+    public int MipMapSlices => this.MipMapInfo.Levels;
+    public Format Format => this.ImageInfo.Format;
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }

@@ -6,7 +6,6 @@ using Vortice.DXGI;
 namespace Mini.Engine.DirectX.Resources;
 public sealed class RenderTarget2DArray : ITexture2D
 {
-    // TODO: this is very similar to RenderTargetCube
     public RenderTarget2DArray(Device device, ImageInfo imageInfo, MipMapInfo mipMapInfo, ResourceInfo resourceInfo, string user, string meaning)
     {
         this.ImageInfo = imageInfo;

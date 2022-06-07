@@ -8,9 +8,15 @@ public sealed class GeometryBuffer : IDisposable
 {
     public GeometryBuffer(Device device)
     {
-        this.Albedo = new RenderTarget2D(device, device.Width, device.Height, Format.R8G8B8A8_UNorm, nameof(GeometryBuffer), "Albedo");
-        this.Material = new RenderTarget2D(device, device.Width, device.Height, Format.R8G8B8A8_UNorm, nameof(GeometryBuffer), "Material");
-        this.Normal = new RenderTarget2D(device, device.Width, device.Height, Format.R16G16B16A16_Float, nameof(GeometryBuffer), "Normal");
+        var imageInfo = new ImageInfo(device.Width, device.Height, Format.R8G8B8A8_UNorm);
+        this.Albedo = new RenderTarget2D(device, imageInfo, nameof(GeometryBuffer), "Albedo");
+
+        imageInfo = new ImageInfo(device.Width, device.Height, Format.R8G8B8A8_UNorm);
+        this.Material = new RenderTarget2D(device, imageInfo, nameof(GeometryBuffer), "Material");
+
+        imageInfo = new ImageInfo(device.Width, device.Height, Format.R16G16B16A16_Float);
+        this.Normal = new RenderTarget2D(device, imageInfo, nameof(GeometryBuffer), "Normal");
+
         this.DepthStencilBuffer = new DepthStencilBuffer(device, DepthStencilFormat.D32_Float, device.Width, device.Height, nameof(GeometryBuffer), "Depth");
 
         this.Width = device.Width;

@@ -4,7 +4,6 @@ using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Vortice.DXGI;
 using Vortice.Mathematics;
-
 using Shaders = Mini.Engine.Content.Shaders.Generated;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
@@ -29,7 +28,8 @@ public sealed class BrdfLutGenerator
     {
         var context = this.Device.ImmediateContext;
 
-        var renderTarget = new RenderTarget2D(this.Device, Resolution, Resolution, Format.R16G16_Float, user, "BrdfLut");
+        var  imageInfo = new ImageInfo(Resolution, Resolution, Format.R16G16_Float);
+        var renderTarget = new RenderTarget2D(this.Device, imageInfo, user, "BrdfLut");
 
         context.SetupFullScreenTriangle(this.FullScreenTriangle.TextureVs, Resolution, Resolution, this.Shader.Ps, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
         context.OM.SetRenderTarget(renderTarget);

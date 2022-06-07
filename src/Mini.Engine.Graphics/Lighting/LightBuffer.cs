@@ -7,8 +7,9 @@ namespace Mini.Engine.Graphics.Lighting;
 public sealed class LightBuffer : IDisposable
 {
     public LightBuffer(Device device)
-    {
-        this.Light = new RenderTarget2D(device, device.Width, device.Height, Format.R16G16B16A16_Float, nameof(LightBuffer), nameof(this.Light));
+{
+        var imageInfo = new ImageInfo(device.Width, device.Height, Format.R16G16B16A16_Float);
+        this.Light = new RenderTarget2D(device, imageInfo, nameof(LightBuffer), nameof(this.Light));
     }
 
     public RenderTarget2D Light { get; }

@@ -4,7 +4,7 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
 
-public readonly record struct ImageInfo(int Width, int Height, Format Format, int Pitch, int ArraySize = 1);
+public readonly record struct ImageInfo(int Width, int Height, Format Format, int Pitch = 0, int ArraySize = 1);
 public readonly record struct MipMapInfo(MipMapFlags Flags, int Levels)
 {
     public static MipMapInfo Generated(int imageWidth) { return new MipMapInfo(MipMapFlags.Generated, Dimensions.MipSlices(imageWidth)); }
@@ -17,11 +17,7 @@ public enum ResourceInfo { Texture, Cube };
 
 public static class Textures
 {        
-    internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, int arraySize, int mipmapSlizes, bool generateMipMaps, string user, string meaning)
-    {
-        return Create(device, width, height, format, BindFlags.ShaderResource | BindFlags.RenderTarget, ResourceOptionFlags.None, arraySize, mipmapSlizes, generateMipMaps, user, meaning);
-    }
-
+   
     internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, BindFlags bindFlags, ResourceOptionFlags optionFlags, int arraySize, int mipmapSlizes, bool generateMipMaps, string user, string meaning)
     {
         var description = new Texture2DDescription
