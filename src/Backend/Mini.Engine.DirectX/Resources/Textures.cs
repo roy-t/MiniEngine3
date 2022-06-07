@@ -31,7 +31,7 @@ public static class Textures
             Format = format,
             SampleDescription = new SampleDescription(1, 0),
             Usage = ResourceUsage.Default,
-            BindFlags = bindFlags,
+            BindFlags = (generateMipMaps? BindFlags.ShaderResource | BindFlags.RenderTarget : BindFlags.None) | bindFlags,
             CpuAccessFlags = CpuAccessFlags.None,
             OptionFlags = (generateMipMaps ? ResourceOptionFlags.GenerateMips : ResourceOptionFlags.None) | optionFlags
         };

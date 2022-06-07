@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Serilog;
+﻿using Serilog;
 
 namespace Mini.Engine.IO;
 
@@ -44,6 +41,11 @@ public sealed class DiskFileSystem : IVirtualFileSystem
         return new StreamReader(stream).ReadToEnd();
     }
 
+    public byte[] ReadAllBytes(string path)
+    {
+        return File.ReadAllBytes(path);
+    }
+
     public void WatchFile(string path)
     {
         var normalized = this.NormalizePath(path);
@@ -55,7 +57,7 @@ public sealed class DiskFileSystem : IVirtualFileSystem
         return this.ChangedFiles.PopAvailable();
     }
 
-    private string ToAbsolute(string path)
+    public string ToAbsolute(string path)
     {
         if (Path.IsPathRooted(path))
         {

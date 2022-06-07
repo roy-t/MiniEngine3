@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using Mini.Engine.DirectX;
+﻿using Mini.Engine.DirectX;
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Textures;
@@ -9,6 +7,7 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
 {
     private readonly TextureDataLoader TextureDataLoader;
     private readonly HdrTextureDataLoader HdrTextureDataLoader;
+    private readonly CompressedTextureLoader CompressedTextureLoader;
 
     private readonly ContentManager Content;
 
@@ -16,6 +15,7 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
     {
         this.TextureDataLoader = new TextureDataLoader(fileSystem);
         this.HdrTextureDataLoader = new HdrTextureDataLoader(fileSystem);
+        this.CompressedTextureLoader = new CompressedTextureLoader(fileSystem);
         this.Content = content;
     }
 
@@ -26,8 +26,14 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
         {
             ".hdr" => this.HdrTextureDataLoader,
             ".jpg" or ".jpeg" or ".png" or ".bmp" or ".tga" or ".psd" or ".gif" => this.TextureDataLoader,
+            ".basis" => this.CompressedTextureLoader,
             _ => throw new NotSupportedException($"Could not load {id}. Unsupported image file type: {extension}"),
         };
+
+        if (id.Path.Contains("Sponza_Floor_diffuse.tga"))
+        {
+            loader = this.CompressedTextureLoader;
+        }
 
         var content = new Texture2DContent(id, device, loader, settings);
         this.Content.Add(content);

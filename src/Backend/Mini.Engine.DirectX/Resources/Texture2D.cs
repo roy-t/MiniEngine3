@@ -1,5 +1,4 @@
-﻿using System;
-using Mini.Engine.Core;
+﻿using Mini.Engine.Core;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -14,22 +13,15 @@ public sealed class Texture2D : ITexture2D
         this.Format = format;
 
         this.MipMapSlices = generateMipMaps ? Dimensions.MipSlices(width, height) : 1;
-        this.Texture = Textures.Create(device, width, height, format, generateMipMaps, user, meaning);
+        this.Texture = Textures.Create(device, width, height, format, BindFlags.ShaderResource, ResourceOptionFlags.None, 1, generateMipMaps, user, meaning);
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, user, meaning);
 
         this.Name = DebugNameGenerator.GetName(user, "Texture2D", meaning, format);
     }
 
-    public void SetPixels<T>(Device device, Span<T> pixels)
+    public void SetPixels<T>(Device device, Span<T> pixels, int pitch)
         where T : unmanaged
     {
-        if (this.Format.IsCompressed())
-        {
-            throw new NotSupportedException($"Uploading data in compressed texture formats is not supported: {this.Format}");
-        }
-
-        // Assumes texture is uncompressed and fills the entire buffer
-        var pitch = this.Width * this.Format.SizeOfInBytes();
         device.ID3D11DeviceContext.UpdateSubresource(pixels, this.Texture, 0, pitch, 0);
 
         if (this.MipMapSlices > 1)

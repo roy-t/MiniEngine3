@@ -29,6 +29,6 @@ internal sealed class TextureDataLoader : IContentDataLoader<TextureData>
             format = textureLoaderSettings.PreferredFormat ?? format;
         }
 
-        return new TextureData(id, image.Width, image.Height, pitch, format, image.Data);
+        return new TextureData(id, image.Width, image.Height, pitch, format, true, image.Data);
     }
 }

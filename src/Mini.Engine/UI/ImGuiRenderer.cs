@@ -152,7 +152,8 @@ internal sealed class ImGuiRenderer
             var pixelSpan = new Span<byte>(pixels, width * height * format.SizeOfInBytes());
 
             var texture = new Texture2D(device, width, height, format, false, nameof(ImGuiRenderer), "Font");
-            texture.SetPixels(device, pixelSpan);
+            var pitch = width * format.SizeOfInBytes();
+            texture.SetPixels(device, pixelSpan, pitch);
             return texture;
         }
     }

@@ -6,7 +6,7 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.Content.Textures;
 
-internal sealed record TextureData(ContentId Id, int Width, int Height, int Pitch, Format Format, byte[] Data)
+internal sealed record TextureData(ContentId Id, int Width, int Height, int Pitch, Format Format, bool MipMap, byte[] Data)
     : IContentData;
 
 internal sealed class Texture2DContent : ITexture2D, IContent
@@ -38,10 +38,9 @@ internal sealed class Texture2DContent : ITexture2D, IContent
     {
         this.texture?.Dispose();
 
-        var data = this.Loader.Load(device, this.Id, this.Settings);
-
-        var texture = new Texture2D(device, data.Width, data.Height, data.Format, true, data.Id.ToString(), string.Empty);
-        texture.SetPixels<byte>(device, data.Data);
+        var data = this.Loader.Load(device, this.Id, this.Settings);        
+        var texture = new Texture2D(device, data.Width, data.Height, data.Format, data.MipMap, data.Id.ToString(), string.Empty);
+        texture.SetPixels<byte>(device, data.Data, data.Pitch);
 
         this.texture = texture;        
     }

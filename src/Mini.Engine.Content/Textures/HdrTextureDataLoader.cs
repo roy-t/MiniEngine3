@@ -33,6 +33,6 @@ internal sealed class HdrTextureDataLoader : IContentDataLoader<TextureData>
             format = textureLoaderSettings.PreferredFormat ?? format;
         }
 
-        return new TextureData(id, image.Width, image.Height, pitch, format, bytes);
+        return new TextureData(id, image.Width, image.Height, pitch, format, false, bytes);
     }
 }

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-
-namespace Mini.Engine.IO;
+﻿namespace Mini.Engine.IO;
 
 public interface IVirtualFileSystem
 {
@@ -10,5 +7,5 @@ public interface IVirtualFileSystem
     string NormalizePath(string path);
     IEnumerable<string> GetChangedFiles();
     void WatchFile(string path);
-
+    byte[] ReadAllBytes(string path);
 }
