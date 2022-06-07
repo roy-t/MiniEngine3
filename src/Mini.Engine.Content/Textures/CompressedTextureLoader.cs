@@ -26,7 +26,8 @@ internal sealed class CompressedTextureLoader : IContentDataLoader<TextureData>,
     {
         var settings = loaderSettings is TextureLoaderSettings textureLoaderSettings ? textureLoaderSettings : TextureLoaderSettings.Default;
 
-        // TODO: do not encode and then transcode, us pre-encoded files
+        // TODO: do not encode and then transcode, us pre-encoded files        
+
         var dfs = (DiskFileSystem)this.FileSystem;
         var path = dfs.ToAbsolute(id.Path);
         var data = this.Encoder.EncodeEtc1s(path, generateMipmaps: settings.ShouldMipMap, renormalize: settings.IsNormalized);

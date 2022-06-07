@@ -1,5 +1,5 @@
 # TODO
-- Texture compression? https://github.com/BinomialLLC/basis_universal
+- CompleteTexture compression, see CompressedTextureLoader.cs! Right now we encode and then transcode 1 specific file (see TextureLoader). But we should convert all files and make some automatic encoder/dependency mechanism so editing stays easy!
 
 - Are we leaking memory, looks like some stuff keeps working even after it is popped from the content stack!
 
