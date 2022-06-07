@@ -44,7 +44,7 @@ public sealed class CubeMapGenerator
     {
         var resolution = equirectangular.Height / 2;
         
-        var imageInfo = new ImageInfo(resolution, resolution, equirectangular.Format, equirectangular.Format.SizeOfInBytes() * resolution, 6);        
+        var imageInfo = new ImageInfo(resolution, resolution, equirectangular.Format, equirectangular.Format.BytesPerPixel() * resolution, 6);        
         var texture = new RenderTarget2DArray(this.Device, imageInfo, MipMapInfo.None(), ResourceInfo.Cube, user, "Albedo");
 
         var blend = this.Device.BlendStates.Opaque;
@@ -62,7 +62,7 @@ public sealed class CubeMapGenerator
 
     public ITexture2D GenerateIrradiance(ITexture2D equirectangular, string user, int resolution = IrradianceResolution)
     {
-        var imageInfo = new ImageInfo(resolution, resolution, equirectangular.Format, equirectangular.Format.SizeOfInBytes() * resolution, 6);
+        var imageInfo = new ImageInfo(resolution, resolution, equirectangular.Format, equirectangular.Format.BytesPerPixel() * resolution, 6);
         var texture = new RenderTarget2DArray(this.Device, imageInfo, MipMapInfo.None(), ResourceInfo.Cube, user, "Irradiance");
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;
@@ -79,7 +79,7 @@ public sealed class CubeMapGenerator
 
     public ITexture2D GenerateEnvironment(ITexture2D equirectangular, string user, int resolution = EnvironmentResolution)
     {        
-        var imageInfo = new ImageInfo(resolution, resolution, equirectangular.Format, equirectangular.Format.SizeOfInBytes() * resolution, 6);
+        var imageInfo = new ImageInfo(resolution, resolution, equirectangular.Format, equirectangular.Format.BytesPerPixel() * resolution, 6);
         var texture = new RenderTarget2DArray(this.Device, imageInfo, MipMapInfo.Provided(Dimensions.MipSlices(resolution)), ResourceInfo.Cube, user, "Irradiance");
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;

@@ -9,7 +9,7 @@ namespace Mini.Engine.Content.Textures;
 internal sealed class HdrTextureDataLoader : IContentDataLoader<TextureData>
 {
     private const Format HdrFormat = Format.R32G32B32A32_Float;
-    private static readonly int FormatSizeInBytes = HdrFormat.SizeOfInBytes();
+    private static readonly int FormatSizeInBytes = HdrFormat.BytesPerPixel();
 
     private readonly IVirtualFileSystem FileSystem;
 

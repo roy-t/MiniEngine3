@@ -26,6 +26,8 @@ public sealed class RWTexture2D : ITexture2D
         this.Name = DebugNameGenerator.GetName(user, "RWTexture2D", meaning, format);
     }
 
+    // TODO: double check with Texture2D, and if we should use device.ID3D11DeviceContext.UpdateSubresource(pixels, this.Texture, 0, pitch, 0); with compressed pixels
+    // though probably don't want compressed formats for r/w?
     public void SetPixels<T>(Device device, ReadOnlySpan<T> pixels)
         where T : unmanaged
     {

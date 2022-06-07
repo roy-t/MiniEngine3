@@ -9,7 +9,7 @@ namespace Mini.Engine.Content.Textures;
 internal sealed class TextureDataLoader : IContentDataLoader<TextureData>
 {
     private const Format ColorFormat = Format.R8G8B8A8_UNorm_SRgb;
-    private static readonly int FormatSizeInBytes = ColorFormat.SizeOfInBytes();
+    private static readonly int FormatSizeInBytes = ColorFormat.BytesPerPixel();
     private readonly IVirtualFileSystem FileSystem;
 
     public TextureDataLoader(IVirtualFileSystem fileSystem)
