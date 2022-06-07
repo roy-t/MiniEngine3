@@ -16,29 +16,7 @@ public enum BindInfo { ShaderResource, RenderTargetShaderResource, DepthStencilS
 public enum ResourceInfo { Texture, Cube };
 
 public static class Textures
-{        
-   
-    internal static ID3D11Texture2D Create(Device device, int width, int height, Format format, BindFlags bindFlags, ResourceOptionFlags optionFlags, int arraySize, int mipmapSlizes, bool generateMipMaps, string user, string meaning)
-    {
-        var description = new Texture2DDescription
-        {
-            Width = width,
-            Height = height,
-            MipLevels = generateMipMaps ? 0 : mipmapSlizes,
-            ArraySize = arraySize,
-            Format = format,
-            SampleDescription = new SampleDescription(1, 0),
-            Usage = ResourceUsage.Default,
-            BindFlags = (generateMipMaps ? BindFlags.ShaderResource | BindFlags.RenderTarget : BindFlags.None) | bindFlags,
-            CpuAccessFlags = CpuAccessFlags.None,
-            OptionFlags = (generateMipMaps ? ResourceOptionFlags.GenerateMips : ResourceOptionFlags.None) | optionFlags
-        };
-
-        var texture = device.ID3D11Device.CreateTexture2D(description);
-        texture.DebugName = DebugNameGenerator.GetName(user, "Texture2D", meaning, format);
-
-        return texture;
-    }
+{
 
     internal static ID3D11Texture2D Create(string user, string meaning, Device device, ImageInfo image, MipMapInfo mipMapInfo, BindInfo binding, ResourceInfo resource = ResourceInfo.Texture)
     {

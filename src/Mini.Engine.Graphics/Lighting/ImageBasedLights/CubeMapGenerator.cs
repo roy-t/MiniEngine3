@@ -1,7 +1,5 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
@@ -13,6 +11,16 @@ namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 [Service]
 public sealed class CubeMapGenerator
 {
+    private enum CubeMapFace
+    {
+        PositiveX = 0,
+        NegativeX = 1,
+        PositiveY = 2,
+        NegativeY = 3,
+        PositiveZ = 4,
+        NegativeZ = 5
+    }
+
     private const int IrradianceResolution = 32;
     private const int EnvironmentResolution = 512;
 

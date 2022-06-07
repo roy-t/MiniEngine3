@@ -5,11 +5,11 @@ namespace Mini.Engine.DirectX.Resources;
 
 public sealed class Texture2D : ITexture2D
 {
-    public Texture2D(Device device, ImageInfo imageInfo, MipMapInfo mipMapInfo, string user, string meaning)
+    public Texture2D(Device device, ImageInfo imageInfo, MipMapInfo mipMapInfo, string user, string meaning, ResourceInfo resourceInfo = ResourceInfo.Texture)
     {
         this.ImageInfo = imageInfo;
         this.MipMapInfo = mipMapInfo;
-        this.Texture = Textures.Create(user, meaning, device, imageInfo, mipMapInfo, BindInfo.ShaderResource);
+        this.Texture = Textures.Create(user, meaning, device, imageInfo, mipMapInfo, BindInfo.ShaderResource, resourceInfo);
 
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, this.Format, user, meaning);
 
@@ -41,8 +41,8 @@ public sealed class Texture2D : ITexture2D
     
     public int Width => this.ImageInfo.Width;
     public int Height => this.ImageInfo.Height;
-    public int MipMapSlices => this.MipMapInfo.Levels;
-    public int ArraySize => this.ImageInfo.ArraySize;
+    public int Levels => this.MipMapInfo.Levels;
+    public int Length => this.ImageInfo.ArraySize;
 
     public Format Format => this.ImageInfo.Format;
 

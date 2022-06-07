@@ -28,8 +28,8 @@ internal sealed class Texture2DContent : ITexture2D, IContent
     public int Width => this.texture.Width;
     public int Height => this.texture.Height;
     public Format Format => this.texture.Format;
-    public int MipMapSlices => this.texture.MipMapSlices;
-    public int ArraySize => this.texture.ArraySize;
+    public int Levels => this.texture.Levels;
+    public int Length => this.texture.Length;
 
     ID3D11ShaderResourceView ITexture.ShaderResourceView => this.texture.ShaderResourceView;
     ID3D11Texture2D ITexture.Texture => this.texture.Texture;

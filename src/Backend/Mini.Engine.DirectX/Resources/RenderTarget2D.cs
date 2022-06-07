@@ -24,8 +24,8 @@ public sealed class RenderTarget2D : ITexture2D
 
     public int Width => this.ImageInfo.Width;
     public int Height => this.ImageInfo.Height;
-    public int ArraySize => this.ImageInfo.ArraySize;
-    public int MipMapSlices => this.MipMapInfo.Levels;
+    public int Length => this.ImageInfo.ArraySize;
+    public int Levels => this.MipMapInfo.Levels;
     public Format Format => this.ImageInfo.Format;
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }

@@ -3,19 +3,22 @@ using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
+
+// TODO: this is extremely similar to DepthStencilBuffer!
 public sealed class DepthStencilBufferArray : ITexture2D
 {
     public DepthStencilBufferArray(Device device, DepthStencilFormat format, int width, int height, int length, string user, string meaning)
     {
-        this.Width = width;
-        this.Height = height;
-        this.ArraySize = length;
-        this.Format = ToTextureFormat(format);
-        this.Name = DebugNameGenerator.GetName(user, "DEPTH_ARRAY", meaning);
+        var imageInfo = new ImageInfo(width, height, ToTextureFormat(format), ArraySize: length);
+        var mipMapInfo = MipMapInfo.None();
 
-        this.Texture = Textures.Create(device, width, height, ToTextureFormat(format), BindFlags.DepthStencil | BindFlags.ShaderResource, ResourceOptionFlags.None, length, 1, false, user, meaning);
+        this.ImageInfo = imageInfo;
+        this.MipMapInfo = mipMapInfo;
+
+        this.Texture = Textures.Create(user, meaning, device, imageInfo, mipMapInfo, BindInfo.DepthStencilShaderResource);
         this.ShaderResourceView = CreateSRV(device, this.Texture, length, ToShaderResourceViewFormat(format), user, meaning);
 
+        this.Name = DebugNameGenerator.GetName(user, "DEPTH_ARRAY", meaning);
         this.DepthStencilViews = new ID3D11DepthStencilView[length];
         for (var i = 0; i < length; i++)
         {
@@ -26,11 +29,16 @@ public sealed class DepthStencilBufferArray : ITexture2D
     }
 
     public string Name { get; }
-    public int Width { get; }
-    public int Height { get; }
-    public int ArraySize { get; }
-    public Format Format { get; }
-    public int MipMapSlices => 1;
+
+    public ImageInfo ImageInfo { get; }
+    public MipMapInfo MipMapInfo { get; }
+
+    public int Width => this.ImageInfo.Width;
+    public int Height => this.ImageInfo.Height;
+    public int Levels => this.MipMapInfo.Levels;
+    public int Length => this.ImageInfo.ArraySize;
+
+    public Format Format => this.ImageInfo.Format;
 
     internal ID3D11Texture2D Texture { get; }
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
@@ -86,7 +94,7 @@ public sealed class DepthStencilBufferArray : ITexture2D
 
     public void Dispose()
     {
-        for (var i = 0; i < this.ArraySize; i++)
+        for (var i = 0; i < this.Length; i++)
         {
             this.DepthStencilViews[i].Dispose();
         }

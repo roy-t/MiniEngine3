@@ -12,10 +12,10 @@ public sealed class RWTexture2D : ITexture2D
         this.Height = height;
         this.Format = format;
 
-        this.MipMapSlices = generateMipMaps ? Dimensions.MipSlices(width, height) : 1;
+        this.Levels = generateMipMaps ? Dimensions.MipSlices(width, height) : 1;
         this.Texture = Create(device, width, height, format, generateMipMaps, user, meaning);
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, user, meaning);
-        this.UnorderedAccessViews = new ID3D11UnorderedAccessView[this.MipMapSlices];
+        this.UnorderedAccessViews = new ID3D11UnorderedAccessView[this.Levels];
 
         for(var i = 0; i < this.UnorderedAccessViews.Length; i++)
         {
@@ -38,7 +38,7 @@ public sealed class RWTexture2D : ITexture2D
         var pitch = this.Width * this.Format.SizeOfInBytes();
         device.ID3D11DeviceContext.UpdateSubresource(pixels, this.Texture, 0, pitch, 0);
 
-        if (this.MipMapSlices > 1)
+        if (this.Levels > 1)
         {
             device.ID3D11DeviceContext.GenerateMips(this.ShaderResourceView);
         }
@@ -48,8 +48,8 @@ public sealed class RWTexture2D : ITexture2D
     public int Width { get; }
     public int Height { get; }
     public Format Format { get; }
-    public int MipMapSlices { get; }
-    public int ArraySize => 1;
+    public int Levels { get; }
+    public int Length => 1;
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }

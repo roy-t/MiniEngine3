@@ -10,8 +10,8 @@ public interface ITexture : IDisposable
     internal ID3D11Texture2D Texture { get; }
     public string Name { get; }
     public Format Format { get; }
-    public int MipMapSlices { get; }
-    public int ArraySize { get; }
+    public int Levels { get; }
+    public int Length { get; }
 }
 
 public interface ITexture2D : ITexture

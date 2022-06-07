@@ -15,11 +15,14 @@ public sealed class DepthStencilBuffer : ITexture2D
 {
     public DepthStencilBuffer(Device device, DepthStencilFormat format, int width, int height, string user, string meaning)
     {
-        this.Width = width;
-        this.Height = height;
-        this.Format = ToTextureFormat(format);
+        var imageInfo = new ImageInfo(width, height, ToTextureFormat(format));
+        var mipMapInfo = MipMapInfo.None();
 
-        this.Texture = Textures.Create(device, width, height, ToTextureFormat(format), BindFlags.DepthStencil | BindFlags.ShaderResource, ResourceOptionFlags.None, 1, 1, false, user, meaning);
+        this.ImageInfo = imageInfo;
+        this.MipMapInfo = mipMapInfo;
+
+        this.Texture = Textures.Create(user, meaning, device, imageInfo, mipMapInfo, BindInfo.DepthStencilShaderResource);
+
         this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, ToShaderResourceViewFormat(format), user, meaning);
 
         var depthView = new DepthStencilViewDescription(DepthStencilViewDimension.Texture2D, ToDepthViewFormat(format));
@@ -30,11 +33,17 @@ public sealed class DepthStencilBuffer : ITexture2D
     }
 
     public string Name { get; }
-    public int Width { get; }
-    public int Height { get; }
-    public Format Format { get; }
-    public int MipMapSlices => 1;
-    public int ArraySize => 1;
+
+    public ImageInfo ImageInfo { get; }
+    public MipMapInfo MipMapInfo { get; }
+
+    public int Width => this.ImageInfo.Width;
+    public int Height => this.ImageInfo.Height;
+    public int Levels => this.MipMapInfo.Levels;
+    public int Length => this.ImageInfo.ArraySize;
+
+    public Format Format => this.ImageInfo.Format;
+
 
     internal ID3D11Texture2D Texture { get; }
     internal ID3D11ShaderResourceView ShaderResourceView { get; }

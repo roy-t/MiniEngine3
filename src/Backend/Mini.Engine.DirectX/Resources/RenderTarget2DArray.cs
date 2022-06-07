@@ -4,6 +4,8 @@ using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
+
+// TODO: this is extremely similar to RenderTarget2D
 public sealed class RenderTarget2DArray : ITexture2D
 {
     public RenderTarget2DArray(Device device, ImageInfo imageInfo, MipMapInfo mipMapInfo, ResourceInfo resourceInfo, string user, string meaning)
@@ -23,7 +25,7 @@ public sealed class RenderTarget2DArray : ITexture2D
             this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, imageInfo.Format, ShaderResourceViewDimension.TextureCube, user, meaning);
         }
 
-        this.ID3D11RenderTargetViews = new ID3D11RenderTargetView[this.ArraySize * mipMapInfo.Levels];
+        this.ID3D11RenderTargetViews = new ID3D11RenderTargetView[this.Length * mipMapInfo.Levels];
         for (var i = 0; i < imageInfo.ArraySize; i++)
         {
             for (var s = 0; s < mipMapInfo.Levels; s++)
@@ -51,8 +53,8 @@ public sealed class RenderTarget2DArray : ITexture2D
 
     public int Width => this.ImageInfo.Width;
     public int Height => this.ImageInfo.Height;
-    public int ArraySize => this.ImageInfo.ArraySize;
-    public int MipMapSlices => this.MipMapInfo.Levels;
+    public int Length => this.ImageInfo.ArraySize;
+    public int Levels => this.MipMapInfo.Levels;
     public Format Format => this.ImageInfo.Format;
     
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
