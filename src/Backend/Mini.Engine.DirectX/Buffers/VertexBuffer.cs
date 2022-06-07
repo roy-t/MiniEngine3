@@ -13,9 +13,9 @@ public sealed class VertexBuffer<T> : DeviceBuffer<T>
         var description = new BufferDescription()
         {
             Usage = ResourceUsage.Dynamic,
-            SizeInBytes = sizeInBytes,
+            ByteWidth = sizeInBytes,
             BindFlags = BindFlags.VertexBuffer,
-            CpuAccessFlags = CpuAccessFlags.Write,
+            CPUAccessFlags = CpuAccessFlags.Write,
             StructureByteStride = this.PrimitiveSizeInBytes
         };
 

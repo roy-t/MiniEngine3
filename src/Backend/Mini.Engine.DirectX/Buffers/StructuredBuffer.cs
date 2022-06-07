@@ -58,10 +58,10 @@ public class StructuredBuffer<T> : DeviceBuffer<T>
         var structuredBufferDesc = new BufferDescription
         {
             Usage = ResourceUsage.Dynamic,
-            SizeInBytes = sizeInBytes,
+            ByteWidth = sizeInBytes,
             BindFlags = BindFlags.ShaderResource,
-            CpuAccessFlags = CpuAccessFlags.Write,
-            OptionFlags = ResourceOptionFlags.BufferStructured,
+            CPUAccessFlags = CpuAccessFlags.Write,
+            MiscFlags = ResourceOptionFlags.BufferStructured,
             StructureByteStride = PrimitiveSizeInBytes
         };
 

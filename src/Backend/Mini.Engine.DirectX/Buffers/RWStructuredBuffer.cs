@@ -73,10 +73,10 @@ public sealed class RWStructuredBuffer<T> : StructuredBuffer<T>
         var structuredBufferDesc = new BufferDescription
         {
             Usage = ResourceUsage.Default,
-            SizeInBytes = sizeInBytes,
+            ByteWidth = sizeInBytes,
             BindFlags = BindFlags.UnorderedAccess | BindFlags.ShaderResource,
-            CpuAccessFlags = CpuAccessFlags.Read | CpuAccessFlags.Write,
-            OptionFlags = ResourceOptionFlags.BufferStructured,
+            CPUAccessFlags = CpuAccessFlags.Read | CpuAccessFlags.Write,
+            MiscFlags = ResourceOptionFlags.BufferStructured,
             StructureByteStride = this.PrimitiveSizeInBytes
         };
 

@@ -71,8 +71,8 @@ public static class Textures
             SampleDescription = new SampleDescription(1, 0),
             Usage = ResourceUsage.Default,
             BindFlags = bindFlags,
-            CpuAccessFlags = CpuAccessFlags.None,
-            OptionFlags = optionFlags
+            CPUAccessFlags = CpuAccessFlags.None,
+            MiscFlags = optionFlags
         };
 
         var texture = device.ID3D11Device.CreateTexture2D(description);

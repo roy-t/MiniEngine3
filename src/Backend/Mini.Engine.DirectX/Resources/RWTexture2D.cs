@@ -26,7 +26,7 @@ public sealed class RWTexture2D : ITexture2D
         this.Name = DebugNameGenerator.GetName(user, "RWTexture2D", meaning, format);
     }
 
-    public void SetPixels<T>(Device device, Span<T> pixels)
+    public void SetPixels<T>(Device device, ReadOnlySpan<T> pixels)
         where T : unmanaged
     {
         if (this.Format.IsCompressed())
@@ -35,8 +35,7 @@ public sealed class RWTexture2D : ITexture2D
         }
 
         // Assumes texture is uncompressed and fills the entire buffer
-        var pitch = this.Width * this.Format.SizeOfInBytes();
-        device.ID3D11DeviceContext.UpdateSubresource(pixels, this.Texture, 0, pitch, 0);
+        device.ID3D11DeviceContext.WriteTexture(this.Texture, 0, 0, pixels);
 
         if (this.Levels > 1)
         {
@@ -70,8 +69,8 @@ public sealed class RWTexture2D : ITexture2D
             SampleDescription = new SampleDescription(1, 0),
             Usage = ResourceUsage.Default,
             BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget | BindFlags.UnorderedAccess,
-            CpuAccessFlags = CpuAccessFlags.None,
-            OptionFlags = (generateMipMaps ? ResourceOptionFlags.GenerateMips : ResourceOptionFlags.None)
+            CPUAccessFlags = CpuAccessFlags.None,
+            MiscFlags = (generateMipMaps ? ResourceOptionFlags.GenerateMips : ResourceOptionFlags.None)
         };
 
         var texture = device.ID3D11Device.CreateTexture2D(description);
