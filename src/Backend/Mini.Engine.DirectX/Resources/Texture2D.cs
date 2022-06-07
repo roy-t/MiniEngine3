@@ -1,46 +1,49 @@
-﻿using Mini.Engine.Core;
-using Vortice.Direct3D11;
+﻿using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
 
 public sealed class Texture2D : ITexture2D
 {
-    public Texture2D(Device device, int width, int height, Format format, bool generateMipMaps, int mipMapSlices, string user, string meaning)
+    public Texture2D(Device device, ImageInfo imageInfo, MipMapInfo mipMapInfo, string user, string meaning)
     {
-        this.Width = width;
-        this.Height = height;
-        this.Format = format;
+        this.ImageInfo = imageInfo;
+        this.MipMapInfo = mipMapInfo;
+        this.Texture = Textures.Create(user, meaning, device, imageInfo, mipMapInfo, BindInfo.ShaderResource);
 
-        this.MipMapSlices = generateMipMaps ? Dimensions.MipSlices(width) : mipMapSlices;
-        this.Texture = Textures.Create(device, width, height, format, BindFlags.ShaderResource, ResourceOptionFlags.None, 1, this.MipMapSlices, generateMipMaps, user, meaning);
-        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, format, user, meaning);
+        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, this.Format, user, meaning);
 
-        this.Name = DebugNameGenerator.GetName(user, "Texture2D", meaning, format);
+        this.Name = DebugNameGenerator.GetName(user, "Texture2D", meaning, this.Format);
     }
 
-    public void SetPixels<T>(Device device, Span<T> pixels, int pitch)
+    public void SetPixels<T>(Device device, Span<T> pixels)
         where T : unmanaged
     {
-        device.ID3D11DeviceContext.UpdateSubresource(pixels, this.Texture, 0, pitch, 0);
+        device.ID3D11DeviceContext.UpdateSubresource(pixels, this.Texture, 0, this.ImageInfo.Pitch, 0);
 
-        if (this.MipMapSlices > 1)
+        if (this.MipMapInfo.Flags == MipMapFlags.Generated)
         {
             device.ID3D11DeviceContext.GenerateMips(this.ShaderResourceView);
         }
     }
 
-    public void SetMipMapPixels<T>(Device device, Span<T> pixels, int pitch, int mipMapIndex)
+    public void SetMipMapPixels<T>(Device device, Span<T> pixels, int mipMapIndex)
     where T : unmanaged
     {
+        var pitch = (int)(this.ImageInfo.Pitch / Math.Pow(2, mipMapIndex));
         device.ID3D11DeviceContext.UpdateSubresource(pixels, this.Texture, mipMapIndex, pitch);
     }
 
     public string Name { get; }
-    public int Width { get; }
-    public int Height { get; }
-    public Format Format { get; }
-    public int MipMapSlices { get; }
+
+    public ImageInfo ImageInfo { get; }
+    public MipMapInfo MipMapInfo { get; }
+    
+    public int Width => this.ImageInfo.Width;
+    public int Height => this.ImageInfo.Height;
+    public int MipMapSlices => this.MipMapInfo.Levels;
+
+    public Format Format => this.ImageInfo.Format;
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }

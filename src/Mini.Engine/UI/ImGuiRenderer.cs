@@ -151,9 +151,9 @@ internal sealed class ImGuiRenderer
             var format = Format.R8G8B8A8_UNorm; // Texture contains only white pixels for the font so gamma is irrelevant
             var pixelSpan = new Span<byte>(pixels, width * height * format.SizeOfInBytes());
 
-            var texture = new Texture2D(device, width, height, format, false, 1, nameof(ImGuiRenderer), "Font");
-            var pitch = width * format.SizeOfInBytes();
-            texture.SetPixels(device, pixelSpan, pitch);
+            var image = new ImageInfo(width, height, format, width * format.SizeOfInBytes());
+            var texture = new Texture2D(device, image, MipMapInfo.None(), nameof(ImGuiRenderer), "Font");
+            texture.SetPixels(device, pixelSpan);
             return texture;
         }
     }

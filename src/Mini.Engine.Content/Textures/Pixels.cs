@@ -73,9 +73,9 @@ public sealed class Pixels
 
     private ITexture2D CreatePixel(Color4 color, string meaning)
     {
-        var pixel = new Texture2D(this.Device, 1, 1, Format.R16G16B16A16_Float,false, 1, nameof(Pixels), meaning);
-        var pitch = 1 * Format.R16G16B16A16_Float.SizeOfInBytes();
-        pixel.SetPixels(this.Device, new Span<Color4>(new Color4[] { color }), pitch);
+        var image = new ImageInfo(1, 1, Format.R16G16B16A16_Float, 1 * Format.R16G16B16A16_Float.SizeOfInBytes());
+        var pixel = new Texture2D(this.Device, image, MipMapInfo.None(), nameof(Pixels), meaning);
+        pixel.SetPixels(this.Device, new Span<Color4>(new Color4[] { color }));
 
         this.Content.Link(pixel, $"pixels/{meaning}");
 

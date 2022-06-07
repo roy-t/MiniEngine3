@@ -1,7 +1,8 @@
 ﻿using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
-using StbImageSharp;
 using Vortice.DXGI;
+using Stb = StbImageSharp;
 
 namespace Mini.Engine.Content.Textures;
 
@@ -19,7 +20,7 @@ internal sealed class TextureDataLoader : IContentDataLoader<TextureData>
     public TextureData Load(Device device, ContentId id, ILoaderSettings loaderSettings)
     {
         using var stream = this.FileSystem.OpenRead(id.Path);
-        var image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+        var image = Stb.ImageResult.FromStream(stream, Stb.ColorComponents.RedGreenBlueAlpha);
         var pitch = image.Width * FormatSizeInBytes;
 
         var format = ColorFormat;
@@ -34,6 +35,13 @@ internal sealed class TextureDataLoader : IContentDataLoader<TextureData>
             format = Format.R8G8B8A8_UNorm;
         }
 
-        return new TextureData(id, image.Width, image.Height, pitch, format, settings.ShouldMipMap, new[] { image.Data });
+        var imageInfo = new ImageInfo(image.Width, image.Height, format, pitch);
+        var mipMapInfo = MipMapInfo.None();
+        if (settings.ShouldMipMap)
+        {
+            mipMapInfo = MipMapInfo.Generated(image.Width);
+        }
+
+        return new TextureData(id, imageInfo, mipMapInfo, new[] { image.Data });
     }
 }

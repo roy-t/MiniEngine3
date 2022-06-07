@@ -1,4 +1,5 @@
 ﻿using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
 using SuperCompressed.BasisUniversal;
 using Vortice.DXGI;
@@ -53,7 +54,15 @@ internal sealed class CompressedTextureLoader : IContentDataLoader<TextureData>,
         }
 
         var format = settings.IsSRgb ? SRgbFormat : LinearFormat;
-        return new TextureData(id, width, height, pitch, format, false, mipmaps);
+        var imageInfo = new ImageInfo(width, height, format, pitch);
+
+        var mipmapInfo = MipMapInfo.None();
+        if (settings.ShouldMipMap && mipMapCount > 1)
+        {
+            mipmapInfo = MipMapInfo.Provided(mipMapCount);
+        }        
+                
+        return new TextureData(id, imageInfo, mipmapInfo, mipmaps);
     }
 
     public void Dispose()
