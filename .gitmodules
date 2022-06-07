@@ -1,3 +1,6 @@
 [submodule "src/External/HlslParser"]
 	path = src/External/HlslParser
 	url = https://github.com/roy-t/HlslParser
+[submodule "src/External/SuperCompressedDotNet"]
+	path = src/External/SuperCompressedDotNet
+	url = https://github.com/roy-t/SuperCompressedDotNet.git
