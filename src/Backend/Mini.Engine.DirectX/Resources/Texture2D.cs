@@ -16,7 +16,7 @@ public sealed class Texture2D : ITexture2D
         this.Name = DebugNameGenerator.GetName(user, "Texture2D", meaning, this.Format);
     }
 
-    public void SetPixels<T>(Device device, Span<T> pixels)
+    public void SetPixels<T>(Device device, ReadOnlySpan<T> pixels)
         where T : unmanaged
     {
         device.ID3D11DeviceContext.UpdateSubresource(pixels, this.Texture, 0, this.ImageInfo.Pitch, 0);
@@ -27,8 +27,8 @@ public sealed class Texture2D : ITexture2D
         }
     }
 
-    public void SetMipMapPixels<T>(Device device, Span<T> pixels, int mipMapIndex)
-    where T : unmanaged
+    public void SetMipMapPixels<T>(Device device, ReadOnlySpan<T> pixels, int mipMapIndex)
+        where T : unmanaged
     {
         var pitch = (int)(this.ImageInfo.Pitch / Math.Pow(2, mipMapIndex));
         device.ID3D11DeviceContext.UpdateSubresource(pixels, this.Texture, mipMapIndex, pitch);

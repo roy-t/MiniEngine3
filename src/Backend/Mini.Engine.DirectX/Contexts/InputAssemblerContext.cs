@@ -8,12 +8,12 @@ public sealed class InputAssemblerContext : DeviceContextPart
     public InputAssemblerContext(DeviceContext context)
         : base(context) { }
 
-    public void SetVertexBuffer<T>(VertexBuffer<T> buffer)
+    public void SetVertexBuffer<T>(VertexBuffer<T> buffer, int vertexOffset  = 0)
         where T : unmanaged
     {
         var stride = buffer.PrimitiveSizeInBytes;
-        var offset = 0;
-        this.ID3D11DeviceContext.IASetVertexBuffers(0, 1, new[] { buffer.Buffer }, new[] { stride }, new[] { offset });
+        var offset = vertexOffset * stride;
+        this.ID3D11DeviceContext.IASetVertexBuffer(0, buffer.Buffer, stride, offset);
     }
 
     public void SetIndexBuffer<T>(IndexBuffer<T> buffer)

@@ -30,9 +30,9 @@ public sealed class IndexBuffer<T> : DeviceBuffer<T>
         var description = new BufferDescription()
         {
             Usage = ResourceUsage.Dynamic,
-            SizeInBytes = sizeInBytes,
+            ByteWidth = sizeInBytes,
             BindFlags = BindFlags.IndexBuffer,
-            CpuAccessFlags = CpuAccessFlags.Write,
+            CPUAccessFlags = CpuAccessFlags.Write,
             StructureByteStride = this.PrimitiveSizeInBytes
         };
 
