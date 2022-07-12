@@ -5,7 +5,6 @@ namespace Mini.Engine.DirectX.Buffers;
 public sealed class ConstantBuffer<T> : DeviceBuffer<T>
     where T : unmanaged
 {
-
     // make sure that the CBuffer structure
     // matches the packing rules for CBuffers as described here:
     // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
