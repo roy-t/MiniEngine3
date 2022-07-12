@@ -6,7 +6,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
     <ProjectReference Include="..\Backend\Mini.Engine.IO\Mini.Engine.IO.csproj" />
-    <ProjectReference Include="..\External\SuperCompressedDotNet\src\BasisCLR\BasisCLR.vcxproj" />
     <ProjectReference Include="..\Generators\Mini.Engine.Content.Generators\Mini.Engine.Content.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Generators\Mini.Engine.Generators.Source\Mini.Engine.Generators.Source.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\External\HlslParser\src\ShaderTools.CodeAnalysis.Hlsl\ShaderTools.CodeAnalysis.Hlsl.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

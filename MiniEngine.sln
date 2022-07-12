@@ -59,10 +59,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Performance", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mini.Engine.Core", "src\Backend\Mini.Engine.Core\Mini.Engine.Core.csproj", "{F5F27296-66AC-4040-B1E1-6F2080A66C86}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BasisCLR", "src\External\SuperCompressedDotNet\src\BasisCLR\BasisCLR.vcxproj", "{36FBCD99-C65E-4EDB-B128-0B19F0F2FF2A}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "basisu_lib", "src\External\SuperCompressedDotNet\src\external\basisu_lib.vcxproj", "{59586A07-8E7E-411D-BC3D-387E039AA423}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -149,14 +145,6 @@ Global
 		{F5F27296-66AC-4040-B1E1-6F2080A66C86}.Debug|x64.Build.0 = Debug|x64
 		{F5F27296-66AC-4040-B1E1-6F2080A66C86}.Release|x64.ActiveCfg = Release|x64
 		{F5F27296-66AC-4040-B1E1-6F2080A66C86}.Release|x64.Build.0 = Release|x64
-		{36FBCD99-C65E-4EDB-B128-0B19F0F2FF2A}.Debug|x64.ActiveCfg = Release|x64
-		{36FBCD99-C65E-4EDB-B128-0B19F0F2FF2A}.Debug|x64.Build.0 = Release|x64
-		{36FBCD99-C65E-4EDB-B128-0B19F0F2FF2A}.Release|x64.ActiveCfg = Release|x64
-		{36FBCD99-C65E-4EDB-B128-0B19F0F2FF2A}.Release|x64.Build.0 = Release|x64
-		{59586A07-8E7E-411D-BC3D-387E039AA423}.Debug|x64.ActiveCfg = Release|x64
-		{59586A07-8E7E-411D-BC3D-387E039AA423}.Debug|x64.Build.0 = Release|x64
-		{59586A07-8E7E-411D-BC3D-387E039AA423}.Release|x64.ActiveCfg = Release|x64
-		{59586A07-8E7E-411D-BC3D-387E039AA423}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -177,8 +165,6 @@ Global
 		{594B191A-5EA3-4461-BEDE-A212CABCB371} = {202FA180-970E-4786-83C0-767A9CDBAF65}
 		{1B6E50EF-79F2-475B-8C91-59AADCAA42A1} = {202FA180-970E-4786-83C0-767A9CDBAF65}
 		{F5F27296-66AC-4040-B1E1-6F2080A66C86} = {DC1F1BAE-401D-4710-848C-316561617DCD}
-		{36FBCD99-C65E-4EDB-B128-0B19F0F2FF2A} = {1DE88C73-3B8E-4296-873A-4631E25FE685}
-		{59586A07-8E7E-411D-BC3D-387E039AA423} = {1DE88C73-3B8E-4296-873A-4631E25FE685}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CE662EDF-5575-4B51-82CF-58DF83292B85}
