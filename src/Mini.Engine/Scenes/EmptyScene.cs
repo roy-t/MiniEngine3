@@ -2,6 +2,7 @@
 using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
+using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
@@ -53,7 +54,7 @@ public sealed class EmptyScene : IScene
             new LoadAction("Skybox", () =>
             {
                 var sky = this.Administrator.Entities.Create();
-                var texture = this.Content.LoadTexture(@"Skyboxes\industrial.hdr");
+                var texture = this.Content.LoadTexture(@"Skyboxes\industrial.hdr", string.Empty, TextureLoaderSettings.RenderData);
                 var albedo = this.CubeMapGenerator.GenerateAlbedo(texture, sky.ToString());
                 var irradiance = this.CubeMapGenerator.GenerateIrradiance(texture, sky.ToString());
                 var environment = this.CubeMapGenerator.GenerateEnvironment(texture, sky.ToString());

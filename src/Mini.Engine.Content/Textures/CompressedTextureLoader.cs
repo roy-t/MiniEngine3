@@ -51,13 +51,7 @@ internal sealed class CompressedTextureLoader : IContentDataLoader<TextureData>
         var width = trancoded.Width;
         var heigth = trancoded.Heigth;
         var pitch = trancoded.Pitch;
-        
-        var format = settings.Mode switch
-        {
-            Mode.Linear or Mode.Normalized => LinearFormat,
-            Mode.SRgb => SRgbFormat,
-            _ => throw new ArgumentOutOfRangeException(nameof(loaderSettings))
-        };
+        var format = FormatSelector.SelectCompressedFormat(settings.Mode, TranscodeFormats.BC7_RGBA);     
 
         var imageInfo = new ImageInfo(width, heigth, format, pitch);
 

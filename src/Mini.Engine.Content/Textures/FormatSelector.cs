@@ -32,5 +32,38 @@ internal static class FormatSelector
         throw new NotSupportedException();
     }
 
+    public static Format SelectHDRFormat(Mode mode, int components)
+    {
+        if (mode == Mode.Linear || mode == Mode.Normalized)
+        {
+            if (components == 4)
+            {                
+                return Format.R32G32B32A32_Float;
+            }
+        }
+        
+        throw new NotSupportedException();
+    }
+
+    public static Format SelectCompressedFormat(Mode mode, TranscodeFormats sourceFormat)
+    {
+        if (mode == Mode.Linear || mode == Mode.Normalized)
+        {
+            if (sourceFormat == TranscodeFormats.BC7_RGBA)
+            {
+                return Format.BC7_UNorm;
+            }
+        }
+        else
+        {
+            if (sourceFormat == TranscodeFormats.BC7_RGBA)
+            {
+                return Format.BC7_UNorm_SRgb;
+            }
+        }
+
+        throw new NotSupportedException();
+    }
+
     // TODO: check wherever this should be used and add HDR component
 }
