@@ -6,54 +6,56 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.Content.Textures;
 
-internal sealed record TextureData(ContentId Id, ImageInfo ImageInfo, MipMapInfo MipMapInfo, IReadOnlyList<byte[]> MipMaps)
+internal sealed record TextureData(ContentId Id, ImageInfo ImageInfo, MipMapInfo MipMapInfo, ID3D11Texture2D Texture, ID3D11ShaderResourceView View)
     : IContentData;
 
 internal sealed class Texture2DContent : ITexture2D, IContent
 {
     private readonly IContentDataLoader<TextureData> Loader;
     private readonly ILoaderSettings Settings;
-    private ITexture2D texture;
+
+    private ID3D11ShaderResourceView shaderResourceView;
+    private ID3D11Texture2D texture;    
 
     public Texture2DContent(ContentId id, Device device, IContentDataLoader<TextureData> loader, ILoaderSettings settings)
     {
         this.Id = id;
         this.Loader = loader;
         this.Settings = settings;
+        this.Name = DebugNameGenerator.GetName(id.ToString(), "Texture2D", string.Empty, this.Format);
+
         this.Reload(device);
     }
 
     public ContentId Id { get; }
-    public string Name => this.texture.Name;
-    public int Width => this.texture.Width;
-    public int Height => this.texture.Height;
-    public Format Format => this.texture.Format;
-    public int Levels => this.texture.Levels;
-    public int Length => this.texture.Length;
+    public string Name { get; }
 
-    ID3D11ShaderResourceView ITexture.ShaderResourceView => this.texture.ShaderResourceView;
-    ID3D11Texture2D ITexture.Texture => this.texture.Texture;
+    public int Width { get; private set; }
+    public int Height { get; private set; }    
+    public int Levels { get; private set; }
+    public int Length { get; private set; }
 
-    [MemberNotNull(nameof(texture))]
+    public Format Format { get; private set; }
+
+    ID3D11ShaderResourceView ITexture.ShaderResourceView => this.shaderResourceView;
+    ID3D11Texture2D ITexture.Texture => this.texture;
+
+    [MemberNotNull(nameof(shaderResourceView), nameof(texture))]
     public void Reload(Device device)
     {
         this.texture?.Dispose();
 
         var data = this.Loader.Load(device, this.Id, this.Settings);
-        var texture = new Texture2D(device, data.ImageInfo, data.MipMapInfo, data.Id.ToString(), string.Empty);
-        if (data.MipMaps.Count == 1)
-        {
-            texture.SetPixels<byte>(device, data.MipMaps[0]);
-        }
-        else
-        {
-            for(var i = 0; i < data.MipMaps.Count; i++)
-            {                
-                texture.SetMipMapPixels<byte>(device, data.MipMaps[i], i);
-            }
-        }
 
-        this.texture = texture;        
+        this.Width = data.ImageInfo.Width;
+        this.Height = data.ImageInfo.Height;        
+        this.Levels = data.MipMapInfo.Levels;
+        this.Length = data.ImageInfo.ArraySize;
+
+        this.Format = data.ImageInfo.Format;
+
+        this.texture = data.Texture;
+        this.shaderResourceView = data.View;
     }
 
     public void Dispose()

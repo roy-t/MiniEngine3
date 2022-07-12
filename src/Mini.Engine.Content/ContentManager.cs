@@ -85,11 +85,11 @@ public sealed partial class ContentManager : IDisposable
     {
         var settings = new MaterialLoaderSettings
         (
-            new TextureLoaderSettings(true, false, false),
-            new TextureLoaderSettings(false, false, false),
-            new TextureLoaderSettings(false, true, false),
-            new TextureLoaderSettings(false, false, false),
-            new TextureLoaderSettings(false, false, false)
+            TextureLoaderSettings.Default,
+            TextureLoaderSettings.RenderData,
+            TextureLoaderSettings.NormalMaps,
+            TextureLoaderSettings.RenderData,
+            TextureLoaderSettings.RenderData
         );
         return this.LoadMaterial("default.mtl", "default", settings);
     }

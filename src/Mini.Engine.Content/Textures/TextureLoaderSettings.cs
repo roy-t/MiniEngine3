@@ -1,8 +1,10 @@
-﻿namespace Mini.Engine.Content.Textures;
+﻿using SuperCompressed;
 
-public sealed record TextureLoaderSettings(bool IsSRgb, bool IsNormalized, bool ShouldMipMap) : ILoaderSettings
+namespace Mini.Engine.Content.Textures;
+
+public sealed record TextureLoaderSettings(Mode Mode, bool ShouldMipMap) : ILoaderSettings
 {
-    public static TextureLoaderSettings Default = new(true, false, true);
-    public static TextureLoaderSettings NormalMaps = new(false, true, true);
-    public static TextureLoaderSettings RenderData = new(false, false, true);
+    public static TextureLoaderSettings Default = new(Mode.SRgb, true);
+    public static TextureLoaderSettings NormalMaps = new(Mode.Normalized, true);
+    public static TextureLoaderSettings RenderData = new(Mode.Linear, true);
 }

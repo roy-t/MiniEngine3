@@ -3,6 +3,7 @@ using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
 using SuperCompressed;
 using Vortice.DXGI;
+using DXR = Mini.Engine.DirectX.Resources;
 
 namespace Mini.Engine.Content.Textures;
 
@@ -22,58 +23,70 @@ internal sealed class CompressedTextureLoader : IContentDataLoader<TextureData>
     {
         var settings = loaderSettings is TextureLoaderSettings textureLoaderSettings ? textureLoaderSettings : TextureLoaderSettings.Default;
 
+        // BEGIN HACK
         // TODO: do not encode and then transcode, us pre-encoded files        
 
         var dfs = (DiskFileSystem)this.FileSystem;
         var path = dfs.ToAbsolute(id.Path);
 
-        var image = Image.FromStream(File.OpenRead(path));
+        using var stream = File.OpenRead(path);
+        var image = Image.FromStream(stream);        
+        var encoded = Encoder.Instance.Encode(image, settings.Mode, MipMapGeneration.Full, Quality.Default);
 
-        // TODO: mipmapping and srgb stuff depends on image type
-        var data = Encoder.Instance.Encode(image, Mode.SRgb, MipMapGeneration.Full, Quality.Default);        
+        // END HACK
 
-        var imageCount = Transcoder.Instance.GetImageCount(data);
+        var imageCount = Transcoder.Instance.GetImageCount(encoded);
         if (imageCount != 1)
         {
             throw new Exception($"Image file invalid it contains {imageCount} image(s)");
         }
 
-        var mipMapCount = Transcoder.Instance.GetLevelCount(data, 0);
+        var mipMapCount = Transcoder.Instance.GetLevelCount(encoded, 0);
         if (mipMapCount < 1)
         {
             throw new Exception($"Image invalid it contains {mipMapCount} mipmaps");
         }
-
-        var mipmaps = new List<byte[]>(mipMapCount);
-
-        using var trancoded = Transcoder.Instance.Transcode(data, 0, 0, TranscodeFormats.BC7_RGBA);
+       
+        using var trancoded = Transcoder.Instance.Transcode(encoded, 0, 0, TranscodeFormats.BC7_RGBA);
         var width = trancoded.Width;
         var heigth = trancoded.Heigth;
         var pitch = trancoded.Pitch;
-
-        var texture = new byte[trancoded.Data.Length];
-        trancoded.Data.CopyTo(texture);
-
-        mipmaps.Add(texture);
         
-        for (var i = 1; i < mipMapCount; i++)
+        var format = settings.Mode switch
         {
-            using var transcodedMipMap = Transcoder.Instance.Transcode(data, 0, i, TranscodeFormats.BC7_RGBA);
-            var mipMap  = new byte[transcodedMipMap.Data.Length];
-            transcodedMipMap.Data.CopyTo(mipMap);
+            Mode.Linear or Mode.Normalized => LinearFormat,
+            Mode.SRgb => SRgbFormat,
+            _ => throw new ArgumentOutOfRangeException(nameof(loaderSettings))
+        };
 
-            mipmaps.Add(mipMap);
-        }
-
-        var format = SRgbFormat;//: LinearFormat;
         var imageInfo = new ImageInfo(width, heigth, format, pitch);
 
-        var mipmapInfo = MipMapInfo.None();
+        var mipMapInfo = MipMapInfo.None();
         if (settings.ShouldMipMap && mipMapCount > 1)
         {
-            mipmapInfo = MipMapInfo.Provided(mipMapCount);
-        }        
-                
-        return new TextureData(id, imageInfo, mipmapInfo, mipmaps);
-    }  
+            mipMapInfo = MipMapInfo.Provided(mipMapCount);
+        }
+
+        if (settings.ShouldMipMap && mipMapCount == 1)
+        {
+            mipMapInfo = MipMapInfo.Generated(width);
+        }
+
+        var texture = DXR.Textures.Create(id.ToString(), string.Empty, device, imageInfo, mipMapInfo, BindInfo.ShaderResource);
+        var view = DXR.ShaderResourceViews.Create(device, texture, format, id.ToString(), string.Empty);
+
+        DXR.Textures.SetPixels<byte>(device, texture, view, imageInfo, mipMapInfo, trancoded.Data);
+
+        if (settings.ShouldMipMap && mipMapCount > 1)
+        {
+            for (var i = 1; i < mipMapCount; i++)
+            {
+                using var transcodedMipMap = Transcoder.Instance.Transcode(encoded, 0, i, TranscodeFormats.BC7_RGBA);
+
+                DXR.Textures.SetPixels<byte>(device, texture, imageInfo, transcodedMipMap.Data, i);
+            }
+        }
+
+        return new TextureData(id, imageInfo, mipMapInfo, texture, view);
+    }
 }

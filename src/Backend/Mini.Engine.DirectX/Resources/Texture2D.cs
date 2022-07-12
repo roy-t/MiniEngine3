@@ -16,6 +16,7 @@ public sealed class Texture2D : ITexture2D
         this.Name = DebugNameGenerator.GetName(user, "Texture2D", meaning, this.Format);
     }
 
+    // TODO: replace with static methods from Textures.cs?
     public void SetPixels<T>(Device device, ReadOnlySpan<T> pixels)
         where T : unmanaged
     {

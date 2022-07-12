@@ -3,6 +3,7 @@ using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
 using Vortice.DXGI;
 using Stb = StbImageSharp;
+using DXR = Mini.Engine.DirectX.Resources;
 
 namespace Mini.Engine.Content.Textures;
 
@@ -23,10 +24,7 @@ internal sealed class HdrTextureDataLoader : IContentDataLoader<TextureData>
         using var stream = this.FileSystem.OpenRead(id.Path);
         var image = Stb.ImageResultFloat.FromStream(stream, Stb.ColorComponents.RedGreenBlueAlpha);
         var pitch = image.Width * FormatSizeInBytes;
-
-        var bytes = new byte[image.Data.Length * sizeof(float)];
-        Buffer.BlockCopy(image.Data, 0, bytes, 0, image.Data.Length * sizeof(float));
-
+        
         var format = HdrFormat;
         var settings = loaderSettings is TextureLoaderSettings textureLoaderSetings ? textureLoaderSetings : TextureLoaderSettings.Default;
 
@@ -37,6 +35,11 @@ internal sealed class HdrTextureDataLoader : IContentDataLoader<TextureData>
             mipMapInfo = MipMapInfo.Generated(image.Width);
         }
 
-        return new TextureData(id, imageInfo, mipMapInfo, new[] { bytes });
+        var texture = DXR.Textures.Create(id.ToString(), string.Empty, device, imageInfo, mipMapInfo, BindInfo.ShaderResource);
+        var view = DXR.ShaderResourceViews.Create(device, texture, format, id.ToString(), string.Empty);
+
+        DXR.Textures.SetPixels<float>(device, texture, view, imageInfo, mipMapInfo, image.Data);
+
+        return new TextureData(id, imageInfo, mipMapInfo, texture, view);
     }
 }
