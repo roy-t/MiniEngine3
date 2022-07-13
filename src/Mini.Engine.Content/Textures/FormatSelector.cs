@@ -63,7 +63,5 @@ internal static class FormatSelector
         }
 
         throw new NotSupportedException();
-    }
-
-    // TODO: check wherever this should be used and add HDR component
+    }  
 }
