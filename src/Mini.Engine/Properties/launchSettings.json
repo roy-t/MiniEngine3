@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "Mini.Engine - Renderdoc": {
+      "commandName": "Project",
+      "commandLineArgs": "--renderdoc --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
+    },
+    "Mini.Engine - Logger": {
+      "commandName": "Project",
+      "commandLineArgs": "--content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
+    },
+    "Mine.Engine - Single Frame": {
+      "commandName": "Project",
+      "commandLineArgs": "--gameLoop \"Mini.Engine.SingleFrameLoop\" --no-ui --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
+    }
+  }
+}

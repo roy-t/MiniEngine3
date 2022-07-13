@@ -2,7 +2,6 @@
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
 using Vortice.DXGI;
-using Stb = StbImageSharp;
 using DXR = Mini.Engine.DirectX.Resources;
 using SuperCompressed;
 
