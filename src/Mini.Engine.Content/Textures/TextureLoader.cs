@@ -33,7 +33,7 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
             _ => throw new NotSupportedException($"Could not load {id}. Unsupported image file type: {extension}"),
         };
 
-        this.TextureCompressor.Register(id, (settings as TextureLoaderSettings) ?? TextureLoaderSettings.Default);
+        this.TextureCompressor.Watch(id, (settings as TextureLoaderSettings) ?? TextureLoaderSettings.Default);
        
         var content = new Texture2DContent(id, device, loader, settings);
         this.Content.Add(content);

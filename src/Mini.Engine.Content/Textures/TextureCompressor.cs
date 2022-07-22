@@ -6,9 +6,9 @@ namespace Mini.Engine.Content.Textures;
 
 internal sealed class TextureCompressor
 {
-    private readonly static string ExpectedExtension = ".uastc";
+    private readonly static string CompressedExtension = ".uastc";
 
-    private readonly static string[] SupportedExtensions = new[]
+    private readonly static string[] UncompressexExtensions = new[]
     {
         ".jpg", ".jpeg", ".png", ".bmp", ".tga", ".psd", ".gif"
     };
@@ -24,7 +24,7 @@ internal sealed class TextureCompressor
         this.Settings = new Dictionary<string, (ContentId, TextureLoaderSettings)>();
     }
 
-    internal void Register(ContentId id, TextureLoaderSettings settings)
+    internal void Watch(ContentId id, TextureLoaderSettings settings)
     {
         var sourceFile = this.FindSourceFile(id);
         if (sourceFile != null)
@@ -39,12 +39,12 @@ internal sealed class TextureCompressor
         var sourceFile = this.FindSourceFile(id);
         if (sourceFile == null)
         {
-            var all = "{" + string.Join(", ", SupportedExtensions) + "}";
+            var all = "{" + string.Join(", ", UncompressexExtensions) + "}";
             throw new FileNotFoundException($"Could not find file {Path.GetFileNameWithoutExtension(id.Path)}{all}");
         }
 
         this.Logger.Information($"Compressing texture file {sourceFile}->{id.Path} in the foreground");
-        Compress(sourceFile, id, settings);
+        this.Compress(sourceFile, id, settings);
     }
 
     internal void ProcessChangedFile(string file)
@@ -55,16 +55,16 @@ internal sealed class TextureCompressor
             var settings = tuple.Item2;
 
             this.Logger.Information($"Compressing texture file {file}->{id.Path} in the background");
-            Compress(file, id, settings);
+            this.Compress(file, id, settings);
         }
     }
 
     private string? FindSourceFile(ContentId id)
     {
-        if (id.Path.EndsWith(ExpectedExtension))
+        if (id.Path.EndsWith(CompressedExtension))
         {
-            var basePath = id.Path[..^ExpectedExtension.Length];
-            foreach (var extension in SupportedExtensions)
+            var basePath = id.Path[..^CompressedExtension.Length];
+            foreach (var extension in UncompressexExtensions)
             {
                 var fullPath = basePath + extension;
                 if (this.FileSystem.Exists(fullPath))
@@ -77,7 +77,7 @@ internal sealed class TextureCompressor
         return null;
     }
 
-    public void Compress(string file, ContentId id, TextureLoaderSettings settings)
+    private void Compress(string file, ContentId id, TextureLoaderSettings settings)
     {
         var bytes = this.FileSystem.ReadAllBytes(file);
         var image = Image.FromMemory(bytes);

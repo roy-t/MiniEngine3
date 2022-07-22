@@ -54,7 +54,10 @@ internal sealed class Texture2DContent : ITexture2D, IContent
 
         this.Format = data.ImageInfo.Format;
 
+        this.texture?.Dispose();
         this.texture = data.Texture;
+
+        this.shaderResourceView?.Dispose();
         this.shaderResourceView = data.View;
     }
 
