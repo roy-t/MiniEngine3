@@ -17,8 +17,7 @@ internal sealed class TextureDataLoader : IContentDataLoader<TextureData>
 
     public TextureData Load(Device device, ContentId id, ILoaderSettings loaderSettings)
     {
-        using var stream = this.FileSystem.OpenRead(id.Path);
-        var image = Image.FromStream(stream);
+        var image = Image.FromMemory(this.FileSystem.ReadAllBytes(id.Path));
 
         var pitch = image.Width * image.ComponentCount;
         
