@@ -19,6 +19,7 @@ public sealed partial class ContentManager : IDisposable
         public Frame(string name) : this(name, new List<IContent>()) { }
     }
 
+    private readonly TextureCompressor TextureCompressor;
     private record ReloadCallback(ContentId Id, Action<ContentId> Callback);
     private readonly Dictionary<ContentId, List<ReloadCallback>> Callbacks;
 
@@ -42,7 +43,8 @@ public sealed partial class ContentManager : IDisposable
         this.Device = device;
         this.FileSystem = fileSystem;
 
-        this.TextureLoader = new ContentCache<Texture2DContent>(new TextureLoader(this, fileSystem));
+        this.TextureCompressor = new TextureCompressor(logger, fileSystem);
+        this.TextureLoader = new ContentCache<Texture2DContent>(new TextureLoader(this, this.TextureCompressor, fileSystem));
         this.MaterialLoader = new ContentCache<MaterialContent>(new MaterialLoader(this, fileSystem, this.TextureLoader));
         this.ModelLoader = new ContentCache<ModelContent>(new ModelLoader(this, fileSystem, this.MaterialLoader));
 
@@ -153,6 +155,7 @@ public sealed partial class ContentManager : IDisposable
             try
             {
                 this.ReloadContentReferencingFile(file);
+                this.TextureCompressor.ProcessChangedFile(file);
             }
             catch (Exception ex)
             {

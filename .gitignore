@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# MiniEngine Run-time Generated Files
+*.uastc
+
 
 # Ignore launch settings
 

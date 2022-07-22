@@ -1,7 +1,6 @@
 ﻿using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
-using Vortice.DXGI;
 using DXR = Mini.Engine.DirectX.Resources;
 using SuperCompressed;
 
@@ -9,8 +8,6 @@ namespace Mini.Engine.Content.Textures;
 
 internal sealed class TextureDataLoader : IContentDataLoader<TextureData>
 {
-    private const Format SRgbFormat = Format.R8G8B8A8_UNorm_SRgb;
-    private const Format LinearFormat = Format.R8G8B8A8_UNorm;    
     private readonly IVirtualFileSystem FileSystem;
 
     public TextureDataLoader(IVirtualFileSystem fileSystem)

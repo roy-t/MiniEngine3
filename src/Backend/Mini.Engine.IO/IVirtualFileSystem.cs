@@ -8,4 +8,6 @@ public interface IVirtualFileSystem
     IEnumerable<string> GetChangedFiles();
     void WatchFile(string path);
     byte[] ReadAllBytes(string path);
+    bool Exists(string path);
+    void Create(string path, ReadOnlySpan<byte> contents);
 }

@@ -8,15 +8,18 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
     private readonly TextureDataLoader TextureDataLoader;
     private readonly HdrTextureDataLoader HdrTextureDataLoader;
     private readonly CompressedTextureLoader CompressedTextureLoader;
+    private readonly TextureCompressor TextureCompressor;
 
     private readonly ContentManager Content;
 
-    public TextureLoader(ContentManager content, IVirtualFileSystem fileSystem)
+    public TextureLoader(ContentManager content, TextureCompressor textureCompressor, IVirtualFileSystem fileSystem)
     {
+        this.Content = content;
+
+        this.TextureCompressor = textureCompressor;
         this.TextureDataLoader = new TextureDataLoader(fileSystem);
         this.HdrTextureDataLoader = new HdrTextureDataLoader(fileSystem);
-        this.CompressedTextureLoader = new CompressedTextureLoader(fileSystem);
-        this.Content = content;
+        this.CompressedTextureLoader = new CompressedTextureLoader(fileSystem, textureCompressor);        
     }
 
     public Texture2DContent Load(Device device, ContentId id, ILoaderSettings settings)
@@ -26,15 +29,12 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
         {
             ".hdr" => this.HdrTextureDataLoader,
             ".jpg" or ".jpeg" or ".png" or ".bmp" or ".tga" or ".psd" or ".gif" => this.TextureDataLoader,
-            ".basis" => this.CompressedTextureLoader,
+            ".uastc" => this.CompressedTextureLoader,
             _ => throw new NotSupportedException($"Could not load {id}. Unsupported image file type: {extension}"),
         };
 
-        if (id.Path.Contains("Sponza_Floor_diffuse.tga"))
-        {
-            loader = this.CompressedTextureLoader;
-        }
-
+        this.TextureCompressor.Register(id, (settings as TextureLoaderSettings) ?? TextureLoaderSettings.Default);
+       
         var content = new Texture2DContent(id, device, loader, settings);
         this.Content.Add(content);
         return content;

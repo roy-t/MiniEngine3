@@ -2,52 +2,45 @@
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
 using SuperCompressed;
-using Vortice.DXGI;
 using DXR = Mini.Engine.DirectX.Resources;
 
 namespace Mini.Engine.Content.Textures;
 
 internal sealed class CompressedTextureLoader : IContentDataLoader<TextureData>
 {
-    private const Format SRgbFormat = Format.BC7_UNorm_SRgb;
-    private const Format LinearFormat = Format.BC7_UNorm;
-
     private readonly IVirtualFileSystem FileSystem;
+    private readonly TextureCompressor Compressor;
 
-    public CompressedTextureLoader(IVirtualFileSystem fileSystem)
+    public CompressedTextureLoader(IVirtualFileSystem fileSystem, TextureCompressor compressor)
     {
         this.FileSystem = fileSystem;
+        this.Compressor = compressor;
     }
 
     public TextureData Load(Device device, ContentId id, ILoaderSettings loaderSettings)
     {
         var settings = loaderSettings is TextureLoaderSettings textureLoaderSettings ? textureLoaderSettings : TextureLoaderSettings.Default;
 
-        // BEGIN HACK
-        // TODO: do not encode and then transcode, us pre-encoded files        
+        if (!this.FileSystem.Exists(id.Path))
+        {
+            this.Compressor.CompressSourceFileFor(id, settings);
+        }
 
-        var dfs = (DiskFileSystem)this.FileSystem;
-        var path = dfs.ToAbsolute(id.Path);
+        var image = this.FileSystem.ReadAllBytes(id.Path);
 
-        using var stream = File.OpenRead(path);
-        var image = Image.FromStream(stream);        
-        var encoded = Encoder.Instance.Encode(image, settings.Mode, MipMapGeneration.Full, Quality.Default);
-
-        // END HACK
-
-        var imageCount = Transcoder.Instance.GetImageCount(encoded);
+        var imageCount = Transcoder.Instance.GetImageCount(image);
         if (imageCount != 1)
         {
             throw new Exception($"Image file invalid it contains {imageCount} image(s)");
         }
 
-        var mipMapCount = Transcoder.Instance.GetLevelCount(encoded, 0);
+        var mipMapCount = Transcoder.Instance.GetLevelCount(image, 0);
         if (mipMapCount < 1)
         {
             throw new Exception($"Image invalid it contains {mipMapCount} mipmaps");
         }
        
-        using var trancoded = Transcoder.Instance.Transcode(encoded, 0, 0, TranscodeFormats.BC7_RGBA);
+        using var trancoded = Transcoder.Instance.Transcode(image, 0, 0, TranscodeFormats.BC7_RGBA);
         var width = trancoded.Width;
         var heigth = trancoded.Heigth;
         var pitch = trancoded.Pitch;
@@ -75,7 +68,7 @@ internal sealed class CompressedTextureLoader : IContentDataLoader<TextureData>
         {
             for (var i = 1; i < mipMapCount; i++)
             {
-                using var transcodedMipMap = Transcoder.Instance.Transcode(encoded, 0, i, TranscodeFormats.BC7_RGBA);
+                using var transcodedMipMap = Transcoder.Instance.Transcode(image, 0, i, TranscodeFormats.BC7_RGBA);
 
                 DXR.Textures.SetPixels<byte>(device, texture, imageInfo, transcodedMipMap.Data, i);
             }

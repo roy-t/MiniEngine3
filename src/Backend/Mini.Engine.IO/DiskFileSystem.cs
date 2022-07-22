@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using System.Text;
+using Serilog;
 
 namespace Mini.Engine.IO;
 
@@ -25,9 +26,21 @@ public sealed class DiskFileSystem : IVirtualFileSystem
 
     public string RootDirectory { get; }
 
+    public void Create(string path, ReadOnlySpan<byte> contents)
+    {
+        using var output = File.Create(this.ToAbsolute(path));
+        using var writer = new BinaryWriter(output);
+        writer.Write(contents);
+    }
+
     public Stream OpenRead(string path)
     {
         return File.Open(this.ToAbsolute(path), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+    }
+
+    public bool Exists(string path)
+    {
+        return File.Exists(this.ToAbsolute(path));
     }
 
     public string NormalizePath(string relativePath)
@@ -43,7 +56,7 @@ public sealed class DiskFileSystem : IVirtualFileSystem
 
     public byte[] ReadAllBytes(string path)
     {
-        return File.ReadAllBytes(path);
+        return File.ReadAllBytes(this.ToAbsolute(path));
     }
 
     public void WatchFile(string path)
