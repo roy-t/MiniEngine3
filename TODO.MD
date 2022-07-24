@@ -1,4 +1,9 @@
 # TODO
+
+Use `typeperf "\GPU Process Memory(*)\Dedicated Usage" -f CSV -o ..\counters4.csv` to print out memory usage, this is a WMI counter that is not available on every system, there are more WMI coutners related to this process. Maybe integrate that in the debug stuff?
+
+
+
 - For compression, should we just use https://github.khronos.org/KTX-Software/libktx/index.html instead of basisu directly?
 - CompleteTexture compression, see CompressedTextureLoader.cs! Right now we encode and then transcode 1 specific file (see TextureLoader). But we should convert all files and make some automatic encoder/dependency mechanism so editing stays easy!
 
