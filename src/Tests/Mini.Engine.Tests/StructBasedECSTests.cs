@@ -9,6 +9,7 @@ public class StructBasedECSTests
 {
     public struct Component : IStructComponent
     {
+        public int ContainerIndex { get; set; }
         public int MyValue { get; set; }
     }
 
@@ -52,6 +53,16 @@ public class StructBasedECSTests
 
         True(hit);
 
-        Equal(1, container.Count); //TODO: count is not properly updated
+        Equal(1, container.Count);
+        
+
+        for(var i = 0; i < 15; i++)
+        {
+            ref var next = ref container.Create();
+        }
+
+        Equal(16, container.Count);
+
+        // TODO: now destroy a few?
     }
 }
