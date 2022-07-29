@@ -227,7 +227,7 @@ public sealed class StructComponentContainer<T>
 
         if (this.pool.Length >= InitialBufferSize && this.pool.Length >= this.Count * 4)
         {
-            this.Shrink(this.pool.Length * 2);
+            this.Shrink(this.Count * 2);
         }
     }
 
