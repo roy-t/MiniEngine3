@@ -40,8 +40,13 @@ public sealed class HydraulicErosionBrush : IDisposable
         this.User.MapConstants(context, (uint)height.Width, (uint)Math.Ceiling(settings.DropletStride / 2.0f), (uint)settings.Droplets, (uint)settings.DropletStride,
             settings.Inertia, settings.MinSedimentCapacity, settings.Gravity, settings.SedimentFactor, settings.DepositSpeed, settings.ErosionTintFactor, settings.BuildUpTintFactor);
 
+        // TODO: dispatch dimension must be below D3D11_CS_DISPATCH_MAX_THREAD_GROUPS_PER_DIMENSION for higher than 1M dorplets
+        // we need to tweak numthreads or dispatch multiple times
         var (x, y, z) = this.Shader.Kernel.GetDispatchSize((int)settings.Droplets, 1, 1);                
         context.CS.Dispatch(x, y, z);
+
+        context.CS.ClearUnorderedAccessView(HydraulicErosion.MapHeight);
+        context.CS.ClearUnorderedAccessView(HydraulicErosion.MapTint);
     }
 
     private StructuredBuffer<Vector2> CreatePositionBuffer(RWTexture2D height, int seed, int droplets, DeviceContext context)

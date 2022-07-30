@@ -53,7 +53,9 @@ public sealed class HeightMapGenerator : IDisposable
         context.CS.SetUnorderedAccessView(HeightMap.MapHeight, height);
 
         var (x, y, z) = this.Shader.NoiseMapKernel.GetDispatchSize(dimensions, dimensions, 1);
-        context.CS.Dispatch(x, y, z);        
+        context.CS.Dispatch(x, y, z);
+
+        context.CS.ClearUnorderedAccessView(HeightMap.MapHeight);
     }
 
     public RWTexture2D GenerateNormals(RWTexture2D heightMap)

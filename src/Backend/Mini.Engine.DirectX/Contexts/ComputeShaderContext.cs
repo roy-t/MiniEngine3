@@ -52,7 +52,12 @@ public sealed class ComputeShaderContext : DeviceContextPart
         where T : unmanaged
     {
         this.ID3D11DeviceContext.CSSetConstantBuffer(slot, buffer.Buffer);
-    }   
+    }
+
+    public void ClearUnorderedAccessView(int slot)
+    {
+        this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, null);
+    }
 
     public void SetUnorderedAccessView(int slot, RWTexture2D texture)
     {

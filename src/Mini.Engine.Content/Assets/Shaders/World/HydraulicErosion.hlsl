@@ -27,7 +27,7 @@ StructuredBuffer<float2> Positions : register(t0);
 StructuredBuffer<float> DropletMask : register(t1);
 
 #pragma ComputeShader
-[numthreads(8, 8, 1)]
+[numthreads(512, 1, 1)]
 void Kernel(in uint3 dispatchId : SV_DispatchThreadID)
 {
     if (dispatchId.x >= PositionsLength)
