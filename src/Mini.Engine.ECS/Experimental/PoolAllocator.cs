@@ -12,13 +12,15 @@ public sealed class PoolAllocator<T>
     where T : struct, IComponent
 {
     private readonly BitArray Occupancy;
+    private readonly IndexTracker Tracker;
     private T[] pool;    
 
     public PoolAllocator(int capacity)
     {
-        this.pool = new T[capacity];
         this.Occupancy = new BitArray(capacity);
-
+        this.Tracker = new IndexTracker(capacity);
+        this.pool = new T[capacity];
+        
         this.LowestUnusedSlot = 0;
         this.HighestUsedSlot = -1;
     }
@@ -48,7 +50,7 @@ public sealed class PoolAllocator<T>
         return this.Occupancy[index];
     }
 
-    public ref T Create()
+    public ref T CreateFor(Entity entity)
     {
         var index = this.LowestUnusedSlot;
 
@@ -65,26 +67,26 @@ public sealed class PoolAllocator<T>
         }
 
         this.Occupancy[index] = true;
+        this.Tracker.InsertOrUpdate(entity, index);
         this.Count++;
 
         return ref this.pool[index];
     }
 
-    public void Destroy(int index)
+    public void DestroyFor(Entity entity)
     {
-        if (this.Occupancy[index])
+        var index = this.Tracker.Remove(entity);
+
+        this.pool[index].Destroy();
+        this.Occupancy[index] = false;
+        this.Count--;
+
+        if (index == this.HighestUsedSlot)
         {
-            this.pool[index].Destroy();
-            this.Occupancy[index] = false;
-            this.Count--;
-
-            if (index == this.HighestUsedSlot)
-            {
-                this.HighestUsedSlot = this.IndexOfLastUsed(index - 1);
-            }
-
-            this.LowestUnusedSlot = Math.Min(this.LowestUnusedSlot, index);
+            this.HighestUsedSlot = this.IndexOfLastUsed(index - 1);
         }
+
+        this.LowestUnusedSlot = Math.Min(this.LowestUnusedSlot, index);
     }
 
     public void Reserve(int newCapacity)
@@ -135,6 +137,8 @@ public sealed class PoolAllocator<T>
 
         this.Occupancy[this.HighestUsedSlot] = false;
         this.Occupancy[this.LowestUnusedSlot] = true;
+
+        this.Tracker.InsertOrUpdate() // TODO: figure out how swap the index tracker!
 
         this.LowestUnusedSlot = this.IndexOfFirstUnused(this.LowestUnusedSlot + 1);
         this.HighestUsedSlot = this.IndexOfLastUsed(this.HighestUsedSlot - 1);
