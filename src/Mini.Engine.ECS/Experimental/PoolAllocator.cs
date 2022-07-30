@@ -5,6 +5,7 @@ namespace Mini.Engine.ECS.Experimental;
 
 public interface IComponent
 {
+    public Entity Entity { get; }
     public void Destroy();
 }
 
@@ -13,14 +14,14 @@ public sealed class PoolAllocator<T>
 {
     private readonly BitArray Occupancy;
     private readonly IndexTracker Tracker;
-    private T[] pool;    
+    private T[] pool;
 
     public PoolAllocator(int capacity)
     {
         this.Occupancy = new BitArray(capacity);
         this.Tracker = new IndexTracker(capacity);
         this.pool = new T[capacity];
-        
+
         this.LowestUnusedSlot = 0;
         this.HighestUsedSlot = -1;
     }
@@ -73,6 +74,12 @@ public sealed class PoolAllocator<T>
         return ref this.pool[index];
     }
 
+    public void Destroy(int index)
+    {
+        var entity = this.pool[index].Entity;
+        this.DestroyFor(entity);
+    }
+
     public void DestroyFor(Entity entity)
     {
         var index = this.Tracker.Remove(entity);
@@ -87,6 +94,8 @@ public sealed class PoolAllocator<T>
         }
 
         this.LowestUnusedSlot = Math.Min(this.LowestUnusedSlot, index);
+
+        this.SwapHighestUsedWithLowestUnused();
     }
 
     public void Reserve(int newCapacity)
@@ -118,27 +127,16 @@ public sealed class PoolAllocator<T>
         this.Occupancy.Length = newCapacity;
     }
 
-    public void Vacuum()
-    {
-        while (this.HighestUsedSlot >= this.Count)
-        {
-            this.SwapHighestUsedWithLowestUnused();
-        }
-
-        if (this.Capacity > this.Count * 4)
-        {
-            this.Trim(this.Count * 2);
-        }
-    }
-
     private void SwapHighestUsedWithLowestUnused()
     {
+        var entity = this.pool[this.HighestUsedSlot].Entity;
+
         this.pool[this.LowestUnusedSlot] = this.pool[this.HighestUsedSlot];
 
         this.Occupancy[this.HighestUsedSlot] = false;
         this.Occupancy[this.LowestUnusedSlot] = true;
 
-        this.Tracker.InsertOrUpdate() // TODO: figure out how swap the index tracker!
+        this.Tracker.InsertOrUpdate(entity, this.LowestUnusedSlot);
 
         this.LowestUnusedSlot = this.IndexOfFirstUnused(this.LowestUnusedSlot + 1);
         this.HighestUsedSlot = this.IndexOfLastUsed(this.HighestUsedSlot - 1);
