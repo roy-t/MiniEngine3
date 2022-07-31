@@ -10,10 +10,12 @@ public class PoolAllocatorTests
     {
         public Component(Entity entity, int value)
         {
+            this.LifeCycle = new LifeCycle();
             this.Entity = entity;
             this.Value = value;
         }
 
+        public LifeCycle LifeCycle { get; set; }
         public Entity Entity { get; set; }
         public int Value { get; set; }
 
@@ -68,5 +70,23 @@ public class PoolAllocatorTests
         Equal(99, allocator.Count);
 
         True(allocator[50].Value >= 0);
+    }
+
+    [Fact]
+    public void LifeCycleTest()
+    {
+        var entity = new Entity(1);
+        var allocator = new PoolAllocator<Component>(10);
+        ref var component = ref allocator.CreateFor(entity);
+
+        Equal(LifeCycleState.New, component.LifeCycle.Current);
+        Equal(LifeCycleState.Unchanged, component.LifeCycle.Next);
+
+        component.LifeCycle = component.LifeCycle.ToChanged();
+
+        Equal(LifeCycleState.Changed, component.LifeCycle.Next);
+
+        ref var component2 = ref allocator[0];
+        Equal(LifeCycleState.Changed, component2.LifeCycle.Next);
     }
 }

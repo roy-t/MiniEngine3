@@ -5,6 +5,7 @@ namespace Mini.Engine.ECS.Experimental;
 public interface IComponent
 {
     public Entity Entity { get; set; }
+    public LifeCycle LifeCycle { get; set; }
     public void Destroy();
 }
 
@@ -40,6 +41,15 @@ public sealed class PoolAllocator<T>
         }
     }
 
+    public ref T this[Entity entity]
+    {
+        get
+        {
+            var index = this.Tracker.GetReference(entity);
+            return ref this.pool[index];            
+        }
+    }
+
     public ref T CreateFor(Entity entity)
     {
         if (this.Count >= this.Capacity)
@@ -56,6 +66,7 @@ public sealed class PoolAllocator<T>
 
         ref var component = ref this.pool[index];
         component.Entity = entity;
+        component.LifeCycle = LifeCycle.Init();
 
         return ref component;
     }
