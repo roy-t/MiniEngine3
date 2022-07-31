@@ -1,80 +1,72 @@
-﻿//using Mini.Engine.ECS;
-//using Mini.Engine.ECS.Experimental;
-//using Xunit;
-//using static Xunit.Assert;
+﻿using Mini.Engine.ECS;
+using Mini.Engine.ECS.Experimental;
+using Xunit;
+using static Xunit.Assert;
 
-//namespace Mini.Engine.Tests;
-//public class PoolAllocatorTests
-//{
-//    public struct Component : IComponent
-//    {
-//        public Component(Entity entity, int value)
-//        {
-//            this.Entity = entity;
-//            this.Value = value;
-//        }
+namespace Mini.Engine.Tests;
+public class PoolAllocatorTests
+{
+    public struct Component : IComponent
+    {
+        public Component(Entity entity, int value)
+        {
+            this.Entity = entity;
+            this.Value = value;
+        }
 
-//        public Entity Entity { get; }
-//        public int Value { get; set; }
+        public Entity Entity { get; set; }
+        public int Value { get; set; }
 
-//        public void Destroy()
-//        {
-//            this.Value = -1;
-//        }
+        public void Destroy()
+        {
+            this.Value = -1;
+        }
 
-//        public override string ToString()
-//        {
-//            return $"{this.Value}, {this.Entity}";
-//        }
-//    }
+        public override string ToString()
+        {
+            return $"{this.Value}, {this.Entity}";
+        }
+    }
 
-//    [Fact]
-//    public void SmokeTest()
-//    {
-//        var entity = new Entity(1);
+    [Fact]
+    public void SmokeTest()
+    {
+        var entity = new Entity(1);
+        var allocator = new PoolAllocator<Component>(10);
+        Equal(10, allocator.Capacity);
 
-//        var allocator = new PoolAllocator<Component>(10);
 
-//        ref var component = ref allocator.CreateFor(entity);
-//        component.Value = 1;
+        ref var component = ref allocator.CreateFor(entity);
+        component.Value = 1;
 
-//        True(allocator.IsOccupied(0));
-//        Equal(1, allocator.Count);
-//        Equal(1, allocator[0].Value);
+        Equal(1, allocator.Count);
+        Equal(1, allocator[0].Value);
 
-//        allocator.DestroyFor(entity);
+        allocator.DestroyFor(entity);
+        Equal(0, allocator.Count);
+        Equal(-1, component.Value);
 
-//        Equal(0, allocator.Count);
-//        False(allocator.IsOccupied(0));
+        Equal(10, allocator.Capacity);
+        allocator.Reserve(100);
+        Equal(100, allocator.Capacity);
+        allocator.Trim();
+        Equal(0, allocator.Capacity);
 
-//        for (var i = 0; i < 20; i++)
-//        {
-//            var e = new Entity(i + 1000);
-//            ref var c = ref allocator.CreateFor(e);
-//            c.Value = i;
-//        }
+        for (var i = 0; i < 100; i++)
+        {
+            ref var c = ref allocator.CreateFor(new Entity(i));
+            c.Value = i;
+        }
 
-//        Equal(20, allocator.Count);
-//        True(allocator.Capacity >= 20);
+        Equal(100, allocator.Count);
+        True(allocator.Capacity >= 100);
 
-//        for (var i = 0; i < 20; i += 2)
-//        {
-//            var e = allocator[i].Entity;
-//            allocator.DestroyFor(e);
-//        }
+        allocator.Trim();
+        Equal(100, allocator.Capacity);
 
-//        Equal(10, allocator.Count);        
-//        Equal(0.5f, allocator.Fragmentation);
+        allocator.Destroy(50);
+        Equal(99, allocator.Count);
 
-//        allocator.Vacuum();
-
-//        Equal(10, allocator.Count);        
-//        Equal(0.0f, allocator.Fragmentation);
-
-//        allocator.Reserve(500);
-//        Equal(500, allocator.Capacity);
-
-//        allocator.Vacuum();
-//        True(allocator.Capacity < 500);
-//    }
-//}
+        True(allocator[50].Value >= 0);
+    }
+}

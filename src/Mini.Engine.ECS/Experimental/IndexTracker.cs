@@ -60,4 +60,9 @@ public sealed class IndexTracker
 
         throw new Exception($"Could not find {entity}");
     }
+
+    public void Reserve(int capacity)
+    {
+        this.Records.Capacity = capacity;
+    }
 }
