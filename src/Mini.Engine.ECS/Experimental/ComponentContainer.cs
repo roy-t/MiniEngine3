@@ -2,7 +2,7 @@
 
 public interface IComponentContainer
 {
-
+    public Type ComponentType { get; }
 }
 
 public interface IComponentContainer<T> : IComponentContainer
@@ -38,6 +38,8 @@ public sealed class ComponentContainer<T> : IComponentContainer<T>
     {
         this.Pool = new PoolAllocator<T>(InitialCapacity);
     }
+
+    public Type ComponentType => typeof(T);
 
     public ref T this[Entity entity] => ref this.Pool[entity];
 

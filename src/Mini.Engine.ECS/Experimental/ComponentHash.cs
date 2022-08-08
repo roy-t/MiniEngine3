@@ -1,14 +1,45 @@
-﻿namespace Mini.Engine.ECS.Experimental;
+﻿using Mini.Engine.Configuration;
 
-public readonly record struct ComponentHash(long Hash)
+namespace Mini.Engine.ECS.Experimental;
+
+public readonly record struct ComponentBit(ulong Bit);
+
+[Service]
+public sealed class ComponentTracker
 {
+    private readonly Dictionary<Guid, ComponentBit> Bits;
 
-    // TODO: use something like in ContainerStore to keep track of known components and their ids
-    // make sure to make it thread safe!
+    public ComponentTracker(IEnumerable<IComponentContainer> containers)
+    {
+        this.Bits = new Dictionary<Guid, ComponentBit>();
 
-    //public static ComponentHash Add<T>()
-    //    where T : IComponent
-    //{
-        
-    //}
+        var bit = 0b_0000000000000000000000000000000000000000000000000000000000000001UL;
+
+        foreach (var container in containers)
+        {
+            this.Bits.Add(container.ComponentType.GUID, new ComponentBit() { Bit = bit });
+            bit <<= 1;
+        }
+    }
+
+    public ComponentBit GetBit<T>()
+        where T : IComponent
+    {
+        return this.Bits[typeof(T).GUID];
+    }
+
+    public static bool HasComponent(Entity entity, ComponentBit component)
+    {
+        return (entity.Components.Bit & component.Bit) > 0;
+    }
+
+    public static void SetComponent(ref Entity entity, ComponentBit component)
+    {
+        entity.Components = new ComponentBit(entity.Components.Bit | component.Bit);
+    }
+
+    public static void UnsetComponent(ref Entity entity, ComponentBit component)
+    {
+        entity.Components = new ComponentBit(entity.Components.Bit & (~component.Bit));
+    }
 }

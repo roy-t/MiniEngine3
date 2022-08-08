@@ -1,18 +1,20 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using Mini.Engine.ECS.Experimental;
 
 namespace Mini.Engine.ECS;
 
-public readonly struct Entity : IEquatable, IEquatable<Entity>, IComparable, IComparable<Entity>
+public struct Entity : IEquatable, IEquatable<Entity>, IComparable, IComparable<Entity>
 {
     public readonly int Id;
 
     public Entity(int id)
     {
         this.Id = id;
+        this.Components = default;
     }
 
-    // TODO: can we give each entity a hash/bitset that keeps track of which components it has?
+    public ComponentBit Components { get; set; }
 
     public override string ToString()
     {
