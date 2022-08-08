@@ -83,9 +83,10 @@ public sealed class PoolAllocator<T>
 
         this.pool[index].Destroy();
         this.Occupancy[index] = false;
-        this.Count--;
 
         this.FillGap(index);
+
+        this.Count--;
     }
 
     public void Reserve(int newCapacity)
@@ -119,7 +120,7 @@ public sealed class PoolAllocator<T>
     private void FillGap(int gapIndex)
     {
         var low = gapIndex;
-        var high = this.Count;
+        var high = this.Count - 1;
 
         if (low < high)
         {

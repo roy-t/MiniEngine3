@@ -12,6 +12,8 @@ public readonly struct Entity : IEquatable, IEquatable<Entity>, IComparable, ICo
         this.Id = id;
     }
 
+    // TODO: can we give each entity a hash/bitset that keeps track of which components it has?
+
     public override string ToString()
     {
         return this.Id.ToString();
