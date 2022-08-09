@@ -4,5 +4,5 @@ namespace Mini.Engine.ECS.Systems;
 
 public interface ISystemBindingProvider
 {
-    public ISystemBinding Bind(ContainerStore containerStore);
+    public Type GetSystemBindingType();    
 }

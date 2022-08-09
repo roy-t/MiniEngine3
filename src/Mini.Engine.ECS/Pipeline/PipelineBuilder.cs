@@ -64,7 +64,8 @@ public sealed class PipelineBuilder
                 {
                     var systemSpec = stage[j];
                     var system = this.Services.Resolve<ISystem>(systemSpec.SystemType);
-                    systemBindings.Add(system.Bind(this.ContainerStore));
+                    var binding = this.Services.Resolve<ISystemBinding>(system.GetSystemBindingType());
+                    systemBindings.Add(binding);
                 }
 
                 pipelineStages.Add(new PipelineStage(systemBindings));

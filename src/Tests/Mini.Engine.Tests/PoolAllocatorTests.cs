@@ -1,5 +1,5 @@
 ﻿using Mini.Engine.ECS;
-using Mini.Engine.ECS.Experimental;
+using Mini.Engine.ECS.Components;
 using Xunit;
 using static Xunit.Assert;
 

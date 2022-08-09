@@ -25,8 +25,7 @@ public sealed class ComponentCatalog : IEnumerable<Type>
 
     private static bool IsComponentType(TypeInfo typeInfo)
     {
-        // TODO: remove class
-        return (typeInfo.IsClass || typeInfo.IsValueType)
+        return typeInfo.IsValueType
                && ImplementsComponentAttribute(typeInfo)
                && !typeInfo.IsNestedPrivate
                && !typeInfo.IsAbstract;

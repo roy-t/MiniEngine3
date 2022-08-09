@@ -24,7 +24,7 @@ internal sealed class RenderPipelineBuilder
     {
         var pipeline = this.Builder.Builder();
         return pipeline
-            .System<ComponentFlushSystem>()
+            .System<ComponentLifeCycleSystem>()
                 .Parallel()
                 .Produces("Initialization", "Containers")
                 .Build()

@@ -1,10 +1,10 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine.Graphics;
 
+// TODO: convert to struct, or not?
 public sealed class PerspectiveCamera : ITransformable<PerspectiveCamera>
 {
     public PerspectiveCamera(float aspectRatio, Transform transform)

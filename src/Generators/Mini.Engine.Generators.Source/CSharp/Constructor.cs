@@ -60,6 +60,13 @@ namespace Mini.Engine.Generators.Source.CSharp
             return this;
         }
 
+        public ConstructorBuilder<TPrevious> Parameters(IEnumerable<Parameter> parameters)
+        {
+            this.Output.Parameters.Parameters.AddRange(parameters);
+
+            return this;
+        }
+
         public ConstructorBuilder<TPrevious> Parameter(string type, string name)
         {
             this.Output.Parameters.Parameters.Add(new Parameter(type, name));

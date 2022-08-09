@@ -49,15 +49,15 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
     }
 
     [Process(Query = ProcessQuery.All)]
-    public void DrawSunLight(SunLightComponent sunlight, CascadedShadowMapComponent shadowMap, TransformComponent viewPoint)
+    public void DrawSunLight(ref SunLightComponent sunlight, ref CascadedShadowMapComponent shadowMap, ref TransformComponent viewPoint)
     {
         var camera = this.FrameService.Camera;
         Matrix4x4.Invert(camera.ViewProjection, out var inverse);
 
         var shadow = new SunLight.ShadowProperties()
         {
-            Offsets = Pack(shadowMap.Offsets),
-            Scales = Pack(shadowMap.Scales),
+            Offsets = shadowMap.Offsets,
+            Scales = shadowMap.Scales,
             Splits = Pack(shadowMap.Splits),
             ShadowMatrix = shadowMap.GlobalShadowMatrix
         };
@@ -67,22 +67,11 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(SunLight.ShadowMap, shadowMap.DepthBuffers);
 
         this.Context.Draw(3);
-    }
+    }   
 
-    private static Matrix4x4 Pack(Vector4[] vectors)
+    private static Vector4 Pack(Vector4 vectors)
     {
-        return new Matrix4x4
-        (
-            vectors[0].X, vectors[1].X, vectors[2].X, vectors[3].X,
-            vectors[0].Y, vectors[1].Y, vectors[2].Y, vectors[3].Y,
-            vectors[0].Z, vectors[1].Z, vectors[2].Z, vectors[3].Z,
-            vectors[0].W, vectors[1].W, vectors[2].W, vectors[3].W
-        );
-    }
-
-    private static Vector4 Pack(float[] vectors)
-    {
-        return new Vector4(vectors[0], vectors[1], vectors[2], vectors[3]);
+        return new Vector4(vectors.X , vectors.Y, vectors.Z, vectors.W);
     }
 
     public void OnUnSet()

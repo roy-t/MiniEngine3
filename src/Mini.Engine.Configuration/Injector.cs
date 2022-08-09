@@ -151,9 +151,14 @@ public sealed class Injector : IDisposable
     }
 
     private void RegisterContainerFor(Type containerType, Type componentType)
-    {
-        containerType = containerType.MakeGenericType(componentType);
-        var instance = Activator.CreateInstance(containerType);
+    {        
+        containerType = containerType.MakeGenericType(componentType);        
+        var parameters = containerType
+            .GetConstructors()[0]
+            .GetParameters()
+            .Select(p => this.Container.GetInstance(p.ParameterType)).ToArray();
+
+        var instance = Activator.CreateInstance(containerType, parameters);
 
         foreach (var interfaceType in containerType.GetInterfaces())
         {

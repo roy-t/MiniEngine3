@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Mini.Engine.Generators.Source;
 using Mini.Engine.Generators.Source.CSharp;
 
 namespace Mini.Engine.ECS.Generators
@@ -26,18 +27,20 @@ namespace Mini.Engine.ECS.Generators
                         .Usings(target.Usings)
                         .Namespace(target.Namespace)
                             .Class($"{target.Name}Binding", "public", "sealed")
+                                .Attribute("Service")
                                 .Inherits("ISystemBinding")
                                 .Field(target.Name, "System", "private", "readonly")
                                     .Complete()
                                 .Fields(target.GetUniqueComponents()
                                     .Select(c => new Field($"IComponentContainer<{c}>", $"{c}Container", "private", "readonly")))
-                                .Constructor("public")
+                                .Constructor("public")                                    
                                     .Parameter(target.Name, "system")
-                                    .Parameter("ContainerStore", "containerStore")
+                                    .Parameters(target.GetUniqueComponents()
+                                        .Select(c => new Parameter($"IComponentContainer<{c}>", $"{Naming.ToLowerCamelCase(c)}Container")))                                    
                                     .Body()
                                         .TextCodeBlock("this.System = system;")
                                         .TextCodeBlocks(target.GetUniqueComponents()
-                                            .Select(c => $"this.{c}Container = containerStore.GetContainer<{c}>();"))
+                                            .Select(c => $"this.{c}Container = {Naming.ToLowerCamelCase(c)}Container;"))
                                         .Complete()
                                     .Complete()
                                 .Method("void", "Process", "public")
@@ -49,11 +52,10 @@ namespace Mini.Engine.ECS.Generators
                                     .Complete()
                                 .Complete()
                             .Class($"{target.Name}", "public", "partial")
-                                .Inherits("ISystemBindingProvider")
-                                .Method("ISystemBinding", "Bind", "public")
-                                    .Parameter("ContainerStore", "containerStore")
+                                .Inherits("ISystemBindingProvider")                                
+                                .Method("Type", "GetSystemBindingType", "public")                                    
                                     .Body()
-                                        .TextCodeBlock($"return new {target.Name}Binding(this, containerStore);")
+                                        .TextCodeBlock($"return typeof({target.Name}Binding);")
                                         .Complete()
                                     .Complete()
                                 .Complete()
@@ -83,23 +85,44 @@ namespace Mini.Engine.ECS.Generators
             }
 
             var primary = components.First();
-            var loop = new ForeachLoop("p0", $"this.{primary}Container.Get{method.Query}Items()");
+
+            var iterator = CreateGetIteratorBlock(method, primary);
+
+            var loop = new WhileLoop("iterator.MoveNext()");            
             var block = new TextCodeBlock();
+            block.Text.WriteLine($"ref var p0 = ref iterator.Current;");
 
             for (var i = 1; i < components.Count; i++)
             {
                 var component = components[i];
                 block.Text.WriteLine($"if (!this.{component}Container.Contains(p0.Entity)) {{ continue; }}");
-                block.Text.WriteLine($"var p{i} = this.{component}Container[p0.Entity];");
+                block.Text.WriteLine($"ref var p{i} = ref this.{component}Container[p0.Entity];");
             }
 
-            var argumentList = string.Join(", ", Enumerable.Range(0, components.Count).Select(i => $"p{i}"));
+            var argumentList = string.Join(", ", Enumerable.Range(0, components.Count).Select(i => $"ref p{i}"));
             block.Text.WriteLine($"this.System.{method.Name}({argumentList});");
 
             var body = new Body();
-            body.Code.Add(block);
-            loop.Body = body;
-            return loop;
+            body.Code.Add(new TextCodeBlock("{"));
+            body.Code.Add(iterator);
+            body.Code.Add(loop);
+            body.Code.Add(new TextCodeBlock("}"));
+            loop.Body = new Body(block);
+
+            return body;
+        }
+
+        private static ICodeBlock CreateGetIteratorBlock(Method method, string component)
+        {            
+            return method.Query switch
+            {
+                Shared.ProcessQuery.All => new TextCodeBlock($"var iterator = {component}Container.IterateAll();"),
+                Shared.ProcessQuery.New => new TextCodeBlock($"var iterator = {component}Container.IterateNew();"),
+                Shared.ProcessQuery.Changed => new TextCodeBlock($"var iterator = {component}Container.IterateChanged();"),
+                Shared.ProcessQuery.Unchanged => new TextCodeBlock($"var iterator = {component}Container.IterateUnchanged();"),
+                Shared.ProcessQuery.Removed => new TextCodeBlock($"var iterator = {component}Container.IterateRemoved();"),
+                _ => throw new NotSupportedException($"Unsupported method query: {method.Query}"),
+            };
         }
     }
 }

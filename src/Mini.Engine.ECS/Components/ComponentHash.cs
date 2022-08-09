@@ -1,6 +1,6 @@
 ﻿using Mini.Engine.Configuration;
 
-namespace Mini.Engine.ECS.Experimental;
+namespace Mini.Engine.ECS.Components;
 
 public readonly record struct ComponentBit(ulong Bit);
 
@@ -65,6 +65,6 @@ public sealed class ComponentTracker
             components = this.EntityComponents[entity];
         }
 
-        this.EntityComponents[entity] = new ComponentBit(components.Bit & (~component.Bit));        
+        this.EntityComponents[entity] = new ComponentBit(components.Bit & ~component.Bit);
     }
 }

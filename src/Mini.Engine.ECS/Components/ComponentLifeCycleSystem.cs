@@ -5,11 +5,11 @@ using Mini.Engine.ECS.Systems;
 namespace Mini.Engine.ECS.Components;
 
 [System]
-public sealed partial class ComponentFlushSystem : ISystem
+public sealed partial class ComponentLifeCycleSystem : ISystem
 {
     private readonly ContainerStore ContainerStore;
 
-    public ComponentFlushSystem(ContainerStore containerStore)
+    public ComponentLifeCycleSystem(ContainerStore containerStore)
     {
         this.ContainerStore = containerStore;
     }
@@ -29,7 +29,7 @@ public sealed partial class ComponentFlushSystem : ISystem
         var containers = this.ContainerStore.GetAllContainers();
         for (var i = 0; i < containers.Count; i++)
         {
-            containers[i].Flush();
+            containers[i].UpdateLifeCycles();
         }
     }
 }

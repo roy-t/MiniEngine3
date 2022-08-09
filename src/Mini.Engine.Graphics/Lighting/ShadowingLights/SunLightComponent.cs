@@ -1,16 +1,18 @@
 ﻿using Mini.Engine.ECS;
+using Mini.Engine.ECS.Components;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
-public sealed class SunLightComponent : Component
+public struct SunLightComponent : IComponent
 {
-    public SunLightComponent(Entity entity, Color4 color, float strength)
-        : base(entity)
-    {
-        this.Color = color;
-        this.Strength = strength;
-    }
+    public Color4 Color;
+    public float Strength;
 
-    public Color4 Color { get; set; }
-    public float Strength { get; set; }
+    public Entity Entity { get; set; }
+    public LifeCycle LifeCycle { get; set; }
+
+    public void Destroy()
+    {
+        
+    }
 }

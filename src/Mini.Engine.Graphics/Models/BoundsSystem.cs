@@ -5,6 +5,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
+using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
@@ -75,7 +76,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
     }
 
     [Process(Query = ProcessQuery.All)]
-    public void DrawOutline(ModelComponent component, TransformComponent transform)
+    public void DrawOutline(ref ModelComponent component, ref TransformComponent transform)
     {
         if (this.DebugFrameService.ShowBounds)
         {
@@ -109,7 +110,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
     }
 
     [Process(Query = ProcessQuery.All)]
-    public void DrawOutline(TerrainComponent component, TransformComponent transform)
+    public void DrawOutline(ref TerrainComponent component, ref TransformComponent transform)
     {
         if (this.DebugFrameService.ShowBounds)
         {

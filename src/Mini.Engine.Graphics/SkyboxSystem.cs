@@ -39,7 +39,7 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
     }
 
     [Process(Query = ProcessQuery.All)]
-    public void DrawSkybox(SkyboxComponent skybox)
+    public void DrawSkybox(ref SkyboxComponent skybox)
     {
         var camera = this.FrameService.Camera;
 

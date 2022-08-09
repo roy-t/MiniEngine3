@@ -2,6 +2,7 @@
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders.Generated;
+using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
@@ -51,7 +52,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
     }
 
     [Process(Query = ProcessQuery.All)]
-    public void DrawCascades(CascadedShadowMapComponent shadowMap, TransformComponent viewPoint)
+    public void DrawCascades(ref CascadedShadowMapComponent shadowMap, ref TransformComponent viewPoint)
     {
         var view = this.FrameService.Camera;
         var surfaceToLight = -viewPoint.Transform.Forward;
@@ -62,28 +63,37 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
 
         var totalViewProjectioNMatrix = ComputeViewProjectionMatrixForSlice(surfaceToLight, this.Frustum, shadowMap.Resolution);
         var viewVolume = new Frustum(totalViewProjectioNMatrix);
-        for (var i = 0; i < shadowMap.Cascades.Length; i++)
-        {
-            this.Frustum.TransformToCameraFrustumInWorldSpace(view);
 
-            var nearZ = i == 0 ? 0.0f : shadowMap.Cascades[i - 1];
-            var farZ = shadowMap.Cascades[i];
-            this.Frustum.Slice(nearZ, farZ);
+        var clipDistance = view.FarPlane - view.NearPlane;
 
-            var viewProjection = ComputeViewProjectionMatrixForSlice(surfaceToLight, this.Frustum, shadowMap.Resolution);
-            var shadowMatrix = CreateSliceShadowMatrix(viewProjection);
+        (var s0, var o0, var x0) = this.RenderShadowMap(ref shadowMap, 0.0f, shadowMap.Cascades.X, clipDistance, view, surfaceToLight, viewVolume, 0);
+        (var s1, var o1, var x1) = this.RenderShadowMap(ref shadowMap, shadowMap.Cascades.X, shadowMap.Cascades.Y, clipDistance, view, surfaceToLight, viewVolume, 1);
+        (var s2, var o2, var x2) = this.RenderShadowMap(ref shadowMap, shadowMap.Cascades.Y, shadowMap.Cascades.Z, clipDistance, view, surfaceToLight, viewVolume, 2);
+        (var s3, var o3, var x3) = this.RenderShadowMap(ref shadowMap, shadowMap.Cascades.Z, shadowMap.Cascades.W, clipDistance, view, surfaceToLight, viewVolume, 3);
 
-            var clipDistance = view.FarPlane - view.NearPlane;
-            shadowMap.Splits[i] = view.NearPlane + (farZ * clipDistance);
+        shadowMap.Splits.X = s0;
+        shadowMap.Splits.Y = s1;
+        shadowMap.Splits.Z = s2;
+        shadowMap.Splits.W = s3;
 
-            var nearCorner = TransformCorner(Vector3.Zero, shadowMatrix, shadowMap.GlobalShadowMatrix);
-            var farCorner = TransformCorner(Vector3.One, shadowMatrix, shadowMap.GlobalShadowMatrix);
+        shadowMap.Offsets = Matrices.CreateColumnMajor(o0, o1, o2, o3);
+        shadowMap.Scales = Matrices.CreateColumnMajor(x0, x1, x2, x3);
+    }
 
-            shadowMap.Offsets[i] = new Vector4(-nearCorner, 0.0f);
-            shadowMap.Scales[i] = new Vector4(Vector3.One / (farCorner - nearCorner), 1.0f);
+    private (float split, Vector4 offset, Vector4 scale) RenderShadowMap(ref CascadedShadowMapComponent shadowMap, float nearZ, float farZ, float clipDistance, PerspectiveCamera view, Vector3 surfaceToLight, Frustum viewVolume, int slice)
+    {
+        this.Frustum.TransformToCameraFrustumInWorldSpace(view);
+        this.Frustum.Slice(nearZ, farZ);
 
-            this.RenderShadowMap(shadowMap.DepthBuffers, i, viewVolume, viewProjection);
-        }
+        var viewProjection = ComputeViewProjectionMatrixForSlice(surfaceToLight, this.Frustum, shadowMap.Resolution);
+        var shadowMatrix = CreateSliceShadowMatrix(viewProjection);
+        
+        this.RenderShadowMap(shadowMap.DepthBuffers, slice, viewVolume, viewProjection);
+
+        var nearCorner = TransformCorner(Vector3.Zero, shadowMatrix, shadowMap.GlobalShadowMatrix);
+        var farCorner = TransformCorner(Vector3.One, shadowMatrix, shadowMap.GlobalShadowMatrix);
+
+        return (view.NearPlane + (farZ * clipDistance), new Vector4(-nearCorner, 0.0f), new Vector4(Vector3.One / (farCorner - nearCorner), 1.0f));        
     }
 
     private void RenderShadowMap(DepthStencilBufferArray depthStencilBuffers, int slice, Frustum viewVolume, Matrix4x4 viewProjection)

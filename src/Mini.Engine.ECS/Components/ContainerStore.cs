@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
 
 namespace Mini.Engine.ECS.Components;
 
@@ -23,7 +20,7 @@ public sealed class ContainerStore
     }
 
     public IComponentContainer<T> GetContainer<T>()
-        where T : Component
+        where T : struct, IComponent
     {
         var key = typeof(T);
         return (IComponentContainer<T>)this.ContainersByType[key];
