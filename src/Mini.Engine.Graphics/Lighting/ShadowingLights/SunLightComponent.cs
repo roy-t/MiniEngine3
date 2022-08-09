@@ -4,9 +4,9 @@ using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 public struct SunLightComponent : IComponent
-{    
-    public Color4 Color { get; set; }
-    public float Strength { get; set; }
+{
+    public Color4 Color;
+    public float Strength;
 
     public Entity Entity { get; set; }
     public LifeCycle LifeCycle { get; set; }

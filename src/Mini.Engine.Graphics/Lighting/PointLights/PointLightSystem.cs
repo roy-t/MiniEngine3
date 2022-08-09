@@ -16,6 +16,8 @@ namespace Mini.Engine.Graphics.Lighting.PointLights;
 [Service]
 public sealed partial class PointLightSystem : ISystem, IDisposable
 {
+    private const float MinimumLightInfluence = 0.001f;
+
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
@@ -60,7 +62,10 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
     public void DrawPointLight(ref PointLightComponent component, ref TransformComponent transform)
     {
         var camera = this.FrameService.Camera;
-        var isInside = Vector3.Distance(camera.Transform.Position, transform.Transform.Position) < component.RadiusOfInfluence;
+
+        var radiusOfInfluence = MathF.Sqrt(component.Strength / MinimumLightInfluence);
+
+        var isInside = Vector3.Distance(camera.Transform.Position, transform.Transform.Position) < radiusOfInfluence;
         if (isInside)
         {
             this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwiseNoDepthClip);
@@ -70,7 +75,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
             this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwiseNoDepthClip);
         }
 
-        var world = Matrix4x4.CreateScale(component.RadiusOfInfluence) * transform.AsMatrix();
+        var world = Matrix4x4.CreateScale(radiusOfInfluence) * transform.AsMatrix();
 
         this.User.MapPerLightConstants(this.Context, world * camera.ViewProjection, transform.Transform.Position, component.Strength, component.Color);
 

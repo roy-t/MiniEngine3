@@ -5,7 +5,8 @@ namespace Mini.Engine.Graphics.World;
 
 public struct TerrainComponent : IComponent
 {
-    public TerrainMesh Terrain { get; set; }
+    public TerrainMesh Terrain;
+
     public Entity Entity { get; set; }
     public LifeCycle LifeCycle { get; set; }
 

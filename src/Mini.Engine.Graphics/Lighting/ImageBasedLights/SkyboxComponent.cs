@@ -6,7 +6,15 @@ namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 public struct SkyboxComponent : IComponent
 {
-    public void Init (ITexture2D albedo, ITexture2D irradiance, ITexture2D environment, float strength)        
+    public ITexture2D Albedo;
+    public ITexture2D Irradiance;
+    public ITexture2D Environment;
+    public float Strength;
+
+    public Entity Entity { get; set; }
+    public LifeCycle LifeCycle { get; set; }
+
+    public void Init(ITexture2D albedo, ITexture2D irradiance, ITexture2D environment, float strength)
     {
         this.Albedo = albedo;
         this.Irradiance = irradiance;
@@ -15,12 +23,4 @@ public struct SkyboxComponent : IComponent
     }
 
     public void Destroy() { }
-
-    public ITexture2D Albedo { get; set; }
-    public ITexture2D Irradiance { get; set; }
-    public ITexture2D Environment { get; set; }
-    public float Strength { get; set; }
-
-    public Entity Entity { get; set; }
-    public LifeCycle LifeCycle { get; set; }
 }
