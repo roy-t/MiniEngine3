@@ -1,13 +1,19 @@
 # TODO
 
+Make sure all components don't reference classes for better memory layout
+- Make transform a struct, but not readonly since it so big?
+- Instead of referencing IModels, ITextures, etc... give a ResourceId<IModel> {int..} that is then used like Device[ResourceId] to get the actual resource when rendering
+- A component should never own the lifetime of a resource, make that happen, remove Destroy method!
+
+---
+
+Make sure that changes (adding new textures, creating new entities/components) only happen at a single stage in the pipeline. Just like how deleting only happens on buffer flush. Maybe via some sort of command bus/queue, would also help networking/multiplayer maybe?
+
+---
+
 Use `typeperf "\GPU Process Memory(*)\Dedicated Usage" -f CSV -o ..\counters4.csv` to print out memory usage, this is a WMI counter that is not available on every system, there are more WMI coutners related to this process. Maybe integrate that in the debug stuff?
 
-
-
-- For compression, should we just use https://github.khronos.org/KTX-Software/libktx/index.html instead of basisu directly?
-- CompleteTexture compression, see CompressedTextureLoader.cs! Right now we encode and then transcode 1 specific file (see TextureLoader). But we should convert all files and make some automatic encoder/dependency mechanism so editing stays easy!
-
-- Are we leaking memory, looks like some stuff keeps working even after it is popped from the content stack!
+---
 
 - Quiting during loading screen doesn't really quit?
 
@@ -15,29 +21,15 @@ Use `typeperf "\GPU Process Memory(*)\Dedicated Usage" -f CSV -o ..\counters4.cs
 - See https://www.realtimeshadows.com/sites/default/files/Playing%20with%20Real-Time%20Shadows_0.pdf for shadow map ideas, especially from slide 59
 - See https://www.realtimeshadows.com/sites/default/files/Playing%20with%20Real-Time%20Shadows_0.pdf starting form slide 42 on FOG
 
-
-- Terrain
-	- Lots of practical tips: 
-		1. https://mtnphil.wordpress.com/2011/09/22/terrain-engine/
-		2. https://mtnphil.wordpress.com/2012/09/25/terrain-texture-projection-artifacts/
-		3. https://mtnphil.wordpress.com/2012/10/10/terrain-triangulation/
-		4. https://mtnphil.wordpress.com/2012/10/10/terrain-triangulation-part-4/
-		5. https://mtnphil.wordpress.com/2012/10/12/terrain-triangulation-part-5/
-		6. https://mtnphil.wordpress.com/2012/10/15/terrain-triangulation-summary/
-
-- Only run generators on each compile, some generators now run on each change and look at each method for an attribute!
-
 - Make it easier to change skyboxes
 - Use Texture.Load() instead of Sampling using the point sampling for a tiny perf boost where we don't need sampling
 
 - Check RenderTargetViews, ShaderResourceViews of it still makes sense, is there not 1 overload per resource?
 
-
 - Unsafe zooi: https://github.com/dotnet/runtime/issues/29905
 
 - Input: move to https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getrawinputbuffer, see also https://twitter.com/roytries/status/1504726298136043542?s=20&t=f-MV-lcabEsZvyDSDONvMQ
 
-- Reintroduce: Staged buffer reader ?
 
 # Notes
 Particle renderer
