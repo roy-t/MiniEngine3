@@ -3,8 +3,14 @@ using System.Linq;
 
 namespace Mini.Engine.Generators.Source.CSharp
 {
-    public sealed class Body : ISource
+    public sealed class Body : ICodeBlock
     {
+        public Body(ICodeBlock block)
+            :this()
+        {
+            this.Code.Add(block);
+        }
+
         public Body()
             => this.Code = new List<ICodeBlock>();
 
