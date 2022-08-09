@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using LightInject;
 using Serilog;
 
@@ -16,13 +12,11 @@ public sealed class Injector : IDisposable
         };
 
     private readonly ServiceContainer Container;
-    private readonly List<Type> ComponentTypes;
+    private readonly ComponentCatalog Components;
     private readonly ILogger Logger;
 
     public Injector()
     {
-
-
         Log.Logger = new LoggerConfiguration()
          .Enrich.FromLogContext()
          .MinimumLevel.Information()
@@ -36,13 +30,23 @@ public sealed class Injector : IDisposable
             LogFactory = (type) => logEntry => this.Logger.Debug(logEntry.Message)
         };
 
-        this.Container = new ServiceContainer(options);
-        _ = this.Container.SetDefaultLifetime<PerContainerLifetime>()
+        this.Container = new ServiceContainer(options);        
+        this.Container.SetDefaultLifetime<PerContainerLifetime>()
             .RegisterInstance(Log.Logger)
             .RegisterInstance(new Services(this.Container));
 
-        this.ComponentTypes = new List<Type>();
-        this.RegisterTypesFromAssembliesInWorkingDirectory();
+        var assemblies = this.LoadAssembliesInCurrentDirectory();
+        this.RegisterTypesFromAssemblies(assemblies);
+        this.Components = new ComponentCatalog(assemblies);
+
+        foreach (var component in this.Components)
+        {
+            this.Logger.Debug("Registered component {@component}", component.FullName);
+        }
+
+        this.Logger.Debug("Registered {@count} components", this.Components.Count);
+
+        this.Container.RegisterInstance(this.Components);
     }
 
     public T Get<T>() where T : class
@@ -55,10 +59,8 @@ public sealed class Injector : IDisposable
         this.Container?.Dispose();
     }
 
-    private void RegisterTypesFromAssembliesInWorkingDirectory()
+    private void RegisterTypesFromAssemblies(IEnumerable<Assembly> assemblies)
     {
-        var assemblies = this.LoadAssembliesInCurrentDirectory();
-
         foreach (var assembly in assemblies)
         {
             _ = this.Container.RegisterAssembly(assembly, (serviceType, concreteType) =>
@@ -66,13 +68,6 @@ public sealed class Injector : IDisposable
                 // Do not register services as an implementation of an abstract class or interface
                 if (serviceType != concreteType)
                 {
-                    return false;
-                }
-
-                if (IsComponentType(concreteType))
-                {
-                    this.ComponentTypes.Add(concreteType);
-                    this.Logger.Debug("Registered component {@component}", concreteType.FullName);
                     return false;
                 }
 
@@ -138,9 +133,6 @@ public sealed class Injector : IDisposable
     private static bool IsSystem(Type type)
         => type.IsDefined(typeof(SystemAttribute), true) && !type.IsAbstract;
 
-    private static bool IsComponentType(Type type)
-        => type.IsDefined(typeof(ComponentAttribute), true) && !type.IsAbstract;
-
     private static bool IsContentType(Type type)
         => type.IsDefined(typeof(ContentAttribute), true) && !type.IsAbstract;
 
@@ -150,12 +142,12 @@ public sealed class Injector : IDisposable
 
     public void RegisterContainer(Type containerType)
     {
-        foreach (var componentType in this.ComponentTypes)
+        foreach (var componentType in this.Components)
         {
             this.RegisterContainerFor(containerType, componentType);
         }
 
-        this.Logger.Information("Registered {@container} for {@count} components", containerType.FullName, this.ComponentTypes.Count);
+        this.Logger.Information("Registered {@container} for {@count} components", containerType.FullName, this.Components.Count);
     }
 
     private void RegisterContainerFor(Type containerType, Type componentType)

@@ -8,16 +8,21 @@ public readonly record struct ComponentBit(ulong Bit);
 public sealed class ComponentTracker
 {
     private readonly Dictionary<Guid, ComponentBit> Bits;
-
-    public ComponentTracker(IEnumerable<IComponentContainer> containers)
+        
+    public ComponentTracker(ComponentCatalog components)
     {
         this.Bits = new Dictionary<Guid, ComponentBit>();
 
         var bit = 0b_0000000000000000000000000000000000000000000000000000000000000001UL;
 
-        foreach (var container in containers)
+        if (components.Count > 64)
         {
-            this.Bits.Add(container.ComponentType.GUID, new ComponentBit() { Bit = bit });
+            throw new Exception("More than 64 component types, update range of ComponentBit");
+        }
+
+        foreach (var type in components)
+        {
+            this.Bits.Add(type.GUID, new ComponentBit(bit));
             bit <<= 1;
         }
     }

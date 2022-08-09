@@ -7,7 +7,7 @@ namespace Mini.Engine.Configuration;
 /// for the component
 /// </summary>
 /// <seealso cref="Injector"/>
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = true)]
 public sealed class ComponentAttribute : InjectableAttribute
 {
 }

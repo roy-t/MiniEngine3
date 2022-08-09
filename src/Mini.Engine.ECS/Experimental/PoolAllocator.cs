@@ -2,13 +2,6 @@
 
 namespace Mini.Engine.ECS.Experimental;
 
-public interface IComponent
-{
-    public Entity Entity { get; set; }
-    public LifeCycle LifeCycle { get; set; }
-    public void Destroy();
-}
-
 public sealed class PoolAllocator<T>
     where T : struct, IComponent
 {
