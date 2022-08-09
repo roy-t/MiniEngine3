@@ -4,14 +4,12 @@ using Mini.Engine.ECS.Systems;
 
 namespace Mini.Engine.ECS.Components;
 
-// TODO: rename to ComponentLifeCycleSystem
-
 [System]
-public sealed partial class ComponentFlushSystem : ISystem
+public sealed partial class ComponentLifeCycleSystem : ISystem
 {
     private readonly ContainerStore ContainerStore;
 
-    public ComponentFlushSystem(ContainerStore containerStore)
+    public ComponentLifeCycleSystem(ContainerStore containerStore)
     {
         this.ContainerStore = containerStore;
     }

@@ -1,10 +1,8 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics;
 
-// TODO: convert to struct
 public sealed class Transform
 {
     public static readonly Transform Identity = new();

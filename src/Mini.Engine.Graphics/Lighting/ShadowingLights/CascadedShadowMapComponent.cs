@@ -7,13 +7,14 @@ using Mini.Engine.ECS.Components;
 namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 public struct CascadedShadowMapComponent : IComponent
 {
-    public int Resolution;
-    public DepthStencilBufferArray DepthBuffers;
-    public float[] Cascades;
+    public int Resolution;        
+    public Vector4 Cascades;
+    public Vector4 Splits;
+    public Matrix4x4 Scales;
+    public Matrix4x4 Offsets;
     public Matrix4x4 GlobalShadowMatrix;
-    public float[] Splits;
-    public Vector4[] Offsets;
-    public Vector4[] Scales;
+
+    public DepthStencilBufferArray DepthBuffers;
 
     public Entity Entity { get; set; }
     public LifeCycle LifeCycle { get; set; }
@@ -22,12 +23,12 @@ public struct CascadedShadowMapComponent : IComponent
     {
         this.Resolution = resolution;
 
-        this.Cascades = new float[] { cascade0, cascade1, cascade2, cascade3 };
-        this.GlobalShadowMatrix = Matrix4x4.Identity;
-        this.Splits = new float[this.Cascades.Length];
-        this.Offsets = new Vector4[this.Cascades.Length];
-        this.Scales = new Vector4[this.Cascades.Length];
-        this.DepthBuffers = new DepthStencilBufferArray(device, DepthStencilFormat.D32_Float, resolution, resolution, this.Cascades.Length, this.Entity.ToString(), nameof(CascadedShadowMapComponent));
+        this.Cascades.X = cascade0;
+        this.Cascades.Y = cascade1;
+        this.Cascades.Z = cascade2;
+        this.Cascades.W = cascade3;        
+        
+        this.DepthBuffers = new DepthStencilBufferArray(device, DepthStencilFormat.D32_Float, resolution, resolution, 4, this.Entity.ToString(), nameof(CascadedShadowMapComponent));
     }
 
     public void Destroy()
