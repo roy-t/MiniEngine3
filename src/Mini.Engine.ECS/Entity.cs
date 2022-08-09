@@ -11,10 +11,7 @@ public struct Entity : IEquatable, IEquatable<Entity>, IComparable, IComparable<
     public Entity(int id)
     {
         this.Id = id;
-        this.Components = default;
     }
-
-    public ComponentBit Components { get; set; }
 
     public override string ToString()
     {

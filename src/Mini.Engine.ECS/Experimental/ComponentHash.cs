@@ -8,10 +8,12 @@ public readonly record struct ComponentBit(ulong Bit);
 public sealed class ComponentTracker
 {
     private readonly Dictionary<Guid, ComponentBit> Bits;
-        
+    private readonly Dictionary<Entity, ComponentBit> EntityComponents;
+
     public ComponentTracker(ComponentCatalog components)
     {
         this.Bits = new Dictionary<Guid, ComponentBit>();
+        this.EntityComponents = new Dictionary<Entity, ComponentBit>();
 
         var bit = 0b_0000000000000000000000000000000000000000000000000000000000000001UL;
 
@@ -33,18 +35,36 @@ public sealed class ComponentTracker
         return this.Bits[typeof(T).GUID];
     }
 
-    public static bool HasComponent(Entity entity, ComponentBit component)
+    public bool HasComponent(Entity entity, ComponentBit component)
     {
-        return (entity.Components.Bit & component.Bit) > 0;
+        if (this.EntityComponents.ContainsKey(entity))
+        {
+            var components = this.EntityComponents[entity];
+            return (components.Bit & component.Bit) > 0;
+        }
+
+        return false;
     }
 
-    public static void SetComponent(ref Entity entity, ComponentBit component)
+    public void SetComponent(Entity entity, ComponentBit component)
     {
-        entity.Components = new ComponentBit(entity.Components.Bit | component.Bit);
+        var components = new ComponentBit();
+        if (this.EntityComponents.ContainsKey(entity))
+        {
+            components = this.EntityComponents[entity];
+        }
+
+        this.EntityComponents[entity] = new ComponentBit(components.Bit | component.Bit);
     }
 
-    public static void UnsetComponent(ref Entity entity, ComponentBit component)
+    public void UnsetComponent(Entity entity, ComponentBit component)
     {
-        entity.Components = new ComponentBit(entity.Components.Bit & (~component.Bit));
+        var components = new ComponentBit();
+        if (this.EntityComponents.ContainsKey(entity))
+        {
+            components = this.EntityComponents[entity];
+        }
+
+        this.EntityComponents[entity] = new ComponentBit(components.Bit & (~component.Bit));        
     }
 }

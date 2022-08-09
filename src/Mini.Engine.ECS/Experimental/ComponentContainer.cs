@@ -3,6 +3,7 @@
 public interface IComponentContainer
 {
     public Type ComponentType { get; }
+    public bool Contains(Entity entity);
 }
 
 public interface IComponentContainer<T> : IComponentContainer
@@ -33,18 +34,28 @@ public sealed class ComponentContainer<T> : IComponentContainer<T>
 
     private const int InitialCapacity = 10;
     private readonly PoolAllocator<T> Pool;
+    private readonly ComponentTracker Tracker;
+    private readonly ComponentBit Bit;
 
-    public ComponentContainer()
+    public ComponentContainer(ComponentTracker tracker)
     {
         this.Pool = new PoolAllocator<T>(InitialCapacity);
+        this.Bit = tracker.GetBit<T>();
+        this.Tracker = tracker;
     }
 
     public Type ComponentType => typeof(T);
-
+    
     public ref T this[Entity entity] => ref this.Pool[entity];
+
+    public bool Contains(Entity entity)
+    {
+        return this.Tracker.HasComponent(entity, this.Bit);
+    }
 
     public ref T Create(Entity entity)
     {
+        this.Tracker.SetComponent(entity, this.Bit);
         return ref this.Pool.CreateFor(entity);
     }
 
@@ -61,6 +72,7 @@ public sealed class ComponentContainer<T> : IComponentContainer<T>
             ref var component = ref this.Pool[i];
             if (component.LifeCycle.Current == LifeCycleState.Removed)
             {
+                this.Tracker.UnsetComponent(component.Entity, this.Bit);
                 this.Pool.Destroy(i);
             }
             else

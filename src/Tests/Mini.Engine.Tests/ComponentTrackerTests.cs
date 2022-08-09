@@ -1,4 +1,5 @@
-﻿using Mini.Engine.ECS;
+﻿using Mini.Engine.Configuration;
+using Mini.Engine.ECS;
 using Mini.Engine.ECS.Experimental;
 using Xunit;
 using static Xunit.Assert;
@@ -37,11 +38,9 @@ public class ComponentTrackerTests
     [Fact]
     public void SmokeTest()
     {
-        var containerA = (IComponentContainer)new ComponentContainer<ComponentA>();
-        var containerB = (IComponentContainer)new ComponentContainer<ComponentB>();
-
-        var tracker = new ComponentTracker(new[] { containerA, containerB });
-
+        var catalog = new ComponentCatalog(new[] { typeof(ComponentTrackerTests).Assembly });
+        var tracker = new ComponentTracker(catalog);
+              
         var bitA = tracker.GetBit<ComponentA>();
         Equal(1UL, bitA.Bit);
 
@@ -50,12 +49,12 @@ public class ComponentTrackerTests
 
         var entity = new Entity(1);
 
-        ComponentTracker.SetComponent(ref entity, bitA);
+        tracker.SetComponent(entity, bitA);
 
-        True(ComponentTracker.HasComponent(entity, bitA));
-        False(ComponentTracker.HasComponent(entity, bitB));
+        True(tracker.HasComponent(entity, bitA));
+        False(tracker.HasComponent(entity, bitB));
 
-        ComponentTracker.UnsetComponent(ref entity, bitA);
-        False(ComponentTracker.HasComponent(entity, bitA));
+        tracker.UnsetComponent(entity, bitA);
+        False(tracker.HasComponent(entity, bitA));
     }
 }
