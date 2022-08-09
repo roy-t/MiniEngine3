@@ -1,6 +1,8 @@
-﻿namespace Mini.Engine.ECS.Experimental;
+﻿using Mini.Engine.Configuration;
 
-[Mini.Engine.Configuration.Component]
+namespace Mini.Engine.ECS.Components;
+
+[Component]
 public interface IComponent
 {
     public Entity Entity { get; set; }

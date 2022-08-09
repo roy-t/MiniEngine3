@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.ComponentModel;
 using Mini.Engine.Configuration;
 
 namespace Mini.Engine.ECS.Components;
@@ -13,81 +13,86 @@ public sealed class ComponentAdministrator
         this.ContainerStore = containerStore;
     }
 
-    public void Add<T>(T component)
-        where T : Component
+    public ref T Create<T>(Entity entity)
+        where T : struct, IComponent
     {
-        this.ContainerStore.GetContainer<T>().Add(component);
+        var container = this.ContainerStore.GetContainer<T>();
+        return ref container.Create(entity);
     }
 
-    public void Add<T, U>(T componentA, U componentB)
-        where T : Component
-        where U : Component
-    {
-        this.Add(componentA);
-        this.Add(componentB);
-    }
+    //public void Add<T>(T component)
+    //    where T : Component
+    //{
+    //    this.ContainerStore.GetContainer<T>().Add(component);
+    //}
 
-    public void Add<T, U, V>(T componentA, U componentB, V componentC)
-        where T : Component
-        where U : Component
-        where V : Component
-    {
-        this.Add(componentA);
-        this.Add(componentB);
-        this.Add(componentC);
-    }
+    //public void Add<T, U>(T componentA, U componentB)
+    //    where T : Component
+    //    where U : Component
+    //{
+    //    this.Add(componentA);
+    //    this.Add(componentB);
+    //}
 
-    public void Add<T, U, V, W>(T componentA, U componentB, V componentC, W componentD)
-        where T : Component
-        where U : Component
-        where V : Component
-        where W : Component
-    {
-        this.Add(componentA);
-        this.Add(componentB);
-        this.Add(componentC);
-        this.Add(componentD);
-    }
+    //public void Add<T, U, V>(T componentA, U componentB, V componentC)
+    //    where T : Component
+    //    where U : Component
+    //    where V : Component
+    //{
+    //    this.Add(componentA);
+    //    this.Add(componentB);
+    //    this.Add(componentC);
+    //}
 
-    public T GetComponent<T>(Entity entity)
-        where T : Component
+    //public void Add<T, U, V, W>(T componentA, U componentB, V componentC, W componentD)
+    //    where T : Component
+    //    where U : Component
+    //    where V : Component
+    //    where W : Component
+    //{
+    //    this.Add(componentA);
+    //    this.Add(componentB);
+    //    this.Add(componentC);
+    //    this.Add(componentD);
+    //}
+
+    public ref T GetComponent<T>(Entity entity)
+        where T : struct, IComponent
     {
         var store = this.ContainerStore.GetContainer<T>();
-        var component = store[entity];
-
-        return component;
+        return ref store[entity];
     }
 
-    public IReadOnlyList<Component> GetComponents(Entity entity)
-    {
-        var components = new List<Component>();
+    //public IReadOnlyList<Component> GetComponents(Entity entity)
+    //{
+    //    var components = new List<Component>();
 
-        var containers = this.ContainerStore.GetAllContainers();
-        for (var i = 0; i < containers.Count; i++)
-        {
-            var container = containers[i];
-            if (container.Contains(entity))
-            {
-                components.Add(container.Get(entity));
-            }
-        }
+    //    var containers = this.ContainerStore.GetAllContainers();
+    //    for (var i = 0; i < containers.Count; i++)
+    //    {
+    //        var container = containers[i];
+    //        if (container.Contains(entity))
+    //        {
+    //            components.Add(container.Get(entity));
+    //        }
+    //    }
 
-        return components;
-    }
+    //    return components;
+    //}
 
-    public IReadOnlyList<T> GetComponents<T>()
-        where T : Component
-    {
-        var components = new List<T>();
+    //public IReadOnlyList<T> GetComponents<T>()
+    //    where T : Component
+    //{
+    //    var components = new List<T>();
 
-        var container = this.ContainerStore.GetContainer<T>();
-        foreach (var component in container.GetAllItems())
-        {
-            components.Add(component);
-        }
+    //    var container = this.ContainerStore.GetContainer<T>();
+    //    foreach (var component in container.GetAllItems())
+    //    {
+    //        components.Add(component);
+    //    }
 
-        return components;
-    }
+    //    return components;
+    //}
 
     public void MarkForRemoval(Entity entity)
     {
@@ -97,7 +102,7 @@ public sealed class ComponentAdministrator
             var container = containers[i];
             if (container.Contains(entity))
             {
-                container.MarkForRemoval(entity);
+                container.Remove(entity);
             }
         }
     }

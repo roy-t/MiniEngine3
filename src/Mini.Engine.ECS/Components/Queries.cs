@@ -1,4 +1,4 @@
-﻿namespace Mini.Engine.ECS.Experimental;
+﻿namespace Mini.Engine.ECS.Components;
 
 public interface IQuery<T>
     where T : struct, IComponent

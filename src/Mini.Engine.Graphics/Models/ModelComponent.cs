@@ -1,16 +1,18 @@
-﻿using System;
-using Mini.Engine.DirectX.Resources;
+﻿using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS;
+using Mini.Engine.ECS.Components;
 
 namespace Mini.Engine.Graphics.Models;
 
-public sealed class ModelComponent : Component
-{
-    public ModelComponent(Entity entity, IModel model)
-        : base(entity)
-    {
-        this.Model = model;
-    }
+public struct ModelComponent : IComponent
+{    
+    public IModel Model { get; set; }
 
-    public IModel Model { get; }
+    public Entity Entity { get; set; }
+    public LifeCycle LifeCycle { get; set; }
+
+    public void Destroy()
+    {
+        
+    }
 }

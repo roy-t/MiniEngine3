@@ -51,7 +51,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
     }
 
     [Process(Query = ProcessQuery.All)]
-    public void DrawCascades(CascadedShadowMapComponent shadowMap, TransformComponent viewPoint)
+    public void DrawCascades(ref CascadedShadowMapComponent shadowMap, ref TransformComponent viewPoint)
     {
         var view = this.FrameService.Camera;
         var surfaceToLight = -viewPoint.Transform.Forward;
@@ -62,6 +62,11 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
 
         var totalViewProjectioNMatrix = ComputeViewProjectionMatrixForSlice(surfaceToLight, this.Frustum, shadowMap.Resolution);
         var viewVolume = new Frustum(totalViewProjectioNMatrix);
+
+        //var splits = new float[shadowMap.Cascades.Length];
+        //var offsets = new float[shadowMap.Cascades.Length];
+        //var scales = new float[shadowMap.Cascades.Length];
+
         for (var i = 0; i < shadowMap.Cascades.Length; i++)
         {
             this.Frustum.TransformToCameraFrustumInWorldSpace(view);
@@ -84,6 +89,10 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
 
             this.RenderShadowMap(shadowMap.DepthBuffers, i, viewVolume, viewProjection);
         }
+
+        //shadowMap.Splits = splits;
+        //shadowMap.Offsets = offsets;
+        //shadowMap.Scales = scales;
     }
 
     private void RenderShadowMap(DepthStencilBufferArray depthStencilBuffers, int slice, Frustum viewVolume, Matrix4x4 viewProjection)

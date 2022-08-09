@@ -5,6 +5,7 @@ using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine.Graphics;
 
+// TODO: convert to struct
 public sealed class PerspectiveCamera : ITransformable<PerspectiveCamera>
 {
     public PerspectiveCamera(float aspectRatio, Transform transform)

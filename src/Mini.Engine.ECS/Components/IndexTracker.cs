@@ -1,4 +1,4 @@
-﻿namespace Mini.Engine.ECS.Experimental;
+﻿namespace Mini.Engine.ECS.Components;
 
 public sealed class IndexTracker
 {

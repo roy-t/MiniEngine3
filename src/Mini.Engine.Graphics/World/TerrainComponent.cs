@@ -1,14 +1,15 @@
 ﻿using Mini.Engine.ECS;
+using Mini.Engine.ECS.Components;
 
 namespace Mini.Engine.Graphics.World;
 
-public sealed class TerrainComponent : Component
+public struct TerrainComponent : IComponent
 {
-    public TerrainComponent(Entity entity, TerrainMesh terrain)
-        : base(entity)
-    {
-        this.Terrain = terrain;
-    }
-
     public TerrainMesh Terrain { get; set; }
+    public Entity Entity { get; set; }
+    public LifeCycle LifeCycle { get; set; }
+
+    public void Destroy()
+    {        
+    }
 }

@@ -49,7 +49,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
     }
 
     [Process(Query = ProcessQuery.All)]
-    public void DrawSunLight(SunLightComponent sunlight, CascadedShadowMapComponent shadowMap, TransformComponent viewPoint)
+    public void DrawSunLight(ref SunLightComponent sunlight, ref CascadedShadowMapComponent shadowMap, ref TransformComponent viewPoint)
     {
         var camera = this.FrameService.Camera;
         Matrix4x4.Invert(camera.ViewProjection, out var inverse);

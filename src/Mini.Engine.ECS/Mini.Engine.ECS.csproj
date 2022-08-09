@@ -5,4 +5,7 @@
     <ProjectReference Include="..\Generators\Mini.Engine.ECS.Generators\Mini.Engine.ECS.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Generators\Mini.Engine.Generators.Source\Mini.Engine.Generators.Source.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Experimental\" />
+  </ItemGroup>
 </Project>

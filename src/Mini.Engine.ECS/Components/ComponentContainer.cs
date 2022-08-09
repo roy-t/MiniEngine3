@@ -1,117 +1,113 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Mini.Engine.ECS.Components;
+﻿namespace Mini.Engine.ECS.Components;
 
 public interface IComponentContainer
 {
-    Type ComponentType { get; }
-    int Count { get; }
-    Component Get(Entity entity);
-    bool Contains(Entity entity);
-    void Flush();
-    void MarkForRemoval(Entity entity);
+    public Type ComponentType { get; }
+    public bool Contains(Entity entity);
+    void Remove(Entity entity);
+    void UpdateLifeCycles();
 }
 
 public interface IComponentContainer<T> : IComponentContainer
-    where T : Component
+    where T : struct, IComponent
 {
-    void Add(T component);
-    T this[Entity entity] { get; }
-    IEnumerable<T> GetAllItems();
-    IEnumerable<T> GetChangedItems();
-    IEnumerable<T> GetNewItems();
-    IEnumerable<T> GetRemovedItems();
-    IEnumerable<T> GetUnchangedItems();
+    ref T this[Entity entity] { get; }
+    ref T Create(Entity entity);        
+
+    ResultIterator<T> Iterate(IQuery<T> query);
+    ResultIterator<T> IterateAll();
+    ResultIterator<T> IterateChanged();
+    ResultIterator<T> IterateNew();
+    ResultIterator<T> IterateRemoved();
+    ResultIterator<T> IterateUnchanged();
 }
 
 public sealed class ComponentContainer<T> : IComponentContainer<T>
-    where T : Component
+    where T : struct, IComponent
 {
-    private readonly SortedComponentList<T> Items;
+    public static readonly IQuery<T> AcceptAll = new QueryAll<T>();
+    public static readonly IQuery<T> AcceptChanged = new QueryLifCcycle<T>(LifeCycleState.Changed);
+    public static readonly IQuery<T> AcceptNew = new QueryLifCcycle<T>(LifeCycleState.New);
+    public static readonly IQuery<T> AcceptRemoved = new QueryLifCcycle<T>(LifeCycleState.Removed);
+    public static readonly IQuery<T> AcceptUnchanged = new QueryLifCcycle<T>(LifeCycleState.Unchanged);
 
-    public ComponentContainer()
+    private const int InitialCapacity = 10;
+    private readonly PoolAllocator<T> Pool;
+    private readonly ComponentTracker Tracker;
+    private readonly ComponentBit Bit;
+
+    public ComponentContainer(ComponentTracker tracker)
     {
-        this.Items = new SortedComponentList<T>();
+        this.Pool = new PoolAllocator<T>(InitialCapacity);
+        this.Bit = tracker.GetBit<T>();
+        this.Tracker = tracker;
     }
-
-    public void Add(T component)
-    {
-        this.Items.Add(component);
-    }
-
-    public Component Get(Entity entity)
-    {
-        return this.Items[entity];
-    }
-
-    public T this[Entity entity] => this.Items[entity];
-
-    public void MarkForRemoval(Entity entity)
-    {
-        this.Items[entity].ChangeState.Remove();
-    }
-
-    public int Count => this.Items.Count;
 
     public Type ComponentType => typeof(T);
 
+    public ref T this[Entity entity] => ref this.Pool[entity];
+
     public bool Contains(Entity entity)
     {
-        return this.Items.Contains(entity);
+        return this.Tracker.HasComponent(entity, this.Bit);
     }
 
-    public void Flush()
+    public ref T Create(Entity entity)
     {
-        for (var i = this.Items.Count - 1; i >= 0; i--)
+        this.Tracker.SetComponent(entity, this.Bit);
+        return ref this.Pool.CreateFor(entity);
+    }
+
+    public void Remove(Entity entity)
+    {
+        ref var component = ref this[entity];
+        component.LifeCycle = component.LifeCycle.ToRemoved();
+    }
+
+    public void UpdateLifeCycles()
+    {
+        for (var i = 0; i < this.Pool.Count; i++)
         {
-            var item = this.Items[i];
-            if (item.ChangeState.CurrentState == LifetimeState.Removed)
+            ref var component = ref this.Pool[i];
+            if (component.LifeCycle.Current == LifeCycleState.Removed)
             {
-                (item as IDisposable)?.Dispose();
-                this.Items.RemoveAt(i);
+                this.Tracker.UnsetComponent(component.Entity, this.Bit);
+                this.Pool.Destroy(i);
             }
             else
             {
-                item.ChangeState.Next();
+                component.LifeCycle = component.LifeCycle.ToNext();
             }
         }
     }
 
-    public IEnumerable<T> GetAllItems()
+    public ResultIterator<T> Iterate(IQuery<T> query)
     {
-        return this.Items;
+        return new ResultIterator<T>(this.Pool, query);
     }
 
-    public IEnumerable<T> GetNewItems()
+    public ResultIterator<T> IterateAll()
     {
-        return this.FilterItems(LifetimeState.New);
+        return new ResultIterator<T>(this.Pool, AcceptAll);
     }
 
-    public IEnumerable<T> GetChangedItems()
+    public ResultIterator<T> IterateChanged()
     {
-        return this.FilterItems(LifetimeState.Changed);
+        return new ResultIterator<T>(this.Pool, AcceptChanged);
     }
 
-    public IEnumerable<T> GetUnchangedItems()
+    public ResultIterator<T> IterateNew()
     {
-        return this.FilterItems(LifetimeState.Unchanged);
+        return new ResultIterator<T>(this.Pool, AcceptNew);
     }
 
-    public IEnumerable<T> GetRemovedItems()
+    public ResultIterator<T> IterateRemoved()
     {
-        return this.FilterItems(LifetimeState.Removed);
+        return new ResultIterator<T>(this.Pool, AcceptRemoved);
     }
 
-    private IEnumerable<T> FilterItems(LifetimeState state)
+    public ResultIterator<T> IterateUnchanged()
     {
-        for (var i = 0; i < this.Items.Count; i++)
-        {
-            var item = this.Items[i];
-            if (item.ChangeState.CurrentState == state)
-            {
-                yield return item;
-            }
-        }
+        return new ResultIterator<T>(this.Pool, AcceptUnchanged);
     }
 }

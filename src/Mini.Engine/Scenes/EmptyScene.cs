@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Textures;
@@ -40,16 +39,27 @@ public sealed class EmptyScene : IScene
 
     public IReadOnlyList<LoadAction> Load()
     {
+        var creator = this.Administrator.Components;
+
         return new List<LoadAction>()
         {
             new LoadAction("Lighting", () =>
             {
                 var sun = this.Administrator.Entities.Create();
-                this.Administrator.Components.Add(new SunLightComponent(sun, Colors.White, 3.0f));
-                this.Administrator.Components.Add(new CascadedShadowMapComponent(sun, this.Device, 2048, Cascades[0], Cascades[1], Cascades[2], Cascades[3]));
-                this.Administrator.Components.Add(new TransformComponent(sun)
-                    .MoveTo(Vector3.UnitY)
-                    .FaceTargetConstrained((-Vector3.UnitX * 0.75f) + (Vector3.UnitZ * 0.1f), Vector3.UnitY));
+                
+
+                ref var sunLight = ref creator.Create<SunLightComponent>(sun);
+                sunLight.Color = Colors.White;
+                sunLight.Strength = 3.0f;
+
+                ref var shadowMap = ref creator.Create<CascadedShadowMapComponent>(sun);
+                shadowMap.Init(this.Device, 2048, Cascades[0], Cascades[1], Cascades[2], Cascades[3]);
+
+                ref var transform = ref creator.Create<TransformComponent>(sun);
+                transform.Init();
+                transform
+                .MoveTo(Vector3.UnitY)
+                .FaceTargetConstrained((-Vector3.UnitX * 0.75f) + (Vector3.UnitZ * 0.1f), Vector3.UnitY);                            
             }),
             new LoadAction("Skybox", () =>
             {
@@ -64,7 +74,8 @@ public sealed class EmptyScene : IScene
                 this.Content.Link(irradiance, irradiance.Name);
                 this.Content.Link(environment, environment.Name);
 
-                this.Administrator.Components.Add(new SkyboxComponent(sky, albedo, irradiance, environment, 0.1f));
+                ref var skybox = ref creator.Create<SkyboxComponent>(sky);
+                skybox.Init(albedo, irradiance, environment, 0.1f);                
             })
         };
     }   

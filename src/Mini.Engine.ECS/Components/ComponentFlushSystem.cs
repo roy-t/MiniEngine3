@@ -4,6 +4,8 @@ using Mini.Engine.ECS.Systems;
 
 namespace Mini.Engine.ECS.Components;
 
+// TODO: rename to ComponentLifeCycleSystem
+
 [System]
 public sealed partial class ComponentFlushSystem : ISystem
 {
@@ -29,7 +31,7 @@ public sealed partial class ComponentFlushSystem : ISystem
         var containers = this.ContainerStore.GetAllContainers();
         for (var i = 0; i < containers.Count; i++)
         {
-            containers[i].Flush();
+            containers[i].UpdateLifeCycles();
         }
     }
 }

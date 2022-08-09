@@ -47,7 +47,7 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
     }
 
     [Process(Query = ProcessQuery.All)]
-    public void DrawModel(ModelComponent component, TransformComponent transform)
+    public void DrawModel(ref ModelComponent component, ref TransformComponent transform)
     {
         RenderService.DrawModel(this, this.Context, this.FrameService.Camera.Frustum, this.FrameService.Camera.ViewProjection, component.Model, transform.Transform);
     }

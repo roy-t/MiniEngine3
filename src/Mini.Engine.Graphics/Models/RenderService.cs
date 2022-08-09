@@ -23,19 +23,21 @@ public sealed class RenderService
 {
     private readonly IComponentContainer<TransformComponent> Transforms;
     private readonly IComponentContainer<ModelComponent> Models;
-    private readonly IComponentContainer<TerrainComponent> Terrain;    
+    private readonly IComponentContainer<TerrainComponent> Terrain;
 
     public RenderService(IComponentContainer<TransformComponent> transforms, IComponentContainer<ModelComponent> models, IComponentContainer<TerrainComponent> terrain)
     {
         this.Transforms = transforms;
-        this.Models = models;        
+        this.Models = models;
         this.Terrain = terrain;
     }
 
     public void DrawAllModels(IModelRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection)
     {
-        foreach (var model in this.Models.GetAllItems())
+        var iterator = this.Models.IterateAll();
+        while (iterator.MoveNext())
         {
+            ref var model = ref iterator.Current;
             var transform = this.Transforms[model.Entity];
             DrawModel(callback, context, viewVolume, viewProjection, model.Model, transform.Transform);
         }
@@ -43,8 +45,10 @@ public sealed class RenderService
 
     public void DrawAllTerrain(IMeshRenderCallBack callback, DeviceContext context, Frustum viewVolum, Matrix4x4 viewProjection)
     {
-        foreach(var terrain in this.Terrain.GetAllItems())
+        var iterator = this.Terrain.IterateAll();
+        while (iterator.MoveNext())
         {
+            ref var terrain = ref iterator.Current;
             var transform = this.Transforms[terrain.Entity];
             DrawMesh(callback, context, viewVolum, viewProjection, terrain.Terrain.Mesh, transform.Transform);
         }
@@ -90,7 +94,7 @@ public sealed class RenderService
             context.IA.SetIndexBuffer(mesh.Indices);
 
             if (viewVolume.ContainsOrIntersects(bounds))
-            {                
+            {
                 context.DrawIndexed(mesh.Indices.Length, 0, 0);
             }
         }

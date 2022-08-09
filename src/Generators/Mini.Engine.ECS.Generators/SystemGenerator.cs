@@ -27,6 +27,7 @@ namespace Mini.Engine.ECS.Generators
                         .Usings(target.Usings)
                         .Namespace(target.Namespace)
                             .Class($"{target.Name}Binding", "public", "sealed")
+                                .Attribute("Service")
                                 .Inherits("ISystemBinding")
                                 .Field(target.Name, "System", "private", "readonly")
                                     .Complete()
@@ -87,9 +88,9 @@ namespace Mini.Engine.ECS.Generators
 
             var iterator = CreateGetIteratorBlock(method, primary);
 
-            var loop = new WhileLoop("iterator.MoveNext();");            
+            var loop = new WhileLoop("iterator.MoveNext()");            
             var block = new TextCodeBlock();
-            block.Text.WriteLine($"ref var p0 = ref iterator.Current");
+            block.Text.WriteLine($"ref var p0 = ref iterator.Current;");
 
             for (var i = 1; i < components.Count; i++)
             {
@@ -102,22 +103,24 @@ namespace Mini.Engine.ECS.Generators
             block.Text.WriteLine($"this.System.{method.Name}({argumentList});");
 
             var body = new Body();
+            body.Code.Add(new TextCodeBlock("{"));
             body.Code.Add(iterator);
             body.Code.Add(loop);
+            body.Code.Add(new TextCodeBlock("}"));
             loop.Body = new Body(block);
 
             return body;
         }
 
         private static ICodeBlock CreateGetIteratorBlock(Method method, string component)
-        {
+        {            
             return method.Query switch
             {
-                Shared.ProcessQuery.All => new TextCodeBlock($"var iterator = {component}Container.IterateAll()"),
-                Shared.ProcessQuery.New => new TextCodeBlock($"var iterator = {component}Container.IterateNew()"),
-                Shared.ProcessQuery.Changed => new TextCodeBlock($"var iterator = {component}Container.IterateChanged()"),
-                Shared.ProcessQuery.Unchanged => new TextCodeBlock($"var iterator = {component}Container.IterateUnchanged()"),
-                Shared.ProcessQuery.Removed => new TextCodeBlock($"var iterator = {component}Container.IterateRemoved()"),
+                Shared.ProcessQuery.All => new TextCodeBlock($"var iterator = {component}Container.IterateAll();"),
+                Shared.ProcessQuery.New => new TextCodeBlock($"var iterator = {component}Container.IterateNew();"),
+                Shared.ProcessQuery.Changed => new TextCodeBlock($"var iterator = {component}Container.IterateChanged();"),
+                Shared.ProcessQuery.Unchanged => new TextCodeBlock($"var iterator = {component}Container.IterateUnchanged();"),
+                Shared.ProcessQuery.Removed => new TextCodeBlock($"var iterator = {component}Container.IterateRemoved();"),
                 _ => throw new NotSupportedException($"Unsupported method query: {method.Query}"),
             };
         }

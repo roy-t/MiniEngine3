@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace Mini.Engine.ECS.Experimental;
+namespace Mini.Engine.ECS.Components;
 
 public sealed class PoolAllocator<T>
     where T : struct, IComponent
@@ -39,7 +39,7 @@ public sealed class PoolAllocator<T>
         get
         {
             var index = this.Tracker.GetReference(entity);
-            return ref this.pool[index];            
+            return ref this.pool[index];
         }
     }
 

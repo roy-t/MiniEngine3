@@ -76,7 +76,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
     }
 
     [Process(Query = ProcessQuery.All)]
-    public void DrawOutline(ModelComponent component, TransformComponent transform)
+    public void DrawOutline(ref ModelComponent component, ref TransformComponent transform)
     {
         if (this.DebugFrameService.ShowBounds)
         {
@@ -110,7 +110,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
     }
 
     [Process(Query = ProcessQuery.All)]
-    public void DrawOutline(TerrainComponent component, TransformComponent transform)
+    public void DrawOutline(ref TerrainComponent component, ref TransformComponent transform)
     {
         if (this.DebugFrameService.ShowBounds)
         {

@@ -1,11 +1,16 @@
 ﻿using System.Numerics;
 using Mini.Engine.ECS;
+using Mini.Engine.ECS.Components;
 
 namespace Mini.Engine.Graphics;
-public sealed class CameraComponent : Component
-{
-    public CameraComponent(Entity entity, float aspectRatio)
-        : base(entity)
+public struct CameraComponent : IComponent
+{   
+    public PerspectiveCamera Camera { get; private set; }
+
+    public Entity Entity { get; set; }
+    public LifeCycle LifeCycle { get; set; }
+
+    public void Init(float aspectRatio)
     {
         var transform = Transform.Identity;
         transform.MoveTo(new Vector3(0, 0, 0));
@@ -13,5 +18,8 @@ public sealed class CameraComponent : Component
         this.Camera = new PerspectiveCamera(aspectRatio, transform);
     }
 
-    public PerspectiveCamera Camera { get; }
+    public void Destroy()
+    {
+        
+    }
 }

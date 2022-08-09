@@ -20,9 +20,8 @@ internal sealed class TerrainPanel : IPanel
     private HeightMapGeneratorSettings mapSettings;
     private HydraulicErosionBrushSettings erosionSettings;
 
-    private Entity? world;
-    private TerrainComponent? terrain;
-    private TransformComponent? transform;
+    private bool created;
+    private Entity world;
 
     public TerrainPanel(TerrainGenerator generator, UITextureRegistry registry, ContentManager content, ECSAdministrator administrator)
     {
@@ -36,6 +35,8 @@ internal sealed class TerrainPanel : IPanel
 
         this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HeightMap.hlsl", "NoiseMapKernel"), _ => this.Recreate(this.ApplyTerrain));
         this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HydraulicErosion.hlsl", "Kernel"), _ => { this.Recreate(this.ApplyTerrain); this.Recreate(this.ErodeTerrain); });
+
+        this.created = false;
     }
 
     public string Title => "Terrain";
@@ -43,7 +44,7 @@ internal sealed class TerrainPanel : IPanel
     public void Update(float elapsed)
     {
         // TODO: allow recreating the entire mesh
-        if (this.terrain == null)
+        if (this.created == false)
         {
             ImGui.SliderInt("Dimensions", ref this.mapSettings.Dimensions, 4, 4096);
             ImGui.SliderFloat("MeshDefinition", ref this.mapSettings.MeshDefinition, 0.1f, 1.0f);
@@ -51,7 +52,7 @@ internal sealed class TerrainPanel : IPanel
             {
                 this.Recreate(this.ApplyTerrain);
             }
-        }       
+        }
         else
         {
             ImGui.Text("Terrain generator settings");
@@ -71,7 +72,7 @@ internal sealed class TerrainPanel : IPanel
             {
                 this.mapSettings = new HeightMapGeneratorSettings();
                 terrainChanged = true;
-                
+
             }
 
             if (terrainChanged)
@@ -113,14 +114,15 @@ internal sealed class TerrainPanel : IPanel
                 this.Recreate(this.ErodeTerrain);
             }
 
+            ref var terrain = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);            
             if (this.Selector.Begin("Terrain Resources", "heightmap"))
             {
-                this.Selector.Select("Height", this.terrain.Terrain.Height);
-                this.Selector.Select("Normals", this.terrain.Terrain.Normals);
-                this.Selector.Select("Tint", this.terrain.Terrain.Tint);
+                this.Selector.Select("Height", terrain.Terrain.Height);
+                this.Selector.Select("Normals", terrain.Terrain.Normals);
+                this.Selector.Select("Tint", terrain.Terrain.Tint);
                 this.Selector.End();
             }
-            this.Selector.ShowSelected(this.terrain.Terrain.Height, this.terrain.Terrain.Normals, this.terrain.Terrain.Tint);
+            this.Selector.ShowSelected(terrain.Terrain.Height, terrain.Terrain.Normals, terrain.Terrain.Tint);
         }
     }
 
@@ -131,7 +133,7 @@ internal sealed class TerrainPanel : IPanel
             this.Generator.Update(input, this.mapSettings, "terrain");
             return input;
         }
-        return this.Generator.Generate(this.mapSettings, "terrain");    
+        return this.Generator.Generate(this.mapSettings, "terrain");
     }
 
     private TerrainMesh ErodeTerrain(TerrainMesh? input)
@@ -147,24 +149,35 @@ internal sealed class TerrainPanel : IPanel
 
     private void Recreate(Func<TerrainMesh?, TerrainMesh> application)
     {
-        if(this.terrain == null || this.transform == null || !this.world.HasValue)
-        {            
+        if (this.created == false)
+        {
             var mesh = application(null);
             this.world = this.Administrator.Entities.Create();
-            this.terrain = new TerrainComponent(this.world.Value, mesh);
-            this.transform = new TransformComponent(this.world.Value);
 
-            this.Administrator.Components.Add(this.terrain, this.transform);
+            var creator = this.Administrator.Components;
+
+            ref var terrain = ref creator.Create<TerrainComponent>(this.world);
+            terrain.Terrain = mesh;
+
+            ref var transform = ref creator.Create<TransformComponent>(this.world);
+            transform.Init();
+
+            this.created = true;
         }
         else
         {
-            application(this.terrain.Terrain);            
+            ref var terrain = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);
+            application(terrain.Terrain);
         }
-        
-        var width = this.terrain.Terrain.Mesh.Bounds.Max.X - this.terrain.Terrain.Mesh.Bounds.Min.X;
+
+
+        ref var ter = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);
+        ref var tra = ref this.Administrator.Components.GetComponent<TransformComponent>(this.world);
+
+        var width = ter.Terrain.Mesh.Bounds.Max.X - ter.Terrain.Mesh.Bounds.Min.X;
         var desiredWidth = 10.0f;
         var scale = desiredWidth / width;
 
-        this.transform.SetScale(scale);
+        tra.SetScale(scale);
     }
 }

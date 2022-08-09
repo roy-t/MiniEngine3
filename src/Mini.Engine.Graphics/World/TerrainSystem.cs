@@ -45,7 +45,7 @@ public sealed partial class TerrainSystem : IMeshRenderCallBack, ISystem, IDispo
     }
 
     [Process(Query = ProcessQuery.All)]
-    public void DrawModel(TerrainComponent component, TransformComponent transform)
+    public void DrawModel(ref TerrainComponent component, ref TransformComponent transform)
     {
         this.Context.PS.SetShaderResource(Terrain.Normal, component.Terrain.Normals);
         this.Context.PS.SetShaderResource(Terrain.Albedo, component.Terrain.Tint);

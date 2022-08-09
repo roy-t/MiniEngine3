@@ -57,7 +57,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
     }
 
     [Process(Query = ProcessQuery.All)]
-    public void DrawPointLight(PointLightComponent component, TransformComponent transform)
+    public void DrawPointLight(ref PointLightComponent component, ref TransformComponent transform)
     {
         var camera = this.FrameService.Camera;
         var isInside = Vector3.Distance(camera.Transform.Position, transform.Transform.Position) < component.RadiusOfInfluence;
