@@ -2,6 +2,8 @@
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Models;
+
+// TODO structify!
 public sealed class Frustum
 {
     public Frustum(Matrix4x4 viewProjection)

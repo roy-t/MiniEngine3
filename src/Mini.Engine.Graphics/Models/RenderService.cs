@@ -32,8 +32,10 @@ public sealed class RenderService
         this.Terrain = terrain;
     }
 
-    public void DrawAllModels(IModelRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection)
+    public void DrawAllModels(IModelRenderCallBack callback, DeviceContext context, Matrix4x4 viewProjection)
     {
+        var viewVolume = new Frustum(viewProjection);
+
         var iterator = this.Models.IterateAll();
         while (iterator.MoveNext())
         {
@@ -43,20 +45,21 @@ public sealed class RenderService
         }
     }
 
-    public void DrawAllTerrain(IMeshRenderCallBack callback, DeviceContext context, Frustum viewVolum, Matrix4x4 viewProjection)
+    public void DrawAllTerrain(IMeshRenderCallBack callback, DeviceContext context, Matrix4x4 viewProjection)
     {
         var iterator = this.Terrain.IterateAll();
+        var viewVolume = new Frustum(viewProjection);
         while (iterator.MoveNext())
         {
             ref var terrain = ref iterator.Current;
             var transform = this.Transforms[terrain.Entity];
-            DrawMesh(callback, context, viewVolum, viewProjection, terrain.Terrain.Mesh, transform.Transform);
+            DrawMesh(callback, context, viewVolume, viewProjection, terrain.Terrain.Mesh, transform.Transform);
         }
     }
 
-    public static void DrawModel(IModelRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IModel model, Transform transform)
-    {
-        var world = transform.Matrix;
+    public static void DrawModel(IModelRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IModel model, StructTransform transform)
+    {        
+        var world = transform.GetMatrix();
         var bounds = model.Bounds.Transform(world);
 
         if (viewVolume.ContainsOrIntersects(bounds))
@@ -81,9 +84,9 @@ public sealed class RenderService
         }
     }
 
-    public static void DrawMesh(IMeshRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IMesh mesh, Transform transform)
+    public static void DrawMesh(IMeshRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IMesh mesh, StructTransform transform)
     {
-        var world = transform.Matrix;
+        var world = transform.GetMatrix();
         var bounds = mesh.Bounds.Transform(world);
 
         if (viewVolume.ContainsOrIntersects(bounds))

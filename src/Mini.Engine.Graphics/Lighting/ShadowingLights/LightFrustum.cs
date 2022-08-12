@@ -41,7 +41,8 @@ internal sealed class LightFrustum
     public void TransformToCameraFrustumInWorldSpace(PerspectiveCamera camera)
     {
         this.ResetToViewVolume();
-        Matrix4x4.Invert(camera.ViewProjection, out var viewProjectionToWorld);
+        var viewProjection = camera.GetViewProjection(camera.Transform);
+        Matrix4x4.Invert(viewProjection, out var viewProjectionToWorld);
         this.Transform(viewProjectionToWorld);
     }
 

@@ -50,8 +50,9 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(PointLight.Material, this.FrameService.GBuffer.Material);
 
         var camera = this.FrameService.Camera;
-        Matrix4x4.Invert(camera.ViewProjection, out var inverseViewProjection);
-        this.User.MapConstants(this.Context, inverseViewProjection, camera.Transform.Position);
+        var viewProjection = camera.GetViewProjection(camera.Transform);
+        Matrix4x4.Invert(viewProjection, out var inverseViewProjection);
+        this.User.MapConstants(this.Context, inverseViewProjection, camera.Transform.GetPosition());
         this.Context.PS.SetConstantBuffer(PointLight.ConstantsSlot, this.User.ConstantsBuffer);
 
         this.Context.VS.SetConstantBuffer(PointLight.PerLightConstantsSlot, this.User.PerLightConstantsBuffer);
@@ -62,10 +63,11 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
     public void DrawPointLight(ref PointLightComponent component, ref TransformComponent transform)
     {
         var camera = this.FrameService.Camera;
+        var viewProjection = camera.GetViewProjection(camera.Transform);
 
         var radiusOfInfluence = MathF.Sqrt(component.Strength / MinimumLightInfluence);
 
-        var isInside = Vector3.Distance(camera.Transform.Position, transform.Transform.Position) < radiusOfInfluence;
+        var isInside = Vector3.Distance(camera.Transform.GetPosition(), transform.Transform.GetPosition()) < radiusOfInfluence;
         if (isInside)
         {
             this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwiseNoDepthClip);
@@ -75,9 +77,9 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
             this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwiseNoDepthClip);
         }
 
-        var world = Matrix4x4.CreateScale(radiusOfInfluence) * transform.AsMatrix();
+        var world = Matrix4x4.CreateScale(radiusOfInfluence) * transform.Transform.GetMatrix();
 
-        this.User.MapPerLightConstants(this.Context, world * camera.ViewProjection, transform.Transform.Position, component.Strength, component.Color);
+        this.User.MapPerLightConstants(this.Context, world * viewProjection, transform.Transform.GetPosition(), component.Strength, component.Color);
 
 
         this.Context.IA.SetVertexBuffer(this.Sphere.Vertices);

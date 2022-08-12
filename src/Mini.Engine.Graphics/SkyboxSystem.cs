@@ -43,7 +43,7 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
     {
         var camera = this.FrameService.Camera;
 
-        var view = Matrix4x4.CreateLookAt(Vector3.Zero, camera.Transform.Forward, camera.Transform.Up);
+        var view = Matrix4x4.CreateLookAt(Vector3.Zero, camera.Transform.GetForward(), camera.Transform.GetUp());
         var projection = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 2.0f, camera.AspectRatio, 0.1f, 1.5f);
         var worldViewProjection = view * projection;
         Matrix4x4.Invert(worldViewProjection, out var inverse);

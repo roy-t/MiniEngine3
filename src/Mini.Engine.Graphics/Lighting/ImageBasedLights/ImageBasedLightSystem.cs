@@ -48,8 +48,9 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(ImageBasedLight.Material, this.FrameService.GBuffer.Material);
         this.Context.PS.SetShaderResource(ImageBasedLight.BrdfLut, this.BrdfLut);
 
-        Matrix4x4.Invert(this.FrameService.Camera.ViewProjection, out var inverseViewProjection);
-        var cameraPosition = this.FrameService.Camera.Transform.Position;
+        var viewProjection = this.FrameService.Camera.GetViewProjection(this.FrameService.Camera.Transform);
+        Matrix4x4.Invert(viewProjection, out var inverseViewProjection);
+        var cameraPosition = this.FrameService.Camera.Transform.GetPosition();
         this.User.MapConstants(this.Context, inverseViewProjection, cameraPosition);
 
         this.Context.PS.SetConstantBuffer(ImageBasedLight.ConstantsSlot, this.User.ConstantsBuffer);

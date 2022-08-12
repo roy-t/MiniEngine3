@@ -14,9 +14,9 @@ public sealed class FrameService : IDisposable
         this.GBuffer = new GeometryBuffer(device);
         this.LBuffer = new LightBuffer(device);
 
-        var transform = Transform.Identity;
-        transform.MoveTo(new Vector3(0, 0, 10));
-        transform.FaceTargetConstrained(Vector3.Zero, Vector3.UnitY);
+        var transform = StructTransform.Identity;
+        transform = transform.SetTranslation(new Vector3(0, 0, 10));
+        transform = transform.FaceTargetConstrained(Vector3.Zero, Vector3.UnitY);
 
         this.Camera = new PerspectiveCamera(this.GBuffer.AspectRatio, transform);
     }

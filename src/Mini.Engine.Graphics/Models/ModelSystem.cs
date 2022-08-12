@@ -49,12 +49,14 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
     [Process(Query = ProcessQuery.All)]
     public void DrawModel(ref ModelComponent component, ref TransformComponent transform)
     {
-        RenderService.DrawModel(this, this.Context, this.FrameService.Camera.Frustum, this.FrameService.Camera.ViewProjection, component.Model, transform.Transform);
+        var viewProjection = this.FrameService.Camera.GetViewProjection(this.FrameService.Camera.Transform);
+        var viewVolume = new Frustum(viewProjection);
+        RenderService.DrawModel(this, this.Context, viewVolume, viewProjection, component.Model, transform.Transform);
     }
 
     public void SetConstants(Matrix4x4 worldViewProjection, Matrix4x4 world)
     {
-        this.User.MapConstants(this.Context, worldViewProjection, world, this.FrameService.Camera.Transform.Position);
+        this.User.MapConstants(this.Context, worldViewProjection, world, this.FrameService.Camera.Transform.GetPosition());
     }
 
     public void SetMaterial(IMaterial material)

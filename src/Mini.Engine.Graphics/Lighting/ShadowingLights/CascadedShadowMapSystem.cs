@@ -55,7 +55,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
     public void DrawCascades(ref CascadedShadowMapComponent shadowMap, ref TransformComponent viewPoint)
     {
         var view = this.FrameService.Camera;
-        var surfaceToLight = -viewPoint.Transform.Forward;
+        var surfaceToLight = -viewPoint.Transform.GetForward();
 
         this.Frustum.TransformToCameraFrustumInWorldSpace(view);
 
@@ -88,7 +88,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         var viewProjection = ComputeViewProjectionMatrixForSlice(surfaceToLight, this.Frustum, shadowMap.Resolution);
         var shadowMatrix = CreateSliceShadowMatrix(viewProjection);
         
-        this.RenderShadowMap(shadowMap.DepthBuffers, slice, viewVolume, viewProjection);
+        this.RenderShadowMap(shadowMap.DepthBuffers, slice, viewProjection);
 
         var nearCorner = TransformCorner(Vector3.Zero, shadowMatrix, shadowMap.GlobalShadowMatrix);
         var farCorner = TransformCorner(Vector3.One, shadowMatrix, shadowMap.GlobalShadowMatrix);
@@ -96,7 +96,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         return (view.NearPlane + (farZ * clipDistance), new Vector4(-nearCorner, 0.0f), new Vector4(Vector3.One / (farCorner - nearCorner), 1.0f));        
     }
 
-    private void RenderShadowMap(DepthStencilBufferArray depthStencilBuffers, int slice, Frustum viewVolume, Matrix4x4 viewProjection)
+    private void RenderShadowMap(DepthStencilBufferArray depthStencilBuffers, int slice, Matrix4x4 viewProjection)
     {
         this.Context.RS.SetViewPort(0, 0, depthStencilBuffers.Width, depthStencilBuffers.Height);
         this.Context.RS.SetScissorRect(0, 0, depthStencilBuffers.Width, depthStencilBuffers.Height);
@@ -104,10 +104,10 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
 
         this.Context.Clear(depthStencilBuffers, slice, DepthStencilClearFlags.Depth, 1.0f, 0);
 
-        this.RenderService.DrawAllModels(this, this.Context, viewVolume, viewProjection);
+        this.RenderService.DrawAllModels(this, this.Context, viewProjection);
 
         this.Context.PS.SetShaderResource(ShadowMap.Albedo, this.DefaultMaterial.Albedo);
-        this.RenderService.DrawAllTerrain(this, this.Context, viewVolume, viewProjection);
+        this.RenderService.DrawAllTerrain(this, this.Context, viewProjection);
     }
 
     public void SetConstants(Matrix4x4 worldViewProjection, Matrix4x4 world)

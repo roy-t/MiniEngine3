@@ -5,15 +5,12 @@ using Mini.Engine.Graphics.Transforms;
 namespace Mini.Engine.Graphics;
 
 // TODO: convert to struct, or not?
-public sealed class PerspectiveCamera : ITransformable<PerspectiveCamera>
+public sealed class PerspectiveCamera
 {
-    public PerspectiveCamera(float aspectRatio, Transform transform)
+    public PerspectiveCamera(float aspectRatio, StructTransform transform)
     {
         this.Transform = transform;
         this.AspectRatio = aspectRatio;
-        this.ComputeMatrices();
-
-        this.Frustum = new Frustum(this.ViewProjection);
     }
 
     public float NearPlane { get; } = 0.25f;
@@ -21,24 +18,13 @@ public sealed class PerspectiveCamera : ITransformable<PerspectiveCamera>
     public float FieldOfView { get; } = MathF.PI / 2.0f;
     public float AspectRatio { get; }
 
-    public Matrix4x4 ViewProjection { get; private set; }
+    public StructTransform Transform { get; set; }
 
-    public Transform Transform { get; }
-
-    public Frustum Frustum { get; private set; }
-
-    public PerspectiveCamera OnTransform()
+    public Matrix4x4 GetViewProjection(StructTransform transform)
     {
-        this.ComputeMatrices();
-        this.Frustum = new Frustum(this.ViewProjection);
-        return this;
-    }
+        var view = Matrix4x4.CreateLookAt(transform.GetPosition(), transform.GetPosition() + transform.GetForward(), transform.GetUp());
+        var proj = Matrix4x4.CreatePerspectiveFieldOfView(this.FieldOfView, this.AspectRatio, this.NearPlane, this.FarPlane);
 
-    private void ComputeMatrices()
-    {
-        var view = Matrix4x4.CreateLookAt(this.Transform.Position, this.Transform.Position + this.Transform.Forward, this.Transform.Up);
-        var proj = Matrix4x4.CreatePerspectiveFieldOfView(FieldOfView, this.AspectRatio, this.NearPlane, this.FarPlane);
-
-        this.ViewProjection = view * proj;
+        return view * proj;
     }
 }

@@ -49,12 +49,15 @@ public sealed partial class TerrainSystem : IMeshRenderCallBack, ISystem, IDispo
     {
         this.Context.PS.SetShaderResource(Terrain.Normal, component.Terrain.Normals);
         this.Context.PS.SetShaderResource(Terrain.Albedo, component.Terrain.Tint);
-        RenderService.DrawMesh(this, this.Context, this.FrameService.Camera.Frustum, this.FrameService.Camera.ViewProjection, component.Terrain.Mesh, transform.Transform);
+
+        var viewProjection = this.FrameService.Camera.GetViewProjection(this.FrameService.Camera.Transform);
+        var frustum = new Frustum(viewProjection);
+        RenderService.DrawMesh(this, this.Context, frustum, viewProjection, component.Terrain.Mesh, transform.Transform);
     }
 
     public void SetConstants(Matrix4x4 worldViewProjection, Matrix4x4 world)
     {
-        this.User.MapConstants(this.Context, worldViewProjection, world, this.FrameService.Camera.Transform.Position);
+        this.User.MapConstants(this.Context, worldViewProjection, world, this.FrameService.Camera.Transform.GetPosition());
     }
    
     public void OnUnSet()

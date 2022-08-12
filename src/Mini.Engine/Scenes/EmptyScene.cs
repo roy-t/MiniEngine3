@@ -56,10 +56,9 @@ public sealed class EmptyScene : IScene
                 shadowMap.Init(this.Device, 2048, Cascades[0], Cascades[1], Cascades[2], Cascades[3]);
 
                 ref var transform = ref creator.Create<TransformComponent>(sun);
-                transform.Init();
-                transform
-                .MoveTo(Vector3.UnitY)
-                .FaceTargetConstrained((-Vector3.UnitX * 0.75f) + (Vector3.UnitZ * 0.1f), Vector3.UnitY);                            
+                transform.Transform = transform.Transform
+                    .SetTranslation(Vector3.UnitY)
+                    .FaceTargetConstrained((-Vector3.UnitX * 0.75f) + (Vector3.UnitZ * 0.1f), Vector3.UnitY);                                
             }),
             new LoadAction("Skybox", () =>
             {

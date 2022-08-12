@@ -54,8 +54,8 @@ public sealed class SponzaScene : IScene
                 model.Model = sponza;
 
                 ref var transform = ref creator.Create<TransformComponent>(world);
-                transform.Init();
-                transform.SetScale(0.05f);
+                transform.Transform = transform.Transform
+                    .SetScale(0.05f);
             }),
             new LoadAction("Lighting", () =>
             {
@@ -66,8 +66,8 @@ public sealed class SponzaScene : IScene
                 pointLight.Strength = 100.0f;
 
                 ref var pointLightTransform = ref creator.Create<TransformComponent>(sphere);
-                pointLightTransform.Init();
-                pointLightTransform.MoveTo(new Vector3(0, 1, 0));
+                pointLightTransform.Transform = pointLightTransform.Transform
+                    .SetTranslation(new Vector3(0, 1, 0));
                 
                 var sun = this.Administrator.Entities.Create();
 
@@ -79,8 +79,8 @@ public sealed class SponzaScene : IScene
                 shadowmap.Init(this.Device, 2048, Cascades[0], Cascades[1], Cascades[2], Cascades[3]);
 
                 ref var sunTransform = ref creator.Create<TransformComponent>(sun);
-                sunTransform.Init();
-                sunTransform.MoveTo(Vector3.UnitY)
+                sunTransform.Transform = sunTransform.Transform
+                    .SetTranslation(Vector3.UnitY)
                     .FaceTargetConstrained((-Vector3.UnitX * 0.75f) + (Vector3.UnitZ * 0.1f), Vector3.UnitY);
             }),
             new LoadAction("Skybox", () =>

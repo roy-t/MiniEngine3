@@ -3,16 +3,16 @@ using Mini.Engine.ECS.Components;
 
 namespace Mini.Engine.Graphics.Transforms;
 
-public struct TransformComponent : IComponent, ITransformable<TransformComponent>
+public struct TransformComponent : IComponent
 {
     // TODO: instread of ITransformable transform should be an immutable struct and create a copy of itself
-    public Transform Transform { get; private set; }
+    public StructTransform Transform { get; set; }
     public Entity Entity { get; set; }
     public LifeCycle LifeCycle { get; set; }
 
     public void Init()
     {
-        this.Transform = new Transform();
+        
     }
 
     public void Destroy()
