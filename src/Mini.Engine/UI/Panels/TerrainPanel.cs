@@ -160,7 +160,6 @@ internal sealed class TerrainPanel : IPanel
             terrain.Terrain = mesh;
 
             ref var transform = ref creator.Create<TransformComponent>(this.world);
-            transform.Init();
 
             this.created = true;
         }

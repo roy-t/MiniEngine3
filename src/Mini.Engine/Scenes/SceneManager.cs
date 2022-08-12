@@ -3,6 +3,7 @@ using System.Linq;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.ECS;
+using Mini.Engine.Graphics;
 
 namespace Mini.Engine.Scenes;
 
@@ -12,14 +13,16 @@ public sealed class SceneManager
     private readonly LoadingScreen LoadingScreen;
     private readonly ContentManager Content;
     private readonly ECSAdministrator Administrator;
+    private readonly FrameService FrameService;
     private int activeScene;
     private int nextScene;
 
-    public SceneManager(LoadingScreen loadingScreen, ContentManager content, ECSAdministrator administrator, IEnumerable<IScene> scenes)
+    public SceneManager(LoadingScreen loadingScreen, ContentManager content, ECSAdministrator administrator, FrameService frameService, IEnumerable<IScene> scenes)
     {
         this.LoadingScreen = loadingScreen;
         this.Content = content;
         this.Administrator = administrator;
+        this.FrameService = frameService;
         this.Scenes = scenes.ToList();
 
         this.activeScene = -1;
@@ -55,5 +58,7 @@ public sealed class SceneManager
         var title = this.Scenes[this.activeScene].Title;
         this.Content.Push($"Scene{title}");
         this.LoadingScreen.Load(actions, title);
+
+        this.FrameService.InitializePrimaryCamera();
     }    
 }

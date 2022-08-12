@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Graphics;
+using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Windows;
 using Windows.Win32.UI.KeyboardAndMouseInput;
 
@@ -35,7 +36,7 @@ public sealed class CameraController
         this.InputController = inputController;
     }
 
-    public void Update(PerspectiveCamera camera, float elapsed)
+    public void Update(ref CameraComponent cameraComponent, ref TransformComponent transformComponent, float elapsed)
     {
         var horizontal = Vector4.Zero;
         var vertical = Vector2.Zero;
@@ -49,8 +50,8 @@ public sealed class CameraController
 
         if (reset)
         {
-            camera.Transform = camera
-                .Transform.SetTranslation(Vector3.UnitZ * 10)
+            transformComponent.Transform = Transform.Identity
+                .SetTranslation(Vector3.UnitZ * 10)
                 .FaceTargetConstrained(Vector3.Zero, Vector3.UnitY);
         }
 
@@ -58,11 +59,11 @@ public sealed class CameraController
         {
             var step = elapsed * this.linearVelocity;
 
-            var forward = camera.Transform.GetForward();
+            var forward = transformComponent.Transform.GetForward();
             var backward = -forward;
-            var up = camera.Transform.GetUp();
+            var up = transformComponent.Transform.GetUp();
             var down = -up;
-            var left = camera.Transform.GetLeft();
+            var left = transformComponent.Transform.GetLeft();
             var right = -left;
 
             var translation = Vector3.Zero;
@@ -76,7 +77,7 @@ public sealed class CameraController
 
             translation *= step;
 
-            camera.Transform = camera.Transform.AddTranslation(translation);
+            transformComponent.Transform = transformComponent.Transform.AddTranslation(translation);
         }
 
         var movement = Vector2.Zero;
@@ -96,11 +97,11 @@ public sealed class CameraController
         {
             movement *= this.AngularVelocity;
             var rotation = Quaternion.Identity;
-            rotation *= Quaternion.CreateFromAxisAngle(camera.Transform.GetUp(), movement.X);
-            rotation *= Quaternion.CreateFromAxisAngle(-camera.Transform.GetLeft(), movement.Y);
+            rotation *= Quaternion.CreateFromAxisAngle(transformComponent.Transform.GetUp(), movement.X);
+            rotation *= Quaternion.CreateFromAxisAngle(-transformComponent.Transform.GetLeft(), movement.Y);
 
-            var lookAt = camera.Transform.GetPosition() + Vector3.Transform(camera.Transform.GetForward(), rotation);
-            camera.Transform = camera.Transform.FaceTargetConstrained(lookAt, Vector3.UnitY);
+            var lookAt = transformComponent.Transform.GetPosition() + Vector3.Transform(transformComponent.Transform.GetForward(), rotation);
+            transformComponent.Transform = transformComponent.Transform.FaceTargetConstrained(lookAt, Vector3.UnitY);
         }
 
         if (scrolledUp)

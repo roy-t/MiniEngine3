@@ -7,5 +7,8 @@ public interface IComponent
 {
     public Entity Entity { get; set; }
     public LifeCycle LifeCycle { get; set; }
-    public void Destroy();
+    public void Destroy()
+    {
+
+    }
 }

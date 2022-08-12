@@ -38,10 +38,12 @@ internal sealed class LightFrustum
         return center;
     }
 
-    public void TransformToCameraFrustumInWorldSpace(PerspectiveCamera camera)
+    public void TransformToCameraFrustumInWorldSpace(PerspectiveCamera camera, Transform cameraTansform)
     {
         this.ResetToViewVolume();
-        var viewProjection = camera.GetViewProjection(camera.Transform);
+        
+        var viewProjection = camera.GetViewProjection(cameraTansform);
+        
         Matrix4x4.Invert(viewProjection, out var viewProjectionToWorld);
         this.Transform(viewProjectionToWorld);
     }

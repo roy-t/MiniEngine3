@@ -103,7 +103,7 @@ public sealed class GameBootstrapper
 
         const double dt = 1.0 / 60.0; // constant tick rate of simulation
         var t = 0.0;
-        var accumulator = 0.0;
+        var accumulator = dt; // update immediately
         this.Device.VSync = true;
         while (Win32Application.PumpMessages())
         {

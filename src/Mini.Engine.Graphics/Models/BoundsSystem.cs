@@ -63,7 +63,10 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
         {
             var context = this.Device.ImmediateContext;
 
-            var viewProjection = this.FrameService.Camera.GetViewProjection(this.FrameService.Camera.Transform);
+            var camera = this.FrameService.GetPrimaryCamera().Camera;
+            var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
+            var viewProjection = camera.GetViewProjection(cameraTransform);
+            
             this.User.MapConstants(context, viewProjection, Vector4.One);
 
             context.Setup(this.InputLayout, PrimitiveTopology.LineList, this.Shader.Vs, this.Device.RasterizerStates.CullNone, 0, 0, this.Device.Width, this.Device.Height, this.Shader.Ps, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
@@ -81,12 +84,13 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
     {
         if (this.DebugFrameService.ShowBounds)
         {
-            var camera = this.FrameService.Camera;
+            var camera = this.FrameService.GetPrimaryCamera().Camera;
+            var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
+            var frustum = new Frustum(camera.GetViewProjection(cameraTransform));
 
             var world = transform.Transform.GetMatrix();
             var bounds = component.Model.Bounds.Transform(world);
-
-            var frustum = new Frustum(camera.GetViewProjection(camera.Transform));
+            
             if (frustum.ContainsOrIntersects(bounds))
             {
                 var context = this.Device.ImmediateContext;
@@ -116,12 +120,13 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
     {
         if (this.DebugFrameService.ShowBounds)
         {
-            var camera = this.FrameService.Camera;
+            var camera = this.FrameService.GetPrimaryCamera().Camera;
+            var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
+            var frustum = new Frustum(camera.GetViewProjection(cameraTransform));
 
             var world = transform.Transform.GetMatrix();
             var bounds = component.Terrain.Mesh.Bounds.Transform(world);
-
-            var frustum = new Frustum(camera.GetViewProjection(camera.Transform));
+            
             if (frustum.ContainsOrIntersects(bounds))
             {
                 var context = this.Device.ImmediateContext;

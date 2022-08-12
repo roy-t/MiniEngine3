@@ -54,22 +54,23 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
     [Process(Query = ProcessQuery.All)]
     public void DrawCascades(ref CascadedShadowMapComponent shadowMap, ref TransformComponent viewPoint)
     {
-        var view = this.FrameService.Camera;
+        var camera = this.FrameService.GetPrimaryCamera().Camera;
+        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
         var surfaceToLight = -viewPoint.Transform.GetForward();
 
-        this.Frustum.TransformToCameraFrustumInWorldSpace(view);
+        this.Frustum.TransformToCameraFrustumInWorldSpace(camera, cameraTransform);
 
         shadowMap.GlobalShadowMatrix = CreateGlobalShadowMatrix(surfaceToLight, this.Frustum);
 
         var totalViewProjectioNMatrix = ComputeViewProjectionMatrixForSlice(surfaceToLight, this.Frustum, shadowMap.Resolution);
         var viewVolume = new Frustum(totalViewProjectioNMatrix);
 
-        var clipDistance = view.FarPlane - view.NearPlane;
+        var clipDistance = camera.FarPlane - camera.NearPlane;
 
-        (var s0, var o0, var x0) = this.RenderShadowMap(ref shadowMap, 0.0f, shadowMap.Cascades.X, clipDistance, view, surfaceToLight, viewVolume, 0);
-        (var s1, var o1, var x1) = this.RenderShadowMap(ref shadowMap, shadowMap.Cascades.X, shadowMap.Cascades.Y, clipDistance, view, surfaceToLight, viewVolume, 1);
-        (var s2, var o2, var x2) = this.RenderShadowMap(ref shadowMap, shadowMap.Cascades.Y, shadowMap.Cascades.Z, clipDistance, view, surfaceToLight, viewVolume, 2);
-        (var s3, var o3, var x3) = this.RenderShadowMap(ref shadowMap, shadowMap.Cascades.Z, shadowMap.Cascades.W, clipDistance, view, surfaceToLight, viewVolume, 3);
+        (var s0, var o0, var x0) = this.RenderShadowMap(ref shadowMap, 0.0f, shadowMap.Cascades.X, clipDistance, camera, cameraTransform, surfaceToLight, viewVolume, 0);
+        (var s1, var o1, var x1) = this.RenderShadowMap(ref shadowMap, shadowMap.Cascades.X, shadowMap.Cascades.Y, clipDistance, camera, cameraTransform, surfaceToLight, viewVolume, 1);
+        (var s2, var o2, var x2) = this.RenderShadowMap(ref shadowMap, shadowMap.Cascades.Y, shadowMap.Cascades.Z, clipDistance, camera, cameraTransform, surfaceToLight, viewVolume, 2);
+        (var s3, var o3, var x3) = this.RenderShadowMap(ref shadowMap, shadowMap.Cascades.Z, shadowMap.Cascades.W, clipDistance, camera, cameraTransform, surfaceToLight, viewVolume, 3);
 
         shadowMap.Splits.X = s0;
         shadowMap.Splits.Y = s1;
@@ -80,9 +81,9 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         shadowMap.Scales = Matrices.CreateColumnMajor(x0, x1, x2, x3);
     }
 
-    private (float split, Vector4 offset, Vector4 scale) RenderShadowMap(ref CascadedShadowMapComponent shadowMap, float nearZ, float farZ, float clipDistance, PerspectiveCamera view, Vector3 surfaceToLight, Frustum viewVolume, int slice)
+    private (float split, Vector4 offset, Vector4 scale) RenderShadowMap(ref CascadedShadowMapComponent shadowMap, float nearZ, float farZ, float clipDistance, PerspectiveCamera view, Transform viewTransform, Vector3 surfaceToLight, Frustum viewVolume, int slice)
     {
-        this.Frustum.TransformToCameraFrustumInWorldSpace(view);
+        this.Frustum.TransformToCameraFrustumInWorldSpace(view, viewTransform);
         this.Frustum.Slice(nearZ, farZ);
 
         var viewProjection = ComputeViewProjectionMatrixForSlice(surfaceToLight, this.Frustum, shadowMap.Resolution);

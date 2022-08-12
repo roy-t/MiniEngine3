@@ -46,7 +46,11 @@ internal sealed class GameLoop : IGameLoop
         this.SceneManager.CheckChangeScene();
 
         this.Content.ReloadChangedContent();
-        this.CameraController.Update(this.FrameService.Camera, elapsed);        
+
+        ref var camera = ref this.FrameService.GetPrimaryCamera();
+        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();        
+
+        this.CameraController.Update(ref camera, ref cameraTransform, elapsed);        
     }
 
     public void Draw(float alpha)
