@@ -7,7 +7,7 @@ namespace Mini.Engine.Graphics;
 // TODO: convert to struct, or not?
 public sealed class PerspectiveCamera
 {
-    public PerspectiveCamera(float aspectRatio, StructTransform transform)
+    public PerspectiveCamera(float aspectRatio, Transform transform)
     {
         this.Transform = transform;
         this.AspectRatio = aspectRatio;
@@ -18,9 +18,9 @@ public sealed class PerspectiveCamera
     public float FieldOfView { get; } = MathF.PI / 2.0f;
     public float AspectRatio { get; }
 
-    public StructTransform Transform { get; set; }
+    public Transform Transform { get; set; }
 
-    public Matrix4x4 GetViewProjection(StructTransform transform)
+    public Matrix4x4 GetViewProjection(Transform transform)
     {
         var view = Matrix4x4.CreateLookAt(transform.GetPosition(), transform.GetPosition() + transform.GetForward(), transform.GetUp());
         var proj = Matrix4x4.CreatePerspectiveFieldOfView(this.FieldOfView, this.AspectRatio, this.NearPlane, this.FarPlane);

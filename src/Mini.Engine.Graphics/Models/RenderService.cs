@@ -57,7 +57,7 @@ public sealed class RenderService
         }
     }
 
-    public static void DrawModel(IModelRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IModel model, StructTransform transform)
+    public static void DrawModel(IModelRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IModel model, Transform transform)
     {        
         var world = transform.GetMatrix();
         var bounds = model.Bounds.Transform(world);
@@ -84,7 +84,7 @@ public sealed class RenderService
         }
     }
 
-    public static void DrawMesh(IMeshRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IMesh mesh, StructTransform transform)
+    public static void DrawMesh(IMeshRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IMesh mesh, Transform transform)
     {
         var world = transform.GetMatrix();
         var bounds = mesh.Bounds.Transform(world);

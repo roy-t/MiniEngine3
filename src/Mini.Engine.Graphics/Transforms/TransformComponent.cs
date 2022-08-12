@@ -6,7 +6,7 @@ namespace Mini.Engine.Graphics.Transforms;
 public struct TransformComponent : IComponent
 {
     // TODO: instread of ITransformable transform should be an immutable struct and create a copy of itself
-    public StructTransform Transform { get; set; }
+    public Transform Transform { get; set; }
     public Entity Entity { get; set; }
     public LifeCycle LifeCycle { get; set; }
 

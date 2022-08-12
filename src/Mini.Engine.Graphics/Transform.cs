@@ -2,9 +2,9 @@
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics;
-public readonly struct StructTransform
+public readonly struct Transform
 {
-    public static readonly StructTransform Identity = new StructTransform(Vector3.Zero, Quaternion.Identity, Vector3.Zero, 1.0f);
+    public static readonly Transform Identity = new Transform(Vector3.Zero, Quaternion.Identity, Vector3.Zero, 1.0f);
 
     private readonly Vector3 Position;
     private readonly Quaternion Rotation;
@@ -12,7 +12,7 @@ public readonly struct StructTransform
     private readonly float Scale;
     private readonly bool IsSet;
 
-    internal StructTransform(Vector3 position, Quaternion rotation, Vector3 origin, float scale)
+    internal Transform(Vector3 position, Quaternion rotation, Vector3 origin, float scale)
     {
         this.Position = position;
         this.Rotation = rotation;
@@ -77,55 +77,55 @@ public readonly struct StructTransform
         return this.Origin;
     }
 
-    public StructTransform SetOrigin(Vector3 origin)
+    public Transform SetOrigin(Vector3 origin)
     {
-        return new StructTransform(this.Position, this.GetRotation(), origin, this.GetScale());
+        return new Transform(this.Position, this.GetRotation(), origin, this.GetScale());
     }
 
-    public StructTransform SetRotation(Quaternion rotation)
+    public Transform SetRotation(Quaternion rotation)
     {
-        return new StructTransform(this.Position, rotation, this.Origin, this.GetScale());
+        return new Transform(this.Position, rotation, this.Origin, this.GetScale());
     }
 
-    public StructTransform AddRotation(Quaternion offset)
+    public Transform AddRotation(Quaternion offset)
     {
         var q = Quaternion.Multiply(offset, this.GetRotation());
-        return new StructTransform(this.Position, Quaternion.Normalize(q), this.Origin, this.GetScale());
+        return new Transform(this.Position, Quaternion.Normalize(q), this.Origin, this.GetScale());
     }
 
-    public StructTransform AddLocalRotation(Quaternion offset)
+    public Transform AddLocalRotation(Quaternion offset)
     {
         var q = Quaternion.Multiply(this.GetRotation(), offset);
-        return new StructTransform(this.Position, Quaternion.Normalize(q), this.Origin, this.GetScale());
+        return new Transform(this.Position, Quaternion.Normalize(q), this.Origin, this.GetScale());
     }
 
-    public StructTransform SetTranslation(Vector3 translation)
+    public Transform SetTranslation(Vector3 translation)
     {
-        return new StructTransform(translation, this.GetRotation(), this.Origin, this.GetScale());
+        return new Transform(translation, this.GetRotation(), this.Origin, this.GetScale());
     }
 
-    public StructTransform AddTranslation(Vector3 offset)
+    public Transform AddTranslation(Vector3 offset)
     {
-        return new StructTransform(this.Position + offset, this.GetRotation(), this.Origin, this.GetScale());
+        return new Transform(this.Position + offset, this.GetRotation(), this.Origin, this.GetScale());
     }    
 
-    public StructTransform AddLocalTranslation(Vector3 offset)
+    public Transform AddLocalTranslation(Vector3 offset)
     {
         var vector = Vector3.Transform(offset, this.GetRotation());
         return this.AddTranslation(vector);
     }
 
-    public StructTransform SetScale(float scale)
+    public Transform SetScale(float scale)
     {
-        return new StructTransform(this.Position, this.GetRotation(), this.Origin, scale);
+        return new Transform(this.Position, this.GetRotation(), this.Origin, scale);
     }
 
-    public StructTransform AddScale(float change)
+    public Transform AddScale(float change)
     {
-        return new StructTransform(this.Position, this.GetRotation(), this.Origin, this.GetScale() * change);
+        return new Transform(this.Position, this.GetRotation(), this.Origin, this.GetScale() * change);
     }
 
-    public StructTransform FaceTarget(Vector3 target)
+    public Transform FaceTarget(Vector3 target)
     {
         var currentForward = this.GetForward();
         var desiredForward = Vector3.Normalize(target - this.Position);
@@ -155,10 +155,10 @@ public readonly struct StructTransform
         }
 
         var q = rotation * this.GetRotation();
-        return new StructTransform(this.Position, Quaternion.Normalize(q), this.Origin, this.GetScale());
+        return new Transform(this.Position, Quaternion.Normalize(q), this.Origin, this.GetScale());
     }
 
-    public StructTransform FaceTargetConstrained(Vector3 target, Vector3 up)
+    public Transform FaceTargetConstrained(Vector3 target, Vector3 up)
     {
         var dot = Vector3.Dot(Vector3.Normalize(target - this.Position), up);
         if (Math.Abs(dot) < 0.99f)
@@ -167,7 +167,7 @@ public readonly struct StructTransform
             if (Matrix4x4.Invert(matrix, out var inverted))
             {
                 var q = Quaternion.CreateFromRotationMatrix(inverted);
-                return new StructTransform(this.Position, Quaternion.Normalize(q), this.Origin, this.GetScale());
+                return new Transform(this.Position, Quaternion.Normalize(q), this.Origin, this.GetScale());
             }
         }
 

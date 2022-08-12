@@ -10,7 +10,7 @@ public class TransformTests
     [Fact]
     public void SmokeTest()
     {
-        StructTransform t = default;
+        Transform t = default;
 
         // Sane defaults
 
