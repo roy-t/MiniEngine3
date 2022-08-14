@@ -31,9 +31,16 @@ public sealed class PixelShaderContext : DeviceContextPart
         this.ID3D11DeviceContext.PSSetShader(shader.ID3D11Shader);
     }
 
+    //[Obsolete("Use IResource<T> overloads")]
     public void SetShaderResource(int slot, ITexture texture)
     {
         this.ID3D11DeviceContext.PSSetShaderResource(slot, texture.ShaderResourceView);
+    }
+
+    public void SetShaderResource(int slot, IResource<ITexture> texture)
+    {
+        var srv = this.DeviceContext.Resources.Get(texture).ShaderResourceView;
+        this.ID3D11DeviceContext.PSSetShaderResource(slot, srv);
     }
 
     public void SetConstantBuffer<T>(int slot, ConstantBuffer<T> buffer)

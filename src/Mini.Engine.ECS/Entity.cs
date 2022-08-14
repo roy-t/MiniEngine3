@@ -2,7 +2,7 @@
 
 namespace Mini.Engine.ECS;
 
-public struct Entity : IEquatable, IEquatable<Entity>, IComparable, IComparable<Entity>
+public struct Entity : IEquatable<Entity>, IComparable, IComparable<Entity>
 {
     public readonly int Id;
 

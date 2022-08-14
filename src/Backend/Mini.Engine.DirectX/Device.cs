@@ -18,7 +18,7 @@ public sealed class Device : IDisposable
     private const Format BackBufferFormat = Format.R8G8B8A8_UNorm;
     private const Format RenderTargetViewFormat = Format.R8G8B8A8_UNorm_SRgb;
 
-    private readonly IntPtr WindowHandle;
+    private readonly IntPtr WindowHandle;    
 
     private IDXGISwapChain swapChain = null!;
 
@@ -50,7 +50,9 @@ public sealed class Device : IDisposable
         this.DepthStencilStates = new DepthStencilStates(device);
         this.RasterizerStates = new RasterizerStates(device);
 
-        this.ImmediateContext = new ImmediateDeviceContext(this, context, nameof(Device));
+        this.Resources = new ResourceManager();
+
+        this.ImmediateContext = new ImmediateDeviceContext(this, context, this.Resources, nameof(Device));
     }
 
     public ImmediateDeviceContext ImmediateContext { get; }
@@ -64,6 +66,8 @@ public sealed class Device : IDisposable
     public DepthStencilStates DepthStencilStates { get; }
     public RasterizerStates RasterizerStates { get; }
 
+    public ResourceManager Resources { get; }
+
     internal ID3D11Device ID3D11Device { get; }
 #if DEBUG
     internal ID3D11Debug ID3D11Debug { get; }
@@ -75,7 +79,7 @@ public sealed class Device : IDisposable
 
     public DeferredDeviceContext CreateDeferredContextFor<T>()
     {
-        return new(this, this.ID3D11Device.CreateDeferredContext(), typeof(T).Name);
+        return new(this, this.ID3D11Device.CreateDeferredContext(), this.Resources, typeof(T).Name);
     }
 
     public void Present()

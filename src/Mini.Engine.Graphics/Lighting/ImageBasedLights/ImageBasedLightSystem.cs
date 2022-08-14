@@ -63,7 +63,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
     [Process(Query = ProcessQuery.All)]
     public void Render(ref SkyboxComponent skybox)
     {
-        this.User.MapPerLightConstants(this.Context, skybox.Environment.Levels, skybox.Strength);
+        this.User.MapPerLightConstants(this.Context, skybox.EnvironmentLevels, skybox.Strength);
 
         this.Context.PS.SetShaderResource(ImageBasedLight.Irradiance, skybox.Irradiance);
         this.Context.PS.SetShaderResource(ImageBasedLight.Environment, skybox.Environment);

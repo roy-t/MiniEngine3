@@ -9,10 +9,11 @@ namespace Mini.Engine.DirectX.Contexts;
 
 public abstract class DeviceContext : IDisposable
 {    
-    internal DeviceContext(Device device, ID3D11DeviceContext context, string user, string meaning)
+    internal DeviceContext(Device device, ID3D11DeviceContext context, ResourceManager resources, string user, string meaning)
     {
         this.Device = device;
         this.ID3D11DeviceContext = context;
+        this.Resources = resources;
         this.ID3D11DeviceContext.DebugName = DebugNameGenerator.GetName(user, user, meaning);
 
         this.IA = new InputAssemblerContext(this);
@@ -29,6 +30,10 @@ public abstract class DeviceContext : IDisposable
     public PixelShaderContext PS { get; }
     public OutputMergerContext OM { get; }
     public ComputeShaderContext CS { get; }
+
+    public Device Device { get; }
+    internal ID3D11DeviceContext ID3D11DeviceContext { get; }
+    internal ResourceManager Resources { get; }
 
     public void DrawIndexed(int indexCount, int indexOffset, int vertexOffset)
     {
@@ -154,9 +159,6 @@ public abstract class DeviceContext : IDisposable
         this.OM.SetBlendState(blend);
         this.OM.SetDepthStencilState(depth);
     }
-
-    public Device Device { get; }
-    internal ID3D11DeviceContext ID3D11DeviceContext { get; }
 
     public void Dispose()
     {

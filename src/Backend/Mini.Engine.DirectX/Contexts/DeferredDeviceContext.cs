@@ -6,8 +6,8 @@ public sealed class DeferredDeviceContext : DeviceContext
 {
     private readonly string User;
 
-    public DeferredDeviceContext(Device device, ID3D11DeviceContext context, string user)
-        : base(device, context, user, nameof(DeferredDeviceContext))
+    public DeferredDeviceContext(Device device, ID3D11DeviceContext context, ResourceManager resources, string user)
+        : base(device, context, resources, user, nameof(DeferredDeviceContext))
     {
         this.User = user;
     }

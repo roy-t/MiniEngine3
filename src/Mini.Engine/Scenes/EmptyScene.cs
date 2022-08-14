@@ -69,12 +69,14 @@ public sealed class EmptyScene : IScene
                 var environment = this.CubeMapGenerator.GenerateEnvironment(texture, sky.ToString());
 
                 // Make sure the items are disposed whenever this content frame is
-                this.Content.Link(albedo, albedo.Name);
-                this.Content.Link(irradiance, irradiance.Name);
-                this.Content.Link(environment, environment.Name);
+                this.Content.Link(albedo, nameof(albedo));
+                this.Content.Link(irradiance, nameof(irradiance));
+                this.Content.Link(environment, nameof(environment));
+
+                var levels = this.Device.Resources.Get(environment).Levels;
 
                 ref var skybox = ref creator.Create<SkyboxComponent>(sky);
-                skybox.Init(albedo, irradiance, environment, 0.1f);                
+                skybox.Init(albedo, irradiance, environment, levels, 0.1f);                
             })
         };
     }   

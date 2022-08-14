@@ -52,10 +52,10 @@ public sealed partial class ContentManager : IDisposable
         this.Callbacks = new Dictionary<ContentId, List<ReloadCallback>>();
     }
 
-    public ITexture2D LoadTexture(string path, string key = "", TextureLoaderSettings? settings = null)
+    public IResource<ITexture2D> LoadTexture(string path, string key = "", TextureLoaderSettings? settings = null)
     {
-        
-        return this.TextureLoader.Load(this.Device, new ContentId(path, key), settings ?? TextureLoaderSettings.Default);
+        var texture = this.TextureLoader.Load(this.Device, new ContentId(path, key), settings ?? TextureLoaderSettings.Default);
+        return this.Device.Resources.Add(texture);
     }
 
     public IMaterial LoadMaterial(string path, string key = "", MaterialLoaderSettings? settings = null)
@@ -113,6 +113,12 @@ public sealed partial class ContentManager : IDisposable
         {
             this.Unload(this.ContentStack.Pop());
         }
+    }
+
+    public void Link(IResource resource, string id)
+    {
+        var wrapper = new ExternalContent(resource, id);
+        this.Add(wrapper);
     }
 
     public void Link(IDisposable content, string id)
@@ -226,7 +232,14 @@ public sealed partial class ContentManager : IDisposable
                     shader.Dispose();
                     break;
                 case ExternalContent external:
-                    external.Dispose();
+                    if (external.Content is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+                    else if(external.Content is IResource resource)
+                    {
+                        this.Device.Resources.Dispose(resource);
+                    }
                     break;
                 default:
                     throw new NotSupportedException($"Cannot unload {content.Id}, unsupported content type {content.GetType()}");

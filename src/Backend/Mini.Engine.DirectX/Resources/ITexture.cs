@@ -3,7 +3,7 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
 
-public interface ITexture : IDisposable
+public interface ITexture : IDeviceResource
 {
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }
