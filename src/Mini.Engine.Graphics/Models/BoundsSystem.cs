@@ -126,7 +126,8 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
             var frustum = new Frustum(camera.GetViewProjection(cameraTransform));
 
             var world = transform.Transform.GetMatrix();
-            var bounds = component.Terrain.Mesh.Bounds.Transform(world);
+            var mesh = this.Device.Resources.Get(component.Mesh);
+            var bounds = mesh.Bounds.Transform(world);
             
             if (frustum.ContainsOrIntersects(bounds))
             {

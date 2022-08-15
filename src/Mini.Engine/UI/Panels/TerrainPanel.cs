@@ -1,6 +1,8 @@
 ﻿using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
+using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.World;
@@ -11,6 +13,7 @@ namespace Mini.Engine.UI.Panels;
 [Service]
 internal sealed class TerrainPanel : IPanel
 {
+    private readonly Device Device;
     private readonly TerrainGenerator Generator;
     private readonly TextureSelector Selector;
     private readonly ContentManager Content;
@@ -23,8 +26,9 @@ internal sealed class TerrainPanel : IPanel
     private bool created;
     private Entity world;
 
-    public TerrainPanel(TerrainGenerator generator, UITextureRegistry registry, ContentManager content, ECSAdministrator administrator)
+    public TerrainPanel(Device device, TerrainGenerator generator, UITextureRegistry registry, ContentManager content, ECSAdministrator administrator)
     {
+        this.Device = device;
         this.Generator = generator;
         this.Selector = new TextureSelector(registry);
         this.Content = content;
@@ -43,7 +47,6 @@ internal sealed class TerrainPanel : IPanel
 
     public void Update(float elapsed)
     {
-        // TODO: allow recreating the entire mesh
         if (this.created == false)
         {
             ImGui.SliderInt("Dimensions", ref this.mapSettings.Dimensions, 4, 4096);
@@ -114,19 +117,22 @@ internal sealed class TerrainPanel : IPanel
                 this.Recreate(this.ErodeTerrain);
             }
 
-            ref var terrain = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);            
+            ref var terrain = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);
+            var height = this.Device.Resources.Get(terrain.Height);
+            var normals = this.Device.Resources.Get(terrain.Normals);
+            var tint = this.Device.Resources.Get(terrain.Tint);
             if (this.Selector.Begin("Terrain Resources", "heightmap"))
             {
-                this.Selector.Select("Height", terrain.Terrain.Height);
-                this.Selector.Select("Normals", terrain.Terrain.Normals);
-                this.Selector.Select("Tint", terrain.Terrain.Tint);
+                this.Selector.Select("Height", height);
+                this.Selector.Select("Normals", normals);
+                this.Selector.Select("Tint", tint);
                 this.Selector.End();
             }
-            this.Selector.ShowSelected(terrain.Terrain.Height, terrain.Terrain.Normals, terrain.Terrain.Tint);
+            this.Selector.ShowSelected(height, normals, tint);
         }
     }
 
-    private TerrainMesh ApplyTerrain(TerrainMesh? input)
+    private GeneratedTerrain ApplyTerrain(GeneratedTerrain? input)
     {
         if (input is not null)
         {
@@ -136,7 +142,7 @@ internal sealed class TerrainPanel : IPanel
         return this.Generator.Generate(this.mapSettings, "terrain");
     }
 
-    private TerrainMesh ErodeTerrain(TerrainMesh? input)
+    private GeneratedTerrain ErodeTerrain(GeneratedTerrain? input)
     {
         if (input is not null)
         {
@@ -147,17 +153,21 @@ internal sealed class TerrainPanel : IPanel
         throw new NotSupportedException("Cannot erode null terrain");
     }
 
-    private void Recreate(Func<TerrainMesh?, TerrainMesh> application)
+    private void Recreate(Func<GeneratedTerrain?, GeneratedTerrain> application)
     {
         if (this.created == false)
         {
-            var mesh = application(null);
+            var generated = application(null);
             this.world = this.Administrator.Entities.Create();
 
             var creator = this.Administrator.Components;
 
             ref var terrain = ref creator.Create<TerrainComponent>(this.world);
-            terrain.Terrain = mesh;
+
+            terrain.Height = this.Device.Resources.Add(generated.Height);
+            terrain.Mesh = this.Device.Resources.Add(generated.Mesh);
+            terrain.Normals = this.Device.Resources.Add(generated.Normals);
+            terrain.Tint = this.Device.Resources.Add(generated.Tint);
 
             ref var transform = ref creator.Create<TransformComponent>(this.world);
 
@@ -166,14 +176,21 @@ internal sealed class TerrainPanel : IPanel
         else
         {
             ref var terrain = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);
-            application(terrain.Terrain);
-        }
 
+            var model = (Mesh)this.Device.Resources.Get(terrain.Mesh);
+            var height = (RWTexture2D)this.Device.Resources.Get(terrain.Height);
+            var normals = (RWTexture2D)this.Device.Resources.Get(terrain.Normals);
+            var tint = (RWTexture2D)this.Device.Resources.Get(terrain.Tint);
+
+            application(new GeneratedTerrain(height, normals, tint, model));
+        }
 
         ref var ter = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);
         ref var tra = ref this.Administrator.Components.GetComponent<TransformComponent>(this.world);
 
-        var width = ter.Terrain.Mesh.Bounds.Max.X - ter.Terrain.Mesh.Bounds.Min.X;
+        var mesh = this.Device.Resources.Get(ter.Mesh);
+
+        var width = mesh.Bounds.Max.X - mesh.Bounds.Min.X;
         var desiredWidth = 10.0f;
         var scale = desiredWidth / width;
 

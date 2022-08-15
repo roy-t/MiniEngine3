@@ -2,9 +2,9 @@
 
 namespace Mini.Engine.Graphics.World;
 
-public sealed class TerrainMesh : IDisposable
+public sealed class GeneratedTerrain
 {
-    public TerrainMesh(RWTexture2D height, RWTexture2D normals, RWTexture2D tint, Mesh mesh)
+    public GeneratedTerrain(RWTexture2D height, RWTexture2D normals, RWTexture2D tint, Mesh mesh)
     {
         this.Height = height;
         this.Normals = normals;
@@ -16,12 +16,4 @@ public sealed class TerrainMesh : IDisposable
     public RWTexture2D Normals { get; }
     public RWTexture2D Tint { get; }
     public Mesh Mesh { get; }
-
-    public void Dispose()
-    {
-        this.Height.Dispose();
-        this.Normals.Dispose();
-        this.Tint.Dispose();
-        this.Mesh.Dispose();
-    }
 }

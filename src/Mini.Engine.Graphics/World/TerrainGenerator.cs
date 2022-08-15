@@ -25,7 +25,7 @@ public sealed class TerrainGenerator
         this.ErosionBrush = erosionBrush;
     }
 
-    public TerrainMesh Generate(HeightMapGeneratorSettings settings, string name)
+    public GeneratedTerrain Generate(HeightMapGeneratorSettings settings, string name)
     {
         var height = this.HeightMapGenerator.GenerateHeights(settings);
         var normals = this.HeightMapGenerator.GenerateNormals(height);
@@ -39,10 +39,10 @@ public sealed class TerrainGenerator
         this.Content.Link(tint, $"{name}#{tint.Name}");
         this.Content.Link(mesh, $"{name}#{mesh}");
 
-        return new TerrainMesh(height, normals, tint, mesh);
+        return new GeneratedTerrain(height, normals, tint, mesh);
     }
 
-    public void Update(TerrainMesh input, HeightMapGeneratorSettings settings, string name)
+    public void Update(GeneratedTerrain input, HeightMapGeneratorSettings settings, string name)
 {
         this.HeightMapGenerator.UpdateHeights(input.Height, settings);
         this.HeightMapGenerator.UpdateNormals(input.Height, input.Normals);
@@ -52,7 +52,7 @@ public sealed class TerrainGenerator
         this.UpdateMesh(input.Mesh, input.Height, bounds);
     }
 
-    public void Erode(TerrainMesh terrain, HydraulicErosionBrushSettings settings, string name)
+    public void Erode(GeneratedTerrain terrain, HydraulicErosionBrushSettings settings, string name)
     {
         this.ErosionBrush.Apply(terrain.Height, terrain.Tint, settings);
         this.HeightMapGenerator.UpdateNormals(terrain.Height, terrain.Normals);

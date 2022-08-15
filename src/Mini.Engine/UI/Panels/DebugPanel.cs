@@ -12,6 +12,7 @@ internal sealed class DebugPanel : IPanel
 {
     private readonly Device Device;
     private readonly DebugFrameService FrameService;
+    private readonly PerformanceCounters Counters;
 
     private readonly RenderDoc? RenderDoc;
 
@@ -20,10 +21,11 @@ internal sealed class DebugPanel : IPanel
 
     private uint nextCaptureToOpen;
 
-    public DebugPanel(Device device, DebugFrameService frameService, Services services)
+    public DebugPanel(Device device, DebugFrameService frameService, PerformanceCounters counters, Services services)
     {
         this.Device = device;
         this.FrameService = frameService;
+        this.Counters = counters;
         this.RasterizerStates = new RasterizerState[]
         {
             device.RasterizerStates.CullCounterClockwise,
@@ -35,7 +37,7 @@ internal sealed class DebugPanel : IPanel
         {
             this.RenderDoc = instance;
             this.nextCaptureToOpen = uint.MaxValue;
-        }
+        }        
     }
 
     public string Title => "Debug";
@@ -89,6 +91,9 @@ internal sealed class DebugPanel : IPanel
         }
         else
         {
+            var megabytes = this.Counters.GetGPUMemoryUsageBytes() / (1024 * 1024);
+            ImGui.LabelText("GPU Memory Usage", $"{megabytes} MB");
+
             if (ImGui.Button("Capture"))
             {
                 this.nextCaptureToOpen = this.RenderDoc.GetNumCaptures() + 1;
