@@ -54,7 +54,8 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
         var viewProjection = camera.GetViewProjection(cameraTransform);
 
         var viewVolume = new Frustum(viewProjection);
-        RenderService.DrawModel(this, this.Context, viewVolume, viewProjection, component.Model, transform.Transform);
+        var model = this.Device.Resources.Get(component.Model);
+        RenderService.DrawModel(this, this.Context, viewVolume, viewProjection, model, transform.Transform);
     }
 
     public void SetConstants(Matrix4x4 worldViewProjection, Matrix4x4 world)

@@ -8,11 +8,14 @@ namespace Mini.Engine.Content;
 /// </summary>
 internal sealed class ExternalContent : IContent
 {
-    public ExternalContent(object content, string id)
+    public ExternalContent(object content, ContentId id)
     {
         this.Content = content;
-        this.Id = new ContentId("<external>", id);
+        this.Id = id;
     }
+
+    public ExternalContent(object content, string id)
+        : this(content, new ContentId("<external>", id)) { }
 
     public ContentId Id { get; }
     public object Content { get; }

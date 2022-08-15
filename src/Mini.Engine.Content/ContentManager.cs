@@ -54,36 +54,41 @@ public sealed partial class ContentManager : IDisposable
 
     public IResource<ITexture2D> LoadTexture(string path, string key = "", TextureLoaderSettings? settings = null)
     {
-        var texture = this.TextureLoader.Load(this.Device, new ContentId(path, key), settings ?? TextureLoaderSettings.Default);
-        return this.Device.Resources.Add(texture);
+        var id = new ContentId(path, key);
+        var texture = this.TextureLoader.Load(this.Device, id, settings ?? TextureLoaderSettings.Default);
+        return this.ToResource(texture, id);
     }
 
-    public IMaterial LoadMaterial(string path, string key = "", MaterialLoaderSettings? settings = null)
+    public IResource<IMaterial> LoadMaterial(string path, string key = "", MaterialLoaderSettings? settings = null)
     {
-        return this.MaterialLoader.Load(this.Device, new ContentId(path, key), settings ?? MaterialLoaderSettings.Default);
+        var id = new ContentId(path, key);
+        var material = this.MaterialLoader.Load(this.Device, id, settings ?? MaterialLoaderSettings.Default);
+        return this.ToResource(material, id);
     }
 
-    public IModel LoadModel(string path, string key = "", ModelLoaderSettings? settings = null)
+    public IResource<IModel> LoadModel(string path, string key = "", ModelLoaderSettings? settings = null)
     {
-        return this.ModelLoader.Load(this.Device, new ContentId(path, key), settings ?? ModelLoaderSettings.Default);
+        var id = new ContentId(path, key);
+        var model = this.ModelLoader.Load(this.Device, id, settings ?? ModelLoaderSettings.Default);
+        return this.ToResource(model, id);
     }
 
-    public IModel LoadSponza()
+    public IResource<IModel> LoadSponza()
     {
         return this.LoadModel(@"Scenes\sponza\sponza.obj");
     }
 
-    public IModel LoadAsteroid()
+    public IResource<IModel> LoadAsteroid()
     {
         return this.LoadModel(@"Scenes\AsteroidField\Asteroid001.obj");
     }
 
-    public IModel LoadCube()
+    public IResource<IModel> LoadCube()
     {
         return this.LoadModel(@"Scenes\cube\cube.obj");
     }
 
-    public IMaterial LoadDefaultMaterial()
+    public IResource<IMaterial> LoadDefaultMaterial()
     {
         var settings = new MaterialLoaderSettings
         (
@@ -115,6 +120,12 @@ public sealed partial class ContentManager : IDisposable
         }
     }
 
+    public void Link(IResource resource, ContentId id)
+    {
+        var wrapper = new ExternalContent(resource, id);
+        this.Add(wrapper);
+    }
+
     public void Link(IResource resource, string id)
     {
         var wrapper = new ExternalContent(resource, id);
@@ -131,6 +142,14 @@ public sealed partial class ContentManager : IDisposable
     {
         this.Track(content);
         this.ContentStack.Peek().Content.Add(content);
+    }
+
+    private IResource<T> ToResource<T>(T content, ContentId id)
+    where T : IDeviceResource
+    {
+        var resource = this.Device.Resources.Add(content);
+        this.Link(resource, id);
+        return resource;
     }
 
     [Conditional("DEBUG")]

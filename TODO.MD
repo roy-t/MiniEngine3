@@ -1,9 +1,16 @@
 # TODO
 
 Make sure all components don't reference classes for better memory layout
+-> Only TerrainComponent left todo
+
+-> Before below: first make sure that DeviceResources are neater, especially textures/depthstensils/rendertargets
+	-> Always an array
+	-> Different per type, not all just only ITexture
+	-> Special case for CubeMap?
 
 - Instead of referencing IModels, ITextures, etc... give a ResourceId<IModel> {int..} that is then used like Device[ResourceId] to get the actual resource when rendering
-- A component should never own the lifetime of a resource, make that happen, remove Destroy method!
+
+
 
 ---
 

@@ -5,7 +5,7 @@ using Vortice.DXGI;
 namespace Mini.Engine.DirectX.Resources;
 
 // TODO: this is extremely similar to DepthStencilBuffer!
-public sealed class DepthStencilBufferArray : ITexture2D
+public sealed class DepthStencilBufferArray : IDepthStencilBufferArray
 {
     public DepthStencilBufferArray(Device device, DepthStencilFormat format, int width, int height, int length, string user, string meaning)
     {
@@ -44,6 +44,7 @@ public sealed class DepthStencilBufferArray : ITexture2D
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11DepthStencilView[] DepthStencilViews { get; }
 
+    ID3D11DepthStencilView[] IDepthStencilBufferArray.DepthStencilViews => this.DepthStencilViews;
     ID3D11ShaderResourceView ITexture.ShaderResourceView => this.ShaderResourceView;
     ID3D11Texture2D ITexture.Texture => this.Texture;
 

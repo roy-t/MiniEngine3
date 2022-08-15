@@ -4,7 +4,7 @@ using Vortice.Mathematics;
 
 namespace Mini.Engine.DirectX.Resources;
 
-public interface IMesh : IDisposable
+public interface IMesh : IDeviceResource
 {
     VertexBuffer<ModelVertex> Vertices { get; }
     IndexBuffer<int> Indices { get; }

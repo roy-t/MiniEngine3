@@ -24,6 +24,4 @@ public struct SkyboxComponent : IComponent
         this.EnvironmentLevels = environmentLevels;
         this.Strength = strength;
     }
-
-    public void Destroy() { }
 }

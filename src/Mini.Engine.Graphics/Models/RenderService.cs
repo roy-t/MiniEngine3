@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.ComponentModel;
+using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources;
@@ -20,7 +21,7 @@ public interface IModelRenderCallBack : IMeshRenderCallBack
 
 [Service]
 public sealed class RenderService
-{
+{    
     private readonly IComponentContainer<TransformComponent> Transforms;
     private readonly IComponentContainer<ModelComponent> Models;
     private readonly IComponentContainer<TerrainComponent> Terrain;
@@ -39,9 +40,10 @@ public sealed class RenderService
         var iterator = this.Models.IterateAll();
         while (iterator.MoveNext())
         {
-            ref var model = ref iterator.Current;
-            var transform = this.Transforms[model.Entity];
-            DrawModel(callback, context, viewVolume, viewProjection, model.Model, transform.Transform);
+            ref var component = ref iterator.Current;
+            var transform = this.Transforms[component.Entity];
+            var model = context.Resources.Get(component.Model);
+            DrawModel(callback, context, viewVolume, viewProjection, model, transform.Transform);
         }
     }
 

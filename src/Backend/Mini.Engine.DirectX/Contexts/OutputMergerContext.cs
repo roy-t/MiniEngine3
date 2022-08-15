@@ -39,6 +39,14 @@ public sealed class OutputMergerContext : DeviceContextPart
 #nullable restore
     }
 
+    public void SetRenderTarget(IResource<IDepthStencilBufferArray> depthStencilBuffers, int slice)
+    {
+        var dsv = this.DeviceContext.Resources.Get(depthStencilBuffers).DepthStencilViews[slice];
+#nullable disable
+        this.ID3D11DeviceContext.OMSetRenderTargets((ID3D11RenderTargetView)null, dsv);
+#nullable restore
+    }
+
     public void SetRenderTarget(RenderTarget2D renderTarget, DepthStencilBuffer? depthStencilBuffer = null)
     {
         this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetView, depthStencilBuffer?.DepthStencilView);

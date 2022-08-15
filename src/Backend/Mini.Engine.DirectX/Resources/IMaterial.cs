@@ -1,6 +1,6 @@
 ﻿namespace Mini.Engine.DirectX.Resources;
 
-public interface IMaterial
+public interface IMaterial : IDeviceResource
 {
     public ITexture2D Albedo { get; }
     public ITexture2D Metalicness { get; }

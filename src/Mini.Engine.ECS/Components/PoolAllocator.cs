@@ -74,7 +74,7 @@ public sealed class PoolAllocator<T>
     {
         var index = this.Tracker.Remove(entity);
 
-        this.pool[index].Destroy();
+        this.pool[index] = default;
         this.Occupancy[index] = false;
 
         this.FillGap(index);

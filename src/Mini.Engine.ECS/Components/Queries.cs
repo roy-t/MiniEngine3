@@ -12,7 +12,7 @@ public sealed class QueryAll<T>
 {
     public bool Accept(ref T component)
     {
-        return true;
+        return component.LifeCycle.Current != LifeCycleState.Removed;
     }
 }
 

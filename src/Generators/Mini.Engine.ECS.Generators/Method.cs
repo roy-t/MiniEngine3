@@ -57,6 +57,18 @@ namespace Mini.Engine.ECS.Generators
                 return $"{elementType}[]";
             }
 
+            if (type is GenericNameSyntax genericNameSyntax)
+            {
+                var arguments = new List<string>();
+                foreach(var t in genericNameSyntax.TypeArgumentList.Arguments)
+                {
+                    arguments.Add(GetTypeName(t));
+                }
+
+                var sArgs = string.Join(", ", arguments);
+                return $"{genericNameSyntax.Identifier}<{sArgs}>";                
+            }
+
             throw new Exception($"Unexpected parameter type {type.GetType().FullName}");
         }
     }

@@ -3,6 +3,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.PointLights;
@@ -48,7 +49,7 @@ public sealed class SponzaScene : IScene
             new LoadAction("Models", () =>
             {
                 var world = this.Administrator.Entities.Create();
-                var sponza = this.Content.LoadSponza();
+                var sponza = this.Content.LoadSponza();                
 
                 ref var model = ref creator.Create<ModelComponent>(world);
                 model.Model = sponza;
@@ -76,7 +77,13 @@ public sealed class SponzaScene : IScene
                 sunLight.Strength = 3.0f;
 
                 ref var shadowmap = ref creator.Create<CascadedShadowMapComponent>(sun);
-                shadowmap.Init(this.Device, 2048, Cascades[0], Cascades[1], Cascades[2], Cascades[3]);
+
+                var resolution = 2048;
+                var buffer = new DepthStencilBufferArray(this.Device, DepthStencilFormat.D32_Float, resolution, resolution, 4, sun.ToString(), nameof(CascadedShadowMapComponent));
+                var bufferResource = this.Device.Resources.Add(buffer);
+                this.Content.Link(bufferResource, buffer.Name);
+
+                shadowmap.Init(bufferResource, resolution, Cascades[0], Cascades[1], Cascades[2], Cascades[3]);
 
                 ref var sunTransform = ref creator.Create<TransformComponent>(sun);
                 sunTransform.Transform = sunTransform.Transform

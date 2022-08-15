@@ -3,6 +3,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources;
 using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
@@ -47,13 +48,17 @@ public sealed class EmptyScene : IScene
             {
                 var sun = this.Administrator.Entities.Create();
                 
-
                 ref var sunLight = ref creator.Create<SunLightComponent>(sun);
                 sunLight.Color = Colors.White;
                 sunLight.Strength = 3.0f;
 
                 ref var shadowMap = ref creator.Create<CascadedShadowMapComponent>(sun);
-                shadowMap.Init(this.Device, 2048, Cascades[0], Cascades[1], Cascades[2], Cascades[3]);
+
+                var resolution = 2048;
+                var buffer = new DepthStencilBufferArray(this.Device, DepthStencilFormat.D32_Float, resolution, resolution, 4, sun.ToString(), nameof(CascadedShadowMapComponent));                
+                var bufferResource = this.Device.Resources.Add(buffer);
+                this.Content.Link(bufferResource, buffer.Name);
+                shadowMap.Init(bufferResource, resolution, Cascades[0], Cascades[1], Cascades[2], Cascades[3]);
 
                 ref var transform = ref creator.Create<TransformComponent>(sun);
                 transform.Transform = transform.Transform

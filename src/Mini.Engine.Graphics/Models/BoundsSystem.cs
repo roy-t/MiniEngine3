@@ -89,7 +89,8 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
             var frustum = new Frustum(camera.GetViewProjection(cameraTransform));
 
             var world = transform.Transform.GetMatrix();
-            var bounds = component.Model.Bounds.Transform(world);
+            var model = this.Device.Resources.Get(component.Model);
+            var bounds = model.Bounds.Transform(world);
             
             if (frustum.ContainsOrIntersects(bounds))
             {
@@ -99,9 +100,9 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
 
                 context.DrawIndexed(24, 0, 0);
 
-                for (var i = 0; i < component.Model.Primitives.Length; i++)
+                for (var i = 0; i < model.Primitives.Length; i++)
                 {
-                    var primitive = component.Model.Primitives[i];
+                    var primitive = model.Primitives[i];
 
                     bounds = primitive.Bounds.Transform(world);
                     if (frustum.ContainsOrIntersects(bounds))

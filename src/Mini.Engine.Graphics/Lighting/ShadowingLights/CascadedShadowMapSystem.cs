@@ -41,7 +41,8 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         this.InputLayout = this.Shader.Vs.CreateInputLayout(device, ModelVertex.Elements);
         this.Frustum = new LightFrustum();
 
-        this.DefaultMaterial = content.LoadDefaultMaterial();
+        var material = content.LoadDefaultMaterial();
+        this.DefaultMaterial = device.Resources.Get(material);
     }
 
     public void OnSet()
@@ -89,7 +90,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         var viewProjection = ComputeViewProjectionMatrixForSlice(surfaceToLight, this.Frustum, shadowMap.Resolution);
         var shadowMatrix = CreateSliceShadowMatrix(viewProjection);
         
-        this.RenderShadowMap(shadowMap.DepthBuffers, slice, viewProjection);
+        this.RenderShadowMap(shadowMap.DepthBuffers, shadowMap.Resolution, slice, viewProjection);
 
         var nearCorner = TransformCorner(Vector3.Zero, shadowMatrix, shadowMap.GlobalShadowMatrix);
         var farCorner = TransformCorner(Vector3.One, shadowMatrix, shadowMap.GlobalShadowMatrix);
@@ -97,10 +98,10 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         return (view.NearPlane + (farZ * clipDistance), new Vector4(-nearCorner, 0.0f), new Vector4(Vector3.One / (farCorner - nearCorner), 1.0f));        
     }
 
-    private void RenderShadowMap(DepthStencilBufferArray depthStencilBuffers, int slice, Matrix4x4 viewProjection)
+    private void RenderShadowMap(IResource<IDepthStencilBufferArray> depthStencilBuffers, int resolution, int slice, Matrix4x4 viewProjection)
     {
-        this.Context.RS.SetViewPort(0, 0, depthStencilBuffers.Width, depthStencilBuffers.Height);
-        this.Context.RS.SetScissorRect(0, 0, depthStencilBuffers.Width, depthStencilBuffers.Height);
+        this.Context.RS.SetViewPort(0, 0, resolution, resolution);
+        this.Context.RS.SetScissorRect(0, 0, resolution, resolution);
         this.Context.OM.SetRenderTarget(depthStencilBuffers, slice);
 
         this.Context.Clear(depthStencilBuffers, slice, DepthStencilClearFlags.Depth, 1.0f, 0);

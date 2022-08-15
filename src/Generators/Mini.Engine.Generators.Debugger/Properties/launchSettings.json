@@ -6,7 +6,7 @@
     },
     "Content - System": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\Projects\\CSharp\\MiniEngine3\\src\\Mini.Engine.Graphics\\Lighting\\ShadowingLights\\SunLightSystem.cs\""
+      "commandLineArgs": "\"D:\\Projects\\CSharp\\MiniEngine3\\src\\Mini.Engine.Graphics\\Lighting\\ShadowingLights\\CascadedShadowMapSystem.cs\""
     }
   }
 }

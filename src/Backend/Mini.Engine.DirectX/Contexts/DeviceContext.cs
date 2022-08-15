@@ -32,8 +32,10 @@ public abstract class DeviceContext : IDisposable
     public ComputeShaderContext CS { get; }
 
     public Device Device { get; }
+    public ResourceManager Resources { get; }
+
     internal ID3D11DeviceContext ID3D11DeviceContext { get; }
-    internal ResourceManager Resources { get; }
+    
 
     public void DrawIndexed(int indexCount, int indexOffset, int vertexOffset)
     {
@@ -68,6 +70,12 @@ public abstract class DeviceContext : IDisposable
     public void Clear(DepthStencilBufferArray depthStencilBuffers, int slice, DepthStencilClearFlags flags, float depth, byte stencil)
     {
         this.ID3D11DeviceContext.ClearDepthStencilView(depthStencilBuffers.DepthStencilViews[slice], flags, depth, stencil);
+    }
+
+    public void Clear(IResource<IDepthStencilBufferArray> depthStencilBuffers, int slice, DepthStencilClearFlags flags, float depth, byte stencil)
+    {
+        var dsv = this.Resources.Get(depthStencilBuffers).DepthStencilViews[slice];
+        this.ID3D11DeviceContext.ClearDepthStencilView(dsv, flags, depth, stencil);
     }
 
     public void ClearBackBuffer()

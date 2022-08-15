@@ -27,13 +27,18 @@ internal sealed class MaterialContent : IMaterial, IContent
     public ITexture2D Metalicness => this.material.Metalicness;
     public ITexture2D Normal => this.material.Normal;
     public ITexture2D Roughness => this.material.Roughness;
-    public ITexture2D AmbientOcclusion => this.material.AmbientOcclusion;
+    public ITexture2D AmbientOcclusion => this.material.AmbientOcclusion;    
 
     [MemberNotNull(nameof(material))]
     public void Reload(Device device)
     {
         var data = this.Loader.Load(device, this.Id, this.Settings);
         this.material = new Material(data.Albedo, data.Metalicness, data.Normal, data.Roughness, data.AmbientOcclusion, this.Id.ToString());
+    }
+
+    public void Dispose()
+    {
+        // Do not dispose anything as a material is not the only owner of a texture
     }
 
     public override string ToString()
