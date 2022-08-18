@@ -69,8 +69,7 @@ internal sealed class CompressedTextureLoader : IContentDataLoader<TextureData>
             for (var i = 1; i < mipMapCount; i++)
             {
                 using var transcodedMipMap = Transcoder.Instance.Transcode(image, 0, i, TranscodeFormats.BC7_RGBA);
-
-                DXR.Textures.SetPixels<byte>(device, texture, imageInfo, transcodedMipMap.Data, i);
+                DXR.Textures.SetPixels<byte>(device, texture, view, imageInfo, mipMapInfo, transcodedMipMap.Data, i, 0);
             }
         }
 

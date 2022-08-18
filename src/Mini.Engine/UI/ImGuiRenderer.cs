@@ -27,7 +27,7 @@ internal sealed class ImGuiRenderer
     private readonly ISurface FontTexture;
     private readonly InputLayout InputLayout;
     private readonly VertexBuffer<ImDrawVert> VertexBuffer;
-    private readonly IndexBuffer<ImDrawIdx> IndexBuffer;    
+    private readonly IndexBuffer<ImDrawIdx> IndexBuffer;
 
     public ImGuiRenderer(Device device, UITextureRegistry textureRegistry, UserInterface shader)
     {
@@ -124,7 +124,7 @@ internal sealed class ImGuiRenderer
 
     public void Dispose()
     {
-        this.DeferredContext.Dispose();        
+        this.DeferredContext.Dispose();
         this.IndexBuffer.Dispose();
         this.VertexBuffer.Dispose();
         this.FontTexture.Dispose();
@@ -153,7 +153,7 @@ internal sealed class ImGuiRenderer
             var pixelSpan = new ReadOnlySpan<byte>(pixels, width * height * format.BytesPerPixel());
 
             var image = new ImageInfo(width, height, format, width * format.BytesPerPixel());
-            var texture = new Texture2D(device, image, MipMapInfo.None(), nameof(ImGuiRenderer), "Font");
+            var texture = new Texture(device, image, MipMapInfo.None(), nameof(ImGuiRenderer) + "Font");
             texture.SetPixels(device, pixelSpan);
             return texture;
         }
