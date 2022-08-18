@@ -60,12 +60,12 @@ public sealed class ComputeShaderContext : DeviceContextPart
         this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, null);
     }
 
-    public void SetUnorderedAccessView(int slot, RWTexture2D texture)
+    public void SetUnorderedAccessView(int slot, IRWTexture texture)
     {
         this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, texture.UnorderedAccessViews[0]);
     }
 
-    public void SetUnorderedAccessView(int slot, RWTexture2D texture, int mipMapSlice)
+    public void SetUnorderedAccessView(int slot, IRWTexture texture, int mipMapSlice)
     {
         this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, texture.UnorderedAccessViews[mipMapSlice]);
     }

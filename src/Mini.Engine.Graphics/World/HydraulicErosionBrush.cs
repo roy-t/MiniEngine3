@@ -6,6 +6,7 @@ using Mini.Engine.DirectX.Buffers;
 using System.Numerics;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.Core;
+using Mini.Engine.DirectX.Resources.vNext;
 
 namespace Mini.Engine.Graphics.World;
 
@@ -23,7 +24,7 @@ public sealed class HydraulicErosionBrush : IDisposable
         this.User = shader.CreateUserFor<HydraulicErosionBrush>();
     }
 
-    public void Apply(RWTexture2D height, RWTexture2D tint, HydraulicErosionBrushSettings settings)
+    public void Apply(IRWTexture height, IRWTexture tint, HydraulicErosionBrushSettings settings)
     {
         var context = this.Device.ImmediateContext;        
 
@@ -37,7 +38,7 @@ public sealed class HydraulicErosionBrush : IDisposable
         context.CS.SetUnorderedAccessView(HydraulicErosion.MapTint, tint);
         context.CS.SetShader(this.Shader.Kernel);
 
-        this.User.MapConstants(context, (uint)height.Width, (uint)Math.Ceiling(settings.DropletStride / 2.0f), (uint)settings.Droplets, (uint)settings.DropletStride,
+        this.User.MapConstants(context, (uint)height.DimX, (uint)Math.Ceiling(settings.DropletStride / 2.0f), (uint)settings.Droplets, (uint)settings.DropletStride,
             settings.Inertia, settings.MinSedimentCapacity, settings.Gravity, settings.SedimentFactor, settings.DepositSpeed, settings.ErosionTintFactor, settings.BuildUpTintFactor);
 
         // TODO: dispatch dimension must be below D3D11_CS_DISPATCH_MAX_THREAD_GROUPS_PER_DIMENSION for higher than 1M dorplets
@@ -49,7 +50,7 @@ public sealed class HydraulicErosionBrush : IDisposable
         context.CS.ClearUnorderedAccessView(HydraulicErosion.MapTint);
     }
 
-    private StructuredBuffer<Vector2> CreatePositionBuffer(RWTexture2D height, int seed, int droplets, DeviceContext context)
+    private StructuredBuffer<Vector2> CreatePositionBuffer(IRWTexture height, int seed, int droplets, DeviceContext context)
     {
         var random = new Random(seed);
         var input = new StructuredBuffer<Vector2>(this.Device, nameof(HydraulicErosionBrush));
@@ -57,8 +58,8 @@ public sealed class HydraulicErosionBrush : IDisposable
         var positions = new Vector2[droplets];
         for (var i = 0; i < droplets; i++)
         {
-            var startX = random.Next(0, height.Width) + 0.5f;
-            var startY = random.Next(0, height.Height) + 0.5f;
+            var startX = random.Next(0, height.DimX) + 0.5f;
+            var startY = random.Next(0, height.DimY) + 0.5f;
 
             positions[i] = new Vector2(startX, startY);
         }

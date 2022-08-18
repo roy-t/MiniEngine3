@@ -1,6 +1,7 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 using Vortice.DXGI;
 
 namespace Mini.Engine.Graphics;
@@ -11,7 +12,7 @@ public sealed class DebugFrameService
     public DebugFrameService(Device device)
     {
         var imageInfo = new ImageInfo(device.Width, device.Height, Format.R8G8B8A8_UNorm_SRgb);
-        this.DebugOverlay = new RenderTarget2D(device, imageInfo, nameof(DebugFrameService), nameof(this.DebugOverlay));
+        this.DebugOverlay = new RenderTarget(device, nameof(DebugFrameService) + nameof(this.DebugOverlay), imageInfo, MipMapInfo.None());
 #if DEBUG
         this.EnableDebugOverlay = true;
         this.RenderToViewport = true;
@@ -19,7 +20,7 @@ public sealed class DebugFrameService
         this.ShowBounds = false;
     }
 
-    public RenderTarget2D DebugOverlay { get; }
+    public IRenderTarget DebugOverlay { get; }
 
     public bool EnableDebugOverlay { get; set; }
     public bool ShowBounds { get; set; }

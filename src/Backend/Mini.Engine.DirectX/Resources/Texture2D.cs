@@ -11,7 +11,7 @@ public sealed class Texture2D : vNext.ITexture
         this.MipMapInfo = mipMapInfo;
         this.Texture = Textures.Create(user, meaning, device, imageInfo, mipMapInfo, BindInfo.ShaderResource, resourceInfo);
 
-        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, this.Format, user, meaning);
+        this.ShaderResourceView = ShaderResourceViews.Create(device, this.Texture, imageInfo, user + meaning);
 
         this.Name = DebugNameGenerator.GetName(user, "Texture2D", meaning, this.Format);
     }

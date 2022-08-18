@@ -48,23 +48,23 @@ public sealed class OutputMergerContext : DeviceContextPart
 #nullable restore
     }
 
-    public void SetRenderTarget(RenderTarget2D renderTarget, IDepthStencilBuffer? depthStencilBuffer = null)
+    public void SetRenderTarget(IRenderTarget renderTarget, IDepthStencilBuffer? depthStencilBuffer = null)
     {
-        this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetView, depthStencilBuffer?.DepthStencilViews[0]);
+        this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetViews[0], depthStencilBuffer?.DepthStencilViews[0]);
     }
    
-    public void SetRenderTarget(RenderTarget2DArray renderTarget, int index, int level = 0, IDepthStencilBuffer? depthStencilBuffer = null)
+    public void SetRenderTarget(IRenderTarget renderTarget, int index, int level = 0, IDepthStencilBuffer? depthStencilBuffer = null)
     {
-        var slice = Indexes.ToOneDimensional(index, level, renderTarget.Length);
+        var slice = Indexes.ToOneDimensional(index, level, renderTarget.DimZ);
         this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetViews[slice], depthStencilBuffer?.DepthStencilViews[0]);
     }
 
-    public void SetRenderTargets(IDepthStencilBuffer? depthStencilBuffer, params RenderTarget2D[] renderTargets)
+    public void SetRenderTargets(IDepthStencilBuffer? depthStencilBuffer, params IRenderTarget[] renderTargets)
     {
         var views = new ID3D11RenderTargetView[renderTargets.Length];
         for (var i = 0; i < renderTargets.Length; i++)
         {
-            views[i] = renderTargets[i].ID3D11RenderTargetView;
+            views[i] = renderTargets[i].ID3D11RenderTargetViews[0];
         }
         this.ID3D11DeviceContext.OMSetRenderTargets(views, depthStencilBuffer?.DepthStencilViews[0]);
     }

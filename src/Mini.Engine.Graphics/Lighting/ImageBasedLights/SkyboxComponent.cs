@@ -7,16 +7,16 @@ namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 public struct SkyboxComponent : IComponent
 {
-    public IResource<ITexture> Albedo;
-    public IResource<ITexture> Irradiance;
-    public IResource<ITexture> Environment;
+    public IResource<IRenderTargetCube> Albedo;
+    public IResource<IRenderTargetCube> Irradiance;
+    public IResource<IRenderTargetCube> Environment;
     public float Strength;
     public int EnvironmentLevels;
 
     public Entity Entity { get; set; }
     public LifeCycle LifeCycle { get; set; }
 
-    public void Init(IResource<ITexture> albedo, IResource<ITexture> irradiance, IResource<ITexture> environment, int environmentLevels, float strength)
+    public void Init(IResource<IRenderTargetCube> albedo, IResource<IRenderTargetCube> irradiance, IResource<IRenderTargetCube> environment, int environmentLevels, float strength)
     {
         this.Albedo = albedo;
         this.Irradiance = irradiance;

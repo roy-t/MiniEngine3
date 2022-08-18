@@ -42,4 +42,10 @@ public interface IRenderTarget : ITexture
     internal ID3D11RenderTargetView[] ID3D11RenderTargetViews { get; set; }
 }
 
+public interface IRenderTargetCube : IRenderTarget
+{
+
+}
+
+
 

@@ -3,6 +3,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.World;
@@ -178,9 +179,9 @@ internal sealed class TerrainPanel : IPanel
             ref var terrain = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);
 
             var model = (Mesh)this.Device.Resources.Get(terrain.Mesh);
-            var height = (RWTexture2D)this.Device.Resources.Get(terrain.Height);
-            var normals = (RWTexture2D)this.Device.Resources.Get(terrain.Normals);
-            var tint = (RWTexture2D)this.Device.Resources.Get(terrain.Tint);
+            var height = (IRWTexture)this.Device.Resources.Get(terrain.Height);
+            var normals = (IRWTexture)this.Device.Resources.Get(terrain.Normals);
+            var tint = (IRWTexture)this.Device.Resources.Get(terrain.Tint);
 
             application(new GeneratedTerrain(height, normals, tint, model));
         }

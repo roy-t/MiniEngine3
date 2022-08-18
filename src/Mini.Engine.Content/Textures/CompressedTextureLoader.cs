@@ -60,7 +60,7 @@ internal sealed class CompressedTextureLoader : IContentDataLoader<TextureData>
         }
 
         var texture = DXR.Textures.Create(id.ToString(), string.Empty, device, imageInfo, mipMapInfo, BindInfo.ShaderResource);
-        var view = DXR.ShaderResourceViews.Create(device, texture, format, id.ToString(), string.Empty);
+        var view = DXR.ShaderResourceViews.Create(device, texture, imageInfo, id.ToString());
 
         DXR.Textures.SetPixels<byte>(device, texture, view, imageInfo, mipMapInfo, trancoded.Data);
 

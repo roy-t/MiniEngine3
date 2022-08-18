@@ -18,7 +18,7 @@ public sealed class DepthStencilBuffer : Surface, IDepthStencilBuffer
         : base(name, new ImageInfo(width, height, ToTextureFormat(format), 0, arraySize))
     {
         var image = new ImageInfo(width, height, ToTextureFormat(format), 0, arraySize);
-        var texture = Textures.Create(name, "", device, image, MipMapInfo.None(), BindInfo.DepthStencilShaderResource);
+        var texture = Textures.Create(name, "", device, image, MipMapInfo.None(), BindInfo.DepthStencil);
         var view = CreateSRV(device, texture, image.ArraySize, ToShaderResourceViewFormat(format), name, "");
 
         this.SetResources(texture, view);
@@ -39,6 +39,16 @@ public sealed class DepthStencilBuffer : Surface, IDepthStencilBuffer
 #nullable disable
     ID3D11DepthStencilView[] IDepthStencilBuffer.DepthStencilViews { get; set; }
 #nullable restore
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        for (var i = 0; i < this.DimZ; i++)
+        {
+            this.AsDepthStencilBuffer.DepthStencilViews[i].Dispose();
+        }        
+    }
+
 
     private static ID3D11ShaderResourceView CreateSRV(Device device, ID3D11Texture2D texture, int length, Format format, string user, string meaning)
     {

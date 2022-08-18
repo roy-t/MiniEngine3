@@ -6,7 +6,7 @@ public sealed class Texture : Surface, ITexture
         : base(name, image)
     {
         var texture = Textures.Create(name, "", device, image, mipMap, BindInfo.ShaderResource, ResourceInfo.Texture);
-        var view = ShaderResourceViews.Create(device, texture, image.Format, name, "");
+        var view = ShaderResourceViews.Create(device, texture, image, name);
 
         this.SetResources(texture, view);
     }
@@ -14,7 +14,6 @@ public sealed class Texture : Surface, ITexture
     public MipMapInfo MipMapInfo { get; }
 
     public int MipMapLevels => this.MipMapInfo.Levels;
-
 
     public void SetPixels<T>(Device device, ReadOnlySpan<T> pixels)
         where T : unmanaged

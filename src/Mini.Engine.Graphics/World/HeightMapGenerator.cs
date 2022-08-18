@@ -4,6 +4,7 @@ using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 using Vortice.DXGI;
 using Vortice.Mathematics;
 
@@ -33,18 +34,18 @@ public sealed class HeightMapGenerator : IDisposable
     /// <param name="lacunarity">(1..) Increase in frequency for each consecutive octave, l * f ^ 0, l * f ^1, ...</param>
     /// <param name="persistance">[0..1), Decrease of amplitude for each consecutive octage, p * f ^ 0, p * f ^ 1, ...</param>
     /// <returns></returns>
-    public RWTexture2D GenerateHeights(HeightMapGeneratorSettings settings)
-    {        
-        var height = new RWTexture2D(this.Device, settings.Dimensions, settings.Dimensions, Format.R32_Float, false, nameof(HeightMapGenerator), "HeightMap");
+    public IRWTexture GenerateHeights(HeightMapGeneratorSettings settings)
+    {
+        var height = new RWTexture(this.Device, nameof(HeightMapGenerator) + "HeightMap", new ImageInfo(settings.Dimensions, settings.Dimensions, Format.R32_Float), MipMapInfo.None());
         this.UpdateHeights(height, settings);
 
         return height;
-    }   
+    }
 
-    public void UpdateHeights(RWTexture2D height, HeightMapGeneratorSettings settings)
+    public void UpdateHeights(IRWTexture height, HeightMapGeneratorSettings settings)
     {
         var context = this.Device.ImmediateContext;
-        var dimensions = height.Width;
+        var dimensions = height.DimX;
 
         this.User.MapNoiseConstants(context, (uint)dimensions, settings.Offset, settings.Amplitude, settings.Frequency, settings.Octaves, settings.Lacunarity, settings.Persistance, settings.CliffStart, settings.CliffEnd, settings.CliffStrength);
         context.CS.SetConstantBuffer(HeightMap.NoiseConstantsSlot, this.User.NoiseConstantsBuffer);
@@ -58,20 +59,20 @@ public sealed class HeightMapGenerator : IDisposable
         context.CS.ClearUnorderedAccessView(HeightMap.MapHeight);
     }
 
-    public RWTexture2D GenerateNormals(RWTexture2D heightMap)
+    public IRWTexture GenerateNormals(IRWTexture heightMap)
     {
-        var dimensions = heightMap.Width;
-        var normals = new RWTexture2D(this.Device, dimensions, dimensions, Format.R32G32B32A32_Float, false, nameof(HeightMapGenerator), "NormalMap");
+        var dimensions = heightMap.DimX;
+        var normals = new RWTexture(this.Device, nameof(HeightMapGenerator) + "NormalMap", new ImageInfo(dimensions, dimensions, Format.R32G32B32A32_Float), MipMapInfo.None());
 
         this.UpdateNormals(heightMap, normals);
 
         return normals;
     }
 
-    public void UpdateNormals(RWTexture2D heightMap, RWTexture2D normals)
+    public void UpdateNormals(IRWTexture heightMap, IRWTexture normals)
     {
         var context = this.Device.ImmediateContext;
-        var dimensions = normals.Width;
+        var dimensions = normals.DimX;
 
         this.User.MapNoiseConstants(context, (uint)dimensions, Vector2.Zero, 0, 0, 0, 0, 0, 0, 0, 0);
         context.CS.SetConstantBuffer(HeightMap.NoiseConstantsSlot, this.User.NoiseConstantsBuffer);
@@ -84,24 +85,24 @@ public sealed class HeightMapGenerator : IDisposable
         context.CS.Dispatch(x, y, z);
     }
 
-    public RWTexture2D GenerateTint(int dimensions, Color4 tint)
+    public IRWTexture GenerateTint(int dimensions, Color4 tint)
     {
-        var texture = new RWTexture2D(this.Device, dimensions, dimensions, Format.R32G32B32A32_Float, false, nameof(HeightMapGenerator), "Tint");
+        var texture = new RWTexture(this.Device, nameof(HeightMapGenerator) + "Tint", new ImageInfo(dimensions, dimensions, Format.R32G32B32A32_Float), MipMapInfo.None());
         this.UpdateTint(texture, tint);
 
         return texture;
     }
 
-    public void UpdateTint(RWTexture2D texture, Color4 tint)
-{
-        this.Device.ImmediateContext.Clear(texture, tint);        
+    public void UpdateTint(IRWTexture texture, Color4 tint)
+    {
+        this.Device.ImmediateContext.Clear(texture, tint);
     }
 
-    public ModelVertex[] GenerateVertices(RWTexture2D heightMap, int width, int height)
+    public ModelVertex[] GenerateVertices(IRWTexture heightMap, int width, int height)
     {
         var context = this.Device.ImmediateContext;
-        
-        this.User.MapTriangulateConstants(context, (uint)width, (uint)height, (uint)heightMap.Width, (uint)heightMap.Height, 0, 0);
+
+        this.User.MapTriangulateConstants(context, (uint)width, (uint)height, (uint)heightMap.DimX, (uint)heightMap.DimY, 0, 0);
         context.CS.SetConstantBuffer(HeightMap.TriangulateConstantsSlot, this.User.TriangulateConstantsBuffer);
         var length = width * height;
         using var output = new RWStructuredBuffer<ModelVertex>(this.Device, nameof(HeightMapGenerator), length);

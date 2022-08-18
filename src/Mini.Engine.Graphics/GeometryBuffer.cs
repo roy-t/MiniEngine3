@@ -10,13 +10,13 @@ public sealed class GeometryBuffer : IDisposable
     public GeometryBuffer(Device device)
     {
         var imageInfo = new ImageInfo(device.Width, device.Height, Format.R8G8B8A8_UNorm);
-        this.Albedo = new RenderTarget2D(device, imageInfo, nameof(GeometryBuffer), "Albedo");
+        this.Albedo = new RenderTarget(device, nameof(GeometryBuffer) + "Albedo", imageInfo, MipMapInfo.None());
 
         imageInfo = new ImageInfo(device.Width, device.Height, Format.R8G8B8A8_UNorm);
-        this.Material = new RenderTarget2D(device, imageInfo, nameof(GeometryBuffer), "Material");
+        this.Material = new RenderTarget(device, nameof(GeometryBuffer) + "Material", imageInfo, MipMapInfo.None());
 
         imageInfo = new ImageInfo(device.Width, device.Height, Format.R16G16B16A16_Float);
-        this.Normal = new RenderTarget2D(device, imageInfo, nameof(GeometryBuffer), "Normal");
+        this.Normal = new RenderTarget(device, nameof(GeometryBuffer) + "Normal", imageInfo, MipMapInfo.None());
 
         this.DepthStencilBuffer = new DepthStencilBuffer(device, DepthStencilFormat.D32_Float, device.Width, device.Height, 1, nameof(GeometryBuffer) + "Depth");
 
@@ -29,9 +29,9 @@ public sealed class GeometryBuffer : IDisposable
 
     public float AspectRatio => (float)this.Width / (float)this.Height;
 
-    public RenderTarget2D Albedo { get; }
-    public RenderTarget2D Material { get; }
-    public RenderTarget2D Normal { get; }
+    public IRenderTarget Albedo { get; }
+    public IRenderTarget Material { get; }
+    public IRenderTarget Normal { get; }
 
     public DepthStencilBuffer DepthStencilBuffer { get; }
 

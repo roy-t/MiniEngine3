@@ -4,6 +4,7 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
 
+
 public readonly record struct ImageInfo(int Width, int Height, Format Format, int Pitch = 0, int ArraySize = 1);
 public readonly record struct MipMapInfo(MipMapFlags Flags, int Levels)
 {
@@ -12,7 +13,7 @@ public readonly record struct MipMapInfo(MipMapFlags Flags, int Levels)
     public static MipMapInfo None() { return new MipMapInfo(MipMapFlags.None, 1); }   
 }
 public enum MipMapFlags { None, Provided, Generated };
-public enum BindInfo { ShaderResource, RenderTargetShaderResource, DepthStencilShaderResource };
+public enum BindInfo { ShaderResource, RenderTarget, UnorderedAccessView, DepthStencil };
 public enum ResourceInfo { Texture, Cube };
 
 public static class Textures
@@ -20,18 +21,31 @@ public static class Textures
 
     internal static ID3D11Texture2D Create(string user, string meaning, Device device, ImageInfo image, MipMapInfo mipMapInfo, BindInfo binding, ResourceInfo resource = ResourceInfo.Texture)
     {
+        var description = CreateDescription(image, mipMapInfo, binding, resource);
+
+        var texture = device.ID3D11Device.CreateTexture2D(description);
+        texture.DebugName = DebugNameGenerator.GetName(user, "Texture2D", meaning, image.Format);
+
+        return texture;
+    }
+
+    private static Texture2DDescription CreateDescription(ImageInfo image, MipMapInfo mipMapInfo, BindInfo binding, ResourceInfo resource)
+    {
         var bindFlags = BindFlags.None;
         switch (binding)
         {
             case BindInfo.ShaderResource:
                 bindFlags = BindFlags.ShaderResource;
                 break;
-            case BindInfo.RenderTargetShaderResource:
+            case BindInfo.RenderTarget:
                 bindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget;
                 break;
-            case BindInfo.DepthStencilShaderResource:
-                bindFlags = BindFlags.ShaderResource | BindFlags.DepthStencil;
+            case BindInfo.UnorderedAccessView:
+                bindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget | BindFlags.UnorderedAccess;
                 break;
+            case BindInfo.DepthStencil:
+                bindFlags = BindFlags.ShaderResource | BindFlags.DepthStencil;
+                break;            
         }
 
         var optionFlags = ResourceOptionFlags.None;
@@ -74,13 +88,8 @@ public static class Textures
             CPUAccessFlags = CpuAccessFlags.None,
             MiscFlags = optionFlags
         };
-
-        var texture = device.ID3D11Device.CreateTexture2D(description);
-        texture.DebugName = DebugNameGenerator.GetName(user, "Texture2D", meaning, image.Format);
-
-        return texture;
+        return description;
     }
-    
 
     public static void SetPixels<T>(Device device, ID3D11Texture2D texture, ID3D11ShaderResourceView view, ImageInfo imageInfo, MipMapInfo mipMapInfo, ReadOnlySpan<T> pixels)
         where T : unmanaged
