@@ -30,6 +30,6 @@ public sealed class PerformanceCounters
 
     public float GetGPUMemoryUsageBytes()
     {
-        return GPUProcessMemoryCounter?.NextValue() ?? 0;
+        return this.GPUProcessMemoryCounter?.NextValue() ?? 0;
     }
 }

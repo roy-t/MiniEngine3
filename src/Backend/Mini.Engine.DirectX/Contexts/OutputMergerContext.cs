@@ -1,6 +1,7 @@
 ﻿using Mini.Engine.Core;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX.Contexts;
@@ -20,26 +21,26 @@ public sealed class OutputMergerContext : DeviceContextPart
         this.ID3D11DeviceContext.OMSetDepthStencilState(state.ID3D11DepthStencilState);
     }
 
-    public void SetRenderTargetToBackBuffer(DepthStencilBuffer? depthStencilBuffer = null)
+    public void SetRenderTargetToBackBuffer(IDepthStencilBuffer? depthStencilBuffer = null)
     {
-        this.ID3D11DeviceContext.OMSetRenderTargets(base.DeviceContext.Device.BackBufferView, depthStencilBuffer?.DepthStencilView);
+        this.ID3D11DeviceContext.OMSetRenderTargets(base.DeviceContext.Device.BackBufferView, depthStencilBuffer?.DepthStencilViews[0]);
     }
 
-    public void SetRenderTarget(DepthStencilBuffer depthStencilBuffer)
+    public void SetRenderTarget(IDepthStencilBuffer depthStencilBuffer)
     {
 #nullable disable
-        this.ID3D11DeviceContext.OMSetRenderTargets((ID3D11RenderTargetView)null, depthStencilBuffer.DepthStencilView);
+        this.ID3D11DeviceContext.OMSetRenderTargets((ID3D11RenderTargetView)null, depthStencilBuffer.DepthStencilViews[0]);
 #nullable restore
     }
 
-    public void SetRenderTarget(DepthStencilBufferArray depthStencilBuffers, int slice)
+    public void SetRenderTarget(IDepthStencilBuffer depthStencilBuffers, int slice)
     {
 #nullable disable
         this.ID3D11DeviceContext.OMSetRenderTargets((ID3D11RenderTargetView)null, depthStencilBuffers.DepthStencilViews[slice]);
 #nullable restore
     }
 
-    public void SetRenderTarget(IResource<IDepthStencilBufferArray> depthStencilBuffers, int slice)
+    public void SetRenderTarget(IResource<IDepthStencilBuffer> depthStencilBuffers, int slice)
     {
         var dsv = this.DeviceContext.Resources.Get(depthStencilBuffers).DepthStencilViews[slice];
 #nullable disable
@@ -47,24 +48,24 @@ public sealed class OutputMergerContext : DeviceContextPart
 #nullable restore
     }
 
-    public void SetRenderTarget(RenderTarget2D renderTarget, DepthStencilBuffer? depthStencilBuffer = null)
+    public void SetRenderTarget(RenderTarget2D renderTarget, IDepthStencilBuffer? depthStencilBuffer = null)
     {
-        this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetView, depthStencilBuffer?.DepthStencilView);
+        this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetView, depthStencilBuffer?.DepthStencilViews[0]);
     }
    
-    public void SetRenderTarget(RenderTarget2DArray renderTarget, int index, int level = 0, DepthStencilBuffer? depthStencilBuffer = null)
+    public void SetRenderTarget(RenderTarget2DArray renderTarget, int index, int level = 0, IDepthStencilBuffer? depthStencilBuffer = null)
     {
         var slice = Indexes.ToOneDimensional(index, level, renderTarget.Length);
-        this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetViews[slice], depthStencilBuffer?.DepthStencilView);
+        this.ID3D11DeviceContext.OMSetRenderTargets(renderTarget.ID3D11RenderTargetViews[slice], depthStencilBuffer?.DepthStencilViews[0]);
     }
 
-    public void SetRenderTargets(DepthStencilBuffer? depthStencilBuffer, params RenderTarget2D[] renderTargets)
+    public void SetRenderTargets(IDepthStencilBuffer? depthStencilBuffer, params RenderTarget2D[] renderTargets)
     {
         var views = new ID3D11RenderTargetView[renderTargets.Length];
         for (var i = 0; i < renderTargets.Length; i++)
         {
             views[i] = renderTargets[i].ID3D11RenderTargetView;
         }
-        this.ID3D11DeviceContext.OMSetRenderTargets(views, depthStencilBuffer?.DepthStencilView);
+        this.ID3D11DeviceContext.OMSetRenderTargets(views, depthStencilBuffer?.DepthStencilViews[0]);
     }
 }

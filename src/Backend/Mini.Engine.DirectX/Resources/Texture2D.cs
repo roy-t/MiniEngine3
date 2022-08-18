@@ -3,7 +3,7 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
 
-public sealed class Texture2D : ITexture2D
+public sealed class Texture2D : ITexture2D, vNext.ITexture
 {
     public Texture2D(Device device, ImageInfo imageInfo, MipMapInfo mipMapInfo, string user, string meaning, ResourceInfo resourceInfo = ResourceInfo.Texture)
     {
@@ -39,7 +39,7 @@ public sealed class Texture2D : ITexture2D
 
     public ImageInfo ImageInfo { get; }
     public MipMapInfo MipMapInfo { get; }
-    
+
     public int Width => this.ImageInfo.Width;
     public int Height => this.ImageInfo.Height;
     public int Levels => this.MipMapInfo.Levels;
@@ -52,6 +52,27 @@ public sealed class Texture2D : ITexture2D
 
     ID3D11ShaderResourceView ITexture.ShaderResourceView => this.ShaderResourceView;
     ID3D11Texture2D ITexture.Texture => this.Texture;
+
+
+    ID3D11ShaderResourceView vNext.ISurface.ShaderResourceView
+    {
+        get => this.ShaderResourceView;
+        set { }
+    }
+
+    ID3D11Texture2D vNext.ISurface.Texture
+    {
+        get => this.Texture;
+        set { }
+    }
+
+    string vNext.ISurface.Name => this.Name;
+    Format vNext.ISurface.Format => this.Format;
+    int vNext.ISurface.DimX => this.ImageInfo.Width;
+    int vNext.ISurface.DimY => this.ImageInfo.Height;
+    int vNext.ISurface.DimZ => this.ImageInfo.ArraySize;
+
+    int vNext.ITexture.MipMapLevels => this.MipMapInfo.Levels;
 
     public void Dispose()
     {

@@ -37,7 +37,19 @@ public sealed class PixelShaderContext : DeviceContextPart
         this.ID3D11DeviceContext.PSSetShaderResource(slot, texture.ShaderResourceView);
     }
 
+    public void SetShaderResourceN(int slot, Resources.vNext.ISurface texture)
+    {
+        this.ID3D11DeviceContext.PSSetShaderResource(slot, texture.ShaderResourceView);
+    }
+
     public void SetShaderResource(int slot, IResource<ITexture> texture)
+    {
+        var srv = this.DeviceContext.Resources.Get(texture).ShaderResourceView;
+        this.ID3D11DeviceContext.PSSetShaderResource(slot, srv);
+    }
+
+    // TODO: remove/rename
+    public void SetShaderResourceN(int slot, IResource<Mini.Engine.DirectX.Resources.vNext.ISurface> texture)
     {
         var srv = this.DeviceContext.Resources.Get(texture).ShaderResourceView;
         this.ID3D11DeviceContext.PSSetShaderResource(slot, srv);

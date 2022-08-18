@@ -4,7 +4,7 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
 
-public sealed class RWTexture2D : ITexture2D
+public sealed class RWTexture2D : ITexture2D, vNext.IRWTexture
 {
     public RWTexture2D(Device device, int width, int height, Format format, bool generateMipMaps, string user, string meaning)
     {
@@ -59,6 +59,32 @@ public sealed class RWTexture2D : ITexture2D
     ID3D11ShaderResourceView ITexture.ShaderResourceView => this.ShaderResourceView;
     ID3D11Texture2D ITexture.Texture => this.Texture;
 
+    ID3D11ShaderResourceView vNext.ISurface.ShaderResourceView
+    {
+        get => this.ShaderResourceView;
+        set { }
+    }
+
+    ID3D11Texture2D vNext.ISurface.Texture
+    {
+        get => this.Texture;
+        set { }
+    }
+
+    string vNext.ISurface.Name => this.Name;
+    Format vNext.ISurface.Format => this.Format;
+    int vNext.ISurface.DimX => this.Width;
+    int vNext.ISurface.DimY => this.Height;
+    int vNext.ISurface.DimZ => 1;
+
+    ID3D11UnorderedAccessView[] vNext.IRWTexture.UnorderedAccessViews
+    {
+        get => this.UnorderedAccessViews;
+        set { }
+    }
+
+    int vNext.ITexture.MipMapLevels { get; }
+
     private static ID3D11Texture2D Create(Device device, int width, int height, Format format, bool generateMipMaps, string user, string meaning)
     {
         var description = new Texture2DDescription
@@ -85,5 +111,10 @@ public sealed class RWTexture2D : ITexture2D
     {
         this.ShaderResourceView.Dispose();
         this.Texture.Dispose();
+    }
+
+    void IDisposable.Dispose()
+    {
+        throw new NotImplementedException();
     }
 }

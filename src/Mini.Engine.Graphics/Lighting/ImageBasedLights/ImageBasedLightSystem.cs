@@ -42,10 +42,10 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
         this.Context.PS.SetSampler(0, this.Device.SamplerStates.LinearClamp);
-        this.Context.PS.SetShaderResource(ImageBasedLight.Albedo, this.FrameService.GBuffer.Albedo);
-        this.Context.PS.SetShaderResource(ImageBasedLight.Normal, this.FrameService.GBuffer.Normal);
-        this.Context.PS.SetShaderResource(ImageBasedLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
-        this.Context.PS.SetShaderResource(ImageBasedLight.Material, this.FrameService.GBuffer.Material);
+        this.Context.PS.SetShaderResourceN(ImageBasedLight.Albedo, this.FrameService.GBuffer.Albedo);
+        this.Context.PS.SetShaderResourceN(ImageBasedLight.Normal, this.FrameService.GBuffer.Normal);
+        this.Context.PS.SetShaderResourceN(ImageBasedLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
+        this.Context.PS.SetShaderResourceN(ImageBasedLight.Material, this.FrameService.GBuffer.Material);
         this.Context.PS.SetShaderResource(ImageBasedLight.BrdfLut, this.BrdfLut);
 
         var camera = this.FrameService.GetPrimaryCamera().Camera;

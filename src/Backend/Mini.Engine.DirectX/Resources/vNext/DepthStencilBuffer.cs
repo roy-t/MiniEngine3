@@ -2,51 +2,43 @@
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
-namespace Mini.Engine.DirectX.Resources;
+namespace Mini.Engine.DirectX.Resources.vNext;
 
-// TODO: this is extremely similar to DepthStencilBuffer!
-public sealed class DepthStencilBufferArray : IDepthStencilBufferArray
+public enum DepthStencilFormat
 {
-    public DepthStencilBufferArray(Device device, DepthStencilFormat format, int width, int height, int length, string user, string meaning)
+    D16_UNorm,
+    D24_UNorm_S8_UInt,
+    D32_Float,
+    D32_Float_S8X24_UInt
+}
+
+public sealed class DepthStencilBuffer : Surface, IDepthStencilBuffer
+{
+    public DepthStencilBuffer(Device device, DepthStencilFormat format, int width, int height, int arraySize, string name)
+        : base(name, new ImageInfo(width, height, ToTextureFormat(format), 0, arraySize))
     {
-        var imageInfo = new ImageInfo(width, height, ToTextureFormat(format), ArraySize: length);
-        var mipMapInfo = MipMapInfo.None();
+        var image = new ImageInfo(width, height, ToTextureFormat(format), 0, arraySize);
+        var texture = Textures.Create(name, "", device, image, MipMapInfo.None(), BindInfo.DepthStencilShaderResource);
+        var view = CreateSRV(device, texture, image.ArraySize, ToShaderResourceViewFormat(format), name, "");
 
-        this.ImageInfo = imageInfo;
-        this.MipMapInfo = mipMapInfo;
+        this.SetResources(texture, view);
 
-        this.Texture = Textures.Create(user, meaning, device, imageInfo, mipMapInfo, BindInfo.DepthStencilShaderResource);
-        this.ShaderResourceView = CreateSRV(device, this.Texture, length, ToShaderResourceViewFormat(format), user, meaning);
-
-        this.Name = DebugNameGenerator.GetName(user, "DEPTH_ARRAY", meaning);
-        this.DepthStencilViews = new ID3D11DepthStencilView[length];
-        for (var i = 0; i < length; i++)
+        var dsvs = new ID3D11DepthStencilView[image.ArraySize];
+        for (var i = 0; i < dsvs.Length; i++)
         {
             var depthView = new DepthStencilViewDescription(DepthStencilViewDimension.Texture2DArray, ToDepthViewFormat(format), 0, i, 1);
-            this.DepthStencilViews[i] = device.ID3D11Device.CreateDepthStencilView(this.Texture, depthView);
-            this.DepthStencilViews[i].DebugName = DebugNameGenerator.GetName(user, "DSV", ToDepthViewFormat(format), i);
+            dsvs[i] = device.ID3D11Device.CreateDepthStencilView(texture, depthView);
+            dsvs[i].DebugName = DebugNameGenerator.GetName(name, "DSV", ToDepthViewFormat(format), i);
         }
+
+        this.AsDepthStencilBuffer.DepthStencilViews = dsvs;
     }
 
-    public string Name { get; }
+    public IDepthStencilBuffer AsDepthStencilBuffer => this;
 
-    public ImageInfo ImageInfo { get; }
-    public MipMapInfo MipMapInfo { get; }
-
-    public int Width => this.ImageInfo.Width;
-    public int Height => this.ImageInfo.Height;
-    public int Levels => this.MipMapInfo.Levels;
-    public int Length => this.ImageInfo.ArraySize;
-
-    public Format Format => this.ImageInfo.Format;
-
-    internal ID3D11Texture2D Texture { get; }
-    internal ID3D11ShaderResourceView ShaderResourceView { get; }
-    internal ID3D11DepthStencilView[] DepthStencilViews { get; }
-
-    ID3D11DepthStencilView[] IDepthStencilBufferArray.DepthStencilViews => this.DepthStencilViews;
-    ID3D11ShaderResourceView ITexture.ShaderResourceView => this.ShaderResourceView;
-    ID3D11Texture2D ITexture.Texture => this.Texture;
+#nullable disable
+    ID3D11DepthStencilView[] IDepthStencilBuffer.DepthStencilViews { get; set; }
+#nullable restore
 
     private static ID3D11ShaderResourceView CreateSRV(Device device, ID3D11Texture2D texture, int length, Format format, string user, string meaning)
     {
@@ -91,15 +83,5 @@ public sealed class DepthStencilBufferArray : IDepthStencilBufferArray
             DepthStencilFormat.D32_Float_S8X24_UInt => Format.R32_Float_X8X24_Typeless,
             _ => throw new ArgumentOutOfRangeException(nameof(format)),
         };
-    }
-
-    public void Dispose()
-    {
-        for (var i = 0; i < this.Length; i++)
-        {
-            this.DepthStencilViews[i].Dispose();
-        }
-        this.ShaderResourceView.Dispose();
-        this.Texture.Dispose();
     }
 }

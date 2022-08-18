@@ -47,7 +47,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
         this.Context.PS.SetSampler(PointLight.TextureSampler, this.Device.SamplerStates.LinearClamp);
         this.Context.PS.SetShaderResource(PointLight.Albedo, this.FrameService.GBuffer.Albedo);
         this.Context.PS.SetShaderResource(PointLight.Normal, this.FrameService.GBuffer.Normal);
-        this.Context.PS.SetShaderResource(PointLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
+        this.Context.PS.SetShaderResourceN(PointLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
         this.Context.PS.SetShaderResource(PointLight.Material, this.FrameService.GBuffer.Material);
 
         var camera = this.FrameService.GetPrimaryCamera().Camera;

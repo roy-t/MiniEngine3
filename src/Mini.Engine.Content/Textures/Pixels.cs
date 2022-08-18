@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 using Vortice.DXGI;
 using Vortice.Mathematics;
 
@@ -19,62 +19,63 @@ public sealed class Pixels
         this.Content = content;
     }
 
-    public ITexture2D WhitePixel => this.CreatePixel(Colors.White, "White");
+    public ITexture WhitePixel => this.CreatePixel(Colors.White, "White");
 
-    public ITexture2D BlackPixel => this.CreatePixel(Colors.Black, "Black");
+    public ITexture BlackPixel => this.CreatePixel(Colors.Black, "Black");
 
-    public ITexture2D RedPixel => this.CreatePixel(Colors.Red, "Red");
+    public ITexture RedPixel => this.CreatePixel(Colors.Red, "Red");
 
-    public ITexture2D GreenPixel => this.CreatePixel(Colors.Green, "Green");
+    public ITexture GreenPixel => this.CreatePixel(Colors.Green, "Green");
 
-    public ITexture2D BluePixel => this.CreatePixel(Colors.Blue, "Blue");
+    public ITexture BluePixel => this.CreatePixel(Colors.Blue, "Blue");
 
-    public ITexture2D ConductivePixel => this.CreatePixel(Colors.White, "Metalicness");
+    public ITexture ConductivePixel => this.CreatePixel(Colors.White, "Metalicness");
 
-    public ITexture2D DielectricPixel => this.CreatePixel(Colors.Black, "Metalicness");
+    public ITexture DielectricPixel => this.CreatePixel(Colors.Black, "Metalicness");
 
-    public ITexture2D RoughPixel => this.RoughnessPixel(1.0f);
+    public ITexture RoughPixel => this.RoughnessPixel(1.0f);
 
-    public ITexture2D SmoothPixel => this.RoughnessPixel(0.0f);
+    public ITexture SmoothPixel => this.RoughnessPixel(0.0f);
 
-    public ITexture2D VisiblePixel => this.AmbientOcclussionPixel(1.0f);
+    public ITexture VisiblePixel => this.AmbientOcclussionPixel(1.0f);
 
-    public ITexture2D OccludedPixel => this.AmbientOcclussionPixel(0.0f);
+    public ITexture OccludedPixel => this.AmbientOcclussionPixel(0.0f);
 
-    public ITexture2D AlbedoPixel(Color4 color)
+    public ITexture AlbedoPixel(Color4 color)
     {
         return this.CreatePixel(color, "Albedo");
     }
 
-    public ITexture2D NormalPixel()
+    public ITexture NormalPixel()
     {
         return this.NormalPixel(Vector3.UnitZ);
     }
 
-    public ITexture2D NormalPixel(Vector3 direction)
+    public ITexture NormalPixel(Vector3 direction)
     {
         return this.CreatePixel(new Color4(Pack(direction), 1.0f), "Normal");
     }
 
-    public ITexture2D MetalicnessPixel(float metalicness)
+    public ITexture MetalicnessPixel(float metalicness)
     {
         return this.CreatePixel(new Color4(metalicness, metalicness, metalicness), "Metalicness");
     }
 
-    public ITexture2D RoughnessPixel(float roughness)
+    public ITexture RoughnessPixel(float roughness)
     {
         return this.CreatePixel(new Color4(roughness, roughness, roughness), "Roughness");
     }
 
-    public ITexture2D AmbientOcclussionPixel(float ao)
+    public ITexture AmbientOcclussionPixel(float ao)
     {
         return this.CreatePixel(new Color4(ao, ao, ao), "AmbientOcclusion");
     }
 
-    private ITexture2D CreatePixel(Color4 color, string meaning)
+    private ITexture CreatePixel(Color4 color, string meaning)
     {
-        var image = new ImageInfo(1, 1, Format.R16G16B16A16_Float, 1 * Format.R16G16B16A16_Float.BytesPerPixel());
-        var pixel = new Texture2D(this.Device, image, MipMapInfo.None(), nameof(Pixels), meaning);
+        var image = new DirectX.Resources.ImageInfo(1, 1, Format.R16G16B16A16_Float, 1 * Format.R16G16B16A16_Float.BytesPerPixel());
+        var mipMap = DirectX.Resources.MipMapInfo.None();
+        var pixel = new Texture(this.Device, image, mipMap, nameof(Pixels) + "_meaning");
         pixel.SetPixels(this.Device, new ReadOnlySpan<Color4>(new Color4[] { color }));        
 
         this.Content.Link(pixel, $"pixels/{meaning}");

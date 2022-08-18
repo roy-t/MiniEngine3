@@ -4,6 +4,7 @@ using Mini.Engine.Content;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.PointLights;
@@ -79,7 +80,7 @@ public sealed class SponzaScene : IScene
                 ref var shadowmap = ref creator.Create<CascadedShadowMapComponent>(sun);
 
                 var resolution = 2048;
-                var buffer = new DepthStencilBufferArray(this.Device, DepthStencilFormat.D32_Float, resolution, resolution, 4, sun.ToString(), nameof(CascadedShadowMapComponent));
+                var buffer = new DepthStencilBuffer(this.Device, DepthStencilFormat.D32_Float, resolution, resolution, 4, sun.ToString() + nameof(CascadedShadowMapComponent));
                 var bufferResource = this.Device.Resources.Add(buffer);
                 this.Content.Link(bufferResource, buffer.Name);
 

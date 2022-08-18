@@ -3,7 +3,7 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
 
-public sealed class RenderTarget2D : ITexture2D
+public sealed class RenderTarget2D : ITexture2D, Mini.Engine.DirectX.Resources.vNext.IRenderTarget
 {
     public RenderTarget2D(Device device, ImageInfo imageInfo, string user, string meaning)
     {
@@ -35,6 +35,30 @@ public sealed class RenderTarget2D : ITexture2D
     ID3D11Texture2D ITexture.Texture => this.Texture;
 
     internal ID3D11RenderTargetView ID3D11RenderTargetView { get; }
+
+    ID3D11ShaderResourceView vNext.ISurface.ShaderResourceView
+    {
+        get => this.ShaderResourceView;
+        set { }
+    }
+
+    ID3D11Texture2D vNext.ISurface.Texture
+    {
+        get => this.Texture;
+        set { }
+    }
+
+    string vNext.ISurface.Name => this.Name;
+    Format vNext.ISurface.Format => this.Format;
+    int vNext.ISurface.DimX => this.ImageInfo.Width;
+    int vNext.ISurface.DimY => this.ImageInfo.Height;
+    int vNext.ISurface.DimZ => this.ImageInfo.ArraySize;
+
+    ID3D11RenderTargetView[] vNext.IRenderTarget.ID3D11RenderTargetViews
+    {
+        get => new[] { this.ID3D11RenderTargetView };
+        set { }
+    }
 
     public void Dispose()
     {

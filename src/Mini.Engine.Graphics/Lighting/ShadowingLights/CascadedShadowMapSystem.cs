@@ -7,6 +7,7 @@ using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Models;
@@ -98,7 +99,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         return (view.NearPlane + (farZ * clipDistance), new Vector4(-nearCorner, 0.0f), new Vector4(Vector3.One / (farCorner - nearCorner), 1.0f));        
     }
 
-    private void RenderShadowMap(IResource<IDepthStencilBufferArray> depthStencilBuffers, int resolution, int slice, Matrix4x4 viewProjection)
+    private void RenderShadowMap(IResource<IDepthStencilBuffer> depthStencilBuffers, int resolution, int slice, Matrix4x4 viewProjection)
     {
         this.Context.RS.SetViewPort(0, 0, resolution, resolution);
         this.Context.RS.SetScissorRect(0, 0, resolution, resolution);

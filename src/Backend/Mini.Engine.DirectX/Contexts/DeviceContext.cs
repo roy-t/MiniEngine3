@@ -1,6 +1,7 @@
 ﻿using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.Mathematics;
@@ -62,17 +63,17 @@ public abstract class DeviceContext : IDisposable
         this.ID3D11DeviceContext.ClearRenderTargetView(renderTarget.ID3D11RenderTargetViews[slice], color);
     }
 
-    public void Clear(DepthStencilBuffer depthStencilBuffer, DepthStencilClearFlags flags, float depth, byte stencil)
+    public void Clear(IDepthStencilBuffer depthStencilBuffer, DepthStencilClearFlags flags, float depth, byte stencil)
     {
-        this.ID3D11DeviceContext.ClearDepthStencilView(depthStencilBuffer.DepthStencilView, flags, depth, stencil);
+        this.ID3D11DeviceContext.ClearDepthStencilView(depthStencilBuffer.DepthStencilViews[0], flags, depth, stencil);
     }
 
-    public void Clear(DepthStencilBufferArray depthStencilBuffers, int slice, DepthStencilClearFlags flags, float depth, byte stencil)
+    public void Clear(IDepthStencilBuffer depthStencilBuffers, int slice, DepthStencilClearFlags flags, float depth, byte stencil)
     {
         this.ID3D11DeviceContext.ClearDepthStencilView(depthStencilBuffers.DepthStencilViews[slice], flags, depth, stencil);
     }
 
-    public void Clear(IResource<IDepthStencilBufferArray> depthStencilBuffers, int slice, DepthStencilClearFlags flags, float depth, byte stencil)
+    public void Clear(IResource<IDepthStencilBuffer> depthStencilBuffers, int slice, DepthStencilClearFlags flags, float depth, byte stencil)
     {
         var dsv = this.Resources.Get(depthStencilBuffers).DepthStencilViews[slice];
         this.ID3D11DeviceContext.ClearDepthStencilView(dsv, flags, depth, stencil);
