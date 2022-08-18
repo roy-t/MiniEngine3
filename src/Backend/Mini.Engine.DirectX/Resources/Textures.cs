@@ -102,6 +102,19 @@ public static class Textures
         }
     }
 
+    public static void SetPixels<T>(Device device, ID3D11Texture2D texture, ID3D11ShaderResourceView view, ImageInfo imageInfo, MipMapInfo mipMapInfo, ReadOnlySpan<T> pixels, int mipSlice, int arraySlice)
+       where T : unmanaged
+    {
+        var subresource = D3D11.CalculateSubResourceIndex(mipSlice, arraySlice, mipMapInfo.Levels);
+        var pitch = (int)(imageInfo.Pitch / Math.Pow(2, mipSlice));
+        device.ID3D11DeviceContext.UpdateSubresource(pixels, texture, subresource, pitch);
+
+        if (mipMapInfo.Flags == MipMapFlags.Generated)
+        {
+            device.ID3D11DeviceContext.GenerateMips(view);
+        }
+    }
+
     public static void SetPixels<T>(Device device, ID3D11Texture2D texture, ImageInfo imageInfo, ReadOnlySpan<T> pixels, int mipMapIndex = 0)
         where T : unmanaged
     {

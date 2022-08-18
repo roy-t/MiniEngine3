@@ -1,14 +1,22 @@
-﻿namespace Mini.Engine.DirectX.Resources.vNext;
+﻿using Vortice.Direct3D11;
 
-public sealed class Texture : Surface, ITexture
+namespace Mini.Engine.DirectX.Resources.vNext;
+
+public class Texture : Surface, ITexture
 {
     public Texture(Device device, ImageInfo image, MipMapInfo mipMap, string name)
         : base(name, image)
     {
-        var texture = Textures.Create(name, "", device, image, mipMap, BindInfo.ShaderResource, ResourceInfo.Texture);
-        var view = ShaderResourceViews.Create(device, texture, image, name);
+        (var texture, var view) = this.CreateResources(device, image, mipMap, name);
 
         this.SetResources(texture, view);
+    }
+
+    protected virtual (ID3D11Texture2D, ID3D11ShaderResourceView) CreateResources(Device device, ImageInfo image, MipMapInfo mipMap, string name)
+    {
+        var texture = Textures.Create(name, "", device, image, mipMap, BindInfo.ShaderResource, ResourceInfo.Texture);
+        var view = ShaderResourceViews.Create(device, texture, image, name);
+        return (texture, view);
     }
 
     public MipMapInfo MipMapInfo { get; }
@@ -19,5 +27,12 @@ public sealed class Texture : Surface, ITexture
         where T : unmanaged
     {
         Textures.SetPixels(device, this.AsSurface.Texture, this.AsSurface.ShaderResourceView, this.ImageInfo, this.MipMapInfo, pixels);
+    }
+
+
+    public void SetPixels<T>(Device device, ReadOnlySpan<T> pixels, int mipSlice, int arraySlice)
+        where T : unmanaged
+    {
+        Textures.SetPixels(device, this.AsSurface.Texture, this.AsSurface.ShaderResourceView, this.ImageInfo, this.MipMapInfo, pixels, mipSlice, arraySlice);
     }
 }
