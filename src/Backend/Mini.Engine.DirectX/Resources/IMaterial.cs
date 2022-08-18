@@ -1,10 +1,12 @@
-﻿namespace Mini.Engine.DirectX.Resources;
+﻿using Mini.Engine.DirectX.Resources.vNext;
+
+namespace Mini.Engine.DirectX.Resources;
 
 public interface IMaterial : IDeviceResource
 {
-    public ITexture2D Albedo { get; }
-    public ITexture2D Metalicness { get; }
-    public ITexture2D Normal { get; }
-    public ITexture2D Roughness { get; }
-    public ITexture2D AmbientOcclusion { get; }
+    public ITexture Albedo { get; }
+    public ITexture Metalicness { get; }
+    public ITexture Normal { get; }
+    public ITexture Roughness { get; }
+    public ITexture AmbientOcclusion { get; }
 }

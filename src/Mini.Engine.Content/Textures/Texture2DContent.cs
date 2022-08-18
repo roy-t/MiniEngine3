@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -9,7 +10,7 @@ namespace Mini.Engine.Content.Textures;
 internal sealed record TextureData(ContentId Id, ImageInfo ImageInfo, MipMapInfo MipMapInfo, ID3D11Texture2D Texture, ID3D11ShaderResourceView View)
     : IContentData;
 
-internal sealed class Texture2DContent : ITexture2D, IContent
+internal sealed class Texture2DContent : ITexture, IContent
 {
     private readonly IContentDataLoader<TextureData> Loader;
     private readonly ILoaderSettings Settings;
@@ -30,15 +31,23 @@ internal sealed class Texture2DContent : ITexture2D, IContent
     public ContentId Id { get; }
     public string Name { get; }
 
-    public int Width { get; private set; }
-    public int Height { get; private set; }    
-    public int Levels { get; private set; }
-    public int Length { get; private set; }
+    public int DimX { get; private set; }
+    public int DimY { get; private set; }        
+    public int DimZ { get; private set; }
+    public int MipMapLevels { get; private set; }    
 
     public Format Format { get; private set; }
 
-    ID3D11ShaderResourceView ITexture.ShaderResourceView => this.shaderResourceView;
-    ID3D11Texture2D ITexture.Texture => this.texture;
+    ID3D11ShaderResourceView ISurface.ShaderResourceView
+    {
+        get =>  this.shaderResourceView;
+        set { }
+    }
+    ID3D11Texture2D ISurface.Texture
+    {
+        get => this.texture;
+        set { }
+    }
 
     [MemberNotNull(nameof(shaderResourceView), nameof(texture))]
     public void Reload(Device device)
@@ -47,10 +56,10 @@ internal sealed class Texture2DContent : ITexture2D, IContent
 
         var data = this.Loader.Load(device, this.Id, this.Settings);
 
-        this.Width = data.ImageInfo.Width;
-        this.Height = data.ImageInfo.Height;        
-        this.Levels = data.MipMapInfo.Levels;
-        this.Length = data.ImageInfo.ArraySize;
+        this.DimX = data.ImageInfo.Width;
+        this.DimY = data.ImageInfo.Height;        
+        this.MipMapLevels = data.MipMapInfo.Levels;
+        this.DimZ = data.ImageInfo.ArraySize;
 
         this.Format = data.ImageInfo.Format;
 

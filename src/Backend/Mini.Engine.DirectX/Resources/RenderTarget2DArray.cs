@@ -6,7 +6,7 @@ using Vortice.DXGI;
 namespace Mini.Engine.DirectX.Resources;
 
 // TODO: this is extremely similar to RenderTarget2D
-public sealed class RenderTarget2DArray : ITexture2D, vNext.IRenderTarget
+public sealed class RenderTarget2DArray : vNext.IRenderTarget
 {
     public RenderTarget2DArray(Device device, ImageInfo imageInfo, MipMapInfo mipMapInfo, ResourceInfo resourceInfo, string user, string meaning)
     {
@@ -60,9 +60,6 @@ public sealed class RenderTarget2DArray : ITexture2D, vNext.IRenderTarget
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }
 
-    ID3D11ShaderResourceView ITexture.ShaderResourceView => this.ShaderResourceView;
-    ID3D11Texture2D ITexture.Texture => this.Texture;
-
     internal ID3D11RenderTargetView[] ID3D11RenderTargetViews { get; }
 
     ID3D11ShaderResourceView vNext.ISurface.ShaderResourceView
@@ -82,6 +79,7 @@ public sealed class RenderTarget2DArray : ITexture2D, vNext.IRenderTarget
     int vNext.ISurface.DimX => this.ImageInfo.Width;
     int vNext.ISurface.DimY => this.ImageInfo.Height;
     int vNext.ISurface.DimZ => this.ImageInfo.ArraySize;
+    int vNext.ITexture.MipMapLevels => this.Levels;
 
     ID3D11RenderTargetView[] vNext.IRenderTarget.ID3D11RenderTargetViews
     {

@@ -1,8 +1,10 @@
-﻿namespace Mini.Engine.DirectX.Resources;
+﻿using Mini.Engine.DirectX.Resources.vNext;
+
+namespace Mini.Engine.DirectX.Resources;
 
 public sealed class Material : IMaterial
 {
-    public Material(ITexture2D albedo, ITexture2D metalicness, ITexture2D normal, ITexture2D roughness, ITexture2D ambientOcclusion, string user)
+    public Material(ITexture albedo, ITexture metalicness, ITexture normal, ITexture roughness, ITexture ambientOcclusion, string user)
     {
         this.Name = DebugNameGenerator.GetName(user);
         this.Albedo = albedo;
@@ -13,11 +15,11 @@ public sealed class Material : IMaterial
     }
 
     public string Name { get; }
-    public ITexture2D Albedo { get; }
-    public ITexture2D Metalicness { get; }
-    public ITexture2D Normal { get; }
-    public ITexture2D Roughness { get; }
-    public ITexture2D AmbientOcclusion { get; }
+    public ITexture Albedo { get; }
+    public ITexture Metalicness { get; }
+    public ITexture Normal { get; }
+    public ITexture Roughness { get; }
+    public ITexture AmbientOcclusion { get; }
 
     public void Dispose()
     {

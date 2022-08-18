@@ -37,7 +37,7 @@ public interface IDepthStencilBuffer : ISurface
     internal ID3D11DepthStencilView[] DepthStencilViews { get; set; }
 }
 
-public interface IRenderTarget : ISurface
+public interface IRenderTarget : ITexture
 {
     internal ID3D11RenderTargetView[] ID3D11RenderTargetViews { get; set; }
 }

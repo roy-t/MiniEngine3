@@ -2,6 +2,7 @@
 using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 
 namespace Mini.Engine.UI.Components;
 
@@ -30,7 +31,7 @@ internal sealed class TextureSelector
         return ImGui.BeginCombo(name, this.selectedName);
     }
 
-    public void Select(string name, ITexture2D texture)
+    public void Select(string name, ISurface texture)
     {
         this.Selectable(name, texture, this.index);
         this.index++;
@@ -41,7 +42,7 @@ internal sealed class TextureSelector
         ImGui.EndCombo();        
     }
 
-    public void ShowSelected(params ITexture2D[] textures)
+    public void ShowSelected(params ISurface[] textures)
     {        
         if (textures.Length > 0)
         {
@@ -51,7 +52,7 @@ internal sealed class TextureSelector
         }
     }
 
-    private void Selectable(string name, ITexture2D texture, int index)
+    private void Selectable(string name, ISurface texture, int index)
     {
         var isSelected = this.selected == index;
         if (ImGui.Selectable(name, isSelected))
@@ -66,9 +67,9 @@ internal sealed class TextureSelector
         }
     }
 
-    private static Vector2 Fit(ITexture2D texture, float maxWidth)
+    private static Vector2 Fit(ISurface texture, float maxWidth)
     {
-        var dimensions = new Vector2(texture.Width, texture.Height);
+        var dimensions = new Vector2(texture.DimX, texture.DimY);
         var factor = Math.Min(1, maxWidth / dimensions.X);
         return dimensions * factor;
     }

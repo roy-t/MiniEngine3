@@ -1,6 +1,7 @@
 ﻿using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX.Contexts;
@@ -31,7 +32,7 @@ public sealed class ComputeShaderContext : DeviceContextPart
         this.ID3D11DeviceContext.CSSetShader(shader.ID3D11Shader);
     }
 
-    public void SetShaderResource(int slot, ITexture texture)
+    public void SetShaderResource(int slot, ISurface texture)
     {
         this.ID3D11DeviceContext.CSSetShaderResource(slot, texture.ShaderResourceView);
     }

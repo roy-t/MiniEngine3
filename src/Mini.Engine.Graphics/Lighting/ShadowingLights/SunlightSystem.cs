@@ -40,7 +40,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
         this.Context.PS.SetSampler(SunLight.TextureSampler, this.Device.SamplerStates.LinearClamp);
         this.Context.PS.SetShaderResource(SunLight.Albedo, this.FrameService.GBuffer.Albedo);
         this.Context.PS.SetShaderResource(SunLight.Normal, this.FrameService.GBuffer.Normal);
-        this.Context.PS.SetShaderResourceN(SunLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
+        this.Context.PS.SetShaderResource(SunLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
         this.Context.PS.SetShaderResource(SunLight.Material, this.FrameService.GBuffer.Material);
 
         this.Context.PS.SetSampler(SunLight.ShadowSampler, this.Device.SamplerStates.CompareLessEqualClamp);
@@ -66,7 +66,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
 
         this.User.MapConstants(this.Context, sunlight.Color, -viewPoint.Transform.GetForward(), sunlight.Strength, inverse, cameraTransform.GetPosition(), shadow);
 
-        this.Context.PS.SetShaderResourceN(SunLight.ShadowMap, shadowMap.DepthBuffers);
+        this.Context.PS.SetShaderResource(SunLight.ShadowMap, shadowMap.DepthBuffers);
 
         this.Context.Draw(3);
     }   

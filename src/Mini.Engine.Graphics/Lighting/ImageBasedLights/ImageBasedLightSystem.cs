@@ -3,7 +3,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
-using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 
@@ -19,7 +19,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
     private readonly ImageBasedLight Shader;
     private readonly ImageBasedLight.User User;
 
-    private readonly ITexture2D BrdfLut;
+    private readonly ISurface BrdfLut;
 
     public ImageBasedLightSystem(Device device, FrameService frameService, BrdfLutGenerator generator, FullScreenTriangle fullScreenTriangleShader, ImageBasedLight shader)
     {
@@ -42,10 +42,10 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
         this.Context.PS.SetSampler(0, this.Device.SamplerStates.LinearClamp);
-        this.Context.PS.SetShaderResourceN(ImageBasedLight.Albedo, this.FrameService.GBuffer.Albedo);
-        this.Context.PS.SetShaderResourceN(ImageBasedLight.Normal, this.FrameService.GBuffer.Normal);
-        this.Context.PS.SetShaderResourceN(ImageBasedLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
-        this.Context.PS.SetShaderResourceN(ImageBasedLight.Material, this.FrameService.GBuffer.Material);
+        this.Context.PS.SetShaderResource(ImageBasedLight.Albedo, this.FrameService.GBuffer.Albedo);
+        this.Context.PS.SetShaderResource(ImageBasedLight.Normal, this.FrameService.GBuffer.Normal);
+        this.Context.PS.SetShaderResource(ImageBasedLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
+        this.Context.PS.SetShaderResource(ImageBasedLight.Material, this.FrameService.GBuffer.Material);
         this.Context.PS.SetShaderResource(ImageBasedLight.BrdfLut, this.BrdfLut);
 
         var camera = this.FrameService.GetPrimaryCamera().Camera;

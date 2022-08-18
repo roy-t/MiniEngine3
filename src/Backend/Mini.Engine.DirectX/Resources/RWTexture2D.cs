@@ -4,7 +4,7 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
 
-public sealed class RWTexture2D : ITexture2D, vNext.IRWTexture
+public sealed class RWTexture2D : vNext.IRWTexture
 {
     public RWTexture2D(Device device, int width, int height, Format format, bool generateMipMaps, string user, string meaning)
     {
@@ -55,9 +55,6 @@ public sealed class RWTexture2D : ITexture2D, vNext.IRWTexture
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }
     internal ID3D11UnorderedAccessView[] UnorderedAccessViews { get; }
-
-    ID3D11ShaderResourceView ITexture.ShaderResourceView => this.ShaderResourceView;
-    ID3D11Texture2D ITexture.Texture => this.Texture;
 
     ID3D11ShaderResourceView vNext.ISurface.ShaderResourceView
     {

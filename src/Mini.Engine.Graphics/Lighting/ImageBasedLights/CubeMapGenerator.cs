@@ -3,6 +3,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 using Shaders = Mini.Engine.Content.Shaders.Generated;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
@@ -39,10 +40,10 @@ public sealed class CubeMapGenerator
         this.User = shader.CreateUserFor<CubeMapGenerator>();
     }
 
-    public IResource<ITexture2D> GenerateAlbedo(IResource<ITexture2D> equirectangular, string user)
+    public IResource<IRenderTarget> GenerateAlbedo(IResource<ITexture> equirectangular, string user)
     {
         var eqTexture = this.Device.Resources.Get(equirectangular);
-        var resolution = eqTexture.Height / 2;
+        var resolution = eqTexture.DimY / 2;
 
         var imageInfo = new ImageInfo(resolution, resolution, eqTexture.Format, eqTexture.Format.BytesPerPixel() * resolution, 6);
         var texture = new RenderTarget2DArray(this.Device, imageInfo, MipMapInfo.None(), ResourceInfo.Cube, user, "Albedo");
@@ -60,7 +61,7 @@ public sealed class CubeMapGenerator
         return this.Device.Resources.Add(texture);
     }
 
-    public IResource<ITexture2D> GenerateIrradiance(IResource<ITexture2D> equirectangular, string user, int resolution = IrradianceResolution)
+    public IResource<IRenderTarget> GenerateIrradiance(IResource<ITexture> equirectangular, string user, int resolution = IrradianceResolution)
     {
         var eqTexture = this.Device.Resources.Get(equirectangular);
         var imageInfo = new ImageInfo(resolution, resolution, eqTexture.Format, eqTexture.Format.BytesPerPixel() * resolution, 6);
@@ -78,7 +79,7 @@ public sealed class CubeMapGenerator
         return this.Device.Resources.Add(texture);
     }
 
-    public IResource<ITexture2D> GenerateEnvironment(IResource<ITexture2D> equirectangular, string user, int resolution = EnvironmentResolution)
+    public IResource<IRenderTarget> GenerateEnvironment(IResource<ITexture> equirectangular, string user, int resolution = EnvironmentResolution)
     {
         var eqTexture = this.Device.Resources.Get(equirectangular);
 

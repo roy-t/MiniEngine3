@@ -3,7 +3,7 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources;
 
-public sealed class Texture2D : ITexture2D, vNext.ITexture
+public sealed class Texture2D : vNext.ITexture
 {
     public Texture2D(Device device, ImageInfo imageInfo, MipMapInfo mipMapInfo, string user, string meaning, ResourceInfo resourceInfo = ResourceInfo.Texture)
     {
@@ -49,9 +49,6 @@ public sealed class Texture2D : ITexture2D, vNext.ITexture
 
     internal ID3D11ShaderResourceView ShaderResourceView { get; }
     internal ID3D11Texture2D Texture { get; }
-
-    ID3D11ShaderResourceView ITexture.ShaderResourceView => this.ShaderResourceView;
-    ID3D11Texture2D ITexture.Texture => this.Texture;
 
 
     ID3D11ShaderResourceView vNext.ISurface.ShaderResourceView

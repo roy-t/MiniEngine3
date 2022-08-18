@@ -2,6 +2,7 @@
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 using Vortice.DXGI;
 using Vortice.Mathematics;
 using Shaders = Mini.Engine.Content.Shaders.Generated;
@@ -24,7 +25,7 @@ public sealed class BrdfLutGenerator
         this.Shader = shader;        
     }
 
-    public ITexture2D Generate(string user)
+    public ISurface Generate(string user)
     {
         var context = this.Device.ImmediateContext;
 

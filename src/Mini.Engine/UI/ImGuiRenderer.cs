@@ -5,6 +5,7 @@ using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.vNext;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
@@ -23,7 +24,7 @@ internal sealed class ImGuiRenderer
     private readonly DeferredDeviceContext DeferredContext;
     private readonly UserInterface Shader;
     private readonly UserInterface.User User;
-    private readonly ITexture2D FontTexture;
+    private readonly ISurface FontTexture;
     private readonly InputLayout InputLayout;
     private readonly VertexBuffer<ImDrawVert> VertexBuffer;
     private readonly IndexBuffer<ImDrawIdx> IndexBuffer;    
@@ -142,7 +143,7 @@ internal sealed class ImGuiRenderer
         context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
     }
 
-    private static ITexture2D CreateFontsTexture(Device device)
+    private static ISurface CreateFontsTexture(Device device)
     {
         var io = ImGui.GetIO();
         unsafe
