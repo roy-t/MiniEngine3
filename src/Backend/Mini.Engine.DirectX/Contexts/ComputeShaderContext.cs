@@ -1,7 +1,7 @@
 ﻿using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources;
-using Mini.Engine.DirectX.Resources.vNext;
+using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX.Contexts;

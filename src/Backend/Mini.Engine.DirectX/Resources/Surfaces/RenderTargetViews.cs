@@ -1,7 +1,7 @@
 ﻿using Vortice.Direct3D11;
 using Vortice.DXGI;
 
-namespace Mini.Engine.DirectX.Resources;
+namespace Mini.Engine.DirectX.Resources.Surfaces;
 
 public static class RenderTargetViews
 {

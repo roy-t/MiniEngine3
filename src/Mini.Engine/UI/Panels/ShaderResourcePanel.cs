@@ -23,20 +23,18 @@ internal sealed class ShaderResourcePanel : IPanel
 
     public void Update(float elapsed)
     {
-        ImGui.Text("Temporarily disabled");
+        if (this.Selector.Begin("Shader Resources", nameof(this.FrameService.GBuffer.Albedo)))
+        {
+            this.Selector.Select(nameof(this.FrameService.GBuffer.Albedo), this.FrameService.GBuffer.Albedo);
+            this.Selector.Select(nameof(this.FrameService.GBuffer.Material), this.FrameService.GBuffer.Material);
+            this.Selector.Select(nameof(this.FrameService.GBuffer.Normal), this.FrameService.GBuffer.Normal);
+            this.Selector.Select(nameof(this.FrameService.LBuffer.Light), this.FrameService.LBuffer.Light);
+            this.Selector.Select(nameof(this.FrameService.GBuffer.DepthStencilBuffer), this.FrameService.GBuffer.DepthStencilBuffer);
+            this.Selector.Select(nameof(this.DebugFrameService.DebugOverlay), this.DebugFrameService.DebugOverlay);
 
-        //if (this.Selector.Begin("Shader Resources", nameof(this.FrameService.GBuffer.Albedo)))
-        //{
-        //    this.Selector.Select(nameof(this.FrameService.GBuffer.Albedo), this.FrameService.GBuffer.Albedo);
-        //    this.Selector.Select(nameof(this.FrameService.GBuffer.Material), this.FrameService.GBuffer.Material);
-        //    this.Selector.Select(nameof(this.FrameService.GBuffer.Normal), this.FrameService.GBuffer.Normal);
-        //    this.Selector.Select(nameof(this.FrameService.LBuffer.Light), this.FrameService.LBuffer.Light);
-        //    this.Selector.Select(nameof(this.FrameService.GBuffer.DepthStencilBuffer), this.FrameService.GBuffer.DepthStencilBuffer);
-        //    this.Selector.Select(nameof(this.DebugFrameService.DebugOverlay), this.DebugFrameService.DebugOverlay);
+            this.Selector.End();
+        }
 
-        //    this.Selector.End();
-        //}
-
-        //this.Selector.ShowSelected(this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal, this.FrameService.LBuffer.Light, this.FrameService.GBuffer.DepthStencilBuffer, this.DebugFrameService.DebugOverlay);
+        this.Selector.ShowSelected(this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal, this.FrameService.LBuffer.Light, this.FrameService.GBuffer.DepthStencilBuffer, this.DebugFrameService.DebugOverlay);
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX.Resources;
-using Mini.Engine.DirectX.Resources.vNext;
+using Mini.Engine.DirectX.Resources.Surfaces;
 
 namespace Mini.Engine.UI;
 

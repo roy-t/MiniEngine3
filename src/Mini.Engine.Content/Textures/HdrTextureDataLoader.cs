@@ -1,8 +1,8 @@
 ﻿using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Resources;
 using Mini.Engine.IO;
 using Stb = StbImageSharp;
-using DXR = Mini.Engine.DirectX.Resources;
+using DXR = Mini.Engine.DirectX.Resources.Surfaces;
+using Mini.Engine.DirectX.Resources.Surfaces;
 
 namespace Mini.Engine.Content.Textures;
 

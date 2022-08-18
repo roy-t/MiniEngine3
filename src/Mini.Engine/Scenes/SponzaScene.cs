@@ -4,7 +4,7 @@ using Mini.Engine.Content;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
-using Mini.Engine.DirectX.Resources.vNext;
+using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.PointLights;

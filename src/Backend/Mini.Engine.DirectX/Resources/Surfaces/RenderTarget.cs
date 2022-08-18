@@ -1,7 +1,7 @@
 ﻿using Mini.Engine.Core;
 using Vortice.Direct3D11;
 
-namespace Mini.Engine.DirectX.Resources.vNext;
+namespace Mini.Engine.DirectX.Resources.Surfaces;
 public class RenderTarget : Surface, IRenderTarget
 {
     public RenderTarget(Device device, string name, ImageInfo image, MipMapInfo mipMap)

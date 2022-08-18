@@ -6,7 +6,7 @@ using Mini.Engine.DirectX.Buffers;
 using System.Numerics;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.Core;
-using Mini.Engine.DirectX.Resources.vNext;
+using Mini.Engine.DirectX.Resources.Surfaces;
 
 namespace Mini.Engine.Graphics.World;
 

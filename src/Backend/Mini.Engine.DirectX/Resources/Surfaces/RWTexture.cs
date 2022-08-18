@@ -1,6 +1,6 @@
 ﻿using Vortice.Direct3D11;
 
-namespace Mini.Engine.DirectX.Resources.vNext;
+namespace Mini.Engine.DirectX.Resources.Surfaces;
 public sealed class RWTexture : Surface, IRWTexture
 {
     public RWTexture(Device device, string name, ImageInfo image, MipMapInfo mipMap)

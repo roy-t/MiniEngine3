@@ -3,7 +3,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
-using Mini.Engine.DirectX.Resources.vNext;
+using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 

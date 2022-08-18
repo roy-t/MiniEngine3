@@ -6,7 +6,7 @@ using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
-using Mini.Engine.DirectX.Resources.vNext;
+using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.IO;
 using Serilog;
 
@@ -53,7 +53,7 @@ public sealed partial class ContentManager : IDisposable
         this.Callbacks = new Dictionary<ContentId, List<ReloadCallback>>();
     }
 
-    public IResource<ITexture> LoadTexture(string path, string key = "", TextureLoaderSettings? settings = null)
+    public IResource<ISurface> LoadTexture(string path, string key = "", TextureLoaderSettings? settings = null)
     {
         var id = new ContentId(path, key);
         var texture = this.TextureLoader.Load(this.Device, id, settings ?? TextureLoaderSettings.Default);

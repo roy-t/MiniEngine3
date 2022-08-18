@@ -1,6 +1,6 @@
 ﻿using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
-using Mini.Engine.DirectX.Resources.vNext;
+using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
 

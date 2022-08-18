@@ -3,7 +3,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
-using Mini.Engine.DirectX.Resources.vNext;
+using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.World;

@@ -2,15 +2,14 @@
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
-namespace Mini.Engine.DirectX.Resources;
-
+namespace Mini.Engine.DirectX.Resources.Surfaces;
 
 public readonly record struct ImageInfo(int Width, int Height, Format Format, int Pitch = 0, int ArraySize = 1);
 public readonly record struct MipMapInfo(MipMapFlags Flags, int Levels)
 {
     public static MipMapInfo Generated(int imageWidth) { return new MipMapInfo(MipMapFlags.Generated, Dimensions.MipSlices(imageWidth)); }
     public static MipMapInfo Provided(int levels) { return new MipMapInfo(MipMapFlags.Provided, levels); }
-    public static MipMapInfo None() { return new MipMapInfo(MipMapFlags.None, 1); }   
+    public static MipMapInfo None() { return new MipMapInfo(MipMapFlags.None, 1); }
 }
 public enum MipMapFlags { None, Provided, Generated };
 public enum BindInfo { ShaderResource, RenderTarget, UnorderedAccessView, DepthStencil };
@@ -45,7 +44,7 @@ public static class Textures
                 break;
             case BindInfo.DepthStencil:
                 bindFlags = BindFlags.ShaderResource | BindFlags.DepthStencil;
-                break;            
+                break;
         }
 
         var optionFlags = ResourceOptionFlags.None;
@@ -90,7 +89,7 @@ public static class Textures
         };
         return description;
     }
-    
+
     public static void SetPixels<T>(Device device, ID3D11Texture2D texture, ID3D11ShaderResourceView view, ImageInfo imageInfo, MipMapInfo mipMapInfo, ReadOnlySpan<T> pixels)
         where T : unmanaged
     {

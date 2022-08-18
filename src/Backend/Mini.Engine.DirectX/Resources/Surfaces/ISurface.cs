@@ -1,7 +1,7 @@
 ﻿using Vortice.Direct3D11;
 using Vortice.DXGI;
 
-namespace Mini.Engine.DirectX.Resources.vNext;
+namespace Mini.Engine.DirectX.Resources.Surfaces;
 
 public interface ISurface : IDeviceResource
 {
@@ -22,7 +22,7 @@ public interface ITexture : ISurface
     public int MipMapLevels { get; }
 }
 
-public interface ITextureCube : ITexture
+public interface ITextureCube : ISurface
 {
 
 }

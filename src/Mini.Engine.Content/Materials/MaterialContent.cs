@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
-using Mini.Engine.DirectX.Resources.vNext;
+using Mini.Engine.DirectX.Resources.Surfaces;
 
 namespace Mini.Engine.Content.Materials;
 
-internal record class MaterialData(ContentId Id, ITexture Albedo, ITexture Metalicness, ITexture Normal, ITexture Roughness, ITexture AmbientOcclusion)
+internal record class MaterialData(ContentId Id, ISurface Albedo, ISurface Metalicness, ISurface Normal, ISurface Roughness, ISurface AmbientOcclusion)
     : IContentData;
 
 internal sealed class MaterialContent : IMaterial, IContent
@@ -24,11 +24,11 @@ internal sealed class MaterialContent : IMaterial, IContent
 
     public ContentId Id { get; }
 
-    public ITexture Albedo => this.material.Albedo;
-    public ITexture Metalicness => this.material.Metalicness;
-    public ITexture Normal => this.material.Normal;
-    public ITexture Roughness => this.material.Roughness;
-    public ITexture AmbientOcclusion => this.material.AmbientOcclusion;    
+    public ISurface Albedo => this.material.Albedo;
+    public ISurface Metalicness => this.material.Metalicness;
+    public ISurface Normal => this.material.Normal;
+    public ISurface Roughness => this.material.Roughness;
+    public ISurface AmbientOcclusion => this.material.AmbientOcclusion;    
 
     [MemberNotNull(nameof(material))]
     public void Reload(Device device)

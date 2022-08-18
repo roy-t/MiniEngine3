@@ -2,7 +2,7 @@
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
-namespace Mini.Engine.DirectX.Resources.vNext;
+namespace Mini.Engine.DirectX.Resources.Surfaces;
 
 public enum DepthStencilFormat
 {

@@ -1,6 +1,6 @@
 ﻿using Vortice.Direct3D11;
 
-namespace Mini.Engine.DirectX.Resources.vNext;
+namespace Mini.Engine.DirectX.Resources.Surfaces;
 public sealed class RenderTargetCube : RenderTarget, IRenderTargetCube
 {
     public RenderTargetCube(Device device, string name, ImageInfo image, MipMapInfo mipMap)

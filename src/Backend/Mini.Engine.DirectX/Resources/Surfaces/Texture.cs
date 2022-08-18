@@ -1,8 +1,8 @@
 ﻿using Vortice.Direct3D11;
 
-namespace Mini.Engine.DirectX.Resources.vNext;
+namespace Mini.Engine.DirectX.Resources.Surfaces;
 
-public class Texture : Surface, ITexture
+public class Texture : Surface, ISurface
 {
     public Texture(Device device, ImageInfo image, MipMapInfo mipMap, string name)
         : base(name, image)
