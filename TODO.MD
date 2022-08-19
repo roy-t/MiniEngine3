@@ -1,12 +1,5 @@
 # TODO
 
--> Before below: first make sure that DeviceResources are neater, especially textures/depthstensils/rendertargets
-	-> Always an array
-	-> Different per type, not all just only ITexture
-	-> Special case for CubeMap?
-
-WHAT IF: all really device resource are just an ID and the texture and shit are just a struct with a reference
-
 ---
 
 Make sure that changes (adding new textures, creating new entities/components) only happen at a single stage in the pipeline. Just like how deleting only happens on buffer flush. Maybe via some sort of command bus/queue, would also help networking/multiplayer maybe?
