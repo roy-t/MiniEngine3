@@ -75,7 +75,7 @@ public sealed class Pixels
     {
         var image = new DirectX.Resources.Surfaces.ImageInfo(1, 1, Format.R16G16B16A16_Float, 1 * Format.R16G16B16A16_Float.BytesPerPixel());
         var mipMap = DirectX.Resources.Surfaces.MipMapInfo.None();
-        var pixel = new Texture(this.Device, image, mipMap, nameof(Pixels) + "_meaning");
+        var pixel = new Texture(this.Device, nameof(Pixels) + meaning, image, mipMap);
         pixel.SetPixels(this.Device, new ReadOnlySpan<Color4>(new Color4[] { color }));        
 
         this.Content.Link(pixel, $"pixels/{meaning}");

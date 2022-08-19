@@ -22,9 +22,9 @@ public abstract class Surface : ISurface
     public ImageInfo ImageInfo { get; }
 
     public Format Format => this.ImageInfo.Format;
-    public int DimX => this.ImageInfo.Width;
-    public int DimY => this.ImageInfo.Height;
-    public int DimZ => this.ImageInfo.ArraySize;
+    public int DimX => this.ImageInfo.DimX;
+    public int DimY => this.ImageInfo.DimY;
+    public int DimZ => this.ImageInfo.DimZ;
 
     public ISurface AsSurface => this;
 
@@ -32,7 +32,6 @@ public abstract class Surface : ISurface
     ID3D11ShaderResourceView ISurface.ShaderResourceView { get; set; }
     ID3D11Texture2D ISurface.Texture { get; set; }
 #nullable restore
-
 
     public void Dispose()
     {

@@ -56,10 +56,10 @@ internal sealed class Texture2DContent : ISurface, IContent
 
         var data = this.Loader.Load(device, this.Id, this.Settings);
 
-        this.DimX = data.ImageInfo.Width;
-        this.DimY = data.ImageInfo.Height;        
+        this.DimX = data.ImageInfo.DimX;
+        this.DimY = data.ImageInfo.DimY;        
         this.MipMapLevels = data.MipMapInfo.Levels;
-        this.DimZ = data.ImageInfo.ArraySize;
+        this.DimZ = data.ImageInfo.DimZ;
 
         this.Format = data.ImageInfo.Format;
 

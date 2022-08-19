@@ -32,8 +32,8 @@ internal sealed class HdrTextureDataLoader : IContentDataLoader<TextureData>
             mipMapInfo = MipMapInfo.Generated(image.Width);
         }
 
-        var texture = DXR.Textures.Create(id.ToString(), string.Empty, device, imageInfo, mipMapInfo, BindInfo.ShaderResource);
-        var view = DXR.ShaderResourceViews.Create(device, texture, imageInfo, id.ToString());
+        var texture = DXR.Textures.Create(device, id.ToString(), imageInfo, mipMapInfo, BindInfo.ShaderResource);
+        var view = DXR.ShaderResourceViews.Create(device, texture, id.ToString(), imageInfo);
 
         DXR.Textures.SetPixels<float>(device, texture, view, imageInfo, mipMapInfo, image.Data);
 

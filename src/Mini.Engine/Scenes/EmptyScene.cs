@@ -56,7 +56,7 @@ public sealed class EmptyScene : IScene
                 ref var shadowMap = ref creator.Create<CascadedShadowMapComponent>(sun);
 
                 var resolution = 2048;                
-                var buffer = new DepthStencilBuffer(this.Device, DepthStencilFormat.D32_Float, resolution, resolution, 4, sun.ToString() + nameof(CascadedShadowMapComponent));                
+                var buffer = new DepthStencilBuffer(this.Device, "SunLight", DepthStencilFormat.D32_Float, resolution, resolution, 4);                
                 var bufferResource = this.Device.Resources.Add(buffer);
                 this.Content.Link(bufferResource, buffer.Name);
                 shadowMap.Init(bufferResource, resolution, Cascades[0], Cascades[1], Cascades[2], Cascades[3]);

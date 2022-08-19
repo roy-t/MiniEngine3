@@ -4,26 +4,27 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources.Surfaces;
 
-public readonly record struct ImageInfo(int Width, int Height, Format Format, int Pitch = 0, int ArraySize = 1);
+public enum MipMapFlags { None, Provided, Generated };
+public enum BindInfo { ShaderResource, RenderTarget, UnorderedAccessView, DepthStencil };
+public enum ResourceInfo { Texture, Cube };
+
+public readonly record struct ImageInfo(int DimX, int DimY, Format Format, int Pitch = 0, int DimZ = 1);
 public readonly record struct MipMapInfo(MipMapFlags Flags, int Levels)
 {
     public static MipMapInfo Generated(int imageWidth) { return new MipMapInfo(MipMapFlags.Generated, Dimensions.MipSlices(imageWidth)); }
     public static MipMapInfo Provided(int levels) { return new MipMapInfo(MipMapFlags.Provided, levels); }
     public static MipMapInfo None() { return new MipMapInfo(MipMapFlags.None, 1); }
 }
-public enum MipMapFlags { None, Provided, Generated };
-public enum BindInfo { ShaderResource, RenderTarget, UnorderedAccessView, DepthStencil };
-public enum ResourceInfo { Texture, Cube };
 
 public static class Textures
 {
 
-    internal static ID3D11Texture2D Create(string user, string meaning, Device device, ImageInfo image, MipMapInfo mipMapInfo, BindInfo binding, ResourceInfo resource = ResourceInfo.Texture)
+    internal static ID3D11Texture2D Create(Device device, string owner, ImageInfo image, MipMapInfo mipMapInfo, BindInfo binding, ResourceInfo resource = ResourceInfo.Texture)
     {
         var description = CreateDescription(image, mipMapInfo, binding, resource);
 
         var texture = device.ID3D11Device.CreateTexture2D(description);
-        texture.DebugName = DebugNameGenerator.GetName(user, "Texture2D", meaning, image.Format);
+        texture.DebugName = DebugNameGenerator.GetName(owner, "Texture2D", image.Format);
 
         return texture;
     }
@@ -76,11 +77,11 @@ public static class Textures
 
         var description = new Texture2DDescription
         {
-            Width = image.Width,
-            Height = image.Height,
+            Width = image.DimX,
+            Height = image.DimY,
             Format = image.Format,
             MipLevels = levels,
-            ArraySize = image.ArraySize,
+            ArraySize = image.DimZ,
             SampleDescription = new SampleDescription(1, 0),
             Usage = ResourceUsage.Default,
             BindFlags = bindFlags,

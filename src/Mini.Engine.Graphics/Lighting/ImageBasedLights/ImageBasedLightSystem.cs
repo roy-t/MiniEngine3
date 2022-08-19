@@ -30,7 +30,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.Shader = shader;
         this.User = shader.CreateUserFor<ImageBasedLightSystem>();
 
-        this.BrdfLut = generator.Generate(nameof(ImageBasedLightSystem));
+        this.BrdfLut = generator.Generate();
     }
 
     public void OnSet()

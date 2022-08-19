@@ -13,13 +13,13 @@ public class RenderTarget : Surface, IRenderTarget
 
         this.SetResources(texture, view);
 
-        var rtvs = new ID3D11RenderTargetView[image.ArraySize * mipMap.Levels];
-        for (var i = 0; i < image.ArraySize; i++)
+        var rtvs = new ID3D11RenderTargetView[image.DimZ * mipMap.Levels];
+        for (var i = 0; i < image.DimZ; i++)
         {
             for (var s = 0; s < mipMap.Levels; s++)
             {
-                var index = Indexes.ToOneDimensional(i, s, image.ArraySize);
-                rtvs[index] = RenderTargetViews.Create(device, texture, image.Format, i, s, name, "");
+                var index = Indexes.ToOneDimensional(i, s, image.DimZ);
+                rtvs[index] = RenderTargetViews.Create(device, texture, name, image.Format, i, s);
             }
         }
 
@@ -28,8 +28,8 @@ public class RenderTarget : Surface, IRenderTarget
 
     protected virtual (ID3D11Texture2D, ID3D11ShaderResourceView) CreateResources(Device device, string name, ImageInfo image, MipMapInfo mipMap)
     {
-        var texture = Textures.Create(name, "", device, image, mipMap, BindInfo.RenderTarget);
-        var view = ShaderResourceViews.Create(device, texture, image, name);
+        var texture = Textures.Create(device, name, image, mipMap, BindInfo.RenderTarget);
+        var view = ShaderResourceViews.Create(device, texture, name, image);
 
 
         return (texture, view);

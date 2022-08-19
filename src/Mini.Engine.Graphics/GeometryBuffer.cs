@@ -1,5 +1,4 @@
 ﻿using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Resources;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.DXGI;
 
@@ -18,7 +17,7 @@ public sealed class GeometryBuffer : IDisposable
         imageInfo = new ImageInfo(device.Width, device.Height, Format.R16G16B16A16_Float);
         this.Normal = new RenderTarget(device, nameof(GeometryBuffer) + "Normal", imageInfo, MipMapInfo.None());
 
-        this.DepthStencilBuffer = new DepthStencilBuffer(device, DepthStencilFormat.D32_Float, device.Width, device.Height, 1, nameof(GeometryBuffer) + "Depth");
+        this.DepthStencilBuffer = new DepthStencilBuffer(device, nameof(GeometryBuffer) + "Depth", DepthStencilFormat.D32_Float, device.Width, device.Height, 1);
 
         this.Width = device.Width;
         this.Height = device.Height;

@@ -80,7 +80,7 @@ public sealed class SponzaScene : IScene
                 ref var shadowmap = ref creator.Create<CascadedShadowMapComponent>(sun);
 
                 var resolution = 2048;
-                var buffer = new DepthStencilBuffer(this.Device, DepthStencilFormat.D32_Float, resolution, resolution, 4, sun.ToString() + nameof(CascadedShadowMapComponent));
+                var buffer = new DepthStencilBuffer(this.Device, "SunLight", DepthStencilFormat.D32_Float, resolution, resolution, 4);
                 var bufferResource = this.Device.Resources.Add(buffer);
                 this.Content.Link(bufferResource, buffer.Name);
 

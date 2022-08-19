@@ -153,7 +153,7 @@ internal sealed class ImGuiRenderer
             var pixelSpan = new ReadOnlySpan<byte>(pixels, width * height * format.BytesPerPixel());
 
             var image = new ImageInfo(width, height, format, width * format.BytesPerPixel());
-            var texture = new Texture(device, image, MipMapInfo.None(), nameof(ImGuiRenderer) + "Font");
+            var texture = new Texture(device, nameof(ImGuiRenderer) + "Font", image, MipMapInfo.None());
             texture.SetPixels(device, pixelSpan);
             return texture;
         }

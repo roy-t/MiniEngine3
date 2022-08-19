@@ -25,12 +25,12 @@ public sealed class BrdfLutGenerator
         this.Shader = shader;
     }
 
-    public ISurface Generate(string user)
+    public ISurface Generate()
     {
         var context = this.Device.ImmediateContext;
 
         var imageInfo = new ImageInfo(Resolution, Resolution, Format.R16G16_Float);
-        var renderTarget = new RenderTarget(this.Device, user + "BrdfLut", imageInfo, MipMapInfo.None());
+        var renderTarget = new RenderTarget(this.Device, "BrdfLut", imageInfo, MipMapInfo.None());
 
         context.SetupFullScreenTriangle(this.FullScreenTriangle.TextureVs, Resolution, Resolution, this.Shader.Ps, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
         context.OM.SetRenderTarget(renderTarget);

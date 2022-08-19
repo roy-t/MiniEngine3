@@ -8,8 +8,8 @@ public sealed class RWTexture : Surface, IRWTexture
     {
         this.MipMapInfo = mipMap;
 
-        var texture = Textures.Create(name, "", device, image, mipMap, BindInfo.UnorderedAccessView);
-        var view = ShaderResourceViews.Create(device, texture, image, name);
+        var texture = Textures.Create(device, name, image, mipMap, BindInfo.UnorderedAccessView);
+        var view = ShaderResourceViews.Create(device, texture, name, image);
 
         this.SetResources(texture, view);
 

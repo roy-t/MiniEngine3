@@ -14,16 +14,16 @@ public enum DepthStencilFormat
 
 public sealed class DepthStencilBuffer : Surface, IDepthStencilBuffer
 {
-    public DepthStencilBuffer(Device device, DepthStencilFormat format, int width, int height, int arraySize, string name)
-        : base(name, new ImageInfo(width, height, ToTextureFormat(format), 0, arraySize))
+    public DepthStencilBuffer(Device device, string name, DepthStencilFormat format, int dimX, int dimY, int dimZ)
+        : base(name, new ImageInfo(dimX, dimY, ToTextureFormat(format), DimZ: dimZ))
     {
-        var image = new ImageInfo(width, height, ToTextureFormat(format), 0, arraySize);
-        var texture = Textures.Create(name, "", device, image, MipMapInfo.None(), BindInfo.DepthStencil);
-        var view = CreateSRV(device, texture, image.ArraySize, ToShaderResourceViewFormat(format), name, "");
+        var image = new ImageInfo(dimX, dimY, ToTextureFormat(format), DimZ: dimZ);
+        var texture = Textures.Create(device, name, image, MipMapInfo.None(), BindInfo.DepthStencil);
+        var view = CreateSRV(device, texture, image.DimZ, ToShaderResourceViewFormat(format), name, "");
 
         this.SetResources(texture, view);
 
-        var dsvs = new ID3D11DepthStencilView[image.ArraySize];
+        var dsvs = new ID3D11DepthStencilView[image.DimZ];
         for (var i = 0; i < dsvs.Length; i++)
         {
             var depthView = new DepthStencilViewDescription(DepthStencilViewDimension.Texture2DArray, ToDepthViewFormat(format), 0, i, 1);
@@ -46,9 +46,8 @@ public sealed class DepthStencilBuffer : Surface, IDepthStencilBuffer
         for (var i = 0; i < this.DimZ; i++)
         {
             this.AsDepthStencilBuffer.DepthStencilViews[i].Dispose();
-        }        
+        }
     }
-
 
     private static ID3D11ShaderResourceView CreateSRV(Device device, ID3D11Texture2D texture, int length, Format format, string user, string meaning)
     {
