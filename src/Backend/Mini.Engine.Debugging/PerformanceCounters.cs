@@ -9,27 +9,30 @@ public sealed class PerformanceCounters
 
     private const string GPUProcessMemoryCategory = "GPU Process Memory";
 
-    private readonly PerformanceCounter? GPUProcessMemoryCounter;
+    private PerformanceCounter? gpuProcessMemoryCounter;
 
     public PerformanceCounters()
     {
-        if (PerformanceCounterCategory.Exists(GPUProcessMemoryCategory))
+        var task = Task.Run(() =>
         {
-            var currentProcess = Environment.ProcessId;
-
-            var category = new PerformanceCounterCategory(GPUProcessMemoryCategory);
-            var instances = category.GetInstanceNames();
-            var name = instances.Where(i => i.Contains(currentProcess.ToString())).FirstOrDefault();
-            if (name != null)
+            if (PerformanceCounterCategory.Exists(GPUProcessMemoryCategory))
             {
+                var currentProcess = Environment.ProcessId;
 
-                this.GPUProcessMemoryCounter = new PerformanceCounter(GPUProcessMemoryCategory, "Dedicated Usage", name, true);
+                var category = new PerformanceCounterCategory(GPUProcessMemoryCategory);
+                var instances = category.GetInstanceNames();
+                var name = instances.Where(i => i.Contains(currentProcess.ToString())).FirstOrDefault();
+                if (name != null)
+                {
+
+                    this.gpuProcessMemoryCounter = new PerformanceCounter(GPUProcessMemoryCategory, "Dedicated Usage", name, true);
+                }
             }
-        }
+        });
     }
 
     public float GetGPUMemoryUsageBytes()
     {
-        return this.GPUProcessMemoryCounter?.NextValue() ?? 0;
+        return this.gpuProcessMemoryCounter?.NextValue() ?? 0;
     }
 }

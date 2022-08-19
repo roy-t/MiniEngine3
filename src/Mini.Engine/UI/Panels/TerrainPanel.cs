@@ -24,7 +24,6 @@ internal sealed class TerrainPanel : IPanel
     private HeightMapGeneratorSettings mapSettings;
     private HydraulicErosionBrushSettings erosionSettings;
 
-    private bool created;
     private Entity world;
 
     public TerrainPanel(Device device, TerrainGenerator generator, UITextureRegistry registry, ContentManager content, ECSAdministrator administrator)
@@ -40,15 +39,15 @@ internal sealed class TerrainPanel : IPanel
 
         this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HeightMap.hlsl", "NoiseMapKernel"), _ => this.Recreate(this.ApplyTerrain));
         this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HydraulicErosion.hlsl", "Kernel"), _ => { this.Recreate(this.ApplyTerrain); this.Recreate(this.ErodeTerrain); });
-
-        this.created = false;
     }
 
     public string Title => "Terrain";
 
     public void Update(float elapsed)
     {
-        if (this.created == false)
+        var created = this.Administrator.Entities.Entities.Contains(this.world);
+
+        if (created == false)
         {
             ImGui.SliderInt("Dimensions", ref this.mapSettings.Dimensions, 4, 4096);
             ImGui.SliderFloat("MeshDefinition", ref this.mapSettings.MeshDefinition, 0.1f, 1.0f);
@@ -156,7 +155,8 @@ internal sealed class TerrainPanel : IPanel
 
     private void Recreate(Func<GeneratedTerrain?, GeneratedTerrain> application)
     {
-        if (this.created == false)
+        var created = this.Administrator.Entities.Entities.Contains(this.world);
+        if (created == false)
         {
             var generated = application(null);
             this.world = this.Administrator.Entities.Create();
@@ -171,8 +171,6 @@ internal sealed class TerrainPanel : IPanel
             terrain.Tint = this.Device.Resources.Add(generated.Tint);
 
             ref var transform = ref creator.Create<TransformComponent>(this.world);
-
-            this.created = true;
         }
         else
         {
