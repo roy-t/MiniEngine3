@@ -1,7 +1,7 @@
 ﻿using Mini.Engine.DirectX.Buffers;
 using Vortice.Mathematics;
 
-namespace Mini.Engine.DirectX.Resources;
+namespace Mini.Engine.DirectX.Resources.Models;
 
 public sealed class Mesh : IMesh
 {

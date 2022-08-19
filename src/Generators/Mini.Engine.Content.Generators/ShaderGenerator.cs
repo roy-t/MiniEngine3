@@ -143,13 +143,13 @@ public sealed class ShaderGenerator : IIncrementalGenerator
             switch (function.GetProgramDirective())
             {
                 case ProgramDirectives.VertexShader:
-                    interfaceType = "Mini.Engine.DirectX.Resources.IVertexShader";
+                    interfaceType = "Mini.Engine.DirectX.Resources.Shaders.IVertexShader";
                     break;
                 case ProgramDirectives.PixelShader:
-                    interfaceType = "Mini.Engine.DirectX.Resources.IPixelShader";
+                    interfaceType = "Mini.Engine.DirectX.Resources.Shaders.IPixelShader";
                     break;
                 case ProgramDirectives.ComputeShader:
-                    interfaceType = "Mini.Engine.DirectX.Resources.IComputeShader";
+                    interfaceType = "Mini.Engine.DirectX.Resources.Shaders.IComputeShader";
                     break;
             }
 

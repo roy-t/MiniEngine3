@@ -1,4 +1,4 @@
-﻿namespace Mini.Engine.DirectX.Resources;
+﻿namespace Mini.Engine.DirectX.Resources.Models;
 
 public interface IModel : IMesh, IDisposable
 {

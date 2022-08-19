@@ -2,7 +2,7 @@
 using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX.Contexts;
-using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.World;

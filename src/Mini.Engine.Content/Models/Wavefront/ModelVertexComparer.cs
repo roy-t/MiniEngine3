@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.Models;
 
 namespace Mini.Engine.Content.Models.Wavefront;
 

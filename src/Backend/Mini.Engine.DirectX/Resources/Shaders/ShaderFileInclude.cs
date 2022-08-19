@@ -3,7 +3,7 @@ using Mini.Engine.IO;
 using SharpGen.Runtime;
 using Vortice.Direct3D;
 
-namespace Mini.Engine.DirectX.Resources;
+namespace Mini.Engine.DirectX.Resources.Shaders;
 
 internal sealed class ShaderFileInclude : CallbackBase, Include
 {

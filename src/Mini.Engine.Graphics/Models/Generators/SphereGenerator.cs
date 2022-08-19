@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Numerics;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.Models;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Models.Generators;

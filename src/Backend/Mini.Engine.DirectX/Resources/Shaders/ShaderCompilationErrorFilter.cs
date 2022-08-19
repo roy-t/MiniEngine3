@@ -1,9 +1,9 @@
 ﻿using System.Text;
 using Vortice.Direct3D;
 
-namespace Mini.Engine.DirectX.Resources;
+namespace Mini.Engine.DirectX.Resources.Shaders;
 
-public static class ShaderCompilationErrorFilter
+internal static class ShaderCompilationErrorFilter
 {
     public static void ThrowOnWarningOrError(Blob errorBlob, params string[] ignores)
     {

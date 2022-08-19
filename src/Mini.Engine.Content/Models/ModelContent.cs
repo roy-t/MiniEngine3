@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
-using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.Models;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Content.Models;

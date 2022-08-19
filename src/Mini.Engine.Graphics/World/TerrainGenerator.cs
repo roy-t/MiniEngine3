@@ -2,7 +2,7 @@
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.Mathematics;
 

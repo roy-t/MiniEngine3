@@ -2,7 +2,7 @@
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 
-namespace Mini.Engine.DirectX.Resources;
+namespace Mini.Engine.DirectX.Resources.Shaders;
 
 public interface IPixelShader : IShader
 {

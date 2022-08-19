@@ -5,7 +5,7 @@ using System.Numerics;
 using Mini.Engine.Content.Materials;
 using Mini.Engine.Content.Models.Wavefront.Objects;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.IO;
 using Vortice.Mathematics;
 

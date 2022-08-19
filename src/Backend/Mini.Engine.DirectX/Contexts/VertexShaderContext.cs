@@ -1,5 +1,6 @@
 ﻿using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.Shaders;
 
 namespace Mini.Engine.DirectX.Contexts;
 

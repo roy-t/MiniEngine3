@@ -5,7 +5,7 @@ using Mini.Engine.Content.Models;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.IO;
 using Serilog;

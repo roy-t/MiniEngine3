@@ -1,6 +1,6 @@
 ﻿using Mini.Engine.DirectX.Resources.Surfaces;
 
-namespace Mini.Engine.DirectX.Resources;
+namespace Mini.Engine.DirectX.Resources.Models;
 
 public sealed class Material : IMaterial
 {

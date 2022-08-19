@@ -1,4 +1,4 @@
-﻿using Mini.Engine.DirectX.Resources;
+﻿using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.DirectX.Resources.Surfaces;
 
 namespace Mini.Engine.Graphics.World;
