@@ -5,7 +5,7 @@ namespace Mini.Engine.DirectX.Buffers;
 
 public abstract class DeviceBuffer<T> : IDisposable
     where T : unmanaged
-{    
+{
     protected readonly ID3D11Device Device;
 
     internal DeviceBuffer(Device device, string user, string abbreviation)
@@ -38,7 +38,7 @@ public abstract class DeviceBuffer<T> : IDisposable
 
             var bufferSize = this.Capacity * this.PrimitiveSizeInBytes;
 
-                     
+
 
             this.Buffer = this.CreateBuffer(bufferSize);
 #if DEBUG

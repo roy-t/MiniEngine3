@@ -1,5 +1,4 @@
-﻿using System;
-using Mini.Engine.DirectX.Buffers;
+﻿using Mini.Engine.DirectX.Buffers;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.DirectX.Resources;

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Contexts.States;
 using Vortice.Direct3D;
@@ -18,7 +17,7 @@ public sealed class Device : IDisposable
     private const Format BackBufferFormat = Format.R8G8B8A8_UNorm;
     private const Format RenderTargetViewFormat = Format.R8G8B8A8_UNorm_SRgb;
 
-    private readonly IntPtr WindowHandle;    
+    private readonly IntPtr WindowHandle;
 
     private IDXGISwapChain swapChain = null!;
 

@@ -43,7 +43,7 @@ public sealed class ResourceManager
 
     public IResource<T> Add<T>(T resource)
         where T : IDeviceResource
-    {        
+    {
         var id = this.Resources.Add(resource);
 
         return new Resource<T>(id, true);

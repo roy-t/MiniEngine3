@@ -13,7 +13,7 @@ public sealed class RWTexture : Surface, IRWTexture
 
         this.SetResources(texture, view);
 
-         var uavs = new ID3D11UnorderedAccessView[mipMap.Levels];
+        var uavs = new ID3D11UnorderedAccessView[mipMap.Levels];
 
         for (var i = 0; i < uavs.Length; i++)
         {
@@ -37,7 +37,7 @@ public sealed class RWTexture : Surface, IRWTexture
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        for(var i = 0; i < this.DimZ; i++)
+        for (var i = 0; i < this.DimZ; i++)
         {
             this.AsRwTexture.UnorderedAccessViews[i].Dispose();
         }

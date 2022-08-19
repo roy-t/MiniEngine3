@@ -10,7 +10,7 @@ public sealed class DepthStencilState : IDisposable
 
         this.ID3D11DepthStencilState = state;
         this.ID3D11DepthStencilState.DebugName = this.Name;
-        
+
     }
 
     public string Name { get; }

@@ -1,5 +1,4 @@
-﻿using System;
-using Vortice.Direct3D11;
+﻿using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX.Contexts.States;
 
@@ -27,7 +26,7 @@ public sealed class RasterizerStates : IDisposable
 {
     internal RasterizerStates(ID3D11Device device)
     {
-        this.WireFrame = Create(device, RasterizerDescription.Wireframe, nameof(this.WireFrame));        
+        this.WireFrame = Create(device, RasterizerDescription.Wireframe, nameof(this.WireFrame));
 
         this.CullNone = Create(device, RasterizerDescription.CullNone, nameof(this.CullNone));
 
@@ -48,7 +47,7 @@ public sealed class RasterizerStates : IDisposable
 
     public RasterizerState CullNone { get; }
     public RasterizerState CullNoneCounterClockwiseScissor { get; }
-    public RasterizerState CullCounterClockwise { get; }    
+    public RasterizerState CullCounterClockwise { get; }
     public RasterizerState CullClockwise { get; }
 
     public RasterizerState CullNoneNoDepthClip { get; }

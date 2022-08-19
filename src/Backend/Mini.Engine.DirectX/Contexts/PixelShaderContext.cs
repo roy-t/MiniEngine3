@@ -36,7 +36,7 @@ public sealed class PixelShaderContext : DeviceContextPart
     public void SetShaderResource(int slot, ISurface texture)
     {
         this.ID3D11DeviceContext.PSSetShaderResource(slot, texture.ShaderResourceView);
-    }    
+    }
 
     public void SetShaderResource(int slot, IResource<ISurface> texture)
     {

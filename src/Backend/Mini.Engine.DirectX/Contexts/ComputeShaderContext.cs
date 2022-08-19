@@ -74,13 +74,13 @@ public sealed class ComputeShaderContext : DeviceContextPart
         where T : unmanaged
     {
         this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, buffer.GetUnorderedAccessView());
-    }    
+    }
 
     public void SetUnorderedAccessView<T>(int slot, RWStructuredBuffer<T> buffer, int firstElement, int length)
         where T : unmanaged
     {
         this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, buffer.GetUnorderedAccessView(firstElement, length));
-    }   
+    }
 
     public void Dispatch(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ)
     {

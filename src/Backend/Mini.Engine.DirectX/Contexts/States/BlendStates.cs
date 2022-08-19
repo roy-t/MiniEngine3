@@ -9,7 +9,7 @@ public sealed class BlendState : IDisposable
         this.Name = DebugNameGenerator.GetName(nameof(BlendState), meaning);
 
         this.ID3D11BlendState = state;
-        this.ID3D11BlendState.DebugName = this.Name;        
+        this.ID3D11BlendState.DebugName = this.Name;
     }
 
     public string Name { get; }

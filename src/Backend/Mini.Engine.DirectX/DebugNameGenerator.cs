@@ -1,11 +1,11 @@
 ﻿namespace Mini.Engine.DirectX;
 
 internal static class DebugNameGenerator
-{   
+{
     public static string GetName(string user, string abbreviation, int? index = null)
     {
         var name = $"{user}_{abbreviation}";
-        if(index != null)
+        if (index != null)
         {
             name += $"[{index.Value}]";
         }
@@ -32,7 +32,7 @@ internal static class DebugNameGenerator
         }
 
         return name;
-    } 
+    }
 
     public static string GetName<TContent>(string user, string abbreviation, int? index = null)
     {
@@ -49,7 +49,7 @@ internal static class DebugNameGenerator
     public static string GetName(string user, string abbreviation, string? meaning = null, Enum? contentEnum = null, int? index = null)
     {
         var contentType = ToContentTypeString(contentEnum);
-        if(!string.IsNullOrEmpty(meaning))
+        if (!string.IsNullOrEmpty(meaning))
         {
             user += $"::{meaning}";
         }
@@ -59,7 +59,7 @@ internal static class DebugNameGenerator
 
     private static string? ToContentTypeString(Enum? contentEnum)
     {
-        if(contentEnum != null)
+        if (contentEnum != null)
         {
             return Enum.GetName(contentEnum.GetType(), contentEnum);
         }

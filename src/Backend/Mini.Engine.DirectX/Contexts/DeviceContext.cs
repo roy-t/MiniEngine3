@@ -9,7 +9,7 @@ using Vortice.Mathematics;
 namespace Mini.Engine.DirectX.Contexts;
 
 public abstract class DeviceContext : IDisposable
-{    
+{
     internal DeviceContext(Device device, ID3D11DeviceContext context, ResourceManager resources, string user, string meaning)
     {
         this.Device = device;
@@ -23,7 +23,7 @@ public abstract class DeviceContext : IDisposable
         this.PS = new PixelShaderContext(this);
         this.OM = new OutputMergerContext(this);
         this.CS = new ComputeShaderContext(this);
-    }    
+    }
 
     public InputAssemblerContext IA { get; }
     public VertexShaderContext VS { get; }
@@ -36,7 +36,7 @@ public abstract class DeviceContext : IDisposable
     public ResourceManager Resources { get; }
 
     internal ID3D11DeviceContext ID3D11DeviceContext { get; }
-    
+
 
     public void DrawIndexed(int indexCount, int indexOffset, int vertexOffset)
     {

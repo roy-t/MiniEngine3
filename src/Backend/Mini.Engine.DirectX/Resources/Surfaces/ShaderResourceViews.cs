@@ -8,7 +8,7 @@ internal static class ShaderResourceViews
     public static ID3D11ShaderResourceView Create(Device device, ID3D11Texture2D texture, string name, ImageInfo image)
     {
         ShaderResourceViewDescription description;
-        if(image.DimZ == 1)
+        if (image.DimZ == 1)
         {
             description = new ShaderResourceViewDescription(texture, ShaderResourceViewDimension.Texture2D, image.Format);
         }
@@ -30,5 +30,5 @@ internal static class ShaderResourceViews
         srv.DebugName = name;
 
         return srv;
-    }    
+    }
 }
