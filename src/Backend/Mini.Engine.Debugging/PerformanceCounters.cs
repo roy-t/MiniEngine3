@@ -5,34 +5,76 @@ namespace Mini.Engine.Debugging;
 [Service]
 public sealed class PerformanceCounters
 {
-    // TODO: use perfmon.exe to figure out other useful measures! Like .Net used memroy for this instance
+    public readonly PerformanceAggregator GPUMemoryCounter;
+    public readonly PerformanceAggregator GPUUsageCounter;
 
-    private const string GPUProcessMemoryCategory = "GPU Process Memory";
-
-    private PerformanceCounter? gpuProcessMemoryCounter;
+    public readonly PerformanceAggregator CPUMemoryCounter;
+    public readonly PerformanceAggregator CPUUsageCounter;
 
     public PerformanceCounters()
     {
-        var task = Task.Run(() =>
-        {
-            if (PerformanceCounterCategory.Exists(GPUProcessMemoryCategory))
-            {
-                var currentProcess = Environment.ProcessId;
-
-                var category = new PerformanceCounterCategory(GPUProcessMemoryCategory);
-                var instances = category.GetInstanceNames();
-                var name = instances.Where(i => i.Contains(currentProcess.ToString())).FirstOrDefault();
-                if (name != null)
-                {
-
-                    this.gpuProcessMemoryCounter = new PerformanceCounter(GPUProcessMemoryCategory, "Dedicated Usage", name, true);
-                }
-            }
-        });
+        this.GPUMemoryCounter = new PerformanceAggregator("GPU Process Memory", "Dedicated Usage");
+        this.GPUUsageCounter = new PerformanceAggregator("GPU Engine", "Utilization Percentage", instanceFilter: "engtype_3D");
+        this.CPUMemoryCounter = new PerformanceAggregator("Process", "Working Set - Private");
+        this.CPUUsageCounter = new PerformanceAggregator("Process", "% Processor Time", scale: 1.0f / Environment.ProcessorCount);
     }
-
-    public float GetGPUMemoryUsageBytes()
+  
+    public class PerformanceAggregator
     {
-        return this.gpuProcessMemoryCounter?.NextValue() ?? 0;
+        private PerformanceCounter? counter;        
+        private float lastValue;
+        private int ticks;
+
+        public PerformanceAggregator(string categoryName, string counterName, string? instanceFilter = null, float scale = 1.0f)
+        {
+            this.Scale = scale;
+
+            Task.Run(() =>
+            {
+                if (PerformanceCounterCategory.CounterExists(counterName, categoryName))
+                {
+                    var category = new PerformanceCounterCategory(categoryName);
+                    if (category.CategoryType == PerformanceCounterCategoryType.MultiInstance)
+                    {
+                        var processName = Process.GetCurrentProcess().ProcessName;
+                        var processId = Environment.ProcessId.ToString();
+
+                        IEnumerable<string> names = category.GetInstanceNames();
+                        if(!string.IsNullOrEmpty(instanceFilter))
+                        {
+                            names = names.Where(n => n.Contains(instanceFilter));
+                        }
+
+                        var instanceName = names
+                            .Where(n => n.Contains(processName) || n.Contains(processId))
+                            .SingleOrDefault();
+
+                        if (instanceName != null)
+                        {
+                            this.counter = new PerformanceCounter(categoryName, counterName, instanceName, true);
+                        }
+                    }
+                    else
+                    {
+                        this.counter = new PerformanceCounter(categoryName, counterName, true);
+                    }
+                }
+            });
+        }
+
+        public float Scale { get; }
+
+        public float Value
+        {
+            get {
+                if (this.ticks++ % 100 == 0)
+                {
+                    this.lastValue = (this.counter?.NextValue() ?? 0.0f) * this.Scale;
+                }
+
+                return this.lastValue;
+            }            
+        }
     }
+
 }
