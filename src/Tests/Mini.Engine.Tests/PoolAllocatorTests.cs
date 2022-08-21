@@ -19,11 +19,6 @@ public class PoolAllocatorTests
         public Entity Entity { get; set; }
         public int Value { get; set; }
 
-        public void Destroy()
-        {
-            this.Value = -1;
-        }
-
         public override string ToString()
         {
             return $"{this.Value}, {this.Entity}";
@@ -46,7 +41,7 @@ public class PoolAllocatorTests
 
         allocator.DestroyFor(entity);
         Equal(0, allocator.Count);
-        Equal(-1, component.Value);
+        Equal(0, component.Value);
 
         Equal(10, allocator.Capacity);
         allocator.Reserve(100);
@@ -77,13 +72,16 @@ public class PoolAllocatorTests
     {
         var entity = new Entity(1);
         var allocator = new PoolAllocator<Component>(10);
-        ref var component = ref allocator.CreateFor(entity);
 
+        ref var component = ref allocator.CreateFor(entity);
+        Equal(LifeCycleState.Created, component.LifeCycle.Current);
+        Equal(LifeCycleState.New, component.LifeCycle.Next);
+
+        component.LifeCycle = component.LifeCycle.ToNext();
         Equal(LifeCycleState.New, component.LifeCycle.Current);
         Equal(LifeCycleState.Unchanged, component.LifeCycle.Next);
 
         component.LifeCycle = component.LifeCycle.ToChanged();
-
         Equal(LifeCycleState.Changed, component.LifeCycle.Next);
 
         ref var component2 = ref allocator[0];

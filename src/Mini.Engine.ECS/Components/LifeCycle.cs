@@ -4,6 +4,7 @@ public enum LifeCycleState : byte
 {
     Unchanged = 0,
     Changed,
+    Created,
     New,
     Removed
 }
@@ -12,7 +13,7 @@ public readonly record struct LifeCycle(LifeCycleState Current, LifeCycleState N
 {
     internal static LifeCycle Init()
     {
-        return new LifeCycle(LifeCycleState.New, LifeCycleState.Unchanged);
+        return new LifeCycle(LifeCycleState.Created, LifeCycleState.New);
     }
 
     public LifeCycle ToChanged()
@@ -27,11 +28,6 @@ public readonly record struct LifeCycle(LifeCycleState Current, LifeCycleState N
 
     public LifeCycle ToNext()
     {
-        return this.Next switch
-        {            
-            LifeCycleState.Removed => this with { Current = this.Next, Next = LifeCycleState.Removed },
-            // New, Changed, Unchanged, 
-            _ => this with { Current = this.Next, Next = LifeCycleState.Unchanged },
-        };
+        return new LifeCycle(this.Next, LifeCycleState.Unchanged);
     }
 }

@@ -18,10 +18,11 @@ public sealed class PerformanceCounters
         this.CPUMemoryCounter = new PerformanceAggregator("Process", "Working Set - Private");
         this.CPUUsageCounter = new PerformanceAggregator("Process", "% Processor Time", scale: 1.0f / Environment.ProcessorCount);
     }
-  
+
     public class PerformanceAggregator
     {
-        private PerformanceCounter? counter;        
+        private const int CheckEveryXFrames = 100;
+        private PerformanceCounter? counter;
         private float lastValue;
         private int ticks;
 
@@ -40,7 +41,7 @@ public sealed class PerformanceCounters
                         var processId = Environment.ProcessId.ToString();
 
                         IEnumerable<string> names = category.GetInstanceNames();
-                        if(!string.IsNullOrEmpty(instanceFilter))
+                        if (!string.IsNullOrEmpty(instanceFilter))
                         {
                             names = names.Where(n => n.Contains(instanceFilter));
                         }
@@ -66,14 +67,15 @@ public sealed class PerformanceCounters
 
         public float Value
         {
-            get {
-                if (this.ticks++ % 100 == 0)
+            get
+            {
+                if (this.ticks++ % CheckEveryXFrames == 0)
                 {
                     this.lastValue = (this.counter?.NextValue() ?? 0.0f) * this.Scale;
                 }
 
                 return this.lastValue;
-            }            
+            }
         }
     }
 

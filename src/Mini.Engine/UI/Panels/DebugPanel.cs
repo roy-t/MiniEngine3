@@ -95,13 +95,13 @@ internal sealed class DebugPanel : IPanel
             ImGui.LabelText("GPU Memory Usage", $"{gpuMB:F2} MB");
 
             var gpuUsage = this.Counters.GPUUsageCounter.Value;
-            ImGui.LabelText("GPU Usage", $"{gpuUsage:F2} %");
+            ImGui.LabelText("GPU Usage", $"{gpuUsage:F2} %%");
 
             var cpuMB = this.Counters.CPUMemoryCounter.Value / (1024 * 1024);
             ImGui.LabelText("CPU Memory Usage", $"{cpuMB:F2} MB");
 
             var cpuUsage = this.Counters.CPUUsageCounter.Value;
-            ImGui.LabelText("CPU Usage", $"{cpuUsage:F2} %");
+            ImGui.LabelText("CPU Usage", $"{cpuUsage:F2} %%");
 
             if (ImGui.Button("Capture"))
             {

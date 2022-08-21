@@ -120,6 +120,8 @@ namespace Mini.Engine.ECS.Generators
                 Shared.ProcessQuery.New => new TextCodeBlock($"var iterator = {component}Container.IterateNew();"),
                 Shared.ProcessQuery.Changed => new TextCodeBlock($"var iterator = {component}Container.IterateChanged();"),
                 Shared.ProcessQuery.Unchanged => new TextCodeBlock($"var iterator = {component}Container.IterateUnchanged();"),
+
+                Shared.ProcessQuery.Created => new TextCodeBlock($"var iterator = {component}Container.IterateCreated();"),
                 Shared.ProcessQuery.Removed => new TextCodeBlock($"var iterator = {component}Container.IterateRemoved();"),
                 _ => throw new NotSupportedException($"Unsupported method query: {method.Query}"),
             };
