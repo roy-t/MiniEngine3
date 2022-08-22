@@ -51,7 +51,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
     }
 
     [Process(Query = ProcessQuery.All)]
-    public void DrawGrass(ref GrassComponent _)
+    public void DrawGrass(ref GrassComponent grassComponent)
     {
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
@@ -61,8 +61,9 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         var cameraPosition = cameraTransform.Transform.GetPosition();
 
         this.User.MapConstants(this.Context, worldViewProjection, world, cameraPosition);
-        
-        this.Context.Draw(3);
+
+        this.Context.VS.SetInstanceBuffer(Grass.Instances, grassComponent.InstanceBuffer);
+        this.Context.DrawInstanced(3, grassComponent.Instances);
     }
 
     public void OnUnSet()

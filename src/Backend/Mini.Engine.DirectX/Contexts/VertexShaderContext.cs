@@ -1,5 +1,4 @@
 ﻿using Mini.Engine.DirectX.Buffers;
-using Mini.Engine.DirectX.Resources;
 using Mini.Engine.DirectX.Resources.Shaders;
 
 namespace Mini.Engine.DirectX.Contexts;
@@ -18,5 +17,12 @@ public sealed class VertexShaderContext : DeviceContextPart
     public void SetShader(IVertexShader shader)
     {
         this.ID3D11DeviceContext.VSSetShader(shader.ID3D11Shader);
+    }
+
+    public void SetInstanceBuffer<T>(int slot, IResource<StructuredBuffer<T>> instanceBuffer)
+        where T : unmanaged
+    {
+        var resource = this.DeviceContext.Resources.Get(instanceBuffer);
+        this.ID3D11DeviceContext.VSSetShaderResource(slot, resource.GetShaderResourceView());
     }
 }

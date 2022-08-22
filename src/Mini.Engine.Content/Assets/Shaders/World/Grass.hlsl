@@ -28,9 +28,11 @@ cbuffer Constants : register(b0)
     float4x4 World;
     float3 CameraPosition;
 };
-
+    
+StructuredBuffer<float3> Instances : register(t0);
+    
 #pragma VertexShader
-PS_INPUT VS(uint vertexId : SV_VertexID)
+PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
     PS_INPUT output;
 
@@ -38,6 +40,8 @@ PS_INPUT VS(uint vertexId : SV_VertexID)
     
     float2 texcoord = float2(uint2(vertexId, vertexId << 1) & 2);
     float4 position = float4(lerp(float2(-1.0f, 1.0f), float2(1.0f, -1.0f), texcoord), 0.0f, 1.0f);
+
+    position += float4(Instances[instanceId], 0);
     
     output.position = mul(WorldViewProjection, position);
     output.world = mul(World, position).xyz;
