@@ -9,6 +9,7 @@ using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Transforms;
+using Mini.Engine.Graphics.Vegetation;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Scenes;
@@ -83,6 +84,11 @@ public sealed class EmptyScene : IScene
 
                 ref var skybox = ref creator.Create<SkyboxComponent>(sky);
                 skybox.Init(albedo, irradiance, environment, levels, 0.1f);                
+            }),
+            new LoadAction("Terrain", () =>
+            {
+                var grass = this.Administrator.Entities.Create();
+                ref var grassy = ref creator.Create<GrassComponent>(grass);
             })
         };
     }   

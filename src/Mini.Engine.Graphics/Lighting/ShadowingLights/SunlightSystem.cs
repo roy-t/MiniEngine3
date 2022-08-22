@@ -53,7 +53,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
     {
         var camera = this.FrameService.GetPrimaryCamera().Camera;
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;        
-        var viewProjection = camera.GetViewProjection(cameraTransform);
+        var viewProjection = camera.GetViewProjection(in cameraTransform);
         Matrix4x4.Invert(viewProjection, out var inverse);
 
         var shadow = new SunLight.ShadowProperties()

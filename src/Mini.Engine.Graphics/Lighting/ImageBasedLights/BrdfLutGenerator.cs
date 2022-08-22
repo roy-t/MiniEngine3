@@ -1,7 +1,6 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Resources;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.DXGI;
 using Vortice.Mathematics;

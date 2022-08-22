@@ -6,6 +6,7 @@ using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.PointLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Models;
+using Mini.Engine.Graphics.Vegetation;
 using Mini.Engine.Graphics.World;
 
 namespace Mini.Engine;
@@ -44,6 +45,13 @@ internal sealed class RenderPipelineBuilder
                 .Requires("Initialization", "GBuffer")
                 .Produces("Renderer", "Terrain")
                 .Build()
+            .System<GrassSystem>()
+                .InSequence()
+                .Requires("Initialization", "Containers")
+                .Requires("Initialization", "GBuffer")
+                .Requires("Renderer", "Terrain")
+                .Produces("Renderer", "Grass")
+                .Build()
             .System<CascadedShadowMapSystem>()
                 .InSequence()
                 .Requires("Initialization", "Containers")
@@ -53,18 +61,21 @@ internal sealed class RenderPipelineBuilder
                 .InSequence()
                 .Requires("Renderer", "Models")
                 .Requires("Renderer", "Terrain")
+                .Requires("Renderer", "Grass")
                 .Produces("Renderer", "PointLights")
                 .Build()
             .System<ImageBasedLightSystem>()
                 .InSequence()
                 .Requires("Renderer", "Models")
                 .Requires("Renderer", "Terrain")
+                .Requires("Renderer", "Grass")
                 .Produces("Renderer", "ImageBasedLights")
                 .Build()
             .System<SunLightSystem>()
                 .InSequence()
                 .Requires("Renderer", "Models")
                 .Requires("Renderer", "Terrain")
+                .Requires("Renderer", "Grass")
                 .Requires("Shadows", "CascadedShadowMap")
                 .Produces("Renderer", "SunLights")
                 .Build()
@@ -72,6 +83,7 @@ internal sealed class RenderPipelineBuilder
                 .InSequence()
                 .Requires("Renderer", "Models")
                 .Requires("Renderer", "Terrain")
+                .Requires("Renderer", "Grass")
                 .Requires("Renderer", "PointLights")
                 .Requires("Renderer", "ImageBasedLights")
                 .Requires("Renderer", "SunLights")

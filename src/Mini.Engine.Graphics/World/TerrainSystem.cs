@@ -56,7 +56,7 @@ public sealed partial class TerrainSystem : IMeshRenderCallBack, ISystem, IDispo
 
         var camera = this.FrameService.GetPrimaryCamera().Camera;
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
-        var viewProjection = camera.GetViewProjection(cameraTransform);
+        var viewProjection = camera.GetViewProjection(in cameraTransform);
         
         var frustum = new Frustum(viewProjection);
         RenderService.DrawMesh(this, this.Context, frustum, viewProjection, mesh, transform.Transform);

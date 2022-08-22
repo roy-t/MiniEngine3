@@ -51,7 +51,7 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
     {
         var camera = this.FrameService.GetPrimaryCamera().Camera;
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
-        var viewProjection = camera.GetViewProjection(cameraTransform);
+        var viewProjection = camera.GetViewProjection(in cameraTransform);
 
         var viewVolume = new Frustum(viewProjection);
         var model = this.Device.Resources.Get(component.Model);

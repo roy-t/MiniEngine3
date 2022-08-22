@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
     <None Remove="Assets\Shaders\Includes\Easings.hlsl" />
+    <None Remove="Assets\Shaders\World\Grass.hlsl" />
     <None Remove="Assets\Shaders\World\Includes\Utilities.hlsl" />
   </ItemGroup> 
   <ItemGroup>
@@ -18,6 +19,7 @@
     <AdditionalFiles Include="Assets\Shaders\Includes\Easings.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\HydraulicErosion.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\Includes\Utilities.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\World\Grass.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\Terrain.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Indexes.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\CubeMapGenerator.hlsl" />

@@ -65,7 +65,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
 
             var camera = this.FrameService.GetPrimaryCamera().Camera;
             var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
-            var viewProjection = camera.GetViewProjection(cameraTransform);
+            var viewProjection = camera.GetViewProjection(in cameraTransform);
             
             this.User.MapConstants(context, viewProjection, Vector4.One);
 
@@ -86,7 +86,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
         {
             var camera = this.FrameService.GetPrimaryCamera().Camera;
             var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
-            var frustum = new Frustum(camera.GetViewProjection(cameraTransform));
+            var frustum = new Frustum(camera.GetViewProjection(in cameraTransform));
 
             var world = transform.Transform.GetMatrix();
             var model = this.Device.Resources.Get(component.Model);
@@ -123,7 +123,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
         {
             var camera = this.FrameService.GetPrimaryCamera().Camera;
             var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
-            var frustum = new Frustum(camera.GetViewProjection(cameraTransform));
+            var frustum = new Frustum(camera.GetViewProjection(in cameraTransform));
 
             var world = transform.Transform.GetMatrix();
             var mesh = this.Device.Resources.Get(component.Mesh);

@@ -60,7 +60,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
         var surfaceToLight = -viewPoint.Transform.GetForward();
 
-        this.Frustum.TransformToCameraFrustumInWorldSpace(camera, cameraTransform);
+        this.Frustum.TransformToCameraFrustumInWorldSpace(in camera, in cameraTransform);
 
         shadowMap.GlobalShadowMatrix = CreateGlobalShadowMatrix(surfaceToLight, this.Frustum);
 
@@ -85,7 +85,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
 
     private (float split, Vector4 offset, Vector4 scale) RenderShadowMap(ref CascadedShadowMapComponent shadowMap, float nearZ, float farZ, float clipDistance, PerspectiveCamera view, Transform viewTransform, Vector3 surfaceToLight, Frustum viewVolume, int slice)
     {
-        this.Frustum.TransformToCameraFrustumInWorldSpace(view, viewTransform);
+        this.Frustum.TransformToCameraFrustumInWorldSpace(in view, in viewTransform);
         this.Frustum.Slice(nearZ, farZ);
 
         var viewProjection = ComputeViewProjectionMatrixForSlice(surfaceToLight, this.Frustum, shadowMap.Resolution);
