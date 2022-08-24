@@ -95,8 +95,8 @@ public sealed class EmptyScene : IScene
                 instanceBuffer.MapData(this.Device.ImmediateContext, new GrassInstanceData[]
                 {
                     new GrassInstanceData() { Position = Vector3.Zero},
-                    new GrassInstanceData() { Position = Vector3.UnitY * 5},
-                    new GrassInstanceData() { Position = Vector3.UnitY * 10},
+                    //new GrassInstanceData() { Position = Vector3.UnitY * 5},
+                    //new GrassInstanceData() { Position = Vector3.UnitY * 10},
                 });
 
                 var resource = this.Device.Resources.Add(instanceBuffer);
