@@ -111,24 +111,7 @@ public sealed class SponzaScene : IScene
                 ref var skybox = ref creator.Create<SkyboxComponent>(sky);
                 skybox.Init(albedo, irradiance, environment, levels, 0.1f);
             }),
-            //new LoadAction("Terrain", () =>
-            //{
-            //    var grass = this.Administrator.Entities.Create();
-            //    ref var grassy = ref creator.Create<GrassComponent>(grass);
-
-            //    var instanceBuffer = new StructuredBuffer<GrassInstanceData>(this.Device, "Grass");
-            //    instanceBuffer.MapData(this.Device.ImmediateContext, new GrassInstanceData[]
-            //    {
-            //        new GrassInstanceData() { Position = Vector3.Zero},
-            //        //new GrassInstanceData() { Position = Vector3.UnitY * 5},
-            //        //new GrassInstanceData() { Position = Vector3.UnitY * 10},
-            //    });
-
-            //    var resource = this.Device.Resources.Add(instanceBuffer);
-            //    this.Content.Link(resource, "Grass");
-            //    grassy.InstanceBuffer = resource;
-            //    grassy.Instances = 3;
-            //})
+            GrassLoader.LoadGrass(this.Device, this.Content, this.Administrator)            
         };
     }
 }

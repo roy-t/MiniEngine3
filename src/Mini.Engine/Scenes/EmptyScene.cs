@@ -13,7 +13,7 @@ using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.Vegetation;
 using Vortice.Mathematics;
 
-using GrassInstanceData = Mini.Engine.Content.Shaders.Generated.Grass.InstanceData;
+
 
 namespace Mini.Engine.Scenes;
 
@@ -88,53 +88,10 @@ public sealed class EmptyScene : IScene
                 ref var skybox = ref creator.Create<SkyboxComponent>(sky);
                 skybox.Init(albedo, irradiance, environment, levels, 0.1f);
             }),
-            new LoadAction("Terrain", () =>
-            {
-                var grass = this.Administrator.Entities.Create();
-                ref var grassy = ref creator.Create<GrassComponent>(grass);
-
-                var instanceBuffer = new StructuredBuffer<GrassInstanceData>(this.Device, "Grass");
-                var instances = 1000 * 1000;
-                var data = GenerateGrass(instances);
-                instanceBuffer.MapData(this.Device.ImmediateContext, data);
-
-                var resource = this.Device.Resources.Add(instanceBuffer);
-                this.Content.Link(resource, "Grass");
-                grassy.InstanceBuffer = resource;
-                grassy.Instances = instances;
-            })
+            GrassLoader.LoadGrass(this.Device, this.Content, this.Administrator)
         };
     }
 
 
-    private static GrassInstanceData[] GenerateGrass(int count)
-    {
-        var random = new Random(1234);
-        var min = -50.0f;
-        var max = 50.0f;
-        var mins = 0.5f;
-        var maxs = 1.0f;
-        var data = new GrassInstanceData[count];
-
-        Vector3 grassA = new Vector3(50 / 255.0f, 50 / 255.0f, 10.0f / 255.0f);
-        Vector3 grassB = new Vector3(50 / 255.0f, 250 / 255.0f, 10.0f / 255.0f);
-
-        for (var i = 0; i < data.Length; i++)
-        {
-            var x = min + (random.NextSingle() * (max - min));
-            var y = min + (random.NextSingle() * (max - min));
-            var s = mins + (random.NextSingle() * (maxs - mins));
-            var r = random.NextSingle() * MathF.PI * 2;
-            var l = random.NextSingle();
-            var transform = new Transform(new Vector3(x, 0, y), Quaternion.CreateFromYawPitchRoll(r, 0, 0), Vector3.Zero, s);
-
-            data[i] = new GrassInstanceData()
-            {
-                World = transform.GetMatrix(),
-                Tint = Vector3.Lerp(grassA, grassB, l)
-            }; 
-        }
-
-        return data;
-    }
+   
 }

@@ -4,6 +4,7 @@ using Mini.Engine.Controllers;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
+using Mini.Engine.Graphics.Vegetation;
 using Mini.Engine.Scenes;
 
 namespace Mini.Engine;
@@ -19,9 +20,10 @@ internal sealed class GameLoop : IGameLoop
     private readonly DebugFrameService DebugFrameService;
     private readonly CameraController CameraController;
     private readonly ContentManager Content;
+    private readonly GrassSystem GrassSystem; // TODO: move this to a smarter place?
     private readonly ParallelPipeline RenderPipeline;
     private readonly ParallelPipeline DebugPipeline;
-    public GameLoop(Device device, RenderHelper helper, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, CameraController cameraController, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content)
+    public GameLoop(Device device, RenderHelper helper, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, CameraController cameraController, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, GrassSystem grassSystem)
     {
         this.Device = device;
         this.FXAARenderer = helper;
@@ -30,7 +32,7 @@ internal sealed class GameLoop : IGameLoop
         this.DebugFrameService = debugFrameService;
         this.CameraController = cameraController;
         this.Content = content;
-
+        this.GrassSystem = grassSystem;
         content.Push("RenderPipeline");
         this.RenderPipeline = renderBuilder.Build();
 
@@ -50,7 +52,9 @@ internal sealed class GameLoop : IGameLoop
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();        
 
-        this.CameraController.Update(ref camera, ref cameraTransform, elapsed);        
+        this.CameraController.Update(ref camera, ref cameraTransform, elapsed);
+
+        this.GrassSystem.UpdateWind(elapsed);
     }
 
     public void Draw(float alpha)

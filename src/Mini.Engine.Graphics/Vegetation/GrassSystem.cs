@@ -20,6 +20,9 @@ public sealed partial class GrassSystem : ISystem, IDisposable
     private readonly Grass Shader;
     private readonly Grass.User User;
 
+    private float windScrollAccumulator;
+    private Vector3 windDirection;
+
     public GrassSystem(Device device, FrameService frameService, Shaders.Grass shader)
     {
         this.Device = device;
@@ -27,6 +30,14 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         this.FrameService = frameService;
         this.Shader = shader;       
         this.User = shader.CreateUserFor<GrassSystem>();
+
+        this.windScrollAccumulator = 0.0f;
+        this.windDirection = Vector3.Normalize(new Vector3(1.0f, 0.0f, 0.75f));
+    }
+
+    public void UpdateWind(float elapsed)
+    {
+        this.windScrollAccumulator += elapsed;
     }
 
     public void OnSet()
@@ -51,32 +62,18 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         this.Context.OM.SetRenderTargets(gBuffer.DepthStencilBuffer, gBuffer.Albedo, gBuffer.Material, gBuffer.Normal);
     }
 
-
-    float v = 0.0f;
-
     [Process(Query = ProcessQuery.All)]
     public void DrawGrass(ref GrassComponent grassComponent)
     {
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
         
-        var viewProjection = camera.Camera.GetViewProjection(in cameraTransform.Transform);
-        var cameraForward = cameraTransform.Transform.GetForward();
+        var viewProjection = camera.Camera.GetViewProjection(in cameraTransform.Transform);        
 
-        this.v += (1.0f / 220.0f);
-        this.v %= 1.0f;
-
-        var tilt = MathF.Sin(EasOutQuad(this.v) * MathF.PI);
-
-        this.User.MapConstants(this.Context, viewProjection, cameraForward, tilt);
+        this.User.MapConstants(this.Context, viewProjection, this.windDirection, this.windScrollAccumulator);
 
         this.Context.VS.SetInstanceBuffer(Grass.Instances, grassComponent.InstanceBuffer);        
         this.Context.DrawInstanced(7, grassComponent.Instances);
-    }
-
-    static float EasOutQuad(float x)
-    {
-        return 1 - (1 - x) * (1 - x);
     }
 
     public void OnUnSet()

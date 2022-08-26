@@ -1,6 +1,7 @@
 #include "../Includes/Normals.hlsl"
 #include "../Includes/Gamma.hlsl"
 #include "../Includes/Defines.hlsl"
+#include "Includes/SimplexNoise.hlsl"
 
 // Inspired by
 // - https://youtu.be/Ibe1JBF5i5Y?t=634
@@ -9,7 +10,9 @@
 
 struct InstanceData
 {
-    float4x4 world;    
+    float3 position;
+    float rotation;
+    float scale;
     float3 tint;
 };
 
@@ -39,8 +42,8 @@ struct OUTPUT
 cbuffer Constants : register(b0)
 {
     float4x4 ViewProjection;
-    float3 CameraForward;
-    float Tilt;
+    float3 WindDirection;
+    float WindScroll;
 };
     
 StructuredBuffer<InstanceData> Instances : register(t0);
@@ -50,6 +53,19 @@ float2 Linear(float x0, float y0, float x1, float y1, float t)
     float x = (x1 - x0) * t + x0;
     float y = (y1 - y0) * t + y0;
     return float2(x, y);
+}
+
+
+float4x4 CreateMatrix(float yaw, float3 offset, float scale)
+{     
+    float c = (float) cos(yaw);
+    float s = (float) sin(yaw);
+ 
+    // [  c  0 -s  0 ]
+    // [  0  1  0  0 ]
+    // [  s  0  c  0 ]
+    // [  0  0  0  1 ]
+    return transpose(float4x4(c * scale, 0, -s, 0, 0, scale, 0, 0, s, 0, c * scale, 0, offset.x, offset.y, offset.z, 1));
 }
 
 
@@ -85,12 +101,33 @@ void Segments(float segment, float targetAngle, float length, float stiffness, f
 }
  
 
-float GetTiltFromWind(float3 worldPos, float3 facing)
+static const float2x2 m2 = float2x2(0.80, 0.60, -0.60, 0.80);
+float FBM(float2 coord, float frequency, float amplitude, float lacunarity, float persistance)
 {
-    //return Tilt;
-    return PI / 2.0f;
+    float sum = 0.0f;   
+    for (int i = 0; i < 3; i++)
+    {
+        float noise = snoise(coord * frequency) * amplitude;
+        frequency *= lacunarity;
+        amplitude *= persistance;
+
+        coord = frequency * mul(m2, coord);
+        
+        sum += noise;
+    }
+    
+    return sum;
 }
 
+
+float GetTiltFromWind(float3 worldPos, float3 facing)
+{
+    float influence = dot(WindDirection, facing); 
+    float noise = FBM(worldPos.xz + float2(WindScroll * 4, 0.0f), 0.05f, 1.0f, 1.0f, 0.55f);
+    noise = (1.0f + noise) / 2.0f; // from [-1..1] to [0..1]
+    float tilt = (influence * noise) * PI_OVER_TWO;
+    return 0.5f + tilt;
+}
 
 #pragma VertexShader
 PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
@@ -99,34 +136,29 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
            
     float isEven = vertexId % 2 == 0;
     float isOdd = 1.0f - isEven;
-    
-    float3 facing = float3(1.0f, 0.0f, 0.0f);
-    const float width = 0.06f;
-    float2 step = float2(-facing.z, facing.x) * width;
-    
+        
     float si = (vertexId / 2.0f) * isEven + ((vertexId - 1.0f) / 2.0f) * isOdd;
     float s = si / 3.0f;
       
-    float4x4 world = Instances[instanceId].world;
-    float3 root = mul(world, float4(0, 0, 0, 0)).xyz;
-    float tilt = GetTiltFromWind(root, facing);
+    InstanceData data = Instances[instanceId];   
+    float4x4 world = CreateMatrix(data.rotation, data.position, data.scale);
+    float3x3 rotation = (float3x3) world;
+    
+    float3 worldPosition = mul(world, float4(0, 0, 0, 1)).xyz;
+    float3 facingDirection = mul(rotation, float3(0, 0, -1));
+    float tilt = GetTiltFromWind(worldPosition, facingDirection);
     float2 p;
     float2 n;
     Segments(si, tilt, 0.33f, 3.0f, 4, p, n);
     
-    float4 position = float4(p.x + isOdd * step.x, p.y, isOdd * step.y, 1.0f);
+    const float width = 0.06f;
+    float4 position = float4(p.x + isOdd * width, p.y, 0.0f, 1.0f);
     float2 texcoord = float2(isOdd, 1.0f - s);
     
-    position.xyz += root;
-    
-    float3x3 rotation = (float3x3) world;
+    // Pull the normals up a bit to shade them as a semi-uniform plane
     float3 normal = float3(n.x, n.y, 0.0f);
-    normal = normalize(mul(rotation, normal));
-    
-    // TODO: pull the normal towards the camera a little bit??
-    normal = normalize(lerp(normal, -CameraForward, 0.25f));
-    //normal = -CameraForward;
-    
+    normal = normalize(mul(rotation, normal));            
+    normal = normalize(lerp(normal, float3(0, 1, 0), 0.33f));    
     
     output.position = mul(mul(ViewProjection, world), position);
     output.world = mul(world, position).xyz;
@@ -144,7 +176,7 @@ OUTPUT PS(PS_INPUT input)
     
     float metalicness = 0.0f;
     float roughness = 1.0f;
-    float ambientOcclusion = 0.0f;
+    float ambientOcclusion = 1.0f;
         
     output.albedo = ToLinear(float4(input.tint, 1.0f));
     //output.albedo = ToLinear(float4(150 / 255.0f, 223 / 255.0f, 51 / 255.0f, 1));
