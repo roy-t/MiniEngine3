@@ -1,15 +1,11 @@
-﻿using System.Numerics;
-using Mini.Engine.DirectX;
+﻿using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
 
-namespace Mini.Engine.Graphics.Vegetation;
+using GrassInstanceData = Mini.Engine.Content.Shaders.Generated.Grass.InstanceData;
 
-public struct GrassInstanceData
-{
-    public Vector3 Position;
-}
+namespace Mini.Engine.Graphics.Vegetation;
 
 public struct GrassComponent : IComponent
 {

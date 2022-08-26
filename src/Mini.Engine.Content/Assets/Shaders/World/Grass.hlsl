@@ -1,5 +1,17 @@
 #include "../Includes/Normals.hlsl"
 #include "../Includes/Gamma.hlsl"
+#include "../Includes/Defines.hlsl"
+
+// Inspired by
+// - https://youtu.be/Ibe1JBF5i5Y?t=634
+// - https://outerra.blogspot.com/2012/05/procedural-grass-rendering.html
+
+
+struct InstanceData
+{
+    float4x4 world;    
+    float3 tint;
+};
 
 struct VS_INPUT
 {
@@ -13,6 +25,8 @@ struct PS_INPUT
     float4 position : SV_POSITION;
     float3 world :  WORLD;
     float2 texcoord : TEXCOORD;
+    float3 normal : NORMAL;
+    float3 tint : COLOR0;
 };
 
 struct OUTPUT
@@ -24,13 +38,12 @@ struct OUTPUT
 
 cbuffer Constants : register(b0)
 {
-    float4x4 WorldViewProjection;
-    float4x4 World;
-    float3 CameraPosition;
+    float4x4 ViewProjection;
+    float3 CameraForward;
     float Tilt;
 };
     
-StructuredBuffer<float3> Instances : register(t0);
+StructuredBuffer<InstanceData> Instances : register(t0);
 
 float2 Linear(float x0, float y0, float x1, float y1, float t)
 {
@@ -48,61 +61,78 @@ float2 CubicBezier(float x0, float y0, float x1, float y1, float x2, float y2, f
     return float2(x, y);
 }
 
+// TODO: this is much more expensive than a bezier curve 
+// but it keeps the length of the segments equal and gives a nice way
+// to parameterize flexibility
+// TODO: get the normal from the angle
+void Segments(float segment, float targetAngle, float length, float stiffness, float totalSegments, 
+              out float2 position, out float2 normal)
+{
+    float2 accum = float2(0, 0);    
+    float angle = 0.0f;
+    for (float i = 0; i <= segment; i += 1.0f)
+    {
+        float flexibility = 0.001f + (i / (totalSegments - 1.0f));
+        float e = pow(2, stiffness * flexibility - stiffness);
+        angle = (targetAngle / totalSegments) * (i + 1) * e;
+        float2 dir = float2(sin(angle), cos(angle));
+        accum += dir * length;
+
+    }
+    
+    position = accum;
+    normal = float2(sin(angle - PI_OVER_TWO), cos(angle - PI_OVER_TWO));
+}
+ 
+
+float GetTiltFromWind(float3 worldPos, float3 facing)
+{
+    //return Tilt;
+    return PI / 2.0f;
+}
+
 
 #pragma VertexShader
 PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
     PS_INPUT output;
-
-    float3x3 rotation = (float3x3)World;
-    
-    // from: https://youtu.be/Ibe1JBF5i5Y?t=634
-    // and: https://outerra.blogspot.com/2012/05/procedural-grass-rendering.html
-    //float tilt = 0.0f;
-    float tilt = Tilt;
-    //float tilt = 3.14f / 4.0f; // 45 deg
-    
-    float length = 1.0f;
+           
+    float isEven = vertexId % 2 == 0;
+    float isOdd = 1.0f - isEven;
     
     float3 facing = float3(1.0f, 0.0f, 0.0f);
+    const float width = 0.06f;
+    float2 step = float2(-facing.z, facing.x) * width;
     
-    // TODO: make tip rotatable based on facing, and incorporate in other parameters
-    float2 tip = float2(sin(tilt), cos(tilt));
+    float si = (vertexId / 2.0f) * isEven + ((vertexId - 1.0f) / 2.0f) * isOdd;
+    float s = si / 3.0f;
+      
+    float4x4 world = Instances[instanceId].world;
+    float3 root = mul(world, float4(0, 0, 0, 0)).xyz;
+    float tilt = GetTiltFromWind(root, facing);
+    float2 p;
+    float2 n;
+    Segments(si, tilt, 0.33f, 3.0f, 4, p, n);
     
-    // Push
-    //float2 midpoint = tip * 0.7f + (float2(-tip.x, tip.y) * 0.25f);
-    //float2 midpoint = tip * 0.7f + (float2(-tip.x ));
-    float2 midpoint = float2(tip.x * 0.125f, tip.y * 0.9f);
+    float4 position = float4(p.x + isOdd * step.x, p.y, isOdd * step.y, 1.0f);
+    float2 texcoord = float2(isOdd, 1.0f - s);
     
+    position.xyz += root;
     
-    float2 step = float2(-facing.z, facing.x) * 0.06f;
-        
-    float s = vertexId % 2 == 0
-        ? (vertexId / 2.0f) 
-        : (vertexId - 1.0f) / 2.0f;
+    float3x3 rotation = (float3x3) world;
+    float3 normal = float3(n.x, n.y, 0.0f);
+    normal = normalize(mul(rotation, normal));
     
-    s /= 3.0f;
-    s = min(1.0f, s);
-    
-    // TODO: something is wrong with the CubicBezier interpolation
-    // as the segements keep changing length and the midpoint doesn't look 
-    // to influence it as in desmos? Easy to see that the tip gets much longer!
-    
-    //float2 p = Linear(0, 0, tip.x, tip.y, s);
-    float2 p = CubicBezier(0, 0, midpoint.x, midpoint.y, tip.x, tip.y, s);
-    
-    float4 position = vertexId % 2 == 0
-        ? float4(p.x, p.y, 0.0f, 1.0f)
-        : float4(p.x + step.x, p.y, step.y, 1.0f);
-       
-    float2 texcoord = vertexId % 2 == 0
-        ? float2(0.0f, 1.0f - s)
-        : float2(1.0f, 1.0f - s);
+    // TODO: pull the normal towards the camera a little bit??
+    normal = normalize(lerp(normal, -CameraForward, 0.25f));
+    //normal = -CameraForward;
     
     
-    output.position = mul(WorldViewProjection, position);
-    output.world = mul(World, position).xyz;
+    output.position = mul(mul(ViewProjection, world), position);
+    output.world = mul(world, position).xyz;
     output.texcoord = texcoord;
+    output.normal = normal;
+    output.tint = Instances[instanceId].tint;
 
     return output;
 }
@@ -116,9 +146,10 @@ OUTPUT PS(PS_INPUT input)
     float roughness = 1.0f;
     float ambientOcclusion = 0.0f;
         
-    output.albedo = float4(0, 1, 0, 1);
+    output.albedo = ToLinear(float4(input.tint, 1.0f));
+    //output.albedo = ToLinear(float4(150 / 255.0f, 223 / 255.0f, 51 / 255.0f, 1));
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
-    output.normal = float4(PackNormal(float3(0, 1, 0)), 1.0f);
+    output.normal = float4(PackNormal(input.normal), 1.0f);
 
     return output;
 }

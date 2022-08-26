@@ -12,7 +12,7 @@ public readonly struct Transform
     private readonly float Scale;
     private readonly bool IsSet;
 
-    internal Transform(Vector3 position, Quaternion rotation, Vector3 origin, float scale)
+    public Transform(Vector3 position, Quaternion rotation, Vector3 origin, float scale)
     {
         this.Position = position;
         this.Rotation = rotation;

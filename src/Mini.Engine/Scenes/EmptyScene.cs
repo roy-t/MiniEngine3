@@ -4,14 +4,16 @@ using Mini.Engine.Content;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
-using Mini.Engine.DirectX.Resources;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
+using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.Vegetation;
 using Vortice.Mathematics;
+
+using GrassInstanceData = Mini.Engine.Content.Shaders.Generated.Grass.InstanceData;
 
 namespace Mini.Engine.Scenes;
 
@@ -92,18 +94,47 @@ public sealed class EmptyScene : IScene
                 ref var grassy = ref creator.Create<GrassComponent>(grass);
 
                 var instanceBuffer = new StructuredBuffer<GrassInstanceData>(this.Device, "Grass");
-                instanceBuffer.MapData(this.Device.ImmediateContext, new GrassInstanceData[]
-                {
-                    new GrassInstanceData() { Position = Vector3.Zero},
-                    //new GrassInstanceData() { Position = Vector3.UnitY * 5},
-                    //new GrassInstanceData() { Position = Vector3.UnitY * 10},
-                });
+                var instances = 1000 * 1000;
+                var data = GenerateGrass(instances);
+                instanceBuffer.MapData(this.Device.ImmediateContext, data);
 
                 var resource = this.Device.Resources.Add(instanceBuffer);
                 this.Content.Link(resource, "Grass");
                 grassy.InstanceBuffer = resource;
-                grassy.Instances = 3;
+                grassy.Instances = instances;
             })
         };
-    }   
+    }
+
+
+    private static GrassInstanceData[] GenerateGrass(int count)
+    {
+        var random = new Random(1234);
+        var min = -50.0f;
+        var max = 50.0f;
+        var mins = 0.5f;
+        var maxs = 1.0f;
+        var data = new GrassInstanceData[count];
+
+        Vector3 grassA = new Vector3(50 / 255.0f, 50 / 255.0f, 10.0f / 255.0f);
+        Vector3 grassB = new Vector3(50 / 255.0f, 250 / 255.0f, 10.0f / 255.0f);
+
+        for (var i = 0; i < data.Length; i++)
+        {
+            var x = min + (random.NextSingle() * (max - min));
+            var y = min + (random.NextSingle() * (max - min));
+            var s = mins + (random.NextSingle() * (maxs - mins));
+            var r = random.NextSingle() * MathF.PI * 2;
+            var l = random.NextSingle();
+            var transform = new Transform(new Vector3(x, 0, y), Quaternion.CreateFromYawPitchRoll(r, 0, 0), Vector3.Zero, s);
+
+            data[i] = new GrassInstanceData()
+            {
+                World = transform.GetMatrix(),
+                Tint = Vector3.Lerp(grassA, grassB, l)
+            }; 
+        }
+
+        return data;
+    }
 }

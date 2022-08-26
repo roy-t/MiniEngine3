@@ -37,7 +37,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         this.Context.VS.SetShader(this.Shader.Vs);
         this.Context.VS.SetConstantBuffer(Grass.ConstantsSlot, this.User.ConstantsBuffer);
 
-        this.Context.RS.SetRasterizerState(this.Context.Device.RasterizerStates.WireFrame);
+        this.Context.RS.SetRasterizerState(this.Context.Device.RasterizerStates.CullNone);
         this.Context.RS.SetScissorRect(0, 0, this.Device.Width, this.Device.Height);
         this.Context.RS.SetViewPort(0, 0, this.Device.Width, this.Device.Height);
 
@@ -59,23 +59,22 @@ public sealed partial class GrassSystem : ISystem, IDisposable
     {
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
-
-        var world = Matrix4x4.Identity;
-        var worldViewProjection = world * camera.Camera.GetViewProjection(in cameraTransform.Transform);
-        var cameraPosition = cameraTransform.Transform.GetPosition();
+        
+        var viewProjection = camera.Camera.GetViewProjection(in cameraTransform.Transform);
+        var cameraForward = cameraTransform.Transform.GetForward();
 
         this.v += (1.0f / 220.0f);
         this.v %= 1.0f;
 
-        float tilt = MathF.Sin(EasOutQuad(this.v) * MathF.PI);
+        var tilt = MathF.Sin(EasOutQuad(this.v) * MathF.PI);
 
-        this.User.MapConstants(this.Context, worldViewProjection, world, cameraPosition, tilt);
+        this.User.MapConstants(this.Context, viewProjection, cameraForward, tilt);
 
-        this.Context.VS.SetInstanceBuffer(Grass.Instances, grassComponent.InstanceBuffer);
+        this.Context.VS.SetInstanceBuffer(Grass.Instances, grassComponent.InstanceBuffer);        
         this.Context.DrawInstanced(7, grassComponent.Instances);
     }
 
-    float EasOutQuad(float x)
+    static float EasOutQuad(float x)
     {
         return 1 - (1 - x) * (1 - x);
     }
