@@ -6,7 +6,6 @@ using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Vortice.Direct3D;
-using Vortice.Mathematics;
 using Shaders = Mini.Engine.Content.Shaders.Generated;
 
 namespace Mini.Engine.Graphics.Vegetation;
@@ -21,7 +20,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
     private readonly Grass.User User;
 
     private float windScrollAccumulator;
-    private Vector3 windDirection;
+    private Vector2 windDirection;
 
     public GrassSystem(Device device, FrameService frameService, Shaders.Grass shader)
     {
@@ -32,7 +31,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         this.User = shader.CreateUserFor<GrassSystem>();
 
         this.windScrollAccumulator = 0.0f;
-        this.windDirection = Vector3.Normalize(new Vector3(1.0f, 0.0f, 0.75f));
+        this.windDirection = Vector2.Normalize(new Vector2(1.0f, 0.75f));
     }
 
     public void UpdateWind(float elapsed)
@@ -68,9 +67,9 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
         
-        var viewProjection = camera.Camera.GetViewProjection(in cameraTransform.Transform);        
-
-        this.User.MapConstants(this.Context, viewProjection, this.windDirection, this.windScrollAccumulator);
+        var viewProjection = camera.Camera.GetViewProjection(in cameraTransform.Transform);
+        var cameraPosition = cameraTransform.Transform.GetPosition();
+        this.User.MapConstants(this.Context, viewProjection, cameraPosition, this.windDirection, this.windScrollAccumulator);
 
         this.Context.VS.SetInstanceBuffer(Grass.Instances, grassComponent.InstanceBuffer);        
         this.Context.DrawInstanced(7, grassComponent.Instances);

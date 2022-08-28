@@ -42,10 +42,12 @@ struct OUTPUT
 cbuffer Constants : register(b0)
 {
     float4x4 ViewProjection;
-    float3 WindDirection;
+    float3 CameraPosition;
+    float2 WindDirection;
     float WindScroll;
 };
-    
+
+// Todo: seperate into per clump and per blade buffer
 StructuredBuffer<InstanceData> Instances : register(t0);
 
 float2 Linear(float x0, float y0, float x1, float y1, float t)
@@ -54,7 +56,6 @@ float2 Linear(float x0, float y0, float x1, float y1, float t)
     float y = (y1 - y0) * t + y0;
     return float2(x, y);
 }
-
 
 float4x4 CreateMatrix(float yaw, float3 offset, float scale)
 {     
@@ -77,10 +78,10 @@ float2 CubicBezier(float x0, float y0, float x1, float y1, float x2, float y2, f
     return float2(x, y);
 }
 
-// TODO: this is much more expensive than a bezier curve 
+// TODO: this is probably more expensive than a bezier curve 
 // but it keeps the length of the segments equal and gives a nice way
 // to parameterize flexibility
-// TODO: get the normal from the angle
+// TODO: flatten loop
 void Segments(float segment, float targetAngle, float length, float stiffness, float totalSegments, 
               out float2 position, out float2 normal)
 {
@@ -99,7 +100,6 @@ void Segments(float segment, float targetAngle, float length, float stiffness, f
     position = accum;
     normal = float2(sin(angle - PI_OVER_TWO), cos(angle - PI_OVER_TWO));
 }
- 
 
 static const float2x2 m2 = float2x2(0.80, 0.60, -0.60, 0.80);
 float FBM(float2 coord, float frequency, float amplitude, float lacunarity, float persistance)
@@ -119,8 +119,7 @@ float FBM(float2 coord, float frequency, float amplitude, float lacunarity, floa
     return sum;
 }
 
-
-float GetTiltFromWind(float3 worldPos, float3 facing)
+float GetTiltFromWind(float3 worldPos, float2 facing)
 {
     float influence = dot(WindDirection, facing); 
     float noise = FBM(worldPos.xz + float2(WindScroll * 4, 0.0f), 0.05f, 1.0f, 1.0f, 0.55f);
@@ -129,23 +128,79 @@ float GetTiltFromWind(float3 worldPos, float3 facing)
     return 0.5f + tilt;
 }
 
+float2 Slerp(float2 p0, float2 p1, float t)
+{
+    float dotp = dot(normalize(p0), normalize(p1));
+    if ((dotp > 0.9999) || (dotp < -0.9999))
+    {
+        if (t <= 0.5)
+            return p0;
+        return p1;
+    }
+    float theta = acos(dotp);
+    float2 P = ((p0 * sin((1 - t) * theta) + p1 * sin(t * theta)) / sin(theta));
+    return P;
+}
+
+float3 Slerp(float3 p0, float3 p1, float t)
+{
+    float dotp = dot(normalize(p0), normalize(p1));
+    if ((dotp > 0.9999) || (dotp < -0.9999))
+    {
+        if (t <= 0.5)
+            return p0;
+        return p1;
+    }
+    float theta = acos(dotp);
+    float3 P = ((p0 * sin((1 - t) * theta) + p1 * sin(t * theta)) / sin(theta));    
+    return P;
+}
+
 #pragma VertexShader
 PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
     PS_INPUT output;
            
+    float3 tint = Instances[instanceId].tint;
+    
     float isEven = vertexId % 2 == 0;
     float isOdd = 1.0f - isEven;
         
     float si = (vertexId / 2.0f) * isEven + ((vertexId - 1.0f) / 2.0f) * isOdd;
     float s = si / 3.0f;
       
-    InstanceData data = Instances[instanceId];   
-    float4x4 world = CreateMatrix(data.rotation, data.position, data.scale);
+    InstanceData data = Instances[instanceId]; 
+        
+    float3 viewDirection = data.position - CameraPosition;
+    
+    float r = data.rotation;
+    float2 facingDirection = float2(sin(r), cos(r));    
+    float2 viewTangent = normalize(float2(viewDirection.z, -viewDirection.x));
+    float viewTangentDotFacing = dot(viewTangent, facingDirection);
+                
+    float l = (1.0f - abs(viewTangentDotFacing)) * 0.25f;
+    //l = 0.0f;
+    
+    // TODO: this makes grass flip direction
+    // when its very close to the view direction
+    // so it either has to drastically flip left or right
+    if (viewTangentDotFacing > 0)
+    {
+        float2 foo = Slerp(facingDirection, viewTangent, l);
+        r = -atan2(foo.y, foo.x);
+    }
+    else
+    {
+        float2 foo = Slerp(facingDirection, -viewTangent, l);
+        r = -atan2(foo.y, foo.x);
+    }
+    
+    
+    float4x4 world = CreateMatrix(r, data.position, data.scale);
     float3x3 rotation = (float3x3) world;
     
     float3 worldPosition = mul(world, float4(0, 0, 0, 1)).xyz;
-    float3 facingDirection = mul(rotation, float3(0, 0, -1));
+    //float3 facingDirection = mul(rotation, float3(0, 0, -1));
     float tilt = GetTiltFromWind(worldPosition, facingDirection);
     float2 p;
     float2 n;
@@ -164,7 +219,7 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     output.world = mul(world, position).xyz;
     output.texcoord = texcoord;
     output.normal = normal;
-    output.tint = Instances[instanceId].tint;
+    output.tint = tint;
 
     return output;
 }
@@ -175,7 +230,9 @@ OUTPUT PS(PS_INPUT input)
     OUTPUT output;        
     
     float metalicness = 0.0f;
-    float roughness = 1.0f;
+    float roughness = 0.4f;
+    // TODO: ambient occlusion is somewhere done wrong 
+    // as setting it to 0.0 still lights things
     float ambientOcclusion = 1.0f;
         
     output.albedo = ToLinear(float4(input.tint, 1.0f));
