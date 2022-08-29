@@ -249,11 +249,16 @@ float4 FxaaPS(PS_INPUT input) : SV_Target
     float3 color = FXAA(input.tex);
     color = color / (color + float3(1.0f, 1.0f, 1.0f));
 
+    if (input.tex.x > 0.499f && input.tex.x < 0.500f)
+    {
+        return float4(0, 1, 0, 1);
+    }
+    
     return float4(color, 1.0f);    
 }
 
 #pragma PixelShader
 float4 PS(PS_INPUT input) : SV_Target
-{
+{    
     return Texture.Sample(TextureSampler, input.tex);
 }

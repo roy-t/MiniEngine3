@@ -69,7 +69,9 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         
         var viewProjection = camera.Camera.GetViewProjection(in cameraTransform.Transform);
         var cameraPosition = cameraTransform.Transform.GetPosition();
-        this.User.MapConstants(this.Context, viewProjection, cameraPosition, this.windDirection, this.windScrollAccumulator);
+        var cameraForward = cameraTransform.Transform.GetForward();
+        var aspectRatio = camera.Camera.AspectRatio;
+        this.User.MapConstants(this.Context, viewProjection, cameraPosition, cameraForward, aspectRatio, this.windDirection, this.windScrollAccumulator);
 
         this.Context.VS.SetInstanceBuffer(Grass.Instances, grassComponent.InstanceBuffer);        
         this.Context.DrawInstanced(7, grassComponent.Instances);

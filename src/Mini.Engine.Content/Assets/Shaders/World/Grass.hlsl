@@ -43,6 +43,8 @@ cbuffer Constants : register(b0)
 {
     float4x4 ViewProjection;
     float3 CameraPosition;
+    float3 CameraForward;
+    float AspectRatio;
     float2 WindDirection;
     float WindScroll;
 };
@@ -157,33 +159,113 @@ float3 Slerp(float3 p0, float3 p1, float t)
 }
 
 
-float2 GetFacingDirection(InstanceData instance)
-{
-    float3 viewDirection = instance.position - CameraPosition;
+float GetBladeThickness(float2 spinePosition, float3 position, float rotation, float scale, float halfWidth)
+{    
+    float3 facing = float3(cos(rotation), 0.0f, -sin(rotation));
+    float3 posA = position + (facing * halfWidth);
+    float3 posB = position - (facing * halfWidth);
     
-    float r = instance.rotation;
-    float2 facingDirection = float2(sin(r), cos(r));
-    float2 viewTangent = normalize(float2(viewDirection.z, -viewDirection.x));
-    float viewTangentDotFacing = dot(viewTangent, facingDirection);
+    float3 orthogonal = cross(float3(0, 1, 0), CameraForward);
+    float3 maxA = position + (orthogonal * halfWidth);
+    float3 maxB = position - (orthogonal * halfWidth);
+    
+    float4 positionA = float4(posA * scale, 1.0f);
+    float4 positionB = float4(posB * scale, 1.0f);
+    
+    float4 maximumA = float4(maxA * scale, 1.0f);
+    float4 maximumB = float4(maxB * scale, 1.0f);
+        
+    float4 projA = mul(ViewProjection, positionA);
+    float4 projB = mul(ViewProjection, positionB);
+    
+    float4 projMaxA = mul(ViewProjection, maximumA);
+    float4 projMaxB = mul(ViewProjection, maximumB);
+
+    projA /= projA.w;
+    projB /= projB.w;
+    
+    projMaxA /= projMaxA.w;
+    projMaxB /= projMaxB.w;
+            
+    if (abs(projA.x - projB.x) < (abs(projMaxA.x - projMaxB.x) / 2.0f))
+    {
+        return 0.0f;
+    }
+    return 1.0f;
+}
+
+
+float2 GetFacingDirection(float3 position, float rotation)
+{ 
+    
+    
+    float2 view = CameraPosition.xz; //normalize(position.xz - CameraPosition.xz);
+    float2 facing = float2(sin(rotation), cos(rotation));
+    float viewDotFacing = dot(view, facing);
+    
+    if (abs(viewDotFacing) > 0.95f)
+    {
+    
+    }
+    
+    return facing;
+    
+    
+    //float3 viewDirection = position - CameraPosition;
+    
+    //float r = rotation;
+    //float2 facingDirection = float2(sin(r), cos(r));
+    //float2 viewTangent = normalize(float2(viewDirection.z, -viewDirection.x));
+    //float viewTangentDotFacing = dot(viewTangent, facingDirection);
                 
-    float l = (1.0f - abs(viewTangentDotFacing)) * 0.25f;
+    //float l = (1.0f - abs(viewTangentDotFacing)) * 0.25f;
+    
+    //if(l > 0.125f)
+    //{
+    //    tint = float3(l, 0, 0);
+    //}
+    
+    
+    //return facingDirection;
+    
     //l = 0.0f;
     
     // TODO: this makes grass flip direction
     // when its very close to the view direction
     // so it either has to drastically flip left or right
-    if (viewTangentDotFacing > 0)
-    {
-        float2 foo = normalize(lerp(facingDirection, viewTangent, l));
-        r = -atan2(foo.y, foo.x);
-    }
-    else
-    {
-        float2 foo = normalize(lerp(facingDirection, -viewTangent, l));
-        r = -atan2(foo.y, foo.x);
-    }
     
-    return float2(sin(r), cos(r));
+    
+    //tint = float3(0.5, 0.5, 0.5);
+    
+    //float2 viewDirection = normalize(position.xz - CameraPosition.xz);
+    //float2 facingDirection = float2(sin(rotation), cos(rotation));
+    //float2 viewTangent = float2(viewDirection.y, -viewDirection.x);
+    
+    //float viewDotFacing = dot(viewDirection, facingDirection);
+    //float viewTangentDotFacing = dot(viewTangent, facingDirection);
+                
+    //float l = (1.0f - abs(viewTangentDotFacing)) * 0.25f;
+    ////l = 0.0f;
+    //if (abs(viewTangentDotFacing) > 0.25f)
+    //{
+    //    tint = float3(1, 0, 0);
+    //}
+    
+    //return facingDirection;
+    
+    //// TODO: this makes grass flip direction
+    //// when its very close to the view direction
+    //// so it either has to drastically flip left or right
+    //if (viewTangentDotFacing > 0)
+    //{
+    //    facingDirection = normalize(lerp(facingDirection, viewTangent, l));        
+    //}
+    //else
+    //{
+    //    facingDirection = normalize(lerp(facingDirection, -viewTangent, l));        
+    //}
+    
+    //return facingDirection;
 }
 
 
@@ -206,7 +288,7 @@ void GetSpinePosition(uint vertexId, float tilt, out float2 position, out float2
     
     float2 accum = float2(0, 0);
     float angle = 0.0f;
-    for (float i = 0; i <= segment; i += 1.0f)
+    for (float i = 1; i <= segment; i += 1.0f)
     {
         float flexibility = 0.001f + (i / (totalSegments - 1.0f));
         float e = pow(2, stiffness * flexibility - stiffness);
@@ -236,21 +318,31 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     
     InstanceData data = Instances[instanceId];
     
-    float2 facing = GetFacingDirection(data);
-    float tilt = GetTiltFromWind(data.position, facing);
+    float3 tint = data.tint;
+    const float halfWidth = 0.03f;
+    
+    //tint = float3(thickness * 2, 0, 0);
+    //float2 facing = GetFacingDirection(data.position, data.rotation);
+    float tilt = 0.0f;//GetTiltFromWind(data.position, facing);
     
     float2 spinePosition;
     float2 spineNormal;
     
     GetSpinePosition(vertexId, tilt, spinePosition, spineNormal);
-        
-    const float halfWidth = 0.03f;
+    
+    float thickness = GetBladeThickness(spinePosition, data.position, data.rotation, data.scale, halfWidth);
+    if (thickness < 0.05f)
+    {
+        tint = float3(1, 0, 0);
+    }
+    
+    
     float side = ((vertexId % 2 == 0) * 2) - 1.0f;
     
     float4 position = float4(spinePosition.x + (side * halfWidth), spinePosition.y, 0.0f, 1.0f);
     float2 texcoord = float2(side + 1.0f, 0.0f);
     
-    float4x4 world = CreateMatrix(atan2(facing.y, facing.x), data.position, data.scale);
+    float4x4 world = CreateMatrix(data.rotation, data.position, data.scale);
     float3x3 rotation = (float3x3) world;
     
     
@@ -260,7 +352,7 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     output.world = mul(world, position).xyz;
     output.texcoord = texcoord;
     output.normal = normal;
-    output.tint = data.tint;
+    output.tint = tint;
 
     return output;
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -349,3 +441,4 @@ OUTPUT PS(PS_INPUT input)
 
     return output;
 }
+

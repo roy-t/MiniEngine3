@@ -22,8 +22,8 @@ internal static class GrassLoader
             var instanceBuffer = new StructuredBuffer<GrassInstanceData>(device, "Grass");
             
             var instances = 1000 * 1000;
-            var data = GenerateGrass(instances);
-            //var data = GenerateDebugGrass(11);
+            //var data = GenerateGrass(instances);
+            var data = GenerateDebugGrass(11);
             instanceBuffer.MapData(device.ImmediateContext, data);
 
             var resource = device.Resources.Add(instanceBuffer);
