@@ -3,6 +3,7 @@
     <None Remove="Assets\Shaders\Includes\Easings.hlsl" />
     <None Remove="Assets\Shaders\World\Grass.hlsl" />
     <None Remove="Assets\Shaders\World\Includes\Utilities.hlsl" />
+    <None Remove="Assets\Shaders\World\Includes\Wind.hlsl" />
   </ItemGroup> 
   <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
@@ -18,6 +19,7 @@
     <AdditionalFiles Include="Assets\.contentroot" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Easings.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\HydraulicErosion.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\World\Includes\Wind.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\Includes\Utilities.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\Grass.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\Terrain.hlsl" />
