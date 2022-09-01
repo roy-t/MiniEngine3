@@ -118,6 +118,8 @@ public sealed class DiskFileSystem : IVirtualFileSystem
     private sealed class DelayedSet<T>
         where T : notnull
     {
+        private readonly object Lock = new();
+
         private readonly TimeSpan Delay;
         private readonly Dictionary<T, DateTime> Entries;
 
@@ -129,28 +131,37 @@ public sealed class DiskFileSystem : IVirtualFileSystem
 
         public void Add(T data)
         {
-            if (!this.Entries.ContainsKey(data))
+            lock (this.Lock)
             {
-                this.Entries.Add(data, DateTime.Now + this.Delay);
+                if (!this.Entries.ContainsKey(data))
+                {
+                    this.Entries.Add(data, DateTime.Now + this.Delay);
+                }
             }
         }
 
         public IEnumerable<T> PopAvailable()
         {
-            var popped = new List<T>();
-            var cutoff = DateTime.Now;
-            foreach (var entry in this.Entries)
+            if (this.Entries.Count > 0)
             {
-                if (entry.Value < cutoff)
+                lock (this.Lock)
                 {
-                    popped.Add(entry.Key);
-                    yield return entry.Key;
-                }
-            }
+                    var popped = new List<T>();
+                    var cutoff = DateTime.Now;
+                    foreach (var entry in this.Entries)
+                    {
+                        if (entry.Value < cutoff)
+                        {
+                            popped.Add(entry.Key);
+                            yield return entry.Key;
+                        }
+                    }
 
-            foreach (var pop in popped)
-            {
-                this.Entries.Remove(pop);
+                    foreach (var pop in popped)
+                    {
+                        this.Entries.Remove(pop);
+                    }
+                }
             }
         }
     }

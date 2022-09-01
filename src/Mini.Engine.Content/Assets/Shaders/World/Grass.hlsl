@@ -51,6 +51,18 @@ cbuffer Constants : register(b0)
 // Todo: seperate into per clump and per blade buffer
 StructuredBuffer<InstanceData> Instances : register(t0);
 
+float4x4 CreateMatrix(float yaw, float3 offset)
+{
+    float c = (float) cos(yaw);
+    float s = (float) sin(yaw);
+ 
+    // [  c  0 -s  0 ]
+    // [  0  1  0  0 ]
+    // [  s  0  c  0 ]
+    // [  0  0  0  1 ]
+    return transpose(float4x4(c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, offset.x, offset.y, offset.z, 1));
+}
+
 float2 RotationToVector(float rotation)
 {
     return float2(sin(rotation), -cos(rotation));
@@ -69,6 +81,19 @@ float IsRightVertex(uint vertexId)
 float GetSegmentIndex(uint vertexId)
 {   
     return floor(vertexId / 2);
+}
+
+float BiasRotationToCameraRotation(float3 position, float rotation)
+{           
+    // TODO: assumes rotation is [0 - 2*PI]
+    // TODO: looking straight down shows an ugly pattern
+    // maybe try to reduce the strength of this rotation by distance
+    float rotationOffset = (rotation - PI) / 6.0f;
+        
+    float3 bladeToCamere = normalize(position - CameraPosition);
+    
+    float2 flat = normalize(-float2(bladeToCamere.z, bladeToCamere.x));   
+    return atan2(flat.y, flat.x) + rotationOffset;
 }
 
 void GetSpineVertex(uint vertexId, float length, float targetAngle, out float3 position, out float segmentAngle)
@@ -95,10 +120,8 @@ void GetSpineVertex(uint vertexId, float length, float targetAngle, out float3 p
     segmentAngle = angles[segment];
 }
 
-void GetBorderVertex(uint vertexId, float nAngle, inout float3 position, inout float3 normal)
+float3 GetBorderOffset(uint vertexId)
 {
-    static const float halfBladeThickness = 0.03f;
-        
     float3 perp = float3(1, 0, 0);
     
     float l = IsLeftVertex(vertexId);
@@ -106,29 +129,27 @@ void GetBorderVertex(uint vertexId, float nAngle, inout float3 position, inout f
     float t = vertexId == 6; // the top vertex
     float nt = vertexId != 6; // not the top vertex
     
-    float direction = (l - r) * nt;
-    
-    position = position + (perp * halfBladeThickness * direction);
-    
+    return (l - r) * nt;
+}
+
+float3 GetBorderPosition(float3 position, float3 borderDirection)
+{
+    static const float halfBladeThickness = 0.03f;                
+    return position + (halfBladeThickness * borderDirection);                
+}
+
+float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
+{
+    float t = vertexId == 6; // the top vertex
+    float nt = vertexId != 6; // not the top vertex
+        
     // Grass blades are single sided, so we have to pick a side for the the normal
     // using -PI_OVER_TWO the normal is correct if the blade is facing away from you
     float3 n = float3(0, cos(nAngle - PI_OVER_TWO), -sin(nAngle - PI_OVER_TWO));
     
     // Slightly tilt the normal outwards to give a more 3D effect
-    float3 target = normalize((n * t) + (perp * direction * nt));
-    normal = normalize(lerp(n, target, 0.15f));    
-}
-
-float4x4 CreateMatrix(float yaw, float3 offset)
-{
-    float c = (float) cos(yaw);
-    float s = (float) sin(yaw);
- 
-    // [  c  0 -s  0 ]
-    // [  0  1  0  0 ]
-    // [  s  0  c  0 ]
-    // [  0  0  0  1 ]
-    return transpose(float4x4(c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, offset.x, offset.y, offset.z, 1));
+    float3 target = normalize((n * t) + (borderDirection * nt));
+    return normalize(lerp(n, target, 0.15f));
 }
 
 #pragma VertexShader
@@ -137,27 +158,35 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     PS_INPUT output;
     
     InstanceData data = Instances[instanceId];
-
-    float2 facing = RotationToVector(data.rotation);    
-    static const float baseTilt = PI / 4;
-    float tilt = baseTilt + GetTiltFromWind(data.position, facing, WindDirection, WindScroll);    
         
-    float3 position;
-    float3 normal;
+    float2 facing = RotationToVector(data.rotation);    
+    static const float baseTilt = PI / 3;
+    float tilt = baseTilt + (GetWindPower(data.position, facing, WindDirection, WindScroll) * PI_OVER_TWO);
+            
+    float3 position;    
     float nAngle;
     
     GetSpineVertex(vertexId, data.scale, tilt, position, nAngle);        
-    GetBorderVertex(vertexId, nAngle, position, normal);
-
+    float3 borderDirection = GetBorderOffset(vertexId);
+    position = GetBorderPosition(position, borderDirection);
+    float3 normal = GetBorderNormal(vertexId, borderDirection, nAngle);
     float2 texcoord = float2(0, 0);
     float3 tint = data.tint;
-        
-    float4x4 world = CreateMatrix(data.rotation, data.position);
-    float3x3 rotation = (float3x3) world;
+    
+    float biasedRotation = BiasRotationToCameraRotation(data.position, data.rotation);
+    float4x4 world = CreateMatrix(biasedRotation, data.position);
     float4x4 worldViewProjection = mul(ViewProjection, world);
-        
+            
     output.position = mul(worldViewProjection, float4(position, 1.0f));
-    output.texcoord = texcoord;
+    output.texcoord = texcoord;    
+    
+    // TODO:!
+    // You can see the movement of the grass better if all normals point in the same
+    // direction, however this makes the grass look very different depending on the position
+    // of the sun and other lightsources. If we limit the angle of the grass with regards to the camera
+    // it might look better rotated
+    //output.normal = normal;
+    float3x3 rotation = (float3x3) world;
     output.normal = mul(rotation, normal);
     output.tint = tint;
 
@@ -170,7 +199,7 @@ OUTPUT PS(PS_INPUT input)
     OUTPUT output;        
     
     float metalicness = 0.0f;
-    float roughness = 0.4f;
+    float roughness = 0.3f;
     // TODO: ambient occlusion is somewhere done wrong 
     // as setting it to 0.0 still lights things
     float ambientOcclusion = 1.0f;
