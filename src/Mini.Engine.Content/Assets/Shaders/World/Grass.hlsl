@@ -95,12 +95,11 @@ void GetSpineVertex(uint vertexId, float length, float targetAngle, out float3 p
     segmentAngle = angles[segment];
 }
 
-void GetBorderVertex(uint vertexId, float2 facing, float nAngle, inout float3 position, inout float3 normal)
+void GetBorderVertex(uint vertexId, float nAngle, inout float3 position, inout float3 normal)
 {
     static const float halfBladeThickness = 0.03f;
-    
-    float3 forward = float3(facing.x, 0.0f, facing.y);
-    float3 perp = cross(forward, float3(0, 1, 0));
+        
+    float3 perp = float3(1, 0, 0);
     
     float l = IsLeftVertex(vertexId);
     float r = IsRightVertex(vertexId);
@@ -120,38 +119,46 @@ void GetBorderVertex(uint vertexId, float2 facing, float nAngle, inout float3 po
     normal = normalize(lerp(n, target, 0.15f));    
 }
 
+float4x4 CreateMatrix(float yaw, float3 offset)
+{
+    float c = (float) cos(yaw);
+    float s = (float) sin(yaw);
+ 
+    // [  c  0 -s  0 ]
+    // [  0  1  0  0 ]
+    // [  s  0  c  0 ]
+    // [  0  0  0  1 ]
+    return transpose(float4x4(c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, offset.x, offset.y, offset.z, 1));
+}
+
 #pragma VertexShader
 PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
     PS_INPUT output;
     
     InstanceData data = Instances[instanceId];
-        
+
     float2 facing = RotationToVector(data.rotation);    
     static const float baseTilt = PI / 4;
-    float tilt = baseTilt + GetTiltFromWind(data.position, facing, WindDirection, WindScroll);
+    float tilt = baseTilt + GetTiltFromWind(data.position, facing, WindDirection, WindScroll);    
         
     float3 position;
     float3 normal;
     float nAngle;
     
-    // TODO: all grass leaves are tilted in the same direction irregardless of rotation
-    // but because wind is based on the direction of the grass, this makes things sweep
-    // in weird directions. Somehow the overal effect is quite nice, but let's try to fix
-    // this so that leaves tilt in the direction of their orientation
-    // The bug is in GetSpineVertex as it doesn't care about the rotation
-    // maybe we should just simplify spine and border vertex and create a rotation matrix at the end?
-    // Best seen with the 11 test things and tilt to 3.0f fixed value!
     GetSpineVertex(vertexId, data.scale, tilt, position, nAngle);        
-    GetBorderVertex(vertexId, facing, nAngle, position, normal);
-        
-    position += data.position;
+    GetBorderVertex(vertexId, nAngle, position, normal);
+
     float2 texcoord = float2(0, 0);
     float3 tint = data.tint;
         
-    output.position = mul(ViewProjection, float4(position, 1.0f));
+    float4x4 world = CreateMatrix(data.rotation, data.position);
+    float3x3 rotation = (float3x3) world;
+    float4x4 worldViewProjection = mul(ViewProjection, world);
+        
+    output.position = mul(worldViewProjection, float4(position, 1.0f));
     output.texcoord = texcoord;
-    output.normal = normal;
+    output.normal = mul(rotation, normal);
     output.tint = tint;
 
     return output;

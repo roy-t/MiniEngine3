@@ -31,7 +31,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         this.User = shader.CreateUserFor<GrassSystem>();
 
         this.windScrollAccumulator = 0.0f;
-        this.windDirection = Vector2.Normalize(new Vector2(1.0f, 0.75f));
+        this.windDirection = new Vector2(0, -1);  //Vector2.Normalize(new Vector2(1.0f, 0.75f));
     }
 
     public void UpdateWind(float elapsed)
