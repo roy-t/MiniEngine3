@@ -168,6 +168,35 @@ float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
     return normalize(lerp(n, target, 0.15f));
 }
 
+float3 GetWorldNormal(float4x4 world, float3 normal)
+{
+    // TODO: make variable
+    static const float3 SunPosition = float3(0, 1, 0);
+    static const float3 SunLookAt = float3(-0.75f, 0, 0.1f);
+    static const float3 DirectionToSun = normalize(SunPosition - SunLookAt);
+        
+    // Choose the normal that reflects the most sunlight
+    // to give the illusion that blades of grass have two sides
+    
+    float3x3 rotation = (float3x3) world;
+    
+    float3 n0 = mul(rotation, normal);
+    float3 n1 = mul(rotation, float3(0, normal.y, -normal.z));
+    
+    normal = n0;
+    
+    float d0 = dot(DirectionToSun, n0);
+    float d1 = dot(DirectionToSun, n1);
+    
+    if (d1 > d0)
+    {
+        normal = n1;
+    }
+    
+    return normal;
+        
+}
+
 #pragma VertexShader
 PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
@@ -195,15 +224,7 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
             
     output.position = mul(worldViewProjection, float4(position, 1.0f));
     output.texcoord = texcoord;    
-    
-    // TODO:!
-    // You can see the movement of the grass better if all normals point in the same
-    // direction, however this makes the grass look very different depending on the position
-    // of the sun and other lightsources. If we limit the angle of the grass with regards to the camera
-    // it might look better rotated
-    //output.normal = normal;
-    float3x3 rotation = (float3x3) world;
-    output.normal = mul(rotation, normal);
+    output.normal = GetWorldNormal(world, normal);
     output.tint = tint;
 
     return output;
