@@ -80,15 +80,31 @@ float IsRightVertex(uint vertexId)
 
 float GetSegmentIndex(uint vertexId)
 {   
-    return floor(vertexId / 2);
+    return floor(vertexId / 2.0f);
+}
+
+// TODO: move to a math include or something
+
+/* wrap x -> [0,max) */
+float wrapMax(float x, float max)
+{
+    /* integer math: `(max + x % max) % max` */
+    return fmod(max + fmod(x, max), max);
+}
+/* wrap x -> [min,max) */
+float wrapMinMax(float x, float min, float max)
+{
+    return min + wrapMax(x - min, max - min);
 }
 
 float BiasRotationToCameraRotation(float3 position, float rotation)
-{           
-    // TODO: assumes rotation is [0 - 2*PI]
+{    
+    rotation = wrapMinMax(rotation, -PI, PI);
+        
     // TODO: looking straight down shows an ugly pattern
     // maybe try to reduce the strength of this rotation by distance
-    float rotationOffset = (rotation - PI) / 6.0f;
+    // assumes rotation is [-PI..PI]
+    float rotationOffset = rotation / 6.0f;
         
     float3 bladeToCamere = normalize(position - CameraPosition);
     
@@ -129,7 +145,7 @@ float3 GetBorderOffset(uint vertexId)
     float t = vertexId == 6; // the top vertex
     float nt = vertexId != 6; // not the top vertex
     
-    return (l - r) * nt;
+    return perp * (l - r) * nt;
 }
 
 float3 GetBorderPosition(float3 position, float3 borderDirection)
@@ -139,14 +155,14 @@ float3 GetBorderPosition(float3 position, float3 borderDirection)
 }
 
 float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
-{
+{             
     float t = vertexId == 6; // the top vertex
     float nt = vertexId != 6; // not the top vertex
         
     // Grass blades are single sided, so we have to pick a side for the the normal
     // using -PI_OVER_TWO the normal is correct if the blade is facing away from you
     float3 n = float3(0, cos(nAngle - PI_OVER_TWO), -sin(nAngle - PI_OVER_TWO));
-    
+        
     // Slightly tilt the normal outwards to give a more 3D effect
     float3 target = normalize((n * t) + (borderDirection * nt));
     return normalize(lerp(n, target, 0.15f));
@@ -162,11 +178,11 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     float2 facing = RotationToVector(data.rotation);    
     static const float baseTilt = PI / 3;
     float tilt = baseTilt + (GetWindPower(data.position, facing, WindDirection, WindScroll) * PI_OVER_TWO);
-            
-    float3 position;    
-    float nAngle;
     
+    float3 position;    
+    float nAngle;    
     GetSpineVertex(vertexId, data.scale, tilt, position, nAngle);        
+    
     float3 borderDirection = GetBorderOffset(vertexId);
     position = GetBorderPosition(position, borderDirection);
     float3 normal = GetBorderNormal(vertexId, borderDirection, nAngle);
