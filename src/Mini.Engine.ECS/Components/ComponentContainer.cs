@@ -21,7 +21,7 @@ public interface IComponentContainer<T> : IComponentContainer
     ResultIterator<T> IterateRemoved();
     ResultIterator<T> IterateUnchanged();
 
-    ref T Single();
+    ref T First(IQuery<T> query);
 }
 
 public sealed class ComponentContainer<T> : IComponentContainer<T>
@@ -85,14 +85,18 @@ public sealed class ComponentContainer<T> : IComponentContainer<T>
         }
     }
 
-    public ref T Single()
+    public ref T First(IQuery<T> query)
     {
-        if (this.Pool.Count == 1)
+        for(var i = 0; i < this.Pool.Count; i++)
         {
-            return ref this.Pool[0];
+            ref var component = ref this.Pool[i];
+            if (query.Accept(ref component))
+            {
+                return ref component;
+            }
         }
-
-        throw new NotSupportedException("Container does not contain exactly one element");
+       
+        throw new NotSupportedException("Container does not contain at least one element matching the query");
     }
 
     public ResultIterator<T> Iterate(IQuery<T> query)

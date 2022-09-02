@@ -42,7 +42,7 @@ cbuffer Constants : register(b0)
 {
     float4x4 ViewProjection;
     float3 CameraPosition;
-    float3 GrassToSunVector;    
+    float3 GrassToSunVector;
     float2 WindDirection;
     float WindScroll;
 };
@@ -54,7 +54,7 @@ float4x4 CreateMatrix(float yaw, float3 offset)
 {
     float c = (float) cos(yaw);
     float s = (float) sin(yaw);
- 
+
     // [  c  0 -s  0 ]
     // [  0  1  0  0 ]
     // [  s  0  c  0 ]
@@ -73,45 +73,47 @@ float IsRightVertex(uint vertexId)
 }
 
 float GetSegmentIndex(uint vertexId)
-{   
+{
     return floor(vertexId / 2.0f);
 }
 
 float BiasRotationToCameraRotation(float3 position, float rotation)
-{                
+{
     // TODO: looking straight down shows an ugly pattern
     // maybe try to reduce the strength of this rotation by distance
-    
+
     // ensure rotation is [-PI..PI]
     rotation = WrapRadians(rotation);
-    float rotationOffset = rotation / 6.0f;
-        
+    // Make sure that we don't see thin sides of blades by making sure the
+    // blades are always rotated at most PI/3 relative to the camera
+    float rotationOffset = clamp(rotation / 2.0f, -PI / 3.0f, PI / 3.0f);
+
     float3 bladeToCamere = normalize(position - CameraPosition);
-    
-    float2 flat = normalize(-float2(bladeToCamere.z, bladeToCamere.x));   
+
+    float2 flat = normalize(-float2(bladeToCamere.z, bladeToCamere.x));
     return atan2(flat.y, flat.x) + rotationOffset;
 }
 
 void GetSpineVertex(uint vertexId, float length, float targetAngle, out float3 position, out float segmentAngle)
 {
     static const float stiffness = 3.0f;
-    
+
     float segmentLength = length / 3;
-    
+
     float4 angles;
     angles[0] = 0.0f;
     angles[1] = targetAngle / 4.0f;
     angles[2] = targetAngle / 2.0f;
     angles[3] = targetAngle / 1.0f;
-        
+
     float3 positions[4];
     positions[0] = float3(0, 0, 0);
     positions[1] = positions[0] + float3(0, cos(angles[1]), -sin(angles[1])) * segmentLength;
     positions[2] = positions[1] + float3(0, cos(angles[2]), -sin(angles[2])) * segmentLength;
     positions[3] = positions[2] + float3(0, cos(angles[3]), -sin(angles[3])) * segmentLength;
-    
+
     float segment = GetSegmentIndex(vertexId);
-    
+
     position = positions[segment];
     segmentAngle = angles[segment];
 }
@@ -119,86 +121,86 @@ void GetSpineVertex(uint vertexId, float length, float targetAngle, out float3 p
 float3 GetBorderOffset(uint vertexId)
 {
     float3 perp = float3(1, 0, 0);
-    
+
     float l = IsLeftVertex(vertexId);
     float r = IsRightVertex(vertexId);
     float t = vertexId == 6; // the top vertex
     float nt = vertexId != 6; // not the top vertex
-    
+
     return perp * (l - r) * nt;
 }
 
 float3 GetBorderPosition(float3 position, float3 borderDirection)
 {
-    static const float halfBladeThickness = 0.03f;                
-    return position + (halfBladeThickness * borderDirection);                
+    static const float halfBladeThickness = 0.03f;
+    return position + (halfBladeThickness * borderDirection);
 }
 
 float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
-{             
+{
     float t = vertexId == 6; // the top vertex
     float nt = vertexId != 6; // not the top vertex
-        
+
     // Grass blades are single sided, so we have to pick a side for the the normal
     // using -PI_OVER_TWO the normal is correct if the blade is facing away from you
     float3 n = float3(0, cos(nAngle - PI_OVER_TWO), -sin(nAngle - PI_OVER_TWO));
-        
+
     // Slightly tilt the normal outwards to give a more 3D effect
     float3 target = normalize((n * t) + (borderDirection * nt));
-    return normalize(lerp(n, target, 0.15f));
+    return normalize(lerp(n, target, 0.25f));
 }
 
 float3 GetWorldNormal(float4x4 world, float3 normal)
-{        
+{
     // Choose the normal that reflects the most sunlight
     // to give the illusion that blades of grass have two sides
-    
+
     float3x3 rotation = (float3x3) world;
-    
+
     float3 n0 = mul(rotation, normal);
     float3 n1 = mul(rotation, float3(0, normal.y, -normal.z));
-    
+
     normal = n0;
-    
+
     float d0 = dot(GrassToSunVector, n0);
     float d1 = dot(GrassToSunVector, n1);
-    
+
     if (d1 > d0)
     {
         normal = n1;
     }
-    
+
     return normal;
-        
+
 }
 
 #pragma VertexShader
 PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
     PS_INPUT output;
-    
+
     InstanceData data = Instances[instanceId];
-        
-    float2 facing = RotationToVector(data.rotation);    
-    static const float baseTilt = PI / 3;
+
+    float2 facing = RotationToVector(data.rotation);
+    static const float baseTilt = PI / 2.75f;
     float tilt = baseTilt + (GetWindPower(data.position, facing, WindDirection, WindScroll) * PI_OVER_TWO);
-    
-    float3 position;    
-    float nAngle;    
-    GetSpineVertex(vertexId, data.scale, tilt, position, nAngle);        
-    
+
+    float3 position;
+    float nAngle;
+    GetSpineVertex(vertexId, data.scale, tilt, position, nAngle);
+
     float3 borderDirection = GetBorderOffset(vertexId);
     position = GetBorderPosition(position, borderDirection);
     float3 normal = GetBorderNormal(vertexId, borderDirection, nAngle);
     float2 texcoord = float2(0, 0);
     float3 tint = data.tint;
-    
+
     float biasedRotation = BiasRotationToCameraRotation(data.position, data.rotation);
     float4x4 world = CreateMatrix(biasedRotation, data.position);
     float4x4 worldViewProjection = mul(ViewProjection, world);
-            
+
     output.position = mul(worldViewProjection, float4(position, 1.0f));
-    output.texcoord = texcoord;    
+    output.texcoord = texcoord;
     output.normal = GetWorldNormal(world, normal);
     output.tint = tint;
 
@@ -208,14 +210,14 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 #pragma PixelShader
 OUTPUT PS(PS_INPUT input)
 {
-    OUTPUT output;        
-    
-    float metalicness = 0.0f;
-    float roughness = 0.3f;
-    // TODO: ambient occlusion is somewhere done wrong 
+    OUTPUT output;
+
+    float metalicness = 0.2f;
+    float roughness = 0.6f;
+    // TODO: ambient occlusion is somewhere done wrong
     // as setting it to 0.0 still lights things
     float ambientOcclusion = 1.0f;
-    
+
     output.albedo = ToLinear(float4(input.tint, 1.0f));
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
     output.normal = float4(PackNormal(input.normal), 1.0f);
