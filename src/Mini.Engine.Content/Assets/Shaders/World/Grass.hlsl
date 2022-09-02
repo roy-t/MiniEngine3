@@ -1,6 +1,6 @@
 #include "../Includes/Normals.hlsl"
 #include "../Includes/Gamma.hlsl"
-#include "../Includes/Defines.hlsl"
+#include "../Includes/Radians.hlsl"
 #include "Includes/Wind.hlsl"
 
 // Inspired by
@@ -42,8 +42,7 @@ cbuffer Constants : register(b0)
 {
     float4x4 ViewProjection;
     float3 CameraPosition;
-    float3 CameraForward;
-    float AspectRatio;
+    float3 GrassToSunVector;    
     float2 WindDirection;
     float WindScroll;
 };
@@ -63,11 +62,6 @@ float4x4 CreateMatrix(float yaw, float3 offset)
     return transpose(float4x4(c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, offset.x, offset.y, offset.z, 1));
 }
 
-float2 RotationToVector(float rotation)
-{
-    return float2(sin(rotation), -cos(rotation));
-}
-
 float IsLeftVertex(uint vertexId)
 {
     return vertexId % 2 == 0;
@@ -83,27 +77,13 @@ float GetSegmentIndex(uint vertexId)
     return floor(vertexId / 2.0f);
 }
 
-// TODO: move to a math include or something
-
-/* wrap x -> [0,max) */
-float wrapMax(float x, float max)
-{
-    /* integer math: `(max + x % max) % max` */
-    return fmod(max + fmod(x, max), max);
-}
-/* wrap x -> [min,max) */
-float wrapMinMax(float x, float min, float max)
-{
-    return min + wrapMax(x - min, max - min);
-}
-
 float BiasRotationToCameraRotation(float3 position, float rotation)
-{    
-    rotation = wrapMinMax(rotation, -PI, PI);
-        
+{                
     // TODO: looking straight down shows an ugly pattern
     // maybe try to reduce the strength of this rotation by distance
-    // assumes rotation is [-PI..PI]
+    
+    // ensure rotation is [-PI..PI]
+    rotation = WrapRadians(rotation);
     float rotationOffset = rotation / 6.0f;
         
     float3 bladeToCamere = normalize(position - CameraPosition);
@@ -169,12 +149,7 @@ float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
 }
 
 float3 GetWorldNormal(float4x4 world, float3 normal)
-{
-    // TODO: make variable
-    static const float3 SunPosition = float3(0, 1, 0);
-    static const float3 SunLookAt = float3(-0.75f, 0, 0.1f);
-    static const float3 DirectionToSun = normalize(SunPosition - SunLookAt);
-        
+{        
     // Choose the normal that reflects the most sunlight
     // to give the illusion that blades of grass have two sides
     
@@ -185,8 +160,8 @@ float3 GetWorldNormal(float4x4 world, float3 normal)
     
     normal = n0;
     
-    float d0 = dot(DirectionToSun, n0);
-    float d1 = dot(DirectionToSun, n1);
+    float d0 = dot(GrassToSunVector, n0);
+    float d1 = dot(GrassToSunVector, n1);
     
     if (d1 > d0)
     {

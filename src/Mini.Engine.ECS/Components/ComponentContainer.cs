@@ -12,7 +12,7 @@ public interface IComponentContainer<T> : IComponentContainer
     where T : struct, IComponent
 {
     ref T this[Entity entity] { get; }
-    ref T Create(Entity entity);        
+    ref T Create(Entity entity);
 
     ResultIterator<T> Iterate(IQuery<T> query);
     ResultIterator<T> IterateAll();
@@ -20,6 +20,8 @@ public interface IComponentContainer<T> : IComponentContainer
     ResultIterator<T> IterateNew();
     ResultIterator<T> IterateRemoved();
     ResultIterator<T> IterateUnchanged();
+
+    ref T Single();
 }
 
 public sealed class ComponentContainer<T> : IComponentContainer<T>
@@ -29,7 +31,7 @@ public sealed class ComponentContainer<T> : IComponentContainer<T>
     public static readonly IQuery<T> AcceptNew = new QueryLifCcycle<T>(LifeCycleState.New);
     public static readonly IQuery<T> AcceptUnchanged = new QueryLifCcycle<T>(LifeCycleState.Unchanged);
     public static readonly IQuery<T> AcceptChanged = new QueryLifCcycle<T>(LifeCycleState.Changed);
-        
+
     public static readonly IQuery<T> AcceptRemoved = new QueryLifCcycle<T>(LifeCycleState.Removed);
     public static readonly IQuery<T> AcceptCreated = new QueryLifCcycle<T>(LifeCycleState.Created);
 
@@ -81,6 +83,16 @@ public sealed class ComponentContainer<T> : IComponentContainer<T>
                 component.LifeCycle = component.LifeCycle.ToNext();
             }
         }
+    }
+
+    public ref T Single()
+    {
+        if (this.Pool.Count == 1)
+        {
+            return ref this.Pool[0];
+        }
+
+        throw new NotSupportedException("Container does not contain exactly one element");
     }
 
     public ResultIterator<T> Iterate(IQuery<T> query)

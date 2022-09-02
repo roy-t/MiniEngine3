@@ -3,8 +3,11 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
+using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
+using Mini.Engine.Graphics.Lighting.ShadowingLights;
+using Mini.Engine.Graphics.Transforms;
 using Vortice.Direct3D;
 using Shaders = Mini.Engine.Content.Shaders.Generated;
 
@@ -16,18 +19,22 @@ public sealed partial class GrassSystem : ISystem, IDisposable
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
+    private readonly IComponentContainer<SunLightComponent> SunLights;
+    private readonly IComponentContainer<TransformComponent> Transforms;
     private readonly Grass Shader;
     private readonly Grass.User User;
 
     private float windScrollAccumulator;
     private Vector2 windDirection;
 
-    public GrassSystem(Device device, FrameService frameService, Shaders.Grass shader)
+    public GrassSystem(Device device, FrameService frameService, ContainerStore store, Shaders.Grass shader)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<GrassSystem>();
         this.FrameService = frameService;
-        this.Shader = shader;       
+        this.SunLights = store.GetContainer<SunLightComponent>();
+        this.Transforms = store.GetContainer<TransformComponent>();
+        this.Shader = shader;
         this.User = shader.CreateUserFor<GrassSystem>();
 
         this.windScrollAccumulator = 0.0f;
@@ -66,15 +73,23 @@ public sealed partial class GrassSystem : ISystem, IDisposable
     {
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
-        
+
         var viewProjection = camera.Camera.GetViewProjection(in cameraTransform.Transform);
         var cameraPosition = cameraTransform.Transform.GetPosition();
-        var cameraForward = cameraTransform.Transform.GetForward();
-        var aspectRatio = camera.Camera.AspectRatio;
-        this.User.MapConstants(this.Context, viewProjection, cameraPosition, cameraForward, aspectRatio, this.windDirection, this.windScrollAccumulator);
+        var grassToSun = this.GetGrassToSunVector();
 
-        this.Context.VS.SetInstanceBuffer(Grass.Instances, grassComponent.InstanceBuffer);        
+        this.User.MapConstants(this.Context, viewProjection, cameraPosition, grassToSun, this.windDirection, this.windScrollAccumulator);
+
+        this.Context.VS.SetInstanceBuffer(Grass.Instances, grassComponent.InstanceBuffer);
         this.Context.DrawInstanced(7, grassComponent.Instances);
+    }
+
+
+    private Vector3 GetGrassToSunVector()
+    {
+        ref var sun = ref this.SunLights.Single();
+        ref var transform = ref this.Transforms[sun.Entity];
+        return -transform.Transform.GetForward();
     }
 
     public void OnUnSet()
