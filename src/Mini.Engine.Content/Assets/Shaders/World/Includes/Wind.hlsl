@@ -24,7 +24,8 @@ float FBM(float2 coord, float frequency, float amplitude, float lacunarity, floa
 
 float GetWindPower(float3 worldPos, float2 facing, float2 windDirection, float windScroll)
 {
-    float influence = dot(windDirection, facing);
+    float influence = dot(windDirection, facing);    
+    influence = max(abs(influence), 0.1f) * sign(influence);
     float noise = FBM(worldPos.xz + float2(windScroll * 4, 0.0f), 0.05f, 1.0f, 1.0f, 0.55f);
     noise = (1.0f + noise) / 2.0f; // from [-1..1] to [0..1]
     return (influence * noise);    

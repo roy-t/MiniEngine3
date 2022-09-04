@@ -152,26 +152,27 @@ float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
 
 float3 GetWorldNormal(float4x4 world, float3 normal)
 {
-    // Choose the normal that reflects the most sunlight
-    // to give the illusion that blades of grass have two sides
-
     float3x3 rotation = (float3x3) world;
 
-    float3 n0 = mul(rotation, normal);
-    float3 n1 = mul(rotation, float3(0, normal.y, -normal.z));
+    // Figure out which side of the grass blade is pointing 
+    // most towards the sun. So that we can use the normal of that
+    // side to give the illusion that blades of grass have two sides
+    float3 forward = mul(rotation, float3(0, 0, -1));
+    float3 backward = mul(rotation, float3(0, 0, 1));
 
-    normal = n0;
+    float d0 = dot(GrassToSunVector, forward);
+    float d1 = dot(GrassToSunVector, backward);
 
-    float d0 = dot(GrassToSunVector, n0);
-    float d1 = dot(GrassToSunVector, n1);
-
-    if (d1 > d0)
+    if(d0 > d1)
     {
-        normal = n1;
+        normal = mul(rotation, normal);
+    }
+    else
+    {
+        normal = mul(rotation, float3(0, normal.y, -normal.z));
     }
 
     return normal;
-
 }
 
 #pragma VertexShader
