@@ -226,7 +226,7 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     float3 normal = GetBorderNormal(vertexId, borderDirection, nAngle);
 
     float2 texcoord = GetTextureCoordinates(vertexId);
-    float3 tint = float3(0.5f, 0.6f, 0.2f); //data.tint;
+    float3 tint = data.tint;
 
     float biasedRotation = BiasRotationToCameraRotation(data.position, data.rotation);
     float4x4 world = CreateMatrix(biasedRotation, data.position);
@@ -235,7 +235,9 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     output.position = mul(worldViewProjection, float4(position, 1.0f));
     output.texcoord = texcoord;
     output.normal = GetWorldNormal(world, normal);
-    output.tint = tint;
+
+    // TODO instead of tint use ambient occlusion!
+    output.tint = tint * lerp((GetSegmentIndex(vertexId)) / 3, 0.6f, 1.0f);
 
     return output;
 }
@@ -245,8 +247,8 @@ OUTPUT PS(PS_INPUT input)
 {
     OUTPUT output;
 
-    float metalicness = 0.0f;
-    float roughness = 0.5f;
+    float metalicness = 0.1f;
+    float roughness = 0.55f;
     // TODO: ambient occlusion is somewhere done wrong
     // as setting it to 0.0 still lights things
     float ambientOcclusion = 1.0f;
