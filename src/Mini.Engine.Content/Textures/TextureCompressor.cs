@@ -33,18 +33,36 @@ internal sealed class TextureCompressor
             this.Settings.Add(sourceFile, (id, settings));
         }
     }
-
-    internal void CompressSourceFileFor(ContentId id, TextureLoaderSettings settings)
+    
+    internal void EnsureCompressedFileExistsAndIsUpToDate(ContentId id, TextureLoaderSettings settings)
     {        
-        var sourceFile = this.FindSourceFile(id);
-        if (sourceFile == null)
+        var originalFile = this.FindSourceFile(id);
+        if (originalFile != null)
+        {
+            if (this.FileSystem.Exists(id.Path))
+            {
+                var originalFileDate = this.FileSystem.GetLastWriteTime(originalFile);
+                var compressedFileDate = this.FileSystem.Exists(id.Path)
+                    ? this.FileSystem.GetLastWriteTime(id.Path)
+                    : DateTime.MinValue;
+
+                if (originalFileDate > compressedFileDate)
+                {
+                    this.Logger.Information($"Compressing texture file {originalFile} in the foreground because target {id.Path} is outdated");
+                    this.Compress(originalFile, id, settings);
+                }
+            }
+            else
+            {
+                this.Logger.Information($"Compressing texture file {originalFile} in the foreground because target {id.Path} does not exist");
+                this.Compress(originalFile, id, settings);
+            }
+        }
+        else
         {
             var all = "{" + string.Join(", ", UncompressexExtensions) + "}";
-            throw new FileNotFoundException($"Could not find file {Path.GetFileNameWithoutExtension(id.Path)}{all}");
+            throw new FileNotFoundException($"Cannot compress {id.Path}, could not find source file {Path.GetFileNameWithoutExtension(id.Path)}{all} to compress");
         }
-
-        this.Logger.Information($"Compressing texture file {sourceFile}->{id.Path} in the foreground");
-        this.Compress(sourceFile, id, settings);
     }
 
     internal void ProcessChangedFile(string file)

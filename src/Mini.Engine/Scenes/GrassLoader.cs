@@ -16,7 +16,12 @@ internal static class GrassLoader
         return new LoadAction("Grass", () =>
         {
             var grass = administrator.Entities.Create();
-            ref var grassy = ref creator.Create<GrassComponent>(grass);
+            ref var component = ref creator.Create<GrassComponent>(grass);
+
+            // Do not bother with compression as this is a 64x1 texture and compressed textures
+            // need to be at least 4 pixels in each dimension
+            component.Texture = content.LoadTexture(@"Shaders/World/GrassTexture.png");
+
 
             var instanceBuffer = new StructuredBuffer<GrassInstanceData>(device, "Grass");
 
@@ -33,8 +38,8 @@ internal static class GrassLoader
 
             var resource = device.Resources.Add(instanceBuffer);
             content.Link(resource, "Grass");
-            grassy.InstanceBuffer = resource;
-            grassy.Instances = instances;
+            component.InstanceBuffer = resource;
+            component.Instances = instances;
         });
     }
 

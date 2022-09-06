@@ -49,11 +49,11 @@ public sealed partial class ContentManager : IDisposable
         this.MaterialLoader = new ContentCache<MaterialContent>(new MaterialLoader(this, fileSystem, this.TextureLoader));
         this.ModelLoader = new ContentCache<ModelContent>(new ModelLoader(this, fileSystem, this.MaterialLoader));
 
-        this.Dependencies = new Dictionary<string, HashSet<ContentId>>(StringComparer.OrdinalIgnoreCase);
+        this.Dependencies = new Dictionary<string, HashSet<ContentId>>(PathComparer.Instance);
         this.Callbacks = new Dictionary<ContentId, List<ReloadCallback>>();
     }
 
-    public IResource<ISurface> LoadTexture(string path, string key = "", TextureLoaderSettings? settings = null)
+    public IResource<ITexture> LoadTexture(string path, string key = "", TextureLoaderSettings? settings = null)
     {
         var id = new ContentId(path, key);
         var texture = this.TextureLoader.Load(this.Device, id, settings ?? TextureLoaderSettings.Default);
@@ -159,7 +159,7 @@ public sealed partial class ContentManager : IDisposable
         this.FileSystem.WatchFile(content.Id.Path);
         this.RegisterDependency(content.Id, content.Id.Path);
     }
-
+    
     [Conditional("DEBUG")]
     internal void RegisterDependency(ContentId content, string file)
     {

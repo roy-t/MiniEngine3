@@ -59,6 +59,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         this.Context.RS.SetViewPort(0, 0, this.Device.Width, this.Device.Height);
 
         this.Context.PS.SetShader(this.Shader.Ps);
+        this.Context.PS.SetSampler(Grass.TextureSampler, this.Device.SamplerStates.LinearClamp); // Or anisotropic?
         this.Context.PS.SetConstantBuffer(Grass.ConstantsSlot, this.User.ConstantsBuffer);
 
         this.Context.OM.SetBlendState(this.Device.BlendStates.Opaque);
@@ -80,6 +81,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
 
         this.User.MapConstants(this.Context, viewProjection, cameraPosition, grassToSun, this.windDirection, this.windScrollAccumulator);
 
+        this.Context.PS.SetShaderResource(Grass.Albedo, grassComponent.Texture);
         this.Context.VS.SetInstanceBuffer(Grass.Instances, grassComponent.InstanceBuffer);
         this.Context.DrawInstanced(7, grassComponent.Instances);
     }

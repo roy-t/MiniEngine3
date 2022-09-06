@@ -21,10 +21,7 @@ internal sealed class CompressedTextureLoader : IContentDataLoader<TextureData>
     {
         var settings = loaderSettings is TextureLoaderSettings textureLoaderSettings ? textureLoaderSettings : TextureLoaderSettings.Default;
 
-        if (!this.FileSystem.Exists(id.Path))
-        {
-            this.Compressor.CompressSourceFileFor(id, settings);
-        }
+        this.Compressor.EnsureCompressedFileExistsAndIsUpToDate(id, settings);
 
         var image = this.FileSystem.ReadAllBytes(id.Path);
 

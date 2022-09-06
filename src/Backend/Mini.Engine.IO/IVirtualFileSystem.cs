@@ -10,4 +10,5 @@ public interface IVirtualFileSystem
     byte[] ReadAllBytes(string path);
     bool Exists(string path);
     void Create(string path, ReadOnlySpan<byte> contents);
+    DateTime GetLastWriteTime(string path);
 }

@@ -43,6 +43,11 @@ public sealed class DiskFileSystem : IVirtualFileSystem
         return File.Exists(this.ToAbsolute(path));
     }
 
+    public DateTime GetLastWriteTime(string path)
+    {
+        return File.GetLastWriteTime(this.ToAbsolute(path));
+    }
+
     public string NormalizePath(string relativePath)
     {
         return this.ToRelative(this.ToAbsolute(relativePath)).ToLowerInvariant();

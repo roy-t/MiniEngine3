@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Resources;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
@@ -10,7 +9,7 @@ namespace Mini.Engine.Content.Textures;
 internal sealed record TextureData(ContentId Id, ImageInfo ImageInfo, MipMapInfo MipMapInfo, ID3D11Texture2D Texture, ID3D11ShaderResourceView View)
     : IContentData;
 
-internal sealed class Texture2DContent : ISurface, IContent
+internal sealed class Texture2DContent : ITexture, IContent
 {
     private readonly IContentDataLoader<TextureData> Loader;
     private readonly ILoaderSettings Settings;
