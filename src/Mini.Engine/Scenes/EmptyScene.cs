@@ -73,7 +73,7 @@ public sealed class EmptyScene : IScene
             new LoadAction("Skybox", () =>
             {
                 var sky = this.Administrator.Entities.Create();
-                var texture = this.Content.LoadTexture(@"Skyboxes\industrial.hdr", string.Empty, TextureLoaderSettings.RenderData);
+                var texture = this.Content.LoadTexture(@"Skyboxes\hilly_terrain.hdr", string.Empty, TextureLoaderSettings.RenderData);
                 var albedo = this.CubeMapGenerator.GenerateAlbedo(texture, sky.ToString());
                 var irradiance = this.CubeMapGenerator.GenerateIrradiance(texture, sky.ToString());
                 var environment = this.CubeMapGenerator.GenerateEnvironment(texture, sky.ToString());

@@ -81,14 +81,24 @@ float GetSegmentIndex(uint vertexId)
 
 float BiasRotationToCameraRotation(float3 position, float rotation)
 {
-    // TODO: looking straight down shows an ugly pattern
-    // maybe try to reduce the strength of this rotation by distance
+    // TODO: bias towards cameran this way?
+    float2 bladeToCamera = normalize(position.xz - CameraPosition.xz);
+    float2 perp = float2(-bladeToCamera.y, bladeToCamera.x);
+    float2 forward = RotationToVector(rotation);
+    float dt = dot(perp, forward);
+
+    float strength = pow(abs(dt), 2);
+    //return rotation + 0.8f * strength * sign(dt);
+
+    //return rotation;
+    // // TODO: looking straight down shows an ugly pattern
+    // // maybe try to reduce the strength of this rotation by distance
 
     // ensure rotation is [-PI..PI]
     rotation = WrapRadians(rotation);
     // Make sure that we don't see thin sides of blades by making sure the
     // blades are always rotated at most PI/3 relative to the camera
-    float rotationOffset = clamp(rotation / 2.0f, -PI / 3.0f, PI / 3.0f);
+    float rotationOffset = clamp(rotation / 3.0f, -PI / 2.0f, PI / 2.0f);
 
     float3 bladeToCamere = normalize(position - CameraPosition);
 
@@ -108,7 +118,8 @@ void GetSpineVertex(uint vertexId, float2 pos, float length, float targetAngle, 
     angles[2] = targetAngle / 1.55f;
     angles[3] = targetAngle / 1.0f;
 
-    float t = (WindScroll * 1.75f) + snoise(pos * 100) * 10;
+    float f = 1.25f * (1.0f + snoise(pos * 107) * 0.25f);
+    float t = (WindScroll * f) + (snoise(pos * 109) * 10);
     float a = 0.1f;
 
     angles[1] += sin(t) * a;
@@ -165,7 +176,7 @@ float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
 
     // Slightly tilt the normal outwards to give a more 3D effect
     float3 target = normalize((n * t) + (borderDirection * nt));
-    return normalize(lerp(n, target, 0.35f));
+    return normalize(lerp(n, target, 0.45f));
 }
 
 float3 GetWorldNormal(float4x4 world, float3 normal)
@@ -200,9 +211,12 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 
     InstanceData data = Instances[instanceId];
 
+    //data.rotation = PI_OVER_TWO;
+
     float2 facing = RotationToVector(data.rotation);
-    static const float baseTilt = PI / 4.0f;
-    float tilt = baseTilt + (GetWindPower(data.position, facing, WindDirection, WindScroll) * PI_OVER_TWO);
+    static const float baseTilt = PI / 2.0f;
+    float tilt = baseTilt + (GetWindPower(data.position, facing, WindDirection, WindScroll) * (PI / 3.0f));
+    //tilt = 0;
     float3 position;
     float nAngle;
     GetSpineVertex(vertexId, data.position.xz, data.scale, tilt, position, nAngle);
@@ -212,7 +226,7 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     float3 normal = GetBorderNormal(vertexId, borderDirection, nAngle);
 
     float2 texcoord = GetTextureCoordinates(vertexId);
-    float3 tint = data.tint;
+    float3 tint = float3(0.5f, 0.6f, 0.2f); //data.tint;
 
     float biasedRotation = BiasRotationToCameraRotation(data.position, data.rotation);
     float4x4 world = CreateMatrix(biasedRotation, data.position);
@@ -232,7 +246,7 @@ OUTPUT PS(PS_INPUT input)
     OUTPUT output;
 
     float metalicness = 0.0f;
-    float roughness = 0.6f;
+    float roughness = 0.5f;
     // TODO: ambient occlusion is somewhere done wrong
     // as setting it to 0.0 still lights things
     float ambientOcclusion = 1.0f;

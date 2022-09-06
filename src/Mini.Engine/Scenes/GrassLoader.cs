@@ -89,8 +89,8 @@ internal static class GrassLoader
         var maxs = 1.0f;
         var data = new GrassInstanceData[count];
 
-        var minColor = new Vector3(20 / 255.0f, 80 / 255.0f, 20.0f / 255.0f);
-        var maxColor = new Vector3(100 / 255.0f, 180 / 255.0f, 70.0f / 255.0f);
+        var minColor = new Vector3(90 / 255.0f, 110 / 255.0f, 20.0f / 255.0f);
+        var maxColor = new Vector3(120 / 255.0f, 140 / 255.0f, 40.0f / 255.0f);
 
         for (var i = 0; i < data.Length; i++)
         {
