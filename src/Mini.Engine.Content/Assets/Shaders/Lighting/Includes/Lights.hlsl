@@ -159,7 +159,7 @@ float3 ComputeLight(
     // of the viewer. Or in other words how much the light is shining in the viewer's direction.
     float3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
 
-    return Lo;
+    return Lo * material.AmbientOcclusion;
 }
 
 #endif

@@ -28,6 +28,7 @@ struct PS_INPUT
     float2 texcoord : TEXCOORD;
     float3 normal : NORMAL;
     float3 tint : COLOR0;
+    float ambientOcclusion : COLOR1;
 };
 
 struct OUTPUT
@@ -45,6 +46,11 @@ cbuffer Constants : register(b0)
     float2 WindDirection;
     float WindScroll;
 };
+
+static const uint NumVertices = 7;
+static const uint MaxVertexIndex = 6;
+
+static const float4 AmbientOcclusions = float4(0.2f, 0.4f, 1.0f, 1.0f);
 
 sampler TextureSampler : register(s0);
 Texture2D Albedo : register(t0);
@@ -82,12 +88,12 @@ float GetSegmentIndex(uint vertexId)
 float BiasRotationToCameraRotation(float3 position, float rotation)
 {
     // TODO: bias towards cameran this way?
-    float2 bladeToCamera = normalize(position.xz - CameraPosition.xz);
-    float2 perp = float2(-bladeToCamera.y, bladeToCamera.x);
-    float2 forward = RotationToVector(rotation);
-    float dt = dot(perp, forward);
+    // float2 bladeToCamera = normalize(position.xz - CameraPosition.xz);
+    // float2 perp = float2(-bladeToCamera.y, bladeToCamera.x);
+    // float2 forward = RotationToVector(rotation);
+    // float dt = dot(perp, forward);
 
-    float strength = pow(abs(dt), 2);
+    // float strength = pow(abs(dt), 2);
     //return rotation + 0.8f * strength * sign(dt);
 
     //return rotation;
@@ -144,8 +150,8 @@ float3 GetBorderOffset(uint vertexId)
 
     float l = IsLeftVertex(vertexId);
     float r = IsRightVertex(vertexId);
-    float t = vertexId == 6; // the top vertex
-    float nt = vertexId != 6; // not the top vertex
+    float t = vertexId == MaxVertexIndex; // the top vertex
+    float nt = vertexId != MaxVertexIndex; // not the top vertex
 
     return perp * (l - r) * nt;
 }
@@ -153,8 +159,8 @@ float3 GetBorderOffset(uint vertexId)
 float2 GetTextureCoordinates(uint vertexId)
 {
     float r = IsLeftVertex(vertexId);
-    float t = vertexId == 6; // the top vertex
-    float nt = vertexId != 6; // not the top vertex
+    float t = vertexId == MaxVertexIndex; // the top vertex
+    float nt = vertexId != MaxVertexIndex; // not the top vertex
 
     return float2(r * nt + 0.5f * t, 0.0f);
 }
@@ -167,16 +173,19 @@ float3 GetBorderPosition(float3 position, float3 borderDirection)
 
 float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
 {
-    float t = vertexId == 6; // the top vertex
-    float nt = vertexId != 6; // not the top vertex
+    float t = vertexId == MaxVertexIndex; // the top vertex
+    float nt = vertexId != MaxVertexIndex; // not the top vertex
 
     // Grass blades are single sided, so we have to pick a side for the the normal
-    // using -PI_OVER_TWO the normal is correct if the blade is facing away from you
-    float3 n = float3(0, cos(nAngle - PI_OVER_TWO), -sin(nAngle - PI_OVER_TWO));
+    // if a blade is standing straight up (nAngle == 0), the normal points (0, 0, -1)
+    // if a blade is completely bended (nAngle == PI/2), the normal points (0, 1, 0)
+    float3 n = float3(0, sin(nAngle), -cos(nAngle));
+    return n;
 
-    // Slightly tilt the normal outwards to give a more 3D effect
-    float3 target = normalize((n * t) + (borderDirection * nt));
-    return normalize(lerp(n, target, 0.45f));
+    // TODO: bending the blade normal slightly to the side gives a more rounded look to
+    // the grass blades, but leads to a weird artefact!
+    //float3 target = normalize((n * t) + (borderDirection * nt));
+    //return normalize(lerp(n, target, 0.0f));
 }
 
 float3 GetWorldNormal(float4x4 world, float3 normal)
@@ -216,7 +225,7 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     float2 facing = RotationToVector(data.rotation);
     static const float baseTilt = PI / 2.0f;
     float tilt = baseTilt + (GetWindPower(data.position, facing, WindDirection, WindScroll) * (PI / 3.0f));
-    //tilt = 0;
+    //tilt = 0.0f;
     float3 position;
     float nAngle;
     GetSpineVertex(vertexId, data.position.xz, data.scale, tilt, position, nAngle);
@@ -236,8 +245,8 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     output.texcoord = texcoord;
     output.normal = GetWorldNormal(world, normal);
 
-    // TODO instead of tint use ambient occlusion!
-    output.tint = tint * lerp((GetSegmentIndex(vertexId)) / 3, 0.6f, 1.0f);
+    output.tint = tint;
+    output.ambientOcclusion = AmbientOcclusions[GetSegmentIndex(vertexId)];
 
     return output;
 }
@@ -247,11 +256,11 @@ OUTPUT PS(PS_INPUT input)
 {
     OUTPUT output;
 
-    float metalicness = 0.1f;
-    float roughness = 0.55f;
+    float metalicness = 0.0f;
+    float roughness = 0.375f;
     // TODO: ambient occlusion is somewhere done wrong
     // as setting it to 0.0 still lights things
-    float ambientOcclusion = 1.0f;
+    float ambientOcclusion = input.ambientOcclusion;
     float4 tint = ToLinear(float4(input.tint, 1.0f));
     output.albedo = Albedo.Sample(TextureSampler, input.texcoord) * tint;
     //output.albedo = ToLinear(float4(input.tint, 1.0f));
