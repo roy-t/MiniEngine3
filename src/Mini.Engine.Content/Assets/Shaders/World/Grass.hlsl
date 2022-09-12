@@ -175,17 +175,15 @@ float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
 {
     float t = vertexId == MaxVertexIndex; // the top vertex
     float nt = vertexId != MaxVertexIndex; // not the top vertex
-
+    float s = borderDirection.x;
+        
     // Grass blades are single sided, so we have to pick a side for the the normal
     // if a blade is standing straight up (nAngle == 0), the normal points (0, 0, -1)
     // if a blade is completely bended (nAngle == PI/2), the normal points (0, 1, 0)
-    float3 n = float3(0, sin(nAngle), -cos(nAngle));
-    return n;
-
+        
     // TODO: bending the blade normal slightly to the side gives a more rounded look to
     // the grass blades, but leads to a weird artefact!
-    //float3 target = normalize((n * t) + (borderDirection * nt));
-    //return normalize(lerp(n, target, 0.0f));
+    return normalize(float3(s * 0.25f, sin(nAngle), -cos(nAngle)));    
 }
 
 float3 GetWorldNormal(float4x4 world, float3 normal)
@@ -201,13 +199,14 @@ float3 GetWorldNormal(float4x4 world, float3 normal)
     float d0 = dot(GrassToSunVector, forward);
     float d1 = dot(GrassToSunVector, backward);
 
+        
     if(d0 > d1)
     {
         normal = mul(rotation, normal);
     }
     else
-    {
-        normal = mul(rotation, float3(0, normal.y, -normal.z));
+    {        
+        normal = mul(rotation, float3(normal.x, normal.y, -normal.z));
     }
 
     return normal;
@@ -258,12 +257,10 @@ OUTPUT PS(PS_INPUT input)
 
     float metalicness = 0.0f;
     float roughness = 0.375f;
-    // TODO: ambient occlusion is somewhere done wrong
-    // as setting it to 0.0 still lights things
     float ambientOcclusion = input.ambientOcclusion;
     float4 tint = ToLinear(float4(input.tint, 1.0f));
+    
     output.albedo = Albedo.Sample(TextureSampler, input.texcoord) * tint;
-    //output.albedo = ToLinear(float4(input.tint, 1.0f));
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
     output.normal = float4(PackNormal(input.normal), 1.0f);
 
