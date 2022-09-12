@@ -38,6 +38,7 @@ float4 PS(PS_INPUT input) : SV_TARGET
     float3 albedo = ReadAlbedo(Albedo, TextureSampler, input.texcoord);
     float3 N = ReadNormal(Normal, TextureSampler, input.texcoord);
     float3 worldPosition = ReadPosition(Depth, TextureSampler, input.texcoord, InverseViewProjection);
+   
     Mat material = ReadMaterial(Material, TextureSampler, input.texcoord);
 
     // The view vector points from the object to the camera. The closer the view vector is to the

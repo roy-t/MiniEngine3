@@ -2,7 +2,7 @@
 #include "../Includes/Coordinates.hlsl"
 #include "Includes/BRDF.hlsl"
 
-static const float SampleDelta = 0.025f;
+static const float SampleDelta = 0.0125f;
 
 struct PS_INPUT
 {

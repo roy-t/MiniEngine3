@@ -162,7 +162,7 @@ float2 GetTextureCoordinates(uint vertexId)
     float t = vertexId == MaxVertexIndex; // the top vertex
     float nt = vertexId != MaxVertexIndex; // not the top vertex
 
-    return float2(r * nt + 0.5f * t, 0.0f);
+    return float2(r * nt + 0.5f * t,   0.0f);
 }
 
 float3 GetBorderPosition(float3 position, float3 borderDirection)
@@ -182,7 +182,7 @@ float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
     // if a blade is completely bended (nAngle == PI/2), the normal points (0, 1, 0)
         
     // TODO: bending the blade normal slightly to the side gives a more rounded look to
-    // the grass blades, but leads to a weird artefact!
+    // the grass blades, but leads to a weird artefact when computing the image based lighting
     return normalize(float3(s * 0.25f, sin(nAngle), -cos(nAngle)));    
 }
 
@@ -190,30 +190,31 @@ float3 GetWorldNormal(float4x4 world, float3 normal)
 {
     float3x3 rotation = (float3x3) world;
 
-    // Figure out which side of the grass blade is pointing
-    // most towards the sun. So that we can use the normal of that
-    // side to give the illusion that blades of grass have two sides
+    //// Figure out which side of the grass blade is pointing
+    //// most towards the sun. So that we can use the normal of that
+    //// side to give the illusion that blades of grass have two sides
     float3 forward = mul(rotation, float3(0, 0, -1));
     float3 backward = mul(rotation, float3(0, 0, 1));
 
     float d0 = dot(GrassToSunVector, forward);
-    float d1 = dot(GrassToSunVector, backward);
-
+    float d1 = dot(GrassToSunVector, backward);            
         
-    if(d0 > d1)
+    if (d0 > d1)
     {
         normal = mul(rotation, normal);
     }
     else
-    {        
+    {
         normal = mul(rotation, float3(normal.x, normal.y, -normal.z));
     }
-
+    
     return normal;
 }
 
 #pragma VertexShader
-PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
+PS_INPUT
+    VS(
+    uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
     PS_INPUT output;
 
@@ -241,8 +242,8 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     float4x4 worldViewProjection = mul(ViewProjection, world);
 
     output.position = mul(worldViewProjection, float4(position, 1.0f));
-    output.texcoord = texcoord;
-    output.normal = GetWorldNormal(world, normal);
+    output.texcoord = texcoord;        
+    output.normal = GetWorldNormal(world, normal);;
 
     output.tint = tint;
     output.ambientOcclusion = AmbientOcclusions[GetSegmentIndex(vertexId)];
@@ -259,7 +260,7 @@ OUTPUT PS(PS_INPUT input)
     float roughness = 0.375f;
     float ambientOcclusion = input.ambientOcclusion;
     float4 tint = ToLinear(float4(input.tint, 1.0f));
-    
+
     output.albedo = Albedo.Sample(TextureSampler, input.texcoord) * tint;
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
     output.normal = float4(PackNormal(input.normal), 1.0f);
