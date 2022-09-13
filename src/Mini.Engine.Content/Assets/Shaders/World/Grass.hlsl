@@ -126,7 +126,7 @@ void GetSpineVertex(uint vertexId, float2 pos, float length, float targetAngle, 
 
     float f = 1.25f * (1.0f + snoise(pos * 107) * 0.25f);
     float t = (WindScroll * f) + (snoise(pos * 109) * 10);
-    float a = 0.1f;
+    float a = 0.05f;
 
     angles[1] += sin(t) * a;
     angles[2] += sin(t + 1.2f) * a;
@@ -183,7 +183,7 @@ float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
         
     // TODO: bending the blade normal slightly to the side gives a more rounded look to
     // the grass blades, but leads to a weird artefact when computing the image based lighting
-    return normalize(float3(s * 0.25f, sin(nAngle), -cos(nAngle)));    
+    return normalize(float3(s * 0.35f, sin(nAngle), -cos(nAngle)));    
 }
 
 float3 GetWorldNormal(float4x4 world, float3 normal)
@@ -220,12 +220,11 @@ PS_INPUT
 
     InstanceData data = Instances[instanceId];
 
-    //data.rotation = PI_OVER_TWO;
-
     float2 facing = RotationToVector(data.rotation);
     static const float baseTilt = PI / 2.0f;
-    float tilt = baseTilt + (GetWindPower(data.position, facing, WindDirection, WindScroll) * (PI / 3.0f));
-    //tilt = 0.0f;
+    float windPower = (GetWindPower(data.position, facing, WindDirection, WindScroll) * (PI / 3.0f));
+    float tilt = baseTilt + windPower;
+    
     float3 position;
     float nAngle;
     GetSpineVertex(vertexId, data.position.xz, data.scale, tilt, position, nAngle);
