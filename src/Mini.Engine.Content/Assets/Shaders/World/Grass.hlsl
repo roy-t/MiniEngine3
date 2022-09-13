@@ -55,8 +55,6 @@ static const float halfBladeThickness = 0.015f;
 
 sampler TextureSampler : register(s0);
 Texture2D Albedo : register(t0);
-
-// Todo: seperate into per clump and per blade buffer
 StructuredBuffer<InstanceData> Instances : register(t0);
 
 float4x4 CreateMatrix(float yaw, float3 offset)
@@ -81,39 +79,12 @@ float IsRightVertex(uint vertexId)
     return vertexId % 2 != 0;
 }
 
-float GetSegmentIndex(uint vertexId)
+uint GetSegmentIndex(uint vertexId)
 {
-    return floor(vertexId / 2.0f);
+    return (vertexId / 2u);
 }
 
-float BiasRotationToCameraRotation(float3 position, float rotation)
-{
-    // TODO: bias towards cameran this way?
-    // float2 bladeToCamera = normalize(position.xz - CameraPosition.xz);
-    // float2 perp = float2(-bladeToCamera.y, bladeToCamera.x);
-    // float2 forward = RotationToVector(rotation);
-    // float dt = dot(perp, forward);
-
-    // float strength = pow(abs(dt), 2);
-    //return rotation + 0.8f * strength * sign(dt);
-
-    //return rotation;
-    // // TODO: looking straight down shows an ugly pattern
-    // // maybe try to reduce the strength of this rotation by distance
-
-    // ensure rotation is [-PI..PI]
-    rotation = WrapRadians(rotation);
-    // Make sure that we don't see thin sides of blades by making sure the
-    // blades are always rotated at most PI/3 relative to the camera
-    float rotationOffset = clamp(rotation / 3.0f, -PI / 2.0f, PI / 2.0f);
-
-    float3 bladeToCamere = normalize(position - CameraPosition);
-
-    float2 flat = normalize(-float2(bladeToCamere.z, bladeToCamere.x));
-    return atan2(flat.y, flat.x) + rotationOffset;
-}
-
-void GetSpineVertex(uint vertexId, float2 pos, float length, float targetAngle, out float3 position, out float segmentAngle)
+void GetSpineVertex(uint segmentIndex, float2 pos, float length, float targetAngle, out float3 position, out float segmentAngle)
 {
     static const float stiffness = 3.0f;
 
@@ -139,10 +110,8 @@ void GetSpineVertex(uint vertexId, float2 pos, float length, float targetAngle, 
     positions[2] = positions[1] + float3(0, cos(angles[2]), -sin(angles[2])) * segmentLength;
     positions[3] = positions[2] + float3(0, cos(angles[3]), -sin(angles[3])) * segmentLength;
 
-    float segment = GetSegmentIndex(vertexId);
-
-    position = positions[segment];
-    segmentAngle = angles[segment];
+    position = positions[segmentIndex];
+    segmentAngle = angles[segmentIndex];
 }
 
 float3 GetBorderOffset(uint vertexId)
@@ -169,37 +138,6 @@ float2 GetTextureCoordinates(uint vertexId)
 float3 GetBorderPosition(float3 position, float3 borderDirection)
 {
     return position + (halfBladeThickness * borderDirection);
-}
-
-float3 BiasPositionToCamera(float3 spinePosition, float3 borderDirection, float4x4 world)
-{
-    // TODO: ignore top
-    if (length(borderDirection) > 0)
-    {
-        float3 spineWorld = mul(world, float4(spinePosition, 1.0f)).xyz;
-        float3 look = normalize(spineWorld - CameraPosition);
-        float3 perp = cross(look, float3(0, 1, 0)) * sign(borderDirection.x) * sign(-look.z);
-        return GetBorderPosition(spinePosition, normalize(perp));
-
-        // float3 current = mul(world, float4(GetBorderPosition(spinePosition, borderDirection), 1.0f)).xyz;
-        // float3 opposite = mul(world, float4(GetBorderPosition(spinePosition, -borderDirection), 1.0f)).xyz;
-        // float3 midway = lerp(current, opposite, 0.5f);
-
-        // float3 width = normalize(opposite - current);
-        // float3 look = normalize(midway - CameraPosition);
-
-        // float lookDotWidth = dot(look, width);
-
-        // //if (abs(lookDotWidth) > 0.75f)
-        // {
-        //     float3 perp = cross(look, float3(0, 1, 0)) * sign(borderDirection.x) * -sign(look.z);
-        //     //float3 border = normalize(lerp(borderDirection, perp, abs(lookDotWidth)));
-        //     float3 border = normalize(perp);
-        //     return GetBorderPosition(spinePosition, border);
-        // }
-    }
-
-    return GetBorderPosition(spinePosition, borderDirection);
 }
 
 float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
@@ -243,13 +181,13 @@ float3 GetWorldNormal(float4x4 world, float3 normal)
 }
 
 #pragma VertexShader
-PS_INPUT
-    VS(
-    uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
+PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
     PS_INPUT output;
 
     InstanceData data = Instances[instanceId];
+
+    uint segmentIndex = GetSegmentIndex(vertexId);
 
     float2 facing = RotationToVector(data.rotation);
     static const float baseTilt = PI / 2.0f;
@@ -257,26 +195,21 @@ PS_INPUT
     float tilt = baseTilt + windPower;
 
     float3 position;
-    float nAngle;
-    GetSpineVertex(vertexId, data.position.xz, data.scale, tilt, position, nAngle);
+    float angle;
+    GetSpineVertex(segmentIndex, data.position.xz, data.scale, tilt, position, angle);
 
-
-    float biasedRotation = data.rotation; //BiasRotationToCameraRotation(data.position, data.rotation);
-    float4x4 world = CreateMatrix(biasedRotation, data.position);
+    float4x4 world = CreateMatrix(data.rotation, data.position);
     float4x4 worldViewProjection = mul(ViewProjection, world);
 
     float3 borderDirection = GetBorderOffset(vertexId);
-    //position = GetBorderPosition(position, borderDirection);
-    position = BiasPositionToCamera(position, borderDirection, world);
+    position = GetBorderPosition(position, borderDirection);
 
-    float3 normal = GetBorderNormal(vertexId, borderDirection, nAngle);
-    float2 texcoord = GetTextureCoordinates(vertexId);
-    float3 tint = data.tint;
+    float3 normal = GetBorderNormal(vertexId, borderDirection, angle);
+
     output.position = mul(worldViewProjection, float4(position, 1.0f));
-    output.texcoord = texcoord;
-    output.normal = GetWorldNormal(world, normal);;
-
-    output.tint = tint;
+    output.texcoord = GetTextureCoordinates(vertexId);
+    output.normal = GetWorldNormal(world, normal);
+    output.tint = data.tint;
     output.ambientOcclusion = AmbientOcclusions[GetSegmentIndex(vertexId)];
 
     return output;
@@ -287,15 +220,11 @@ OUTPUT PS(PS_INPUT input)
 {
     OUTPUT output;
 
-    float metalicness = 0.0f;
-    float roughness = 0.375f;
-    float ambientOcclusion = input.ambientOcclusion;
     float4 tint = ToLinear(float4(input.tint, 1.0f));
 
     output.albedo = Albedo.Sample(TextureSampler, input.texcoord) * tint;
-    output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
+    output.material = float4(0.0f, 0.375f, input.ambientOcclusion, 1.0f);
     output.normal = float4(PackNormal(input.normal), 1.0f);
 
     return output;
 }
-
