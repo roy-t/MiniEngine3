@@ -51,6 +51,7 @@ static const uint NumVertices = 7;
 static const uint MaxVertexIndex = 6;
 
 static const float4 AmbientOcclusions = float4(0.2f, 0.4f, 1.0f, 1.0f);
+static const float halfBladeThickness = 0.015f;
 
 sampler TextureSampler : register(s0);
 Texture2D Albedo : register(t0);
@@ -167,8 +168,38 @@ float2 GetTextureCoordinates(uint vertexId)
 
 float3 GetBorderPosition(float3 position, float3 borderDirection)
 {
-    static const float halfBladeThickness = 0.015f;
     return position + (halfBladeThickness * borderDirection);
+}
+
+float3 BiasPositionToCamera(float3 spinePosition, float3 borderDirection, float4x4 world)
+{
+    // TODO: ignore top
+    if (length(borderDirection) > 0)
+    {
+        float3 spineWorld = mul(world, float4(spinePosition, 1.0f)).xyz;
+        float3 look = normalize(spineWorld - CameraPosition);
+        float3 perp = cross(look, float3(0, 1, 0)) * sign(borderDirection.x) * sign(-look.z);
+        return GetBorderPosition(spinePosition, normalize(perp));
+
+        // float3 current = mul(world, float4(GetBorderPosition(spinePosition, borderDirection), 1.0f)).xyz;
+        // float3 opposite = mul(world, float4(GetBorderPosition(spinePosition, -borderDirection), 1.0f)).xyz;
+        // float3 midway = lerp(current, opposite, 0.5f);
+
+        // float3 width = normalize(opposite - current);
+        // float3 look = normalize(midway - CameraPosition);
+
+        // float lookDotWidth = dot(look, width);
+
+        // //if (abs(lookDotWidth) > 0.75f)
+        // {
+        //     float3 perp = cross(look, float3(0, 1, 0)) * sign(borderDirection.x) * -sign(look.z);
+        //     //float3 border = normalize(lerp(borderDirection, perp, abs(lookDotWidth)));
+        //     float3 border = normalize(perp);
+        //     return GetBorderPosition(spinePosition, border);
+        // }
+    }
+
+    return GetBorderPosition(spinePosition, borderDirection);
 }
 
 float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
@@ -176,14 +207,14 @@ float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
     float t = vertexId == MaxVertexIndex; // the top vertex
     float nt = vertexId != MaxVertexIndex; // not the top vertex
     float s = borderDirection.x;
-        
+
     // Grass blades are single sided, so we have to pick a side for the the normal
     // if a blade is standing straight up (nAngle == 0), the normal points (0, 0, -1)
     // if a blade is completely bended (nAngle == PI/2), the normal points (0, 1, 0)
-        
+
     // TODO: bending the blade normal slightly to the side gives a more rounded look to
     // the grass blades, but leads to a weird artefact when computing the image based lighting
-    return normalize(float3(s * 0.35f, sin(nAngle), -cos(nAngle)));    
+    return normalize(float3(s * 0.35f, sin(nAngle), -cos(nAngle)));
 }
 
 float3 GetWorldNormal(float4x4 world, float3 normal)
@@ -197,8 +228,8 @@ float3 GetWorldNormal(float4x4 world, float3 normal)
     float3 backward = mul(rotation, float3(0, 0, 1));
 
     float d0 = dot(GrassToSunVector, forward);
-    float d1 = dot(GrassToSunVector, backward);            
-        
+    float d1 = dot(GrassToSunVector, backward);
+
     if (d0 > d1)
     {
         normal = mul(rotation, normal);
@@ -207,7 +238,7 @@ float3 GetWorldNormal(float4x4 world, float3 normal)
     {
         normal = mul(rotation, float3(normal.x, normal.y, -normal.z));
     }
-    
+
     return normal;
 }
 
@@ -224,24 +255,25 @@ PS_INPUT
     static const float baseTilt = PI / 2.0f;
     float windPower = (GetWindPower(data.position, facing, WindDirection, WindScroll) * (PI / 3.0f));
     float tilt = baseTilt + windPower;
-    
+
     float3 position;
     float nAngle;
     GetSpineVertex(vertexId, data.position.xz, data.scale, tilt, position, nAngle);
 
-    float3 borderDirection = GetBorderOffset(vertexId);
-    position = GetBorderPosition(position, borderDirection);
-    float3 normal = GetBorderNormal(vertexId, borderDirection, nAngle);
 
-    float2 texcoord = GetTextureCoordinates(vertexId);
-    float3 tint = data.tint;
-
-    float biasedRotation = BiasRotationToCameraRotation(data.position, data.rotation);
+    float biasedRotation = data.rotation; //BiasRotationToCameraRotation(data.position, data.rotation);
     float4x4 world = CreateMatrix(biasedRotation, data.position);
     float4x4 worldViewProjection = mul(ViewProjection, world);
 
+    float3 borderDirection = GetBorderOffset(vertexId);
+    //position = GetBorderPosition(position, borderDirection);
+    position = BiasPositionToCamera(position, borderDirection, world);
+
+    float3 normal = GetBorderNormal(vertexId, borderDirection, nAngle);
+    float2 texcoord = GetTextureCoordinates(vertexId);
+    float3 tint = data.tint;
     output.position = mul(worldViewProjection, float4(position, 1.0f));
-    output.texcoord = texcoord;        
+    output.texcoord = texcoord;
     output.normal = GetWorldNormal(world, normal);;
 
     output.tint = tint;
