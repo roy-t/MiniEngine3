@@ -50,7 +50,7 @@ cbuffer Constants : register(b0)
 static const uint NumVertices = 7;
 static const uint MaxVertexIndex = 6;
 
-static const float4 AmbientOcclusions = float4(0.2f, 0.4f, 1.0f, 1.0f);
+static const float4 AmbientOcclusions = float4(0.2f, 0.4f, 0.9f, 1.0f);
 static const float halfBladeThickness = 0.015f;
 
 sampler TextureSampler : register(s0);

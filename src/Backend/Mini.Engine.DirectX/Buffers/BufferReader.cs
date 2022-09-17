@@ -16,7 +16,7 @@ public sealed class BufferReader<T> : IDisposable
 
         this.Resource = context.Map(source, 0, MapMode.Read, MapFlags.None);
         context.Flush();
-    }
+    }    
 
     public void ReadData(int offset, int length, Span<T> target)
     {

@@ -8,9 +8,9 @@ namespace Mini.Engine.Graphics.World;
 
 public struct TerrainComponent : IComponent
 {
-    public IResource<ISurface> Height;
-    public IResource<ISurface> Normals;
-    public IResource<ISurface> Tint;
+    public IResource<IRWTexture> Height;
+    public IResource<IRWTexture> Normals;
+    public IResource<IRWTexture> Tint;
     public IResource<IMesh> Mesh;
 
     public Entity Entity { get; set; }

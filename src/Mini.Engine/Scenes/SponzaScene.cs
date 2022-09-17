@@ -3,8 +3,6 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Buffers;
-using Mini.Engine.DirectX.Resources;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
@@ -12,7 +10,6 @@ using Mini.Engine.Graphics.Lighting.PointLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Transforms;
-using Mini.Engine.Graphics.Vegetation;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Scenes;
@@ -52,7 +49,7 @@ public sealed class SponzaScene : IScene
             new LoadAction("Models", () =>
             {
                 var world = this.Administrator.Entities.Create();
-                var sponza = this.Content.LoadSponza();                
+                var sponza = this.Content.LoadSponza();
 
                 ref var model = ref creator.Create<ModelComponent>(world);
                 model.Model = sponza;
@@ -72,7 +69,7 @@ public sealed class SponzaScene : IScene
                 ref var pointLightTransform = ref creator.Create<TransformComponent>(sphere);
                 pointLightTransform.Transform = pointLightTransform.Transform
                     .SetTranslation(new Vector3(0, 1, 0));
-                
+
                 var sun = this.Administrator.Entities.Create();
 
                 ref var sunLight = ref creator.Create<SunLightComponent>(sun);
@@ -110,8 +107,7 @@ public sealed class SponzaScene : IScene
 
                 ref var skybox = ref creator.Create<SkyboxComponent>(sky);
                 skybox.Init(albedo, irradiance, environment, levels, 0.1f);
-            }),
-            GrassLoader.LoadGrass(this.Device, this.Content, this.Administrator)            
+            })
         };
     }
 }

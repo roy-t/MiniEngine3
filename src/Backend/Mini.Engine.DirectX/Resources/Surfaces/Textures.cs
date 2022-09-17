@@ -5,10 +5,14 @@ using Vortice.DXGI;
 namespace Mini.Engine.DirectX.Resources.Surfaces;
 
 public enum MipMapFlags { None, Provided, Generated };
-public enum BindInfo { ShaderResource, RenderTarget, UnorderedAccessView, DepthStencil };
+public enum BindInfo { ShaderResource, RenderTarget, UnorderedAccessView, DepthStencil, Staging };
 public enum ResourceInfo { Texture, Cube };
 
-public readonly record struct ImageInfo(int DimX, int DimY, Format Format, int Pitch = 0, int DimZ = 1);
+public readonly record struct ImageInfo(int DimX, int DimY, Format Format, int Pitch = 0, int DimZ = 1)
+{
+    public int Pixels => this.DimX * this.DimY * this.DimZ;
+
+}
 public readonly record struct MipMapInfo(MipMapFlags Flags, int Levels)
 {
     public static MipMapInfo Generated(int imageWidth) { return new MipMapInfo(MipMapFlags.Generated, Dimensions.MipSlices(imageWidth)); }
@@ -29,9 +33,10 @@ public static class Textures
         return texture;
     }
 
-    private static Texture2DDescription CreateDescription(ImageInfo image, MipMapInfo mipMapInfo, BindInfo binding, ResourceInfo resource)
+    internal static Texture2DDescription CreateDescription(ImageInfo image, MipMapInfo mipMapInfo, BindInfo binding, ResourceInfo resource)
     {
         var bindFlags = BindFlags.None;
+        var cpuAccess = CpuAccessFlags.None;
         switch (binding)
         {
             case BindInfo.ShaderResource:
@@ -45,6 +50,9 @@ public static class Textures
                 break;
             case BindInfo.DepthStencil:
                 bindFlags = BindFlags.ShaderResource | BindFlags.DepthStencil;
+                break;
+            case BindInfo.Staging:
+                cpuAccess = CpuAccessFlags.Read;
                 break;
         }
 
@@ -75,6 +83,12 @@ public static class Textures
                 break;
         }
 
+        var usage = ResourceUsage.Default;
+        if (binding == BindInfo.Staging)
+        {
+            usage = ResourceUsage.Staging;
+        }
+
         var description = new Texture2DDescription
         {
             Width = image.DimX,
@@ -83,9 +97,9 @@ public static class Textures
             MipLevels = levels,
             ArraySize = image.DimZ,
             SampleDescription = new SampleDescription(1, 0),
-            Usage = ResourceUsage.Default,
+            Usage = usage,
             BindFlags = bindFlags,
-            CPUAccessFlags = CpuAccessFlags.None,
+            CPUAccessFlags = cpuAccess,
             MiscFlags = optionFlags
         };
         return description;

@@ -15,7 +15,7 @@ public enum DepthStencilFormat
 public sealed class DepthStencilBuffer : Surface, IDepthStencilBuffer
 {
     public DepthStencilBuffer(Device device, string name, DepthStencilFormat format, int dimX, int dimY, int dimZ)
-        : base(name, new ImageInfo(dimX, dimY, ToTextureFormat(format), DimZ: dimZ))
+        : base(name, new ImageInfo(dimX, dimY, ToTextureFormat(format), DimZ: dimZ), MipMapInfo.None())
     {
         var image = new ImageInfo(dimX, dimY, ToTextureFormat(format), DimZ: dimZ);
         var texture = Textures.Create(device, name, image, MipMapInfo.None(), BindInfo.DepthStencil);

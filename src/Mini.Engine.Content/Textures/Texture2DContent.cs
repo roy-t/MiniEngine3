@@ -30,12 +30,14 @@ internal sealed class Texture2DContent : ITexture, IContent
     public ContentId Id { get; }
     public string Name { get; }
 
-    public int DimX { get; private set; }
-    public int DimY { get; private set; }        
-    public int DimZ { get; private set; }
-    public int MipMapLevels { get; private set; }    
+    public ImageInfo ImageInfo { get; set; }
+    public MipMapInfo MipMapInfo { get; set; }
 
-    public Format Format { get; private set; }
+    public Format Format => this.ImageInfo.Format;
+    public int DimX => this.ImageInfo.DimX;
+    public int DimY => this.ImageInfo.DimY;
+    public int DimZ => this.ImageInfo.DimZ;
+    public int MipMapLevels => this.MipMapInfo.Levels;
 
     ID3D11ShaderResourceView ISurface.ShaderResourceView
     {
@@ -55,12 +57,8 @@ internal sealed class Texture2DContent : ITexture, IContent
 
         var data = this.Loader.Load(device, this.Id, this.Settings);
 
-        this.DimX = data.ImageInfo.DimX;
-        this.DimY = data.ImageInfo.DimY;        
-        this.MipMapLevels = data.MipMapInfo.Levels;
-        this.DimZ = data.ImageInfo.DimZ;
-
-        this.Format = data.ImageInfo.Format;
+        this.ImageInfo = data.ImageInfo;
+        this.MipMapInfo = data.MipMapInfo;
 
         this.texture?.Dispose();
         this.texture = data.Texture;

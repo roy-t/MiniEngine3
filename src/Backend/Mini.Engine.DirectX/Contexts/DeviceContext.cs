@@ -38,6 +38,22 @@ public abstract class DeviceContext : IDisposable
 
     internal ID3D11DeviceContext ID3D11DeviceContext { get; }
 
+    public void CopySurfaceDataToTexture<T>(ISurface source, Span<T> output, int mipSlice = 0, int arraySlice = 0)
+        where T : unmanaged
+    {
+        var ctx = this.ID3D11DeviceContext;
+
+        using var staging = new StagingBuffer<T>(this.Device, source.ImageInfo, source.MipMapInfo, "staging_copy");
+        ctx.CopyResource(staging.Buffer, source.Texture);
+        var resource = ctx.Map(staging.Buffer, mipSlice, arraySlice, MapMode.Read, MapFlags.None, out var subresource, out int mipsize);
+        ctx.Flush();
+        
+        var span = resource.AsSpan<T>(staging.Buffer, mipSlice, arraySlice);
+        span.CopyTo(output);
+
+        ctx.Unmap(staging.Buffer, mipSlice, arraySlice);
+    }
+
 
     public void DrawIndexed(int indexCount, int indexOffset, int vertexOffset)
     {

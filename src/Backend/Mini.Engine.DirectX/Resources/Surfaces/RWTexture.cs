@@ -1,13 +1,13 @@
-﻿using Vortice.Direct3D11;
+﻿using Mini.Engine.DirectX.Buffers;
+using Mini.Engine.DirectX.Contexts;
+using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX.Resources.Surfaces;
 public sealed class RWTexture : Surface, IRWTexture
 {
     public RWTexture(Device device, string name, ImageInfo image, MipMapInfo mipMap)
-        : base(name, image)
+        : base(name, image, mipMap)
     {
-        this.MipMapInfo = mipMap;
-
         var texture = Textures.Create(device, name, image, mipMap, BindInfo.UnorderedAccessView);
         var view = ShaderResourceViews.Create(device, texture, name, image);
 
@@ -22,11 +22,7 @@ public sealed class RWTexture : Surface, IRWTexture
         }
 
         this.AsRwTexture.UnorderedAccessViews = uavs;
-    }
-
-    public MipMapInfo MipMapInfo { get; }
-
-    public int MipMapLevels => this.MipMapInfo.Levels;
+    }    
 
     public IRWTexture AsRwTexture => this;
 

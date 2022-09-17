@@ -10,8 +10,10 @@ public interface ISurface : IDeviceResource
 
     public string Name { get; }
 
-    public Format Format { get; }
+    public ImageInfo ImageInfo { get; }
+    public MipMapInfo MipMapInfo { get; }
 
+    public Format Format { get; }
     public int DimX { get; }
     public int DimY { get; }
     public int DimZ { get; }

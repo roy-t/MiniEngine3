@@ -6,10 +6,11 @@ public abstract class Surface : ISurface
 {
     private bool isDisposed;
 
-    protected Surface(string name, ImageInfo image)
+    protected Surface(string name, ImageInfo image, MipMapInfo mipMapInfo)
     {
         this.Name = name;
         this.ImageInfo = image;
+        this.MipMapInfo = mipMapInfo;
     }
 
     protected void SetResources(ID3D11Texture2D texture, ID3D11ShaderResourceView view)
@@ -18,13 +19,15 @@ public abstract class Surface : ISurface
         (this as ISurface).ShaderResourceView = view;
     }
 
-    public string Name { get; }
+    public string Name { get; }    
     public ImageInfo ImageInfo { get; }
-
+    public MipMapInfo MipMapInfo { get; }
+    
     public Format Format => this.ImageInfo.Format;
     public int DimX => this.ImageInfo.DimX;
     public int DimY => this.ImageInfo.DimY;
     public int DimZ => this.ImageInfo.DimZ;
+    public int MipMapLevels => this.MipMapInfo.Levels;
 
     public ISurface AsSurface => this;
 

@@ -5,10 +5,8 @@ namespace Mini.Engine.DirectX.Resources.Surfaces;
 public class RenderTarget : Surface, IRenderTarget
 {
     public RenderTarget(Device device, string name, ImageInfo image, MipMapInfo mipMap)
-        : base(name, image)
+        : base(name, image, mipMap)
     {
-        this.MipMapLevels = mipMap.Levels;
-
         var (texture, view) = this.CreateResources(device, name, image, mipMap);
 
         this.SetResources(texture, view);
@@ -34,8 +32,6 @@ public class RenderTarget : Surface, IRenderTarget
 
         return (texture, view);
     }
-
-    public int MipMapLevels { get; }
 
     public IRenderTarget AsRenderTarget => this;
 

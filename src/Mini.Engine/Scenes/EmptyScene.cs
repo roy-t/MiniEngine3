@@ -3,14 +3,11 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
-using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Transforms;
-using Mini.Engine.Graphics.Vegetation;
 using Vortice.Mathematics;
 
 
@@ -87,11 +84,7 @@ public sealed class EmptyScene : IScene
 
                 ref var skybox = ref creator.Create<SkyboxComponent>(sky);
                 skybox.Init(albedo, irradiance, environment, levels, 0.1f);
-            }),
-            GrassLoader.LoadGrass(this.Device, this.Content, this.Administrator)
+            })
         };
     }
-
-
-   
 }

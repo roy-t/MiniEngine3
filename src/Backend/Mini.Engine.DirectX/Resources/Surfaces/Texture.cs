@@ -5,7 +5,7 @@ namespace Mini.Engine.DirectX.Resources.Surfaces;
 public class Texture : Surface, ISurface
 {
     public Texture(Device device, string name, ImageInfo image, MipMapInfo mipMap)
-        : base(name, image)
+        : base(name, image, mipMap)
     {
         (var texture, var view) = this.CreateResources(device, image, mipMap, name);
 
@@ -18,10 +18,6 @@ public class Texture : Surface, ISurface
         var view = ShaderResourceViews.Create(device, texture, name, image);
         return (texture, view);
     }
-
-    public MipMapInfo MipMapInfo { get; }
-
-    public int MipMapLevels => this.MipMapInfo.Levels;
 
     public void SetPixels<T>(Device device, ReadOnlySpan<T> pixels)
         where T : unmanaged
