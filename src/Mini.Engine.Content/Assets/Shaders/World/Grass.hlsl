@@ -148,10 +148,7 @@ float3 GetBorderNormal(uint vertexId, float3 borderDirection, float nAngle)
 
     // Grass blades are single sided, so we have to pick a side for the the normal
     // if a blade is standing straight up (nAngle == 0), the normal points (0, 0, -1)
-    // if a blade is completely bended (nAngle == PI/2), the normal points (0, 1, 0)
-
-    // TODO: bending the blade normal slightly to the side gives a more rounded look to
-    // the grass blades, but leads to a weird artefact when computing the image based lighting
+    // if a blade is completely bended (nAngle == PI/2), the normal points (0, 1, 0) 
     return normalize(float3(s * 0.35f, sin(nAngle), -cos(nAngle)));
 }
 
@@ -159,9 +156,9 @@ float3 GetWorldNormal(float4x4 world, float3 normal)
 {
     float3x3 rotation = (float3x3) world;
 
-    //// Figure out which side of the grass blade is pointing
-    //// most towards the sun. So that we can use the normal of that
-    //// side to give the illusion that blades of grass have two sides
+    // Figure out which side of the grass blade is pointing
+    // most towards the sun. So that we can use the normal of that
+    // side to give the illusion that blades of grass have two sides
     float3 forward = mul(rotation, float3(0, 0, -1));
     float3 backward = mul(rotation, float3(0, 0, 1));
 
@@ -190,8 +187,9 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     uint segmentIndex = GetSegmentIndex(vertexId);
 
     float2 facing = RotationToVector(data.rotation);
-    static const float baseTilt = PI / 2.0f;
-    float windPower = (GetWindPower(data.position, facing, WindDirection, WindScroll) * (PI / 3.0f));
+    static const float baseTilt = PI / 3.0f;
+    static const float stiffnessFactor = PI / 3.0f;
+    float windPower = GetWindPower(data.position, facing, WindDirection, WindScroll) * stiffnessFactor;
     float tilt = baseTilt + windPower;
 
     float3 position;

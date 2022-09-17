@@ -190,7 +190,7 @@ internal sealed class TerrainPanel : IPanel
         var mesh = this.Device.Resources.Get(ter.Mesh);
 
         var width = mesh.Bounds.Max.X - mesh.Bounds.Min.X;
-        var desiredWidth = 10.0f;
+        var desiredWidth = 100.0f;
         var scale = desiredWidth / width;
 
         tra.Transform = tra.Transform.SetScale(scale);
