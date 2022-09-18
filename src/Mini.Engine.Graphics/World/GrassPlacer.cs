@@ -6,6 +6,7 @@ using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.Graphics.Transforms;
+using SimplexNoise;
 using GrassInstanceData = Mini.Engine.Content.Shaders.Generated.Grass.InstanceData;
 
 namespace Mini.Engine.Graphics.World;
@@ -21,6 +22,66 @@ public sealed class GrassPlacer
         this.Device = device;
         this.Content = content;
     }
+
+    public IResource<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(ref TerrainComponent terrainComponent, ref TransformComponent terrainTransform, out int instances)
+    {
+        var min = -50.0f;
+        var max = 50.0f;
+        var range = max - min;
+
+        var offsets = new Vector2[]
+        {
+            new Vector2(-1, 1),
+            new Vector2(0, 1),
+            new Vector2(1, 1),
+
+            new Vector2(-1, 0),
+            new Vector2(0, 0),
+            new Vector2(1, 0),
+
+            new Vector2(-1, 1),
+            new Vector2(0, 1),
+            new Vector2(1, 1),
+        };
+
+        var data = GenerateRandomGrass(1_000_000, min, max);
+        instances = data.Length;
+
+        for (var i = 0; i < data.Length; i++)
+        {
+            var blade = data[i];
+            var position = new Vector2(blade.Position.X, blade.Position.Z);
+
+            var neighbours = new Vector2[offsets.Length];
+            for (var n = 0; n < neighbours.Length; n++)
+            {
+                var p = offsets[n] * 1.0f;
+                p.X += Noise.CalcPixel2D((int)(p.X * 100), (int)(p.Y * 100), 0.01f) / 255.0f;
+                p.Y += Noise.CalcPixel2D((int)(-p.Y * 100), (int)(p.X * 100), 0.01f) / 255.0f;
+                neighbours[n] = position + p;
+            }
+
+            var best = 0;
+            var bestDistance = float.MaxValue;
+            for (var n = 0; n < neighbours.Length; n++)
+            {
+                var distance = Vector2.Distance(position, neighbours[n]);
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = n;
+                }
+            }
+
+            position = Vector2.Lerp(position, neighbours[best], 0.999995f);
+            blade.Position = new Vector3(position.X, blade.Position.Y, position.Y);
+
+            data[i] = blade;
+        }
+
+        return this.ArrayToResource(data);
+    }
+
 
     public IResource<StructuredBuffer<GrassInstanceData>> GenerateInstanceData(ref TerrainComponent terrainComponent, ref TransformComponent terrainTransform, out int instances)
     {
@@ -53,7 +114,7 @@ public sealed class GrassPlacer
                 var l = random.NextSingle();
 
                 var h = height[index];
-               
+
                 var px = ((x / (float)heightResource.DimX) - 0.5f);
                 var pz = ((y / (float)heightResource.DimY) - 0.5f);
 
@@ -73,13 +134,18 @@ public sealed class GrassPlacer
             }
         }
 
+        instances = data.Length;
+        return this.ArrayToResource(data);
+    }
+
+    private IResource<StructuredBuffer<GrassInstanceData>> ArrayToResource(GrassInstanceData[] data)
+    {
         var instanceBuffer = new StructuredBuffer<GrassInstanceData>(this.Device, "Grass");
         instanceBuffer.MapData(this.Device.ImmediateContext, data);
 
         var resource = this.Device.Resources.Add(instanceBuffer);
         this.Content.Link(resource, "Grass");
 
-        instances = data.Length;
         return resource;
     }
 
@@ -159,11 +225,9 @@ public sealed class GrassPlacer
         return data;
     }
 
-    private static GrassInstanceData[] GenerateRandomGrass(int count)
+    private static GrassInstanceData[] GenerateRandomGrass(int count, float min = -50, float max = 50)
     {
         var random = new Random(1234);
-        var min = -50.0f;
-        var max = 50.0f;
         var mins = 0.5f;
         var maxs = 1.0f;
         var data = new GrassInstanceData[count];

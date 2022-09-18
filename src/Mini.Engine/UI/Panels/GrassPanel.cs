@@ -39,21 +39,31 @@ internal sealed class GrassPanel : IPanel
 
     public void Update(float elapsed)
     {
-        ImGui.Text("Create ");
-        ImGui.SameLine(); if (ImGui.Button("Single")) { this.CreateGrass(GrassPlacer.DebugGrassLayout.Single); }
+        ImGui.Text("Create");
+
+        if (ImGui.Button("Single")) { this.CreateGrass(GrassPlacer.DebugGrassLayout.Single); }
         ImGui.SameLine(); if (ImGui.Button("Line")) { this.CreateGrass(GrassPlacer.DebugGrassLayout.Line); }
         ImGui.SameLine(); if (ImGui.Button("Random")) { this.CreateGrass(GrassPlacer.DebugGrassLayout.Random); }
 
-        this.GrassComponentSelector.Update();
-
-        ImGui.SameLine();
-        if (this.GrassComponentSelector.HasComponent() && ImGui.Button("Remove"))
+        this.TerrainComponentSelector.Update();
+        if (this.TerrainComponentSelector.HasComponent())
         {
-            ref var component = ref this.GrassComponentSelector.Get();
-            this.Administrator.Components.MarkForRemoval(component.Entity);
+            ImGui.SameLine();
+            if (ImGui.Button("Create For")) { this.CreateClumpedGrass(); }
         }
 
         ImGui.Separator();
+
+        this.GrassComponentSelector.Update();                
+        if (this.GrassComponentSelector.HasComponent() )
+        {
+            ImGui.SameLine();
+            if (ImGui.Button("Remove"))
+            {
+                ref var component = ref this.GrassComponentSelector.Get();
+                this.Administrator.Components.MarkForRemoval(component.Entity);
+            }
+        }
 
         if (this.GrassComponentSelector.HasComponent())
         {
@@ -73,7 +83,7 @@ internal sealed class GrassPanel : IPanel
                 ImGui.EndTable();
             }
 
-            this.TerrainComponentSelector.Update();
+
 
 
             if (this.TerrainComponentSelector.HasComponent())
@@ -95,7 +105,20 @@ internal sealed class GrassPanel : IPanel
         ref var component = ref this.Administrator.Components.Create<GrassComponent>(entity);
 
         component.Texture = this.Content.LoadTexture(@"Shaders/World/GrassTexture.png");
-        component.InstanceBuffer = GrassPlacer.GenerateDebugGrass(layout, out var count);
+        component.InstanceBuffer = this.GrassPlacer.GenerateDebugGrass(layout, out var count);
         component.Instances = count;
+    }
+
+    private void CreateClumpedGrass()
+    {
+        var entity = this.Administrator.Entities.Create();
+        ref var component = ref this.Administrator.Components.Create<GrassComponent>(entity);
+
+        ref var terrainComponent = ref this.TerrainComponentSelector.Get();
+        ref var terrainTransform = ref this.Transforms[terrainComponent.Entity];
+
+        component.Texture = this.Content.LoadTexture(@"Shaders/World/GrassTexture.png");
+        component.InstanceBuffer = this.GrassPlacer.GenerateClumpedInstanceData(ref terrainComponent, ref terrainTransform, out var instances);
+        component.Instances = instances;
     }
 }
