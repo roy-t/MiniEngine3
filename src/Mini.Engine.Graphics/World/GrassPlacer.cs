@@ -52,6 +52,9 @@ public sealed class GrassPlacer
             var blade = data[i];
             var position = new Vector2(blade.Position.X, blade.Position.Z);
 
+            // TODO: doesn't look like there's much clumping going on yet,
+            // probably because the neighbours are not fixed to a grid!
+            // let's try to make a separate neighbour grid and see where that leads
             var neighbours = new Vector2[offsets.Length];
             for (var n = 0; n < neighbours.Length; n++)
             {
