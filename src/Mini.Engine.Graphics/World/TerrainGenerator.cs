@@ -32,7 +32,7 @@ public sealed class TerrainGenerator
         var normals = this.HeightMapGenerator.GenerateNormals(height);
         var tint = this.HeightMapGenerator.GenerateTint(settings.Dimensions, Umber);
 
-        var bounds = ComputeBounds(settings.Amplitude, settings.Octaves, settings.Persistance);
+        var bounds = ComputeBounds(settings);
         var mesh = this.GenerateMesh(height, settings.MeshDefinition, bounds, name);
 
         this.Content.Link(height, $"{name}#{height.Name}");
@@ -44,12 +44,12 @@ public sealed class TerrainGenerator
     }
 
     public void Update(GeneratedTerrain input, HeightMapGeneratorSettings settings, string name)
-{
+    {
         this.HeightMapGenerator.UpdateHeights(input.Height, settings);
         this.HeightMapGenerator.UpdateNormals(input.Height, input.Normals);
         this.HeightMapGenerator.UpdateTint(input.Tint, Umber);
 
-        var bounds = ComputeBounds(settings.Amplitude, settings.Octaves, settings.Persistance);
+        var bounds = ComputeBounds(settings);
         this.UpdateMesh(input.Mesh, input.Height, bounds);
     }
 
@@ -61,8 +61,8 @@ public sealed class TerrainGenerator
     }
 
     private Mesh GenerateMesh(IRWTexture height, float definition, BoundingBox bounds, string name)
-    {        
-        var vertices = this.HeightMapGenerator.GenerateVertices(height, (int)(height.DimX * definition), (int)(height.DimY* definition));
+    {
+        var vertices = this.HeightMapGenerator.GenerateVertices(height, (int)(height.DimX * definition), (int)(height.DimY * definition));
         var indices = this.HeightMapGenerator.GenerateIndices((int)(height.DimX * definition), (int)(height.DimY * definition));
         var mesh = new Mesh(this.Device, bounds, vertices, indices, name, "mesh");
         return mesh;
@@ -75,22 +75,42 @@ public sealed class TerrainGenerator
         var vertices = this.HeightMapGenerator.GenerateVertices(height, height.DimX / factor, height.DimY / factor);
         input.Vertices.MapData(this.Device.ImmediateContext, vertices);
 
-        var indices = this.HeightMapGenerator.GenerateIndices(height.DimX / factor , height.DimY / factor);
+        var indices = this.HeightMapGenerator.GenerateIndices(height.DimX / factor, height.DimY / factor);
         input.Indices.MapData(this.Device.ImmediateContext, indices);
 
         input.Bounds = bounds;
     }
 
-    private static BoundingBox ComputeBounds(float amplitude, int octaves, float persistance)
+    private static BoundingBox ComputeBounds(HeightMapGeneratorSettings settings)
     {
+        var octaves = settings.Octaves;
+        var amplitude = settings.Amplitude;
+        var persistance = settings.Persistance;
+
+        var cliffStrength = settings.CliffStrength;
+        var cliffStart = settings.CliffStart;
+        var cliffEnd = settings.CliffEnd;
+
         var weight = 0.0f;
+        var a = amplitude;
         for (var i = 0; i < octaves; i++)
         {
-            weight += MathF.Pow(Math.Abs(persistance), i) * amplitude;
+            var noise = 1.0f * a;
+            a *= persistance;
+            weight += noise;
         }
 
+        var heigth = weight + (amplitude * cliffStrength) * SmoothStep(amplitude * cliffStart, amplitude * cliffEnd, weight);
+
         var min = new Vector3(-0.5f, -0.5f * weight, -0.5f);
-        var max = new Vector3(0.5f, 0.5f * weight, 0.5f);
+        var max = new Vector3(0.5f, 0.5f * heigth, 0.5f);
         return new BoundingBox(min, max);
     }
+
+    private static float SmoothStep(float from, float to, float weight)
+    {
+        var x = Math.Clamp((weight - from) / (to - from), 0.0f, 1.0f);
+        return x * x * (3.0f - (2.0f * x));
+    }
+
 }

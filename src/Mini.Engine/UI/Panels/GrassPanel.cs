@@ -4,6 +4,7 @@ using Mini.Engine.Content;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
+using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.Vegetation;
 using Mini.Engine.Graphics.World;
 
@@ -19,7 +20,7 @@ internal sealed class GrassPanel : IPanel
 
     private readonly ComponentSelector<GrassComponent> GrassComponentSelector;
     private readonly ComponentSelector<TerrainComponent> TerrainComponentSelector;
-
+    private readonly IComponentContainer<TransformComponent> Transforms;
 
     public GrassPanel(Device device, GrassPlacer grassPlacer, ContentManager content, ECSAdministrator administrator, ContainerStore containerStore)
     {
@@ -30,6 +31,8 @@ internal sealed class GrassPanel : IPanel
 
         this.GrassComponentSelector = new ComponentSelector<GrassComponent>("Grass Component", containerStore.GetContainer<GrassComponent>());
         this.TerrainComponentSelector = new ComponentSelector<TerrainComponent>("Terrain Component", containerStore.GetContainer<TerrainComponent>());
+
+        this.Transforms = containerStore.GetContainer<TransformComponent>();
     }
 
     public string Title => "Grass";
@@ -78,7 +81,9 @@ internal sealed class GrassPanel : IPanel
                 ref var terrainComponent = ref this.TerrainComponentSelector.Get();
                 if (ImGui.Button("Fit to terrain"))
                 {
-                    grassComponent.InstanceBuffer = this.GrassPlacer.GenerateInstanceData(ref terrainComponent, grassComponent.Instances);
+                    ref var transform = ref this.Transforms[terrainComponent.Entity];
+                    grassComponent.InstanceBuffer = this.GrassPlacer.GenerateInstanceData(ref terrainComponent, ref transform, out var instances);
+                    grassComponent.Instances = instances;
                 }
             }
         }

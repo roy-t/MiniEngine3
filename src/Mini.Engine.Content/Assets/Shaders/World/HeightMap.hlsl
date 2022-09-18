@@ -79,7 +79,7 @@ void NoiseMapKernel(in uint3 dispatchId : SV_DispatchThreadID)
     
     float2 center = (float2(dispatchId.x, dispatchId.y) * scale) - float2(0.5f, 0.5f);
     
-    float height = FBM(Offset + center);
+    float height = FBM(Offset + center) * 0.5f;
     
     // Add an extra dramatic cliff effect for the heighest parts of the map
     height += (Amplitude * CliffStrength) * smoothstep(Amplitude * CliffStart, Amplitude * CliffEnd, height);
@@ -126,7 +126,7 @@ void TriangulateKernel (in uint3 dispatchId : SV_DispatchThreadID)
     float textureScaleY = HeightMapHeight / (float) MeshHeight;
     
     uint2 textureIndex = uint2(dispatchId.x * textureScaleX, dispatchId.y * textureScaleY);
-    float height = MapHeight[textureIndex] * 0.5f;
+    float height = MapHeight[textureIndex];
     float3 normal = MapNormal[textureIndex].xyz;
     float2 texcoord = float2(dispatchId.x, dispatchId.y) * scale;
         

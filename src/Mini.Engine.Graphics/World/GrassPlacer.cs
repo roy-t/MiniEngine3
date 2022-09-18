@@ -1,9 +1,11 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
+using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources.Surfaces;
+using Mini.Engine.Graphics.Transforms;
 using GrassInstanceData = Mini.Engine.Content.Shaders.Generated.Grass.InstanceData;
 
 namespace Mini.Engine.Graphics.World;
@@ -20,18 +22,66 @@ public sealed class GrassPlacer
         this.Content = content;
     }
 
-    public IResource<StructuredBuffer<GrassInstanceData>> GenerateInstanceData(ref TerrainComponent terrainComponent, int instances)
+    public IResource<StructuredBuffer<GrassInstanceData>> GenerateInstanceData(ref TerrainComponent terrainComponent, ref TransformComponent terrainTransform, out int instances)
     {
-        var heightResource = (RWTexture)this.Device.Resources.Get(terrainComponent.Normals);
-        
-        var buffer = new Vector4[heightResource.ImageInfo.Pixels];
+        var random = new Random(1234);
 
-        this.Device.ImmediateContext.CopySurfaceDataToTexture<Vector4>(heightResource, buffer);
+        var heightResource = (RWTexture)this.Device.Resources.Get(terrainComponent.Height);
+        var normalsResource = (RWTexture)this.Device.Resources.Get(terrainComponent.Height);
 
+        var height = new float[heightResource.ImageInfo.Pixels];
+        var normals = new Vector4[normalsResource.ImageInfo.Pixels];
 
-        throw new NotImplementedException();
+        this.Device.ImmediateContext.CopySurfaceDataToTexture<float>(heightResource, height);
+        this.Device.ImmediateContext.CopySurfaceDataToTexture<Vector4>(normalsResource, normals);
+
+        var data = new GrassInstanceData[heightResource.ImageInfo.Pixels];
+
+        var mins = 0.5f;
+        var maxs = 1.0f;
+        var minColor = new Vector3(100 / 255.0f, 120 / 255.0f, 25.0f / 255.0f);
+        var maxColor = new Vector3(140 / 255.0f, 170 / 255.0f, 50.0f / 255.0f);
+
+        for (var y = 0; y < heightResource.DimY; y++)
+        {
+            for (var x = 0; x < heightResource.DimX; x++)
+            {
+                var index = Indexes.ToOneDimensional(x, y, heightResource.DimY);
+
+                var s = mins + (random.NextSingle() * (maxs - mins));
+                var r = random.NextSingle() * MathF.PI * 2;
+                var l = random.NextSingle();
+
+                var h = height[index];
+               
+                var px = ((x / (float)heightResource.DimX) - 0.5f);
+                var pz = ((y / (float)heightResource.DimY) - 0.5f);
+
+                var position = new Vector3(px, h, pz);
+                position = Vector3.Transform(position, terrainTransform.Transform.GetMatrix());
+
+                var scale = s;
+                var rotation = r;
+
+                data[index] = new GrassInstanceData()
+                {
+                    Position = position,
+                    Rotation = rotation,
+                    Scale = scale,
+                    Tint = Vector3.Lerp(minColor, maxColor, l)
+                };
+            }
+        }
+
+        var instanceBuffer = new StructuredBuffer<GrassInstanceData>(this.Device, "Grass");
+        instanceBuffer.MapData(this.Device.ImmediateContext, data);
+
+        var resource = this.Device.Resources.Add(instanceBuffer);
+        this.Content.Link(resource, "Grass");
+
+        instances = data.Length;
+        return resource;
     }
-
 
     // DEBUG stuff
 
