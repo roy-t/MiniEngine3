@@ -28,13 +28,14 @@ public sealed class GrassPlacer
         var random = new Random(12345);
 
         var bladesPerSide = 1000;
-        var bladesPerCell = 10;
-        var columns = bladesPerSide / bladesPerCell;
-        var rows = bladesPerSide / bladesPerCell;
+        var columns = 100;
+        var rows = 100;
         
         var min = -0.5f;
         var max = 0.5f;
-        var cellSize = new Vector2((max - min) / columns, (max -min)/ rows);
+
+        // cellSize * 10 is wrong, but gives a more distorted clumping.. so ehm?
+        var cellSize = new Vector2((max - min) / columns, (max -min)/ rows) * 10;
 
         var neighbours = new List<Vector2>(9);
         for (var x = -1; x <= 1; x++)
