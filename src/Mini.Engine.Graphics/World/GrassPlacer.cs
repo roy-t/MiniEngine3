@@ -6,7 +6,6 @@ using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.Graphics.Transforms;
-using SimplexNoise;
 using GrassInstanceData = Mini.Engine.Content.Shaders.Generated.Grass.InstanceData;
 
 namespace Mini.Engine.Graphics.World;
@@ -23,62 +22,69 @@ public sealed class GrassPlacer
         this.Content = content;
     }
 
+
     public IResource<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(ref TerrainComponent terrainComponent, ref TransformComponent terrainTransform, out int instances)
     {
-        var min = -50.0f;
-        var max = 50.0f;
-        var range = max - min;
+        var random = new Random(12345);
 
-        var offsets = new Vector2[]
+        var bladesPerSide = 1000;
+        var bladesPerCell = 10;
+        var columns = bladesPerSide / bladesPerCell;
+        var rows = bladesPerSide / bladesPerCell;
+        
+        var min = -0.5f;
+        var max = 0.5f;
+        var cellSize = new Vector2((max - min) / columns, (max -min)/ rows);
+
+        var neighbours = new List<Vector2>(9);
+        for (var x = -1; x <= 1; x++)
         {
-            new Vector2(-1, 1),
-            new Vector2(0, 1),
-            new Vector2(1, 1),
+            for (var y = -1; y <= 1; y++)
+            {
+                var xOffset = cellSize.X * x;
+                var yOffset = cellSize.Y * y;
 
-            new Vector2(-1, 0),
-            new Vector2(0, 0),
-            new Vector2(1, 0),
+                neighbours.Add(new Vector2(xOffset, yOffset));
+            }
+        }
 
-            new Vector2(-1, 1),
-            new Vector2(0, 1),
-            new Vector2(1, 1),
-        };
+        var clumpGrid = new Grid<Vector2>(min, max, min, max, columns, rows);
+        clumpGrid.Fill((x, y) =>
+        {
+            var xOffset = random.NextSingle() * cellSize.X * 0.49f;
+            var yOffset = random.NextSingle() * cellSize.Y * 0.49f;
 
-        var data = GenerateRandomGrass(1_000_000, min, max);
+            return new Vector2(x + xOffset, y + yOffset);
+        });
+
+        var data = GenerateRandomGrass(bladesPerSide * bladesPerSide, min, max);
         instances = data.Length;
 
         for (var i = 0; i < data.Length; i++)
         {
             var blade = data[i];
             var position = new Vector2(blade.Position.X, blade.Position.Z);
+            var height = blade.Position.Y;
 
-            // TODO: doesn't look like there's much clumping going on yet,
-            // probably because the neighbours are not fixed to a grid!
-            // let's try to make a separate neighbour grid and see where that leads
-            var neighbours = new Vector2[offsets.Length];
-            for (var n = 0; n < neighbours.Length; n++)
+            var bestClumpPosition = Vector2.Zero;
+            var bestClumpDistance = float.MaxValue;
+            for (var n = 0; n < neighbours.Count; n++)
             {
-                var p = offsets[n] * 1.0f;
-                p.X += Noise.CalcPixel2D((int)(p.X * 100), (int)(p.Y * 100), 0.01f) / 255.0f;
-                p.Y += Noise.CalcPixel2D((int)(-p.Y * 100), (int)(p.X * 100), 0.01f) / 255.0f;
-                neighbours[n] = position + p;
-            }
+                var absolute = position + neighbours[n];
+                var clumpPosition = clumpGrid.Get(absolute.X, absolute.Y);
 
-            var best = 0;
-            var bestDistance = float.MaxValue;
-            for (var n = 0; n < neighbours.Length; n++)
-            {
-                var distance = Vector2.Distance(position, neighbours[n]);
-                if (distance < bestDistance)
+                var distance = Vector2.DistanceSquared(position, clumpPosition);
+                if (distance < bestClumpDistance)
                 {
-                    bestDistance = distance;
-                    best = n;
+                    bestClumpDistance = distance;
+                    bestClumpPosition = clumpPosition;
                 }
             }
 
-            position = Vector2.Lerp(position, neighbours[best], 0.999995f);
-            blade.Position = new Vector3(position.X, blade.Position.Y, position.Y);
+            position = Vector2.Lerp(position, bestClumpPosition, 0.3f);
 
+            blade.Position = new Vector3(position.X, blade.Position.Y, position.Y);
+            blade.Position = Vector3.Transform(blade.Position, terrainTransform.Transform.GetMatrix());
             data[i] = blade;
         }
 

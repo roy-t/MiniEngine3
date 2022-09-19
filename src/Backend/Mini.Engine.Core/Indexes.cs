@@ -11,7 +11,7 @@ public static class Indexes
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static (int, int) ToTwoDimensional(int i, int stride)
+    public static (int x, int y) ToTwoDimensional(int i, int stride)
     {
         var x = i % stride;
         var y = i / stride;
