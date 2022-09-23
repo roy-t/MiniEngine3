@@ -28,14 +28,14 @@ public sealed class Grid<T>
     public int Columns { get; }
     public int Rows { get; }
 
-    public void Fill(Func<float, float, T> generator)
+    public void Fill(Func<float, float, int, int, T> generator)
     {
         for (var i = 0; i < this.Items.Length; i++)
         {
             var (ix, iy) = Indexes.ToTwoDimensional(i, this.Columns);
             var (xv, yv) = GetValue(ix, iy);
 
-            this.Items[i] = generator(xv, yv);
+            this.Items[i] = generator(xv, yv, ix, iy);
         }
     }
 
@@ -76,9 +76,11 @@ public sealed class Grid<T>
 
         var xRange = this.MaxX - this.MinX;
         var xValue = this.MinX + (x / (float)this.Columns) * xRange;
+        xValue += (xRange / this.Columns) * 0.5f;
 
         var yRange = this.MaxY - this.MinY;
         var yValue = this.MinY + (y / (float)Rows) * yRange;
+        yValue += (yRange / this.Rows) * 0.5f;
 
         return (xValue, yValue);
     }
