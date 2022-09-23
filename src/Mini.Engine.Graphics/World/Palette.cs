@@ -1,31 +1,29 @@
 ﻿using System.Drawing;
-using System.Numerics;
+using Mini.Engine.Core;
 
 namespace Mini.Engine.Graphics.World;
 public sealed class Palette
 {
-    private readonly Vector3[] ColorList;
+    private readonly ColorRGB[] ColorList;
     private readonly Random Random;
 
-    public Palette(params Vector3[] colors)
+    public Palette(params ColorRGB[] colors)
     {
         this.ColorList = colors;
         this.Random = new Random();
     }
 
-    public IReadOnlyList<Vector3> Colors => this.ColorList;
+    public IReadOnlyList<ColorRGB> Colors => this.ColorList;
 
-    public Vector3 Pick()
+    public ColorRGB Pick()
     {
         var index = this.Random.Next(this.ColorList.Length);
         return this.ColorList[index];
     }
 
-
-    public static Palette Grass()
-    {        
-        // https://i2.wp.com/colorpalette.org/wp-content/palette/grass_green_lawn_colorpalette_r8wox.jpg?q=100
-        return new Palette
+    // https://colorpalette.org/grass-green-lawn-color-palette/
+    public static Palette GrassLawn { get; } =
+        new Palette
         (
             FromHex("#c1dbbc"),
             FromHex("#558e1e"),
@@ -42,12 +40,30 @@ public sealed class Palette
             FromHex("#67a059"),
             FromHex("#85b870")
         );
-    }
 
+    // https://colorpalette.org/green-grass-water-color-palette-2/
+    public static Palette GrassWater { get; } =
+    new Palette
+    (
+        FromHex("#94925c"),
+        //FromHex("#c8cac0"),
+        FromHex("#b2a070"),
+        FromHex("#837d3e"),
 
-    private static Vector3 FromHex(string hex)
+        FromHex("#2a2717"),
+        FromHex("#6e7630"),
+        FromHex("#67682b"),
+        FromHex("#2b341a"),
+
+        FromHex("#36391b"),
+        //FromHex("#687a63"),
+        FromHex("#586625")
+        //FromHex("#8ba49d")
+    );
+
+    private static ColorRGB FromHex(string hex)
     {
         var c = ColorTranslator.FromHtml(hex);
-        return new Vector3(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f);
+        return new ColorRGB(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f);
     }
 }

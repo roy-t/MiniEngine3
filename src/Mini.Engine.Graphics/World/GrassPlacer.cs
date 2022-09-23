@@ -13,6 +13,8 @@ namespace Mini.Engine.Graphics.World;
 [Service]
 public sealed class GrassPlacer
 {
+    public static Palette GrassPalette = Palette.GrassWater;
+
     private readonly Device Device;
     private readonly ContentManager Content;
 
@@ -26,7 +28,6 @@ public sealed class GrassPlacer
     public IResource<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(out int instances)
     {
         var random = new Random(12345);
-        var palette = Palette.Grass();
 
         var bladesPerSide = 1000;
         var columns = 50;
@@ -35,8 +36,8 @@ public sealed class GrassPlacer
         var min = -0.5f;
         var max = 0.5f;
 
-        // cellSize * 10 is wrong, but gives a more distorted clumping.. so ehm?
-        var cellSize = new Vector2((max - min) / columns, (max - min) / rows) * 1;// * 10;
+        var cellSize = new Vector2((max - min) / columns, (max - min) / rows);
+        var maxCellDistance = Math.Max(cellSize.X, cellSize.Y);
 
         var neighbours = new List<Vector2>(9);
         for (var x = -1; x <= 1; x++)
@@ -58,8 +59,12 @@ public sealed class GrassPlacer
             
             var position = new Vector2(x + xOffset, y + yOffset);
             var tint = c % 2 == 0? new Vector3(1, 0, 0) : new Vector3(0, 1, 0);
-            var clump = GrassClump.Default(position, palette.Pick(), 0.0f, 1.0f);
-            //clump.ApplyTint = (c, b, d) => c;
+            var rotation = random.NextSingle() * MathF.PI * 2;
+            var clump = GrassClump.Default(position, GrassPalette.Pick(), rotation, random.InRange(0.75f, 1.75f));
+            clump.ApplyTint = (c, b, d) => ColorMath.Interpolate(c, b, d / maxCellDistance);
+            clump.ApplyScale = (c, b, d) => c + random.InRange(-0.2f, 0.2f);
+            clump.ApplyPosition = (c, b, d) => Vector2.Lerp(c, b, Math.Min(1.0f, (d / maxCellDistance) * 1.75f));
+            clump.ApplyRotation = (c, b, d) => Radians.Lerp(c, b, d / maxCellDistance);
             return clump;
         });
 
@@ -259,23 +264,13 @@ public sealed class GrassPlacer
         var mins = 0.5f;
         var maxs = 1.0f;
         var data = new GrassInstanceData[count];
-
-        //var minColor = new Vector3(100 / 255.0f, 120 / 255.0f, 25.0f / 255.0f);
-        var minColor = new Vector3(1.0f, 0.0f, 0.0f);
-        //var maxColor = new Vector3(140 / 255.0f, 170 / 255.0f, 50.0f / 255.0f);
-        var maxColor = new Vector3(0.0f, 1.0f, 0.0f);
-
-
-        var h0 = ColorMath.RGBToHSV(minColor);
-        var h1 = ColorMath.HSVToRGB(h0);
-
+    
         for (var i = 0; i < data.Length; i++)
         {
             var x = min + (random.NextSingle() * (max - min));
             var y = min + (random.NextSingle() * (max - min));
             var s = mins + (random.NextSingle() * (maxs - mins));
             var r = random.NextSingle() * MathF.PI * 2;
-            var l = x + 0.5f;// random.NextSingle();
 
             var position = new Vector3(x, 0, y);
             var scale = s;
@@ -286,7 +281,7 @@ public sealed class GrassPlacer
                 Position = position,
                 Rotation = rotation,
                 Scale = scale,
-                Tint = ColorMath.Interpolate(minColor, maxColor, l) //Vector3.Lerp(minColor, maxColor, l)
+                Tint = GrassPalette.Pick()
             };
         }
 
