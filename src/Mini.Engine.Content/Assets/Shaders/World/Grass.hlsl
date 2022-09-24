@@ -51,7 +51,7 @@ static const uint NumVertices = 7;
 static const uint MaxVertexIndex = 6;
 
 static const float4 AmbientOcclusions = float4(0.2f, 0.4f, 0.9f, 1.0f);
-static const float halfBladeThickness = 0.015f;
+static const float halfBladeThickness = 0.025f;
 
 sampler TextureSampler : register(s0);
 Texture2D Albedo : register(t0);
@@ -221,7 +221,7 @@ OUTPUT PS(PS_INPUT input)
     float4 tint = ToLinear(float4(input.tint, 1.0f));
 
     output.albedo = Albedo.Sample(TextureSampler, input.texcoord) * tint;
-    output.material = float4(0.0f, 0.375f, input.ambientOcclusion, 1.0f);
+    output.material = float4(0.0f, 0.525f, input.ambientOcclusion, 1.0f);
     output.normal = float4(PackNormal(input.normal), 1.0f);
 
     return output;

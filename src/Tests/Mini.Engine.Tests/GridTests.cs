@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using Mini.Engine.Core;
 using Xunit;
 using static Xunit.Assert;
@@ -16,7 +11,7 @@ public class GridTests
     public void SmokeTest()
     {
         var grid = new Grid<Vector2>(0, 10, 0, 10, 2, 2);
-        grid.Fill((x, y) => new Vector2(x, y));
+        grid.Fill((x, y, c, r) => new Vector2(x, y));
 
         var value = grid.Get(3, 3);
         Equal(new Vector2(0, 0), value);

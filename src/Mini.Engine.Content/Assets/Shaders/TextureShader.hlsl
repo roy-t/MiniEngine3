@@ -292,6 +292,7 @@ float3 uncharted2_filmic(float3 v)
 float4 FxaaPS(PS_INPUT input) : SV_Target
 {
     float3 color = FXAA(input.tex);
+    //float3 color = Texture.Sample(TextureSampler, input.tex).rgb;
     //color = reinhard(color); // Guarantees [0..1] but makes everything a bit gray/dull
     //color = reinhard_jodie(color); // better with colours
     //color = uncharted2_filmic(color); // filmic, tweakable, but slightly gray in current settings

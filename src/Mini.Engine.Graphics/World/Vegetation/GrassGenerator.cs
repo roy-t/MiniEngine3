@@ -8,17 +8,17 @@ using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.Graphics.Transforms;
 using GrassInstanceData = Mini.Engine.Content.Shaders.Generated.Grass.InstanceData;
 
-namespace Mini.Engine.Graphics.World;
+namespace Mini.Engine.Graphics.World.Vegetation;
 
 [Service]
-public sealed class GrassPlacer
+public sealed class GrassGenerator
 {
-    public static Palette GrassPalette = Palette.GrassWater;
+    private static readonly Palette GrassPalette = Palette.GrassWater;
 
     private readonly Device Device;
     private readonly ContentManager Content;
 
-    public GrassPlacer(Device device, ContentManager content)
+    public GrassGenerator(Device device, ContentManager content)
     {
         this.Device = device;
         this.Content = content;
@@ -56,19 +56,19 @@ public sealed class GrassPlacer
         {
             var xOffset = (random.NextSingle() - 0.49f) * cellSize.X;
             var yOffset = (random.NextSingle() - 0.49f) * cellSize.Y;
-            
+
             var position = new Vector2(x + xOffset, y + yOffset);
-            var tint = c % 2 == 0? new Vector3(1, 0, 0) : new Vector3(0, 1, 0);
+            var tint = c % 2 == 0 ? new Vector3(1, 0, 0) : new Vector3(0, 1, 0);
             var rotation = random.NextSingle() * MathF.PI * 2;
             var clump = GrassClump.Default(position, GrassPalette.Pick(), rotation, random.InRange(0.75f, 1.75f));
             clump.ApplyTint = (c, b, d) => ColorMath.Interpolate(c, b, d / maxCellDistance);
             clump.ApplyScale = (c, b, d) => c + random.InRange(-0.2f, 0.2f);
-            clump.ApplyPosition = (c, b, d) => Vector2.Lerp(c, b, Math.Min(1.0f, (d / maxCellDistance) * 1.75f));
+            clump.ApplyPosition = (c, b, d) => Vector2.Lerp(c, b, Math.Min(1.0f, d / maxCellDistance * 1.75f));
             clump.ApplyRotation = (c, b, d) => Radians.Lerp(c, b, d / maxCellDistance);
             return clump;
         });
 
-        var data = GenerateRandomGrass(bladesPerSide * bladesPerSide, min, max);
+        var data = new GrassInstanceData[0];//GenerateRandomGrass(bladesPerSide * bladesPerSide, min, max);
         instances = data.Length;
 
         for (var i = 0; i < data.Length; i++)
@@ -142,14 +142,14 @@ public sealed class GrassPlacer
             {
                 var index = Indexes.ToOneDimensional(x, y, heightResource.DimY);
 
-                var s = mins + (random.NextSingle() * (maxs - mins));
+                var s = mins + random.NextSingle() * (maxs - mins);
                 var r = random.NextSingle() * MathF.PI * 2;
                 var l = random.NextSingle();
 
                 var h = height[index];
 
-                var px = ((x / (float)heightResource.DimX) - 0.5f);
-                var pz = ((y / (float)heightResource.DimY) - 0.5f);
+                var px = x / (float)heightResource.DimX - 0.5f;
+                var pz = y / (float)heightResource.DimY - 0.5f;
 
                 var position = new Vector3(px, h, pz);
                 position = Vector3.Transform(position, terrainTransform.Transform.GetMatrix());
@@ -184,107 +184,5 @@ public sealed class GrassPlacer
 
     // DEBUG stuff
 
-    public enum DebugGrassLayout
-    {
-        Single,
-        Line,
-        Random
-    }
-
-    public IResource<StructuredBuffer<GrassInstanceData>> GenerateDebugGrass(DebugGrassLayout layout, out int instances)
-    {
-
-        var instanceBuffer = new StructuredBuffer<GrassInstanceData>(this.Device, "Grass");
-        GrassInstanceData[] data;
-        switch (layout)
-        {
-            case DebugGrassLayout.Single:
-                instances = 1;
-                data = GenerateSingleGrassLeaf();
-                break;
-            case DebugGrassLayout.Line:
-                instances = 8;
-                data = GenerateLineOfRotatedGrassLeafs(instances);
-                break;
-            default:
-            case DebugGrassLayout.Random:
-                instances = 1_000_000;
-                data = GenerateRandomGrass(instances);
-                break;
-        }
-
-        instanceBuffer.MapData(this.Device.ImmediateContext, data);
-
-        var resource = this.Device.Resources.Add(instanceBuffer);
-        this.Content.Link(resource, "Grass");
-
-        return resource;
-    }
-
-    private static GrassInstanceData[] GenerateSingleGrassLeaf()
-    {
-        return new GrassInstanceData[]
-        {
-            new GrassInstanceData()
-            {
-                Position = Vector3.Zero,
-                Rotation = 0.0f,
-                Scale = 1.0f,
-                Tint = new Vector3(0.0f, 1.0f, 0.0f)
-            }
-        };
-    }
-
-    private static GrassInstanceData[] GenerateLineOfRotatedGrassLeafs(int count)
-    {
-        var data = new GrassInstanceData[count];
-
-        var interval = 0.1f;
-        var minPosition = count / 2.0f * interval * -1.0f;
-        var minRotation = -MathF.PI;
-        var step = (MathF.PI * 2) / (count - 1);
-        for (var i = 0; i < data.Length; i++)
-        {
-
-            data[i] = new GrassInstanceData()
-            {
-                Position = new Vector3(minPosition + (interval * i), 0.0f, 0.0f),
-                Rotation = minRotation + (step * i),
-                Scale = 1.0f,
-                Tint = new Vector3(0.0f, 1.0f, 0.0f)
-            };
-        }
-
-        return data;
-    }
-
-    private static GrassInstanceData[] GenerateRandomGrass(int count, float min = -50, float max = 50)
-    {
-        var random = new Random(1234);
-        var mins = 0.5f;
-        var maxs = 1.0f;
-        var data = new GrassInstanceData[count];
     
-        for (var i = 0; i < data.Length; i++)
-        {
-            var x = min + (random.NextSingle() * (max - min));
-            var y = min + (random.NextSingle() * (max - min));
-            var s = mins + (random.NextSingle() * (maxs - mins));
-            var r = random.NextSingle() * MathF.PI * 2;
-
-            var position = new Vector3(x, 0, y);
-            var scale = s;
-            var rotation = r;
-
-            data[i] = new GrassInstanceData()
-            {
-                Position = position,
-                Rotation = rotation,
-                Scale = scale,
-                Tint = GrassPalette.Pick()
-            };
-        }
-
-        return data;
-    }
 }

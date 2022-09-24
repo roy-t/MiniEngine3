@@ -2,7 +2,7 @@
 
 using GrassInstanceData = Mini.Engine.Content.Shaders.Generated.Grass.InstanceData;
 
-namespace Mini.Engine.Graphics.World;
+namespace Mini.Engine.Graphics.World.Vegetation;
 public sealed class GrassClump
 {
     public GrassClump(Vector2 position, Vector3 tint, float rotation, float scale, Mode<Vector2> applyPosition, Mode<Vector3> applyTint, Mode<float> applyRotation, Mode<float> applyScale)

@@ -1,7 +1,6 @@
 ﻿using System.Drawing;
-using Mini.Engine.Core;
 
-namespace Mini.Engine.Graphics.World;
+namespace Mini.Engine.Core;
 public sealed class Palette
 {
     private readonly ColorRGB[] ColorList;
@@ -21,7 +20,13 @@ public sealed class Palette
         return this.ColorList[index];
     }
 
-    // https://colorpalette.org/grass-green-lawn-color-palette/
+    private static ColorRGB FromHex(string hex)
+    {
+        var c = ColorTranslator.FromHtml(hex);
+        return new ColorRGB(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f);
+    }
+
+    // Inspired by https://colorpalette.org/grass-green-lawn-color-palette/
     public static Palette GrassLawn { get; } =
         new Palette
         (
@@ -41,7 +46,7 @@ public sealed class Palette
             FromHex("#85b870")
         );
 
-    // https://colorpalette.org/green-grass-water-color-palette-2/
+    // Inspired by https://colorpalette.org/green-grass-water-color-palette-2/
     public static Palette GrassWater { get; } =
     new Palette
     (
@@ -60,10 +65,4 @@ public sealed class Palette
         FromHex("#586625")
         //FromHex("#8ba49d")
     );
-
-    private static ColorRGB FromHex(string hex)
-    {
-        var c = ColorTranslator.FromHtml(hex);
-        return new ColorRGB(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f);
-    }
 }
