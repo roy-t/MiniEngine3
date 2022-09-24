@@ -42,9 +42,9 @@ internal sealed class GrassPanel : IPanel
     {
         ImGui.Text("Create");
 
-        if (ImGui.Button("Single")) { this.CreateGrass(GrassPlacer.DebugGrassLayout.Single); }
-        ImGui.SameLine(); if (ImGui.Button("Line")) { this.CreateGrass(GrassPlacer.DebugGrassLayout.Line); }
-        ImGui.SameLine(); if (ImGui.Button("Random")) { this.CreateGrass(GrassPlacer.DebugGrassLayout.Random); }
+        if (ImGui.Button("Single")) { this.CreateGrass(DebugGrassPlacer.DebugGrassLayout.Single); }
+        ImGui.SameLine(); if (ImGui.Button("Line")) { this.CreateGrass(DebugGrassPlacer.DebugGrassLayout.Line); }
+        ImGui.SameLine(); if (ImGui.Button("Random")) { this.CreateGrass(DebugGrassPlacer.DebugGrassLayout.Random); }
         ImGui.SameLine(); if (ImGui.Button("Clumped")) { this.CreateClumpedGrass(); }
 
         this.TerrainComponentSelector.Update();
@@ -101,14 +101,14 @@ internal sealed class GrassPanel : IPanel
         }
     }
 
-    private void CreateGrass(GrassGenerator.DebugGrassLayout layout)
+    private void CreateGrass(DebugGrassPlacer.DebugGrassLayout layout)
     {
-        var entity = this.Administrator.Entities.Create();
-        ref var component = ref this.Administrator.Components.Create<GrassComponent>(entity);
+        //var entity = this.Administrator.Entities.Create();
+        //ref var component = ref this.Administrator.Components.Create<GrassComponent>(entity);
 
-        component.Texture = this.Content.LoadTexture(@"Shaders/World/GrassTexture.png");
-        component.InstanceBuffer = this.GrassPlacer.GenerateDebugGrass(layout, out var count);
-        component.Instances = count;
+        //component.Texture = this.Content.LoadTexture(@"Shaders/World/GrassTexture.png");
+        //component.InstanceBuffer = this.GrassPlacer.GenerateDebugGrass(layout, out var count);
+        //component.Instances = count;
     }
 
     private void CreateClumpedGrass()

@@ -14,7 +14,6 @@ namespace Mini.Engine.Graphics.World.Vegetation;
 public sealed class GrassGenerator
 {
     private static readonly Palette GrassPalette = Palette.GrassWater;
-
     private readonly Device Device;
     private readonly ContentManager Content;
 
@@ -68,7 +67,7 @@ public sealed class GrassGenerator
             return clump;
         });
 
-        var data = new GrassInstanceData[0];//GenerateRandomGrass(bladesPerSide * bladesPerSide, min, max);
+        var data = DebugGrassPlacer.GenerateRandomGrass(GrassPalette, bladesPerSide * bladesPerSide, min, max);
         instances = data.Length;
 
         for (var i = 0; i < data.Length; i++)
