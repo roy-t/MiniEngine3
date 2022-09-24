@@ -51,8 +51,8 @@
     <AdditionalFiles Include="Assets\Shaders\World\HeightMap.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Serilog" Version="2.11.0" />
-    <PackageReference Include="StbImageSharp" Version="2.27.11" />
+    <PackageReference Include="Serilog" Version="2.12.0" />
+    <PackageReference Include="StbImageSharp" Version="2.27.12" />
     <PackageReference Include="SuperCompressed" Version="1.0.2" />
   </ItemGroup>
 </Project>

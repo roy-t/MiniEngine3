@@ -15,7 +15,7 @@ namespace Mini.Engine.UI.Panels;
 internal sealed class GrassPanel : IPanel
 {
     private readonly Device Device;
-    private readonly GrassPlacer GrassPlacer;
+    private readonly GrassGenerator GrassPlacer;
     private readonly ContentManager Content;
     private readonly ECSAdministrator Administrator;
 
@@ -23,7 +23,7 @@ internal sealed class GrassPanel : IPanel
     private readonly ComponentSelector<TerrainComponent> TerrainComponentSelector;
     private readonly IComponentContainer<TransformComponent> Transforms;
 
-    public GrassPanel(Device device, GrassPlacer grassPlacer, ContentManager content, ECSAdministrator administrator, ContainerStore containerStore)
+    public GrassPanel(Device device, GrassGenerator grassPlacer, ContentManager content, ECSAdministrator administrator, ContainerStore containerStore)
     {
         this.Device = device;
         this.GrassPlacer = grassPlacer;
@@ -101,7 +101,7 @@ internal sealed class GrassPanel : IPanel
         }
     }
 
-    private void CreateGrass(GrassPlacer.DebugGrassLayout layout)
+    private void CreateGrass(GrassGenerator.DebugGrassLayout layout)
     {
         var entity = this.Administrator.Entities.Create();
         ref var component = ref this.Administrator.Components.Create<GrassComponent>(entity);
