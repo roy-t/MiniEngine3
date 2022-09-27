@@ -30,7 +30,7 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
     public void OnSet()
     {
         var blend = this.Device.BlendStates.Opaque;
-        var depth = this.Device.DepthStencilStates.ReadOnly;
+        var depth = this.Device.DepthStencilStates.ReverseZReadOnly;
         this.Context.SetupFullScreenTriangle(this.Shader.Vs, this.Shader.Ps, blend, depth);
 
         this.Context.PS.SetSampler(Skybox.TextureSampler, this.Device.SamplerStates.LinearClamp);

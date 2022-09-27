@@ -31,14 +31,9 @@ Mat ReadMaterial(Texture2D material, sampler samp, float2 texcoord)
     return mat;
 }
 
-// TODO: for reverse-infinite-ze we need to have 2 separate methods
-// in case somebody wants purely the depth, or wants to put it in a inverseviewprojection
-// TODO: should use infinite reversed z:
-// https://developer.nvidia.com/content/depth-precision-visualized
-float ReadDepth(Texture2D depth, sampler samp, float2 texcoord)
+
+float ReadDepth_WarningIsInfiniteInverse(Texture2D depth, sampler samp, float2 texcoord)
 {
-    //return -0.1f / depth.Sample(samp, texcoord).r;    
-    //return 0.1f / depth.Sample(samp, texcoord).r;
     return depth.Sample(samp, texcoord).r;
 }
 
@@ -62,7 +57,7 @@ float3 ComputePosition(float2 texcoord, float depth, float4x4 inverseViewProject
 
 float3 ReadPosition(Texture2D depth, sampler samp, float2 texcoord, float4x4 inverseViewProjection)
 {
-    float d = ReadDepth(depth, samp, texcoord);
+    float d = ReadDepth_WarningIsInfiniteInverse(depth, samp, texcoord);
     return ComputePosition(texcoord, d, inverseViewProjection);
 }
 

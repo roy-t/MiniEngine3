@@ -63,7 +63,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         this.Context.PS.SetConstantBuffer(Grass.ConstantsSlot, this.User.ConstantsBuffer);
 
         this.Context.OM.SetBlendState(this.Device.BlendStates.Opaque);
-        this.Context.OM.SetDepthStencilState(this.Device.DepthStencilStates.Default);
+        this.Context.OM.SetDepthStencilState(this.Device.DepthStencilStates.ReverseZ);
 
         var gBuffer = this.FrameService.GBuffer;
         this.Context.OM.SetRenderTargets(gBuffer.DepthStencilBuffer, gBuffer.Albedo, gBuffer.Material, gBuffer.Normal);

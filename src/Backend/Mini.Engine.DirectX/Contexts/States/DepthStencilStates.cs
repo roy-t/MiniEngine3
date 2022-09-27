@@ -28,13 +28,15 @@ public sealed class DepthStencilStates : IDisposable
     internal DepthStencilStates(ID3D11Device device)
     {
         this.None = Create(device, DepthStencilDescription.None, nameof(this.None));
-        this.Default = Create(device, DepthStencilDescription.DepthReverseZ, nameof(this.Default));
-        this.ReadOnly = Create(device, DepthStencilDescription.DepthReadReverseZ, nameof(this.ReadOnly));
+        this.Default = Create(device, DepthStencilDescription.Default, nameof(this.Default));
+        this.ReverseZ = Create(device, DepthStencilDescription.DepthReverseZ, nameof(this.ReverseZ));
+        this.ReverseZReadOnly = Create(device, DepthStencilDescription.DepthReadReverseZ, nameof(this.ReverseZReadOnly));
     }
 
     public DepthStencilState None { get; }
     public DepthStencilState Default { get; }
-    public DepthStencilState ReadOnly { get; }
+    public DepthStencilState ReverseZ { get; }
+    public DepthStencilState ReverseZReadOnly { get; }
 
     private static DepthStencilState Create(ID3D11Device device, DepthStencilDescription description, string name)
     {
@@ -45,7 +47,7 @@ public sealed class DepthStencilStates : IDisposable
     public void Dispose()
     {
         this.None.Dispose();
-        this.Default.Dispose();
-        this.ReadOnly.Dispose();
+        this.ReverseZ.Dispose();
+        this.ReverseZReadOnly.Dispose();
     }
 }

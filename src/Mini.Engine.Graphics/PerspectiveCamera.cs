@@ -3,13 +3,21 @@
 namespace Mini.Engine.Graphics;
 
 public readonly record struct PerspectiveCamera(float NearPlane, float FarPlane, float FieldOfView, float AspectRatio)
-{ 
+{
+    public Matrix4x4 GetViewProjection(in Transform transform)
+    {
+        var view = Matrix4x4.CreateLookAt(transform.GetPosition(), transform.GetPosition() + transform.GetForward(), transform.GetUp());
+        var proj = Matrix4x4.CreatePerspectiveFieldOfView(this.FieldOfView, this.AspectRatio, this.NearPlane, this.FarPlane);
+
+        return view * proj;
+    }
+
     // https://thxforthefish.com/posts/reverse_z/
 
     public Matrix4x4 GetBoundedReversedZViewProjection(in Transform transform)
     {
         var view = Matrix4x4.CreateLookAt(transform.GetPosition(), transform.GetPosition() + transform.GetForward(), transform.GetUp());
-        
+
         var f = 1.0f / MathF.Tan(this.FieldOfView * 0.5f);
         var proj = new Matrix4x4
         {
@@ -17,12 +25,12 @@ public readonly record struct PerspectiveCamera(float NearPlane, float FarPlane,
             M22 = f,
             M33 = this.NearPlane / (this.FarPlane - this.NearPlane),
             M34 = -1.0f,
-            M43 = (this.FarPlane * this.NearPlane) / (this.FarPlane - this.NearPlane)            
+            M43 = (this.FarPlane * this.NearPlane) / (this.FarPlane - this.NearPlane)
         };
 
         return view * proj;
     }
-    
+
     public Matrix4x4 GetInfiniteReversedZViewProjection(in Transform transform)
     {
         var view = Matrix4x4.CreateLookAt(transform.GetPosition(), transform.GetPosition() + transform.GetForward(), transform.GetUp());

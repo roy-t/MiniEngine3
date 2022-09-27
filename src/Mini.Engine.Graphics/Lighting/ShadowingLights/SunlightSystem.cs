@@ -43,7 +43,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(SunLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
         this.Context.PS.SetShaderResource(SunLight.Material, this.FrameService.GBuffer.Material);
 
-        this.Context.PS.SetSampler(SunLight.ShadowSampler, this.Device.SamplerStates.CompareGreaterClamp);
+        this.Context.PS.SetSampler(SunLight.ShadowSampler, this.Device.SamplerStates.CompareLessEqualClamp);
 
         this.Context.PS.SetConstantBuffer(SunLight.ConstantsSlot, this.User.ConstantsBuffer);
     }

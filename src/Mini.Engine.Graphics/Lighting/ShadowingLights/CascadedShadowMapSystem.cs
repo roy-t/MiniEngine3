@@ -20,6 +20,9 @@ namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 [Service]
 public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISystem, IDisposable
 {
+    // TODO: this system still uses default, instead of reverse-z. Fix?
+
+
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
@@ -105,7 +108,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         this.Context.RS.SetScissorRect(0, 0, resolution, resolution);
         this.Context.OM.SetRenderTarget(depthStencilBuffers, slice);
 
-        this.Context.Clear(depthStencilBuffers, slice, DepthStencilClearFlags.Depth, 0.0f, 0);
+        this.Context.Clear(depthStencilBuffers, slice, DepthStencilClearFlags.Depth, 1.0f, 0);
 
         this.RenderService.DrawAllModels(this, this.Context, viewProjection);
 
@@ -152,15 +155,6 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
             0.0f,
             radius * 2);
 
-        var inverse = new Matrix4x4()
-        {
-            M11 = 1,
-            M22 = 1,
-            M33 = -1,
-            M43 = 1,
-            M44 = 1
-        };        
-
         var origin = Vector3.Transform(Vector3.Zero, view * projection) * (resolution / 2.0f);
 
         var roundedOrigin = Round(origin);
@@ -168,8 +162,6 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
 
         projection.M41 += roundOffset.X;
         projection.M42 += roundOffset.Y;
-
-        projection = projection * inverse;
 
         return view * projection;
     }
