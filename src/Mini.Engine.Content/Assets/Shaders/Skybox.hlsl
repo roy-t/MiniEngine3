@@ -19,7 +19,7 @@ PS_INPUT VS(uint vertexId : SV_VERTEXID)
     PS_INPUT output;
 
     // z is fixed to 1.0f
-    float4 pos = float4(vertexId == 1 ? 3.0f : -1.0f, vertexId == 2 ? 3.0f : -1.0f, 1.0f, 1.0f);
+    float4 pos = float4(vertexId == 1 ? 3.0f : -1.0f, vertexId == 2 ? 3.0f : -1.0f, 0.0f, 1.0f);
 
     output.position = pos;
     output.world = mul(InverseWorldViewProjection, pos).xyz;

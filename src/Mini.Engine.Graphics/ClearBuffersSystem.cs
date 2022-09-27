@@ -37,7 +37,7 @@ public sealed partial class ClearBuffersSystem : ISystem
         context.Clear(this.FrameService.GBuffer.Normal, NeutralNormal);
 
         context.Clear(this.FrameService.GBuffer.DepthStencilBuffer,
-             DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, 1.0f, 0);
+             DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, 0.0f, 0);
 
         // LBuffer
         context.Clear(this.FrameService.LBuffer.Light, NeutralLight);

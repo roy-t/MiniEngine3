@@ -32,6 +32,7 @@ public sealed class SamplerStates : IDisposable
         this.LinearClamp = Create(device, SamplerDescription.LinearClamp, nameof(this.LinearClamp));
         this.AnisotropicWrap = Create(device, SamplerDescription.AnisotropicWrap, nameof(this.AnisotropicWrap));
         this.CompareLessEqualClamp = Create(device, CreateCompareLessEqualClamp(), nameof(this.CompareLessEqualClamp));
+        this.CompareGreaterClamp = Create(device, CreateCompareGreaterClamp(), nameof(this.CompareGreaterClamp));
     }
 
     public SamplerState PointWrap { get; }
@@ -40,6 +41,7 @@ public sealed class SamplerStates : IDisposable
     public SamplerState AnisotropicWrap { get; }
 
     public SamplerState CompareLessEqualClamp { get; }
+    public SamplerState CompareGreaterClamp { get; }
 
     private static SamplerState Create(ID3D11Device device, SamplerDescription description, string name)
     {
@@ -56,6 +58,23 @@ public sealed class SamplerStates : IDisposable
             AddressW = TextureAddressMode.Clamp,
             BorderColor = Colors.White,
             ComparisonFunction = ComparisonFunction.LessEqual,
+            Filter = Filter.ComparisonAnisotropic, // Should this be ComparisonXYZ or not?
+            MaxAnisotropy = 1,
+            MaxLOD = float.MaxValue,
+            MinLOD = float.MinValue,
+            MipLODBias = 0
+        };
+    }
+
+    private SamplerDescription CreateCompareGreaterClamp()
+    {
+        return new SamplerDescription()
+        {
+            AddressU = TextureAddressMode.Clamp,
+            AddressV = TextureAddressMode.Clamp,
+            AddressW = TextureAddressMode.Clamp,
+            BorderColor = Colors.White,
+            ComparisonFunction = ComparisonFunction.Greater,
             Filter = Filter.ComparisonAnisotropic, // Should this be ComparisonXYZ or not?
             MaxAnisotropy = 1,
             MaxLOD = float.MaxValue,

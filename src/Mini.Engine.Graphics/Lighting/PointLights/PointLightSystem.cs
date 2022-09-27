@@ -53,7 +53,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
         var camera = this.FrameService.GetPrimaryCamera().Camera;
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
         
-        var viewProjection = camera.GetViewProjection(in cameraTransform);
+        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform);
         Matrix4x4.Invert(viewProjection, out var inverseViewProjection);
         this.User.MapConstants(this.Context, inverseViewProjection, cameraTransform.GetPosition());
         this.Context.PS.SetConstantBuffer(PointLight.ConstantsSlot, this.User.ConstantsBuffer);
@@ -68,7 +68,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
         var camera = this.FrameService.GetPrimaryCamera().Camera;
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
 
-        var viewProjection = camera.GetViewProjection(in cameraTransform);
+        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform);
 
         var radiusOfInfluence = MathF.Sqrt(component.Strength / MinimumLightInfluence);
 

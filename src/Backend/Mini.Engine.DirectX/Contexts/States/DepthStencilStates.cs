@@ -28,8 +28,8 @@ public sealed class DepthStencilStates : IDisposable
     internal DepthStencilStates(ID3D11Device device)
     {
         this.None = Create(device, DepthStencilDescription.None, nameof(this.None));
-        this.Default = Create(device, DepthStencilDescription.Default, nameof(this.Default));
-        this.ReadOnly = Create(device, DepthStencilDescription.DepthRead, nameof(this.ReadOnly));
+        this.Default = Create(device, DepthStencilDescription.DepthReverseZ, nameof(this.Default));
+        this.ReadOnly = Create(device, DepthStencilDescription.DepthReadReverseZ, nameof(this.ReadOnly));
     }
 
     public DepthStencilState None { get; }

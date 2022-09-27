@@ -50,7 +50,7 @@ public sealed class FrameService : IDisposable
     {
         this.cameraEntity = this.Administrator.Create();
         ref var camera = ref this.Cameras.Create(this.cameraEntity);
-        camera.Camera = new PerspectiveCamera(0.25f, 250.0f, MathF.PI / 2.0f, this.GBuffer.AspectRatio);
+        camera.Camera = new PerspectiveCamera(0.1f, 250.0f, MathF.PI / 2.0f, this.GBuffer.AspectRatio);
 
         ref var transform = ref this.Transforms.Create(this.cameraEntity);
         transform.Transform = Transform.Identity

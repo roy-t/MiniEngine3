@@ -43,7 +43,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(SunLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
         this.Context.PS.SetShaderResource(SunLight.Material, this.FrameService.GBuffer.Material);
 
-        this.Context.PS.SetSampler(SunLight.ShadowSampler, this.Device.SamplerStates.CompareLessEqualClamp);
+        this.Context.PS.SetSampler(SunLight.ShadowSampler, this.Device.SamplerStates.CompareGreaterClamp);
 
         this.Context.PS.SetConstantBuffer(SunLight.ConstantsSlot, this.User.ConstantsBuffer);
     }
@@ -53,7 +53,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
     {
         var camera = this.FrameService.GetPrimaryCamera().Camera;
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;        
-        var viewProjection = camera.GetViewProjection(in cameraTransform);
+        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform);
         Matrix4x4.Invert(viewProjection, out var inverse);
 
         var shadow = new SunLight.ShadowProperties()

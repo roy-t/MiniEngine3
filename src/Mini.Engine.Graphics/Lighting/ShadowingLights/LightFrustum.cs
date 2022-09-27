@@ -42,7 +42,7 @@ internal sealed class LightFrustum
     {
         this.ResetToViewVolume();
         
-        var viewProjection = camera.GetViewProjection(in cameraTansform);
+        var viewProjection = camera.GetBoundedReversedZViewProjection(in cameraTansform);
         
         Matrix4x4.Invert(viewProjection, out var viewProjectionToWorld);
         this.Transform(viewProjectionToWorld);

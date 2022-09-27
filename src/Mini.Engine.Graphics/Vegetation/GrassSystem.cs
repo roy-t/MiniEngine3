@@ -75,7 +75,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
-        var viewProjection = camera.Camera.GetViewProjection(in cameraTransform.Transform);
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Transform);
         var cameraPosition = cameraTransform.Transform.GetPosition();
         var grassToSun = this.GetGrassToSunVector();
 

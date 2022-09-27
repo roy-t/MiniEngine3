@@ -40,12 +40,12 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
 
     [Process(Query = ProcessQuery.All)]
     public void DrawSkybox(ref SkyboxComponent skybox)
-    {
+    {        
         var camera = this.FrameService.GetPrimaryCamera().Camera;
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
-        
-        var view = Matrix4x4.CreateLookAt(Vector3.Zero, cameraTransform.GetForward(), cameraTransform.GetUp());
-        var projection = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 2.0f, camera.AspectRatio, 0.1f, 1.5f);
+       
+        var view = Matrix4x4.CreateLookAt(Vector3.Zero, cameraTransform.GetForward(), cameraTransform.GetUp());        
+        var projection = PerspectiveCamera.CreateInfiniteReversedZProjectionMatrix(0.1f, MathF.PI / 2.0f, camera.AspectRatio);
         var worldViewProjection = view * projection;
         Matrix4x4.Invert(worldViewProjection, out var inverse);
         this.User.MapConstants(this.Context, inverse);
