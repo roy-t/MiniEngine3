@@ -5,6 +5,7 @@ using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
+using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 namespace Mini.Engine.Graphics;
@@ -45,7 +46,7 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
        
         var view = Matrix4x4.CreateLookAt(Vector3.Zero, cameraTransform.GetForward(), cameraTransform.GetUp());        
-        var projection = PerspectiveCamera.CreateInfiniteReversedZProjectionMatrix(0.1f, MathF.PI / 2.0f, camera.AspectRatio);
+        var projection = ProjectionMatrix.InfiniteReversedZ(0.1f, MathF.PI / 2.0f, camera.AspectRatio);
         var worldViewProjection = view * projection;
         Matrix4x4.Invert(worldViewProjection, out var inverse);
         this.User.MapConstants(this.Context, inverse);

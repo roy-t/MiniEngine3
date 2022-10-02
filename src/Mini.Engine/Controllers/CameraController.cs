@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Graphics;
+using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Windows;
 using Windows.Win32.UI.KeyboardAndMouseInput;

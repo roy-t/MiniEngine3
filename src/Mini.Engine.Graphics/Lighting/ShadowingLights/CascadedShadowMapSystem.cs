@@ -10,6 +10,7 @@ using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
+using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Transforms;
 using Vortice.Direct3D;

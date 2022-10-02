@@ -2,7 +2,7 @@
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.DXGI;
 
-namespace Mini.Engine.Graphics;
+namespace Mini.Engine.Graphics.Models;
 
 public sealed class GeometryBuffer : IDisposable
 {
@@ -26,7 +26,7 @@ public sealed class GeometryBuffer : IDisposable
     public int Width { get; }
     public int Height { get; }
 
-    public float AspectRatio => (float)this.Width / (float)this.Height;
+    public float AspectRatio => this.Width / (float)this.Height;
 
     public IRenderTarget Albedo { get; }
     public IRenderTarget Material { get; }

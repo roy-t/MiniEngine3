@@ -13,4 +13,8 @@
     <ProjectReference Include="..\Mini.Engine.Content\Mini.Engine.Content.csproj" />
     <ProjectReference Include="..\Mini.Engine.ECS\Mini.Engine.ECS.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="PostProcessing\" />
+  </ItemGroup>
 </Project>

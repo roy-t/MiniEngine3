@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Mini.Engine.Graphics.Cameras;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
