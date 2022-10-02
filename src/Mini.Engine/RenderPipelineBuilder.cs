@@ -6,6 +6,7 @@ using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.PointLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Models;
+using Mini.Engine.Graphics.PostProcessing;
 using Mini.Engine.Graphics.Vegetation;
 using Mini.Engine.Graphics.World;
 
@@ -88,6 +89,11 @@ internal sealed class RenderPipelineBuilder
                 .Requires("Renderer", "ImageBasedLights")
                 .Requires("Renderer", "SunLights")
                 .Produces("Renderer", "Skybox")
+                .Build()
+            .System<PostProcessingSystem>()
+                .InSequence()
+                .RequiresAll("Renderer")
+                .Produces("PostProcessing", "Post")
                 .Build()
         .Build();
     }
