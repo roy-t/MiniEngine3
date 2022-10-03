@@ -15,7 +15,7 @@ internal sealed class GameLoop : IGameLoop
 {
     private readonly Device Device;
 
-    private readonly RenderHelper Presenter;
+    private readonly PresentationHelper Presenter;
     private readonly SceneManager SceneManager;
     private readonly FrameService FrameService;
     private readonly DebugFrameService DebugFrameService;
@@ -24,10 +24,10 @@ internal sealed class GameLoop : IGameLoop
     private readonly GrassSystem GrassSystem; // TODO: move this to a smarter place?
     private readonly ParallelPipeline RenderPipeline;
     private readonly ParallelPipeline DebugPipeline;
-    public GameLoop(Device device, RenderHelper helper, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, CameraController cameraController, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, GrassSystem grassSystem)
+    public GameLoop(Device device, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, CameraController cameraController, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, GrassSystem grassSystem)
     {
         this.Device = device;
-        this.Presenter = helper;
+        this.Presenter = presenter;
         this.SceneManager = sceneManager;
         this.FrameService = frameService;
         this.DebugFrameService = debugFrameService;
@@ -63,7 +63,7 @@ internal sealed class GameLoop : IGameLoop
         this.FrameService.Alpha = alpha;
         this.RenderPipeline.Frame();
 
-        this.Presenter.Present(this.Device.ImmediateContext, this.FrameService.PBuffer.Current);        
+        this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.Current);        
 
         if (this.DebugFrameService.EnableDebugOverlay)
         {
@@ -74,9 +74,7 @@ internal sealed class GameLoop : IGameLoop
                 this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();
                 this.Presenter.Present(this.Device.ImmediateContext, this.DebugFrameService.DebugOverlay);
             }
-        }
-
-       
+        }       
     }
 
     public void Resize(int width, int height)

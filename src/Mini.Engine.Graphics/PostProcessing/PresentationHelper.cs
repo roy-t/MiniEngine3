@@ -7,14 +7,14 @@ using Mini.Engine.DirectX.Resources.Surfaces;
 namespace Mini.Engine.Graphics.PostProcessing;
 
 [Service]
-public class RenderHelper
+public class PresentationHelper
 {
     private readonly Device Device;
     private readonly FullScreenTriangle FullScreenTriangleShader;
     private readonly TextureShader TextureShader;
     private readonly ToneMapShader ToneMapShader;
 
-    public RenderHelper(Device device, FullScreenTriangle fullScreenTriangleShader, TextureShader textureShader, ToneMapShader toneMapShader)
+    public PresentationHelper(Device device, FullScreenTriangle fullScreenTriangleShader, TextureShader textureShader, ToneMapShader toneMapShader)
     {
         this.Device = device;
 
