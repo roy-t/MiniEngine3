@@ -7,6 +7,7 @@ using Mini.Engine.ECS.Entities;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Lighting;
 using Mini.Engine.Graphics.Models;
+using Mini.Engine.Graphics.PostProcessing;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine.Graphics;
@@ -23,6 +24,7 @@ public sealed class FrameService : IDisposable
     {
         this.GBuffer = new GeometryBuffer(device);
         this.LBuffer = new LightBuffer(device);
+        this.PBuffer = new PostProcessingBuffer(device);
         this.Administrator = administrator;
         this.Cameras = cameras;
         this.Transforms = transforms;       
@@ -37,6 +39,7 @@ public sealed class FrameService : IDisposable
 
     public GeometryBuffer GBuffer { get; private set; }
     public LightBuffer LBuffer { get; private set; }
+    public PostProcessingBuffer PBuffer { get; private set; }
 
     public ref CameraComponent GetPrimaryCamera()
     {
@@ -66,6 +69,7 @@ public sealed class FrameService : IDisposable
 
         this.GBuffer = new GeometryBuffer(device);
         this.LBuffer = new LightBuffer(device);
+        this.PBuffer = new PostProcessingBuffer(device);
 
         ref var camera = ref this.Cameras[this.cameraEntity];
         camera.Camera = camera.Camera with { AspectRatio = this.GBuffer.AspectRatio };
@@ -75,5 +79,6 @@ public sealed class FrameService : IDisposable
     {
         this.GBuffer.Dispose();
         this.LBuffer.Dispose();
+        this.PBuffer.Dispose();
     }
 }

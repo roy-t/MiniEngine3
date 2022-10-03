@@ -4,6 +4,7 @@ using Mini.Engine.Controllers;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
+using Mini.Engine.Graphics.PostProcessing;
 using Mini.Engine.Graphics.Vegetation;
 using Mini.Engine.Scenes;
 
@@ -14,7 +15,7 @@ internal sealed class GameLoop : IGameLoop
 {
     private readonly Device Device;
 
-    private readonly RenderHelper FXAARenderer;
+    private readonly RenderHelper Presenter;
     private readonly SceneManager SceneManager;
     private readonly FrameService FrameService;
     private readonly DebugFrameService DebugFrameService;
@@ -26,7 +27,7 @@ internal sealed class GameLoop : IGameLoop
     public GameLoop(Device device, RenderHelper helper, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, CameraController cameraController, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, GrassSystem grassSystem)
     {
         this.Device = device;
-        this.FXAARenderer = helper;
+        this.Presenter = helper;
         this.SceneManager = sceneManager;
         this.FrameService = frameService;
         this.DebugFrameService = debugFrameService;
@@ -62,9 +63,7 @@ internal sealed class GameLoop : IGameLoop
         this.FrameService.Alpha = alpha;
         this.RenderPipeline.Frame();
 
-        this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();
-
-        this.FXAARenderer.RenderFXAA(this.Device.ImmediateContext, this.FrameService.LBuffer.Light, 0, 0, this.Device.Width, this.Device.Height);
+        this.Presenter.Present(this.Device.ImmediateContext, this.FrameService.PBuffer.Current);        
 
         if (this.DebugFrameService.EnableDebugOverlay)
         {
@@ -73,7 +72,7 @@ internal sealed class GameLoop : IGameLoop
             if (this.DebugFrameService.RenderToViewport)
             {
                 this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();
-                this.FXAARenderer.Render(this.Device.ImmediateContext, this.DebugFrameService.DebugOverlay, 0, 0, this.Device.Width, this.Device.Height);
+                this.Presenter.Present(this.Device.ImmediateContext, this.DebugFrameService.DebugOverlay);
             }
         }
 
