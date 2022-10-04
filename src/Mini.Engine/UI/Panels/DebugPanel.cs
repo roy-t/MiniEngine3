@@ -4,6 +4,8 @@ using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.Graphics;
+using Mini.Engine.Graphics.Cameras;
+using Mini.Engine.Graphics.PostProcessing;
 
 namespace Mini.Engine.UI.Panels;
 
@@ -15,6 +17,7 @@ internal sealed class DebugPanel : IPanel
     private readonly PerformanceCounters Counters;
 
     private readonly RenderDoc? RenderDoc;
+    private readonly PostProcessingSystem PostProcessingSystem;
 
     private RasterizerState[] RasterizerStates;
     private int selectedRasterizerState;
@@ -37,7 +40,9 @@ internal sealed class DebugPanel : IPanel
         {
             this.RenderDoc = instance;
             this.nextCaptureToOpen = uint.MaxValue;
-        }        
+        }
+
+        this.PostProcessingSystem = services.Resolve<PostProcessingSystem>();
     }
 
     public string Title => "Debug";
@@ -47,6 +52,7 @@ internal sealed class DebugPanel : IPanel
         this.ShowDebugOverlaySettings();
         this.ShowRasterizerStateSettings();
         this.ShowVSync();
+        this.ShowAA();
         this.ShowRenderDoc();
     }
 
@@ -126,5 +132,17 @@ internal sealed class DebugPanel : IPanel
         {
             this.Device.VSync = vsync;
         }
+    }
+
+    private static readonly AAType[] AATypes = Enum.GetValues<AAType>();
+    private static readonly string[] AANames = Enum.GetValues<AAType>().Select(a => a.ToString()).ToArray();
+    private int AAIndex;
+    private void ShowAA()
+    {
+        if(ImGui.Combo("Anti Aliasing", ref this.AAIndex, AANames, AANames.Length))
+        {
+            this.PostProcessingSystem.AntiAliasing = AATypes[this.AAIndex];
+            ProjectionMatrix.EnableJitter = this.PostProcessingSystem.AntiAliasing == AAType.TAA; // HACK
+        }        
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Mini.Engine.Core;
 using Xunit;
 using Xunit.Sdk;
 namespace Mini.Engine.Tests;
@@ -33,5 +34,21 @@ public class ScratchPad
     private void DoSomething(IFoo<ISomething> item)
     {
 
+    }
+
+    [Fact]
+    public void Randoms()
+    {
+        var sequence = new QuasiRandomSequence();
+        var dims = new List<Vector2>();
+
+        for(var i = 0; i < 100; i++)
+        {
+            var v = sequence.Next2D(-1.0f, 1.0f);
+            dims.Add(v);
+        }
+
+
+        dims.ToString();
     }
 }

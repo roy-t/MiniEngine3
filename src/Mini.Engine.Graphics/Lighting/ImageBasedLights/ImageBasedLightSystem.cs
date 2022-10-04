@@ -51,7 +51,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         var camera = this.FrameService.GetPrimaryCamera().Camera;
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
 
-        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform);
+        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.Device.Width, this.Device.Height);
         Matrix4x4.Invert(viewProjection, out var inverseViewProjection);
         var cameraPosition = cameraTransform.GetPosition();
         this.User.MapConstants(this.Context, inverseViewProjection, cameraPosition);

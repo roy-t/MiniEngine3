@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Mini.Engine.DirectX;
 
 namespace Mini.Engine.Graphics.Cameras;
 
@@ -20,10 +21,11 @@ public readonly record struct PerspectiveCamera(float NearPlane, float FarPlane,
         return view * proj;
     }
 
-    public Matrix4x4 GetInfiniteReversedZViewProjection(in Transform transform)
+    public Matrix4x4 GetInfiniteReversedZViewProjection(in Transform transform, float backBufferWidth, float backBufferHeigth)
     {
         var view = Matrix4x4.CreateLookAt(transform.GetPosition(), transform.GetPosition() + transform.GetForward(), transform.GetUp());
         var proj = ProjectionMatrix.InfiniteReversedZ(in this);
+        proj = ProjectionMatrix.Jitter(in proj, backBufferWidth, backBufferHeigth);
         return view * proj;
     }
 }

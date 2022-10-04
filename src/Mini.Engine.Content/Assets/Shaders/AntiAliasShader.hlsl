@@ -7,7 +7,8 @@ struct PS_INPUT
 };
 
 sampler TextureSampler : register(s0);
-Texture2D Texture : register(t0);
+Texture2D Texture : register(t0);    
+Texture2D PreviousTexture : register(t1);
 
 #define EDGE_THRESHOLD_MIN 0.0312f
 #define EDGE_THRESHOLD_MAX 0.125f
@@ -242,10 +243,31 @@ float3 FXAA(float2 uv)
 
     return fragColor;
 }
-
+        
 #pragma PixelShader
 float4 FxaaPS(PS_INPUT input) : SV_Target
 {
     float3 color = FXAA(input.tex);       
+    return float4(color, 1.0f);
+}
+
+
+#pragma PixelShader
+float4 NonePS(PS_INPUT input) : SV_Target
+{
+    float3 color = Texture.Sample(TextureSampler, input.tex).rgb;    
+    return float4(color, 1.0f);
+}
+    
+#pragma PixelShader
+float4 TaaPS(PS_INPUT input) : SV_Target
+{
+    float2 dimensions;
+    
+    float3 currentColor = Texture.Sample(TextureSampler, input.tex).rgb;
+    float3 previousColor = PreviousTexture.Sample(TextureSampler, input.tex).rgb;
+    //float3 color = currentColor;
+    float3 color = currentColor * 0.1f + previousColor * 0.9f;
+    
     return float4(color, 1.0f);
 }
