@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using ImGuiNET;
@@ -16,7 +15,7 @@ public sealed record LoadAction(string Description, Action Load);
 [Service]
 public sealed class LoadingScreen
 {
-    private const double ReportDelta = 1.0 / 60.0;
+    private static TimeSpan ReportDelta = TimeSpan.FromSeconds(1.0 / 60.0);
 
     private readonly ILogger Logger;
     private readonly Device Device;
@@ -33,43 +32,39 @@ public sealed class LoadingScreen
 
     public void Load(IReadOnlyList<LoadAction> actions, string description)
     {
+        this.Logger.Information("### Loading {@description}", description);
+
         var stopwatch = Stopwatch.StartNew();
-        this.Load(actions.Count, i => actions[i].Description, i => actions[i].Load());
-        this.Logger.Information("Loading {@description} with {@count} items took {@ms}ms", description, actions.Count, stopwatch.ElapsedMilliseconds);
-    }
-
-    private void Load(int count, Func<int, string> onDescribe, Action<int> onLoad)
-    {
-        var reportWatch = Stopwatch.StartNew();
-        var accumulator = double.MaxValue;
-
-        var index = 0;
-
-        while (Win32Application.PumpMessages() && index < count)
+        var totalTime = TimeSpan.Zero;
+        var accumulator = TimeSpan.MaxValue;
+        for (var i = 0; i < actions.Count; i++)
         {
-            var progress = index / (float)count;
-
             if (accumulator >= ReportDelta)
             {
-                var message = $"Loading {onDescribe(index)}";
+                var progress = i / (float)actions.Count;
+                var message = $"Loading {actions[i].Description}";
                 this.RenderWindow(message, progress);
-                accumulator = 0.0;
+                accumulator = TimeSpan.Zero;
             }
 
-            accumulator += reportWatch.Elapsed.TotalSeconds;
-            reportWatch.Restart();
-
-            onLoad(index++);
+            stopwatch.Restart();
+            actions[i].Load();
+            var elapsed = stopwatch.Elapsed;
+            this.Logger.Information("- Action {@index}/{@count}: {@description} took {@ms}ms",i + 1, actions.Count, actions[i].Description, elapsed.TotalMilliseconds);
+            totalTime += elapsed;
+            accumulator += elapsed;
         }
 
         this.RenderWindow("Completed", 1.0f);
+
+        this.Logger.Information("### Loading {@description} took {@ms}ms", description, actions.Count, totalTime.TotalMilliseconds);        
     }
 
     private void RenderWindow(string message, float progress)
     {
         this.Device.ImmediateContext.ClearBackBuffer();
 
-        this.UI.NewFrame((float)ReportDelta);
+        this.UI.NewFrame((float)ReportDelta.TotalMilliseconds);
 
         ImGui.SetNextWindowPos(new Vector2(0, Math.Max(0, this.Device.Height - 100)));
         ImGui.SetNextWindowSize(new Vector2(this.Device.Width, Math.Min(this.Device.Height, 100)));
