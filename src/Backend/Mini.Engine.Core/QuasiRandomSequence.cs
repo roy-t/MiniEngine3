@@ -6,11 +6,14 @@ namespace Mini.Engine.Core;
 
 public sealed class QuasiRandomSequence
 {
+    private readonly int Length;
     private int n;
+    
 
-    public QuasiRandomSequence(int seed = 0)
+    public QuasiRandomSequence(int length = int.MaxValue, int seed = 0)
     {
-        this.n = seed;
+        this.Length = length;
+        this.n = seed;        
     }
 
     public float Next1D(float min = 0.0f, float max = 1.0f)
@@ -19,7 +22,7 @@ public sealed class QuasiRandomSequence
         var a1 = 1.0f / g;
         var x = (0.5f + a1 * this.n) % 1.0f;
 
-        ++this.n;
+        this.n = (this.n + 1) % this.Length;
         return TransformRange(x, min, max);
     }
 
@@ -35,7 +38,7 @@ public sealed class QuasiRandomSequence
         x = TransformRange(x, minX, maxX);
         y = TransformRange(y, minY, maxY);
 
-        ++this.n;
+        this.n = (this.n + 1) % this.Length;
         return new Vector2(x, y);
     }
 
@@ -53,7 +56,7 @@ public sealed class QuasiRandomSequence
         y = TransformRange(y, minY, maxY);
         z = TransformRange(z, minZ, maxZ);
 
-        ++this.n;
+        this.n = (this.n + 1) % this.Length;
         return new Vector3(x, y, z);
     }
 

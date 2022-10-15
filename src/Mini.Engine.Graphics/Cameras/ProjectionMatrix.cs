@@ -5,7 +5,7 @@ namespace Mini.Engine.Graphics.Cameras;
 
 public static class ProjectionMatrix
 {
-    private static readonly QuasiRandomSequence Sequence = new QuasiRandomSequence();
+    private static readonly QuasiRandomSequence Sequence = new QuasiRandomSequence(6);
     public static bool EnableJitter = false; // HACK
 
     // See https://thxforthefish.com/posts/reverse_z/
