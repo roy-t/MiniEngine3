@@ -41,7 +41,7 @@ public abstract class ShaderContent<TShader> : Shader<TShader>, IShaderContent
         using var include = new ShaderFileInclude(this.FileSystem, Path.GetDirectoryName(this.Id.Path));
 
         Compiler.Compile(sourceText, Defines, include, this.Id.Key, this.Id.Path, this.Profile, out var shaderBlob, out var errorBlob);
-        ShaderCompilationErrorFilter.ThrowOnWarningOrError(errorBlob, "X3568" /*Undefined Pragma */);
+        ShaderCompilationErrorFilter.ThrowOnWarningOrError(errorBlob, "X3568" /*Undefined Pragma */);        
 
         this.blob?.Dispose();
         this.ID3D11Shader?.Dispose();

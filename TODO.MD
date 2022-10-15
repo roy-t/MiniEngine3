@@ -1,12 +1,14 @@
 # TODO
 
+Loading is relatively slow due to
+- Loading the Sponza Models
+- Shader Compilation
+- Skybox generation
+- Could this be parallelized or fixed in a different way?
+
 ---
 
 Make sure that changes (adding new textures, creating new entities/components) only happen at a single stage in the pipeline. Just like how deleting only happens on buffer flush. Maybe via some sort of command bus/queue, would also help networking/multiplayer maybe?
-
----
-
-Use `typeperf "\GPU Process Memory(*)\Dedicated Usage" -f CSV -o ..\counters4.csv` to print out memory usage, this is a WMI counter that is not available on every system, there are more WMI coutners related to this process. Maybe integrate that in the debug stuff?
 
 ---
 
@@ -19,9 +21,7 @@ Use `typeperf "\GPU Process Memory(*)\Dedicated Usage" -f CSV -o ..\counters4.cs
 - Make it easier to change skyboxes
 - Use Texture.Load() instead of Sampling using the point sampling for a tiny perf boost where we don't need sampling
 
-- Check RenderTargetViews, ShaderResourceViews of it still makes sense, is there not 1 overload per resource?
-
-- Unsafe zooi: https://github.com/dotnet/runtime/issues/29905
+- Unsafe zooi: https://github.com/dotnetchrome://vivaldi-webui/startpage?section=Speed-dials&background-color=#2f2f2f/runtime/issues/29905
 
 - Input: move to https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getrawinputbuffer, see also https://twitter.com/roytries/status/1504726298136043542?s=20&t=f-MV-lcabEsZvyDSDONvMQ
 

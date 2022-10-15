@@ -57,7 +57,7 @@ public sealed class LoadingScreen
 
         this.RenderWindow("Completed", 1.0f);
 
-        this.Logger.Information("### Loading {@description} took {@ms}ms", description, actions.Count, totalTime.TotalMilliseconds);        
+        this.Logger.Information("### Loading {@description} took {@ms}ms", description, totalTime.TotalMilliseconds);        
     }
 
     private void RenderWindow(string message, float progress)
