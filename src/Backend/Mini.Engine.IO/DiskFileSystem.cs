@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Serilog;
+﻿using Serilog;
 
 namespace Mini.Engine.IO;
 
@@ -36,6 +35,11 @@ public sealed class DiskFileSystem : IVirtualFileSystem
     public Stream OpenRead(string path)
     {
         return File.Open(this.ToAbsolute(path), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+    }
+
+    public Stream OpenWrite(string path)
+    {
+        return File.Open(this.ToAbsolute(path), FileMode.Create, FileAccess.Write, FileShare.None);
     }
 
     public bool Exists(string path)
