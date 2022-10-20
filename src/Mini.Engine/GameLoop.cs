@@ -21,10 +21,11 @@ internal sealed class GameLoop : IGameLoop
     private readonly DebugFrameService DebugFrameService;
     private readonly CameraController CameraController;
     private readonly ContentManager Content;
+    private readonly Mini.Engine.Content.v2.ContentManager ContentV2;
     private readonly GrassSystem GrassSystem; // TODO: move this to a smarter place?
     private readonly ParallelPipeline RenderPipeline;
     private readonly ParallelPipeline DebugPipeline;
-    public GameLoop(Device device, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, CameraController cameraController, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, GrassSystem grassSystem)
+    public GameLoop(Device device, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, CameraController cameraController, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, GrassSystem grassSystem, Content.v2.ContentManager contentV2)
     {
         this.Device = device;
         this.Presenter = presenter;
@@ -42,13 +43,16 @@ internal sealed class GameLoop : IGameLoop
 
         content.Push("Game");
         this.SceneManager.Set(0);
+        this.ContentV2 = contentV2;
     }
 
     public void Update(float time, float elapsed)
     {
         this.SceneManager.CheckChangeScene();
 
-        this.Content.ReloadChangedContent();
+        // TODO while working on v2 hot reloading for v1 is broken!
+        //this.Content.ReloadChangedContent(); 
+        this.ContentV2.ReloadChangedContent();
 
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();        

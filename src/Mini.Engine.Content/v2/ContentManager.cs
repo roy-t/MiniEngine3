@@ -4,6 +4,7 @@ using Mini.Engine.Content.v2.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.IO;
+using Serilog;
 
 namespace Mini.Engine.Content.v2;
 
@@ -12,57 +13,50 @@ public sealed class ContentManager : IDisposable
 {
     private readonly Device Device;
     private readonly ContentCache<TextureContent> TextureCache;
+    private readonly ContentStack ContentStack;
+    private readonly HotReloader HotReloader; // WIP test reloading!
 
-    private readonly Stack<ContentFrame> ContentStack;
-
-    public ContentManager(Device device, IVirtualFileSystem fileSystem)
+    public ContentManager(ILogger logger, Device device, Textures.TextureLoader textureLoader, IVirtualFileSystem fileSystem)
     {
         this.Device = device;
-        this.TextureCache = new ContentCache<TextureContent>(device, new Textures.TextureLoader(), fileSystem);
+        this.TextureCache = new ContentCache<TextureContent>(textureLoader, fileSystem);
+        this.ContentStack = new ContentStack(this.TextureCache);
 
-        this.ContentStack = new Stack<ContentFrame>();
-        this.ContentStack.Push(new ContentFrame("Root"));
+        this.HotReloader = new HotReloader(logger, this.ContentStack, fileSystem, textureLoader);
     }
 
     public IResource<ITexture> LoadTexture(string path, string key = "", TextureLoaderSettings? settings = null)
     {
         var id = new ContentId(path, key);
         var content = this.TextureCache.Load(id, new ContentRecord(settings));
-
+        this.HotReloader.Register(content);
         return this.RegisterContentResource(content);        
     }
 
     private IResource<T> RegisterContentResource<T>(T content)
         where T : IDeviceResource, IContent
     {
-        this.ContentStack.Peek().Content.Add(content);
+        this.ContentStack.Add(content);
         return this.Device.Resources.Add(content);        
     }
 
-    private void Pop()
+    public void Pop()
     {
-        var frame = this.ContentStack.Pop();
-        foreach (var content in frame.Content)
-        {
-            switch (content)
-            {
-                case TextureContent texture:
-                    this.TextureCache.Unload(texture.Id);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException($"Unexpected content type: {content.GetType().FullName}");
-            }
-        }
+        this.ContentStack.Pop();
     }
 
+    public void Push(string frameName)
+    {
+        this.ContentStack.Push(frameName);
+    }
 
     public void Dispose()
     {
-        while (this.ContentStack.Count > 0)
-        {
-            this.Pop();
-        }
+        this.ContentStack.Clear();
     }
 
-
+    public void ReloadChangedContent()
+    {
+        this.HotReloader.ReloadChangedContent();
+    }
 }

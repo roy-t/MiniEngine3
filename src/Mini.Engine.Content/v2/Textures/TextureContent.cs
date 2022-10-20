@@ -6,15 +6,17 @@ using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.Content.v2.Textures;
-internal sealed class TextureContent : ITexture, IContent
+public sealed class TextureContent : ITexture, IContent
 {
     private ID3D11ShaderResourceView shaderResourceView;
     private ID3D11Texture2D texture;
 
-    public TextureContent(ContentId id, TextureData data, IReadOnlyList<string> dependencies)
+    public TextureContent(ContentId id, TextureData data, ContentRecord meta, string generatorKey, ISet<string> dependencies)
     {
-        this.Dependencies = dependencies;
         this.Id = id;
+        this.GeneratorKey = generatorKey;
+        this.Meta = meta;
+        this.Dependencies = dependencies;
 
         this.Reload(data);
         
@@ -33,6 +35,8 @@ internal sealed class TextureContent : ITexture, IContent
     }
 
     public ContentId Id { get; }
+    public string GeneratorKey { get; }
+    public ContentRecord Meta { get; }
     public string Name { get; }
 
     public ImageInfo ImageInfo { get; set; }
@@ -47,7 +51,7 @@ internal sealed class TextureContent : ITexture, IContent
     ID3D11ShaderResourceView ISurface.ShaderResourceView => this.shaderResourceView!;
     ID3D11Texture2D ISurface.Texture => this.texture!;
 
-    public IReadOnlyList<string> Dependencies { get; }
+    public ISet<string> Dependencies { get; }
 
     public void Dispose()
     {

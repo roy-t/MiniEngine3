@@ -1,9 +1,8 @@
 ﻿using Mini.Engine.Content.v2.Serialization;
-using Mini.Engine.DirectX;
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.v2;
-internal sealed class ContentCache<T>
+public sealed class ContentCache<T>
     where T : IContent
 {
     private sealed record Entry(T Content)
@@ -11,14 +10,12 @@ internal sealed class ContentCache<T>
         public int ReferenceCount { get; set; }
     }
 
-    private readonly Device Device;
     private readonly IVirtualFileSystem FileSystem;
     private readonly IContentGenerator<T> Generator;
     private readonly Dictionary<ContentId, Entry> Cache;
 
-    public ContentCache(Device device, IContentGenerator<T> generator, IVirtualFileSystem fileSystem)
-    {
-        this.Device = device;
+    public ContentCache(IContentGenerator<T> generator, IVirtualFileSystem fileSystem)
+    {        
         this.Generator = generator;
         this.FileSystem = fileSystem;
         this.Cache = new Dictionary<ContentId, Entry>();
@@ -31,7 +28,7 @@ internal sealed class ContentCache<T>
 
         var path = id.Path + Constants.Extension;
         var blob = this.LoadFromFile(path) ?? this.Generate(id, meta, path);
-        content = this.Generator.Load(this.Device, id, blob);
+        content = this.Generator.Load(id, blob);
 
         this.Cache.Add(id, new Entry(content));
         return content;

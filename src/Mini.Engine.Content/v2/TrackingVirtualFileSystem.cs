@@ -1,18 +1,18 @@
 ﻿using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.v2;
-internal class TrackingVirtualFileSystem : IReadOnlyVirtualFileSystem
+public sealed class TrackingVirtualFileSystem : IReadOnlyVirtualFileSystem
 {
     private readonly IReadOnlyVirtualFileSystem VirtualFileSystem;
-    private readonly List<string> Dependencies;
+    private readonly HashSet<string> Dependencies;
 
     public TrackingVirtualFileSystem(IReadOnlyVirtualFileSystem virtualFileSystem)
     {
         this.VirtualFileSystem = virtualFileSystem;
-        this.Dependencies = new List<string>();
+        this.Dependencies = new HashSet<string>(new PathComparer());
     }
 
-    public IReadOnlyList<string> GetDependencies()
+    public ISet<string> GetDependencies()
     {
         return this.Dependencies;
     }

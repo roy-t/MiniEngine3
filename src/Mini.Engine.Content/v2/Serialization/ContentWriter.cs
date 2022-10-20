@@ -6,7 +6,7 @@ using Mini.Engine.Content.Textures;
 namespace Mini.Engine.Content.v2.Serialization;
 internal static class ContentWriter
 {
-    public static void WriteAll(Stream stream, Guid header, ContentRecord meta, IReadOnlyList<string> dependencies, ReadOnlySpan<byte> contents)
+    public static void WriteAll(Stream stream, Guid header, ContentRecord meta, ISet<string> dependencies, ReadOnlySpan<byte> contents)
     {
         using var writer = new BinaryWriter(stream, Encoding.UTF8, true);
         WriteHeader(writer, header);
@@ -28,7 +28,7 @@ internal static class ContentWriter
         Write(writer, record.ModelSettings);
     }
 
-    private static void WriteDependencies(BinaryWriter writer, IReadOnlyList<string> dependencies)
+    private static void WriteDependencies(BinaryWriter writer, ISet<string> dependencies)
     {
         writer.Write(string.Join(Constants.StringSeperator, dependencies));
     }

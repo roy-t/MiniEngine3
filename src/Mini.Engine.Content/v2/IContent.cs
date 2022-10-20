@@ -1,7 +1,9 @@
 ﻿namespace Mini.Engine.Content.v2;
-internal interface IContent
+public interface IContent
 {
     ContentId Id { get; }
-    IReadOnlyList<string> Dependencies { get; }
+    ContentRecord Meta { get; }
+    string GeneratorKey { get; }
+    ISet<string> Dependencies { get; }
     void Dispose();
 }

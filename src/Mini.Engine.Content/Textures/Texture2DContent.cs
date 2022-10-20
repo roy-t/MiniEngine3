@@ -6,7 +6,7 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.Content.Textures;
 
-internal sealed record TextureData(ContentId Id, ImageInfo ImageInfo, MipMapInfo MipMapInfo, ID3D11Texture2D Texture, ID3D11ShaderResourceView View)
+public sealed record TextureData(ContentId Id, ImageInfo ImageInfo, MipMapInfo MipMapInfo, ID3D11Texture2D Texture, ID3D11ShaderResourceView View)
     : IContentData;
 
 internal sealed class Texture2DContent : ITexture, IContent

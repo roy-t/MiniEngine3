@@ -3,7 +3,7 @@ using Mini.Engine.Content.Models;
 using Mini.Engine.Content.Textures;
 
 namespace Mini.Engine.Content.v2;
-internal sealed class ContentRecord
+public sealed class ContentRecord
 {    
     public ContentRecord(TextureLoaderSettings? settings)
         : this()

@@ -40,10 +40,10 @@ internal static class ContentReader
         return new ContentRecord(textureSettings, materialSettings, modelSettings);
     }
 
-    private static IReadOnlyList<string> ReadDependencies(BinaryReader reader)
+    private static ISet<string> ReadDependencies(BinaryReader reader)
     {
         var dependencies = reader.ReadString();
-        return dependencies.Split(Constants.StringSeperator);
+        return new HashSet<string>(dependencies.Split(Constants.StringSeperator), new PathComparer());
     }
 
     private static byte[] ReadContents(BinaryReader reader)
