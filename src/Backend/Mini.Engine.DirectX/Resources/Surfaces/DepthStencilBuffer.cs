@@ -21,7 +21,8 @@ public sealed class DepthStencilBuffer : Surface, IDepthStencilBuffer
         var texture = Textures.Create(device, name, image, MipMapInfo.None(), BindInfo.DepthStencil);
         var view = CreateSRV(device, texture, image.DimZ, ToShaderResourceViewFormat(format), name, "");
 
-        this.SetResources(texture, view);
+        this.texture = texture;
+        this.shaderResourceView = view;
 
         var dsvs = new ID3D11DepthStencilView[image.DimZ];
         for (var i = 0; i < dsvs.Length; i++)

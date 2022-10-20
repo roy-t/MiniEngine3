@@ -1,41 +1,68 @@
-﻿using Mini.Engine.Content.Models;
+﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content.Textures;
+using Mini.Engine.Content.v2.Textures;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.v2;
-public sealed class ContentManager
+
+[Service]
+public sealed class ContentManager : IDisposable
 {
+    private readonly Device Device;
+    private readonly ContentCache<TextureContent> TextureCache;
 
-    public readonly IVirtualFileSystem FileSystem;
+    private readonly Stack<ContentFrame> ContentStack;
 
-    public ContentLoadTask<ITexture> LoadTexture(string path, string key, TextureLoaderSettings settings)
+    public ContentManager(Device device, IVirtualFileSystem fileSystem)
     {
-        // ARGGGGGGGGGGGGGGGGG
-        // What if instead we just add a ContenLoader to every TextureContent, etc... class
-        // that just waits for the data to load asynchronously before replacing it
-        // and a blocking method Upload to force it to wait?
+        this.Device = device;
+        this.TextureCache = new ContentCache<TextureContent>(device, new Textures.TextureLoader(), fileSystem);
 
+        this.ContentStack = new Stack<ContentFrame>();
+        this.ContentStack.Push(new ContentFrame("Root"));
+    }
 
+    public IResource<ITexture> LoadTexture(string path, string key = "", TextureLoaderSettings? settings = null)
+    {
         var id = new ContentId(path, key);
-        var fileSystem = new TrackingVirtualFileSystem(this.FileSystem);
-        var record = new ContentRecord(fileSystem, settings);
+        var content = this.TextureCache.Load(id, new ContentRecord(settings));
 
-        var textureLoader = new v2.Textures.TextureLoader();
-        var bytes = textureLoader.Generate();
-
-
-        // 1. Queue ContentData loading on ThreadPool
-        // 2. Wait for ContentData to become available
-        // 3. Put Loading Content on Primary Thread Queue
-        // 4. Let LoadingScreen push content loading forward?
+        return this.RegisterContentResource(content);        
     }
 
-    public IResource<T> CompleteLoadTask<T>(ContentLoadTask<T> task)
-        where T : IDeviceResource
+    private IResource<T> RegisterContentResource<T>(T content)
+        where T : IDeviceResource, IContent
     {
-
+        this.ContentStack.Peek().Content.Add(content);
+        return this.Device.Resources.Add(content);        
     }
+
+    private void Pop()
+    {
+        var frame = this.ContentStack.Pop();
+        foreach (var content in frame.Content)
+        {
+            switch (content)
+            {
+                case TextureContent texture:
+                    this.TextureCache.Unload(texture.Id);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Unexpected content type: {content.GetType().FullName}");
+            }
+        }
+    }
+
+
+    public void Dispose()
+    {
+        while (this.ContentStack.Count > 0)
+        {
+            this.Pop();
+        }
+    }
+
+
 }

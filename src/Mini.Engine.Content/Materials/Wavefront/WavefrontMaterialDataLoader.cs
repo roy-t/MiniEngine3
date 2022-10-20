@@ -9,11 +9,11 @@ namespace Mini.Engine.Content.Materials.Wavefront;
 
 internal sealed partial class WavefrontMaterialDataLoader : IContentDataLoader<MaterialData>
 {
-    private static readonly ContentId Albedo = new(@"albedo.tga");
-    private static readonly ContentId Metalicness = new(@"metalicness.tga");
-    private static readonly ContentId Normal = new(@"normal.tga");
-    private static readonly ContentId Roughness = new(@"roughness.tga");
-    private static readonly ContentId AmbientOcclusion = new(@"ao.tga");
+    private static readonly ContentId Albedo = new(@"albedo.uastc");
+    private static readonly ContentId Metalicness = new(@"metalicness.uastc");
+    private static readonly ContentId Normal = new(@"normal.uastc");
+    private static readonly ContentId Roughness = new(@"roughness.uastc");
+    private static readonly ContentId AmbientOcclusion = new(@"ao.uastc");
 
     private readonly MtlStatementParser[] Parsers;
     private readonly IContentLoader<Texture2DContent> TextureLoader;

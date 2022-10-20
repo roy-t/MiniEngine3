@@ -1,98 +1,83 @@
-﻿using Mini.Engine.Content.Materials;
+﻿using System.Text;
+using Mini.Engine.Content.Materials;
 using Mini.Engine.Content.Models;
 using Mini.Engine.Content.Textures;
-using Mini.Engine.IO;
 using SuperCompressed;
 
 namespace Mini.Engine.Content.v2.Serialization;
-internal sealed class ContentReader : IDisposable
+internal static class ContentReader
 {
-    private readonly Stream Stream;
-    private readonly BinaryReader Reader;
-
-    internal ContentReader(ContentId id, IVirtualFileSystem fileSystem)
+    public static ContentBlob ReadAll(Stream stream)
     {
-        var path = id.Path + Constants.Extension;
+        using var reader = new BinaryReader(stream, Encoding.UTF8, true);
 
-        this.Stream = fileSystem.OpenRead(path);
-        this.Reader = new BinaryReader(this.Stream);
+        var (guid, timestamp) = ReadHeader(reader);
+        var meta = ReadMeta(reader);
+        var dependencies = ReadDependencies(reader);
+        var contents = ReadContents(reader);
+
+        return new ContentBlob(guid, timestamp, meta, dependencies, contents);
     }
 
-    public ContentBlob ReadAll(Guid header)
-    {
-        var guid = this.ReadHeader(header);        
-        if (guid != header)
-        {
-            throw new Exception($"Header mismatch, expected: {header}, actual: {guid}");
-        }
-
-        var meta = this.ReadMeta();
-        var dependencies = this.ReadDependencies();
-        var contents = this.ReadContents();
-
-        return new ContentBlob(guid, meta, dependencies, contents);
-    }
-    public void Dispose()
-    {
-        this.Reader.Dispose();
-        this.Stream.Dispose();
-    }
-
-    private Guid ReadHeader(Guid guid)
+    private static (Guid, DateTime) ReadHeader(BinaryReader reader)
     {
         var buffer = new byte[16];
-        this.Reader.Read(buffer);
+        reader.Read(buffer);
+        var guid = new Guid(buffer);
 
-        return new Guid(buffer);
+        var ticks = reader.ReadInt64();
+        var timestamp = new DateTime(ticks);
+
+        return (guid, timestamp);
     }
 
-    private ContentRecord ReadMeta()
+    private static ContentRecord ReadMeta(BinaryReader reader)
     {
-        var textureSettings = this.ReadTextureSettings();
-        var materialSettings = this.ReadMaterialSettings();
-        var modelSettings = this.ReadModelSettings();
+        var textureSettings = ReadTextureSettings(reader);
+        var materialSettings = ReadMaterialSettings(reader);
+        var modelSettings = ReadModelSettings(reader);
 
         return new ContentRecord(textureSettings, materialSettings, modelSettings);
     }
 
-    private IReadOnlyList<string> ReadDependencies()
+    private static IReadOnlyList<string> ReadDependencies(BinaryReader reader)
     {
-        var dependencies = this.Reader.ReadString();
+        var dependencies = reader.ReadString();
         return dependencies.Split(Constants.StringSeperator);
     }
 
-    private byte[] ReadContents()
+    private static byte[] ReadContents(BinaryReader reader)
     {
-        var length = this.Reader.ReadInt32();
+        var length = reader.ReadInt32();
         var bytes = new byte[length];
 
-        this.Reader.Read(bytes);
+        reader.Read(bytes);
 
         return bytes;
     }
 
-    private TextureLoaderSettings ReadTextureSettings()
+    private static TextureLoaderSettings ReadTextureSettings(BinaryReader reader)
     {
-        var mode = (Mode)this.Reader.ReadInt32();
-        var shouldMipMap = this.Reader.ReadBoolean();
+        var mode = (Mode)reader.ReadInt32();
+        var shouldMipMap = reader.ReadBoolean();
 
         return new TextureLoaderSettings(mode, shouldMipMap);
     }
 
-    private MaterialLoaderSettings ReadMaterialSettings()
+    private static MaterialLoaderSettings ReadMaterialSettings(BinaryReader reader)
     {
-        var albedo = this.ReadTextureSettings();
-        var metalicness = this.ReadTextureSettings();
-        var normal = this.ReadTextureSettings();
-        var roughness = this.ReadTextureSettings();
-        var ambientOcclusion = this.ReadTextureSettings();
+        var albedo = ReadTextureSettings(reader);
+        var metalicness = ReadTextureSettings(reader);
+        var normal = ReadTextureSettings(reader);
+        var roughness = ReadTextureSettings(reader);
+        var ambientOcclusion = ReadTextureSettings(reader);
 
         return new MaterialLoaderSettings(albedo, metalicness, normal, roughness, ambientOcclusion);
     }
 
-    private ModelLoaderSettings ReadModelSettings()
+    private static ModelLoaderSettings ReadModelSettings(BinaryReader reader)
     {
-        var material = this.ReadMaterialSettings();
+        var material = ReadMaterialSettings(reader);
         return new ModelLoaderSettings(material);
     }
 }

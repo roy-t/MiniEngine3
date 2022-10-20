@@ -37,9 +37,9 @@ public sealed class DiskFileSystem : IVirtualFileSystem
         return File.Open(this.ToAbsolute(path), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
     }
 
-    public Stream OpenWrite(string path)
+    public Stream CreateWriteRead(string path)
     {
-        return File.Open(this.ToAbsolute(path), FileMode.Create, FileAccess.Write, FileShare.None);
+        return File.Open(this.ToAbsolute(path), FileMode.Create, FileAccess.ReadWrite, FileShare.None);
     }
 
     public bool Exists(string path)

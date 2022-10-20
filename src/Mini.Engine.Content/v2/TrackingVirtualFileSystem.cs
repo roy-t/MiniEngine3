@@ -1,12 +1,12 @@
 ﻿using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.v2;
-internal class TrackingVirtualFileSystem : IVirtualFileSystem
+internal class TrackingVirtualFileSystem : IReadOnlyVirtualFileSystem
 {
-    private readonly IVirtualFileSystem VirtualFileSystem;
+    private readonly IReadOnlyVirtualFileSystem VirtualFileSystem;
     private readonly List<string> Dependencies;
 
-    public TrackingVirtualFileSystem(IVirtualFileSystem virtualFileSystem)
+    public TrackingVirtualFileSystem(IReadOnlyVirtualFileSystem virtualFileSystem)
     {
         this.VirtualFileSystem = virtualFileSystem;
         this.Dependencies = new List<string>();
@@ -40,28 +40,13 @@ internal class TrackingVirtualFileSystem : IVirtualFileSystem
         return this.VirtualFileSystem.ReadAllText(path);
     }
 
-    public void Create(string path, ReadOnlySpan<byte> contents)
+    public string NormalizePath(string path)
     {
-        throw new NotImplementedException();
-    }
-
-    public IEnumerable<string> GetChangedFiles()
-    {
-        throw new NotImplementedException();
+        return this.VirtualFileSystem.NormalizePath(path);
     }
 
     public DateTime GetLastWriteTime(string path)
     {
-        throw new NotImplementedException();
-    }
-
-    public string NormalizePath(string path)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void WatchFile(string path)
-    {
-        throw new NotImplementedException();
+        return this.VirtualFileSystem.GetLastWriteTime(path);
     }
 }

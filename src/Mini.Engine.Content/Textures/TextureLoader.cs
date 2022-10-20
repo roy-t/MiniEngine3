@@ -28,7 +28,7 @@ internal sealed class TextureLoader : IContentLoader<Texture2DContent>
         IContentDataLoader<TextureData> loader = extension switch
         {
             ".hdr" => this.HdrTextureDataLoader,
-            ".jpg" or ".jpeg" or ".png" or ".bmp" or ".tga" or ".psd" or ".gif" => this.TextureDataLoader,
+            ".jpg" or ".jpeg" or ".png" or ".bmp" or ".tga" or ".psd" or ".gif" => this.TextureDataLoader, // unused
             ".uastc" => this.CompressedTextureLoader,
             _ => throw new NotSupportedException($"Could not load {id}. Unsupported image file type: {extension}"),
         };

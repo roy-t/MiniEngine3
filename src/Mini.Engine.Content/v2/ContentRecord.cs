@@ -5,22 +5,22 @@ using Mini.Engine.Content.Textures;
 namespace Mini.Engine.Content.v2;
 internal sealed class ContentRecord
 {    
-    public ContentRecord(TextureLoaderSettings settings)
+    public ContentRecord(TextureLoaderSettings? settings)
         : this()
     {
-        this.TextureSettings = settings;
+        this.TextureSettings = settings ?? TextureLoaderSettings.Default;
     }
 
-    public ContentRecord(MaterialLoaderSettings settings)
+    public ContentRecord(MaterialLoaderSettings? settings)
     : this()
     {
-        this.MaterialSettings = settings;
+        this.MaterialSettings = settings ?? MaterialLoaderSettings.Default;
     }
 
-    public ContentRecord(ModelLoaderSettings settings)
+    public ContentRecord(ModelLoaderSettings? settings)
     : this()
     {
-        this.ModelSettings = settings;
+        this.ModelSettings = settings ?? ModelLoaderSettings.Default;
     }
 
     public ContentRecord(TextureLoaderSettings texture, MaterialLoaderSettings material, ModelLoaderSettings model)

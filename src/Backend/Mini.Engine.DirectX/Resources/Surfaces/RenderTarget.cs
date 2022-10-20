@@ -9,7 +9,8 @@ public class RenderTarget : Surface, IRenderTarget
     {
         var (texture, view) = this.CreateResources(device, name, image, mipMap);
 
-        this.SetResources(texture, view);
+        this.texture = texture;
+        this.shaderResourceView = view;
 
         var rtvs = new ID3D11RenderTargetView[image.DimZ * mipMap.Levels];
         for (var i = 0; i < image.DimZ; i++)

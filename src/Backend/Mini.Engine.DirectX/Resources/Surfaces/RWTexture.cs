@@ -11,7 +11,8 @@ public sealed class RWTexture : Surface, IRWTexture
         var texture = Textures.Create(device, name, image, mipMap, BindInfo.UnorderedAccessView);
         var view = ShaderResourceViews.Create(device, texture, name, image);
 
-        this.SetResources(texture, view);
+        this.texture = texture;
+        this.shaderResourceView = view;
 
         var uavs = new ID3D11UnorderedAccessView[mipMap.Levels];
 

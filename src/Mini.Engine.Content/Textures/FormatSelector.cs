@@ -37,11 +37,11 @@ internal static class FormatSelector
         if (mode == Mode.Linear || mode == Mode.Normalized)
         {
             if (components == 4)
-            {                
+            {
                 return Format.R32G32B32A32_Float;
             }
         }
-        
+
         throw new NotSupportedException();
     }
 
@@ -60,8 +60,13 @@ internal static class FormatSelector
             {
                 return Format.BC7_UNorm_SRgb;
             }
+
+            if (sourceFormat == TranscodeFormats.RGBA32)
+            {
+                return Format.B8G8R8A8_UNorm_SRgb;
+            }
         }
 
         throw new NotSupportedException();
-    }  
+    }
 }

@@ -1,77 +1,61 @@
-﻿using Mini.Engine.Content.Materials;
+﻿using System.Text;
+using Mini.Engine.Content.Materials;
 using Mini.Engine.Content.Models;
 using Mini.Engine.Content.Textures;
-using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.v2.Serialization;
-internal sealed class ContentWriter : IDisposable
+internal static class ContentWriter
 {
-    private readonly Stream Stream;
-    private readonly BinaryWriter Writer;
-
-    public ContentWriter(ContentId id, IVirtualFileSystem fileSystem)
+    public static void WriteAll(Stream stream, Guid header, ContentRecord meta, IReadOnlyList<string> dependencies, ReadOnlySpan<byte> contents)
     {
-        var path = id.Path + Constants.Extension;
-
-        this.Stream = fileSystem.OpenWrite(path);
-        this.Writer = new BinaryWriter(this.Stream);        
+        using var writer = new BinaryWriter(stream, Encoding.UTF8, true);
+        WriteHeader(writer, header);
+        WriteMeta(writer, meta);
+        WriteDependencies(writer, dependencies);
+        WriteContents(writer, contents);        
     }
 
-    public void WriteAll(Guid header, ContentRecord meta, IReadOnlyList<string> dependencies, ReadOnlySpan<byte> contents)
-    {     
-        this.WriteHeader(header);
-        this.WriteMeta(meta);
-        this.WriteDependencies(dependencies);
-        this.WriteContents(contents);        
+    private static void WriteHeader(BinaryWriter writer, Guid header)
+    {
+        writer.Write(header.ToByteArray());
+        writer.Write(DateTime.Now.Ticks);
     }
 
-    public void Dispose()
+    private static void WriteMeta(BinaryWriter writer, ContentRecord record)
     {
-        this.Writer.Flush();
-        this.Writer.Dispose();
-        this.Stream.Dispose();
+        Write(writer, record.TextureSettings);
+        Write(writer, record.MaterialSettings);
+        Write(writer, record.ModelSettings);
     }
 
-    private void WriteHeader(Guid header)
+    private static void WriteDependencies(BinaryWriter writer, IReadOnlyList<string> dependencies)
     {
-        this.Writer.Write(header.ToByteArray());
+        writer.Write(string.Join(Constants.StringSeperator, dependencies));
     }
 
-    private void WriteMeta(ContentRecord record)
+    private static void WriteContents(BinaryWriter writer, ReadOnlySpan<byte> bytes)
     {
-        this.Write(record.TextureSettings);
-        this.Write(record.MaterialSettings);
-        this.Write(record.ModelSettings);
+        writer.Write(bytes.Length);
+        writer.Write(bytes);
     }
 
-    private void WriteDependencies(IReadOnlyList<string> dependencies)
+    private static void Write(BinaryWriter writer, TextureLoaderSettings textureSettings)
     {
-        this.Writer.Write(string.Join(Constants.StringSeperator, dependencies));
+        writer.Write((int)textureSettings.Mode);
+        writer.Write(textureSettings.ShouldMipMap);
     }
 
-    private void WriteContents(ReadOnlySpan<byte> bytes)
+    private static void Write(BinaryWriter writer, MaterialLoaderSettings materialSettings)
     {
-        this.Writer.Write(bytes.Length);
-        this.Writer.Write(bytes);
+        Write(writer, materialSettings.AlbedoFormat);
+        Write(writer, materialSettings.MetalicnessFormat);
+        Write(writer, materialSettings.NormalFormat);
+        Write(writer, materialSettings.RoughnessFormat);
+        Write(writer, materialSettings.AmbientOcclusionFormat);
     }
 
-    private void Write(TextureLoaderSettings textureSettings)
+    private static void Write(BinaryWriter writer, ModelLoaderSettings modelSettings)
     {
-        this.Writer.Write((int)textureSettings.Mode);
-        this.Writer.Write(textureSettings.ShouldMipMap);
-    }
-
-    private void Write(MaterialLoaderSettings materialSettings)
-    {
-        this.Write(materialSettings.AlbedoFormat);
-        this.Write(materialSettings.MetalicnessFormat);
-        this.Write(materialSettings.NormalFormat);
-        this.Write(materialSettings.RoughnessFormat);
-        this.Write(materialSettings.AmbientOcclusionFormat);
-    }
-
-    private void Write(ModelLoaderSettings modelSettings)
-    {
-        this.Write(modelSettings.MaterialSettings);
+        Write(writer, modelSettings.MaterialSettings);
     }
 }

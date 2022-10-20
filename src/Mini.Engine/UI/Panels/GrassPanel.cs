@@ -17,13 +17,14 @@ internal sealed class GrassPanel : IPanel
     private readonly Device Device;
     private readonly GrassGenerator GrassPlacer;
     private readonly ContentManager Content;
+    private readonly Mini.Engine.Content.v2.ContentManager ContentV2;
     private readonly ECSAdministrator Administrator;
 
     private readonly ComponentSelector<GrassComponent> GrassComponentSelector;
     private readonly ComponentSelector<TerrainComponent> TerrainComponentSelector;
     private readonly IComponentContainer<TransformComponent> Transforms;
 
-    public GrassPanel(Device device, GrassGenerator grassPlacer, ContentManager content, ECSAdministrator administrator, ContainerStore containerStore)
+    public GrassPanel(Device device, GrassGenerator grassPlacer, ContentManager content, ECSAdministrator administrator, ContainerStore containerStore, Content.v2.ContentManager contentV2)
     {
         this.Device = device;
         this.GrassPlacer = grassPlacer;
@@ -34,6 +35,7 @@ internal sealed class GrassPanel : IPanel
         this.TerrainComponentSelector = new ComponentSelector<TerrainComponent>("Terrain Component", containerStore.GetContainer<TerrainComponent>());
 
         this.Transforms = containerStore.GetContainer<TransformComponent>();
+        this.ContentV2 = contentV2;
     }
 
     public string Title => "Grass";
@@ -118,8 +120,8 @@ internal sealed class GrassPanel : IPanel
 
         //ref var terrainComponent = ref this.TerrainComponentSelector.Get();
         //ref var terrainTransform = ref this.Transforms[terrainComponent.Entity];
-
-        component.Texture = this.Content.LoadTexture(@"Shaders/World/GrassTexture.png");
+        component.Texture = this.ContentV2.LoadTexture(@"Shaders/World/GrassTexture.png");
+        //component.Texture = this.Content.LoadTexture(@"Shaders/World/GrassTexture.png");
         //component.InstanceBuffer = this.GrassPlacer.GenerateClumpedInstanceData(ref terrainComponent, ref terrainTransform, out var instances);
         component.InstanceBuffer = this.GrassPlacer.GenerateClumpedInstanceData(out var instances);
         component.Instances = instances;

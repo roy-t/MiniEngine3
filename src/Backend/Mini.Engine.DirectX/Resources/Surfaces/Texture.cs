@@ -9,7 +9,8 @@ public class Texture : Surface, ISurface
     {
         (var texture, var view) = this.CreateResources(device, image, mipMap, name);
 
-        this.SetResources(texture, view);
+        this.texture = texture;
+        this.shaderResourceView = view;
     }
 
     protected virtual (ID3D11Texture2D, ID3D11ShaderResourceView) CreateResources(Device device, ImageInfo image, MipMapInfo mipMap, string name)

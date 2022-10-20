@@ -5,8 +5,8 @@ namespace Mini.Engine.DirectX.Resources.Surfaces;
 
 public interface ISurface : IDeviceResource
 {
-    internal ID3D11ShaderResourceView ShaderResourceView { get; set; }
-    internal ID3D11Texture2D Texture { get; set; }
+    internal ID3D11ShaderResourceView ShaderResourceView { get; }
+    internal ID3D11Texture2D Texture { get; }
 
     public string Name { get; }
 

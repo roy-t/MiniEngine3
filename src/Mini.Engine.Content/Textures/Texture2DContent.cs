@@ -39,16 +39,8 @@ internal sealed class Texture2DContent : ITexture, IContent
     public int DimZ => this.ImageInfo.DimZ;
     public int MipMapLevels => this.MipMapInfo.Levels;
 
-    ID3D11ShaderResourceView ISurface.ShaderResourceView
-    {
-        get =>  this.shaderResourceView;
-        set { }
-    }
-    ID3D11Texture2D ISurface.Texture
-    {
-        get => this.texture;
-        set { }
-    }
+    ID3D11ShaderResourceView ISurface.ShaderResourceView => this.shaderResourceView;
+    ID3D11Texture2D ISurface.Texture => this.texture;
 
     [MemberNotNull(nameof(shaderResourceView), nameof(texture))]
     public void Reload(Device device)
