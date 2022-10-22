@@ -1,19 +1,16 @@
 ﻿using System.Collections;
-using Mini.Engine.Content.v2.Textures;
 
 namespace Mini.Engine.Content.v2;
 public sealed class ContentStack : IEnumerable<IContent>
 {
     private readonly Stack<ContentFrame> Stack;
-    private readonly ContentCache<TextureContent> TextureCache;
+    private readonly Dictionary<string, IContentCache> Caches;    
 
-    public ContentStack(ContentCache<TextureContent> textureCache)
-    {
-        this.TextureCache = textureCache; // TODO: instead register callbacks for certain types that are unloaded?
-
+    public ContentStack(Dictionary<string, IContentCache> caches)
+    {        
+        this.Caches = caches;
         this.Stack = new Stack<ContentFrame>();
-        this.Stack.Push(new ContentFrame("Root"));
-        
+        this.Stack.Push(new ContentFrame("Root"));        
     }    
 
     public void Add(IContent content)
@@ -31,14 +28,8 @@ public sealed class ContentStack : IEnumerable<IContent>
         var frame = this.Stack.Pop();
         foreach (var content in frame.Content)
         {
-            switch (content)
-            {
-                case TextureContent texture:
-                    this.TextureCache.Unload(texture.Id);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException($"Unexpected content type: {content.GetType().FullName}");
-            }
+            var cache = this.Caches[content.GeneratorKey];
+            cache.Unload(content.Id);
         }
     }    
 

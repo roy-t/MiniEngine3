@@ -7,6 +7,7 @@ public interface IContentGenerator
     void Generate(ContentId id, ContentRecord meta, TrackingVirtualFileSystem fileSystem, ContentWriter contentWriter);
     void Reload(IContent original, TrackingVirtualFileSystem fileSystem, Stream rwStream);
     string GeneratorKey { get; }
+    Type ContentType { get; }
 }
 
 public interface IContentGenerator<T> : IContentGenerator

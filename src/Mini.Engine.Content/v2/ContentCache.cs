@@ -2,7 +2,14 @@
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.v2;
-public sealed class ContentCache<T>
+
+public interface IContentCache
+{
+    IContent Load(ContentId id, ContentRecord meta);
+    void Unload(ContentId id);
+}
+
+public sealed class ContentCache<T> : IContentCache
     where T : IContent
 {
     private sealed record Entry(T Content)
@@ -19,6 +26,11 @@ public sealed class ContentCache<T>
         this.Generator = generator;
         this.FileSystem = fileSystem;
         this.Cache = new Dictionary<ContentId, Entry>();
+    }
+
+    IContent IContentCache.Load(ContentId id, ContentRecord meta)
+    {
+        return this.Load(id, meta);
     }
 
     public T Load(ContentId id, ContentRecord meta)

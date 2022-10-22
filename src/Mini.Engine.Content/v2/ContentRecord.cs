@@ -4,7 +4,9 @@ using Mini.Engine.Content.Textures;
 
 namespace Mini.Engine.Content.v2;
 public sealed class ContentRecord
-{    
+{
+    public static ContentRecord Default => new ContentRecord();
+
     public ContentRecord(TextureLoaderSettings? settings)
         : this()
     {

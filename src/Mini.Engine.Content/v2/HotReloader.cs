@@ -11,7 +11,7 @@ internal sealed class HotReloader
     private readonly IVirtualFileSystem FileSystem;
     private readonly Dictionary<string, IContentGenerator> Generators;
 
-    public HotReloader(ILogger logger, ContentStack stack, IVirtualFileSystem fileSystem, params IContentGenerator[] generators)
+    public HotReloader(ILogger logger, ContentStack stack, IVirtualFileSystem fileSystem, IReadOnlyList<IContentGenerator> generators)
     {
         this.Logger = logger.ForContext<HotReloader>();
         this.Stack = stack;
@@ -28,7 +28,7 @@ internal sealed class HotReloader
     }
 
     public void ReloadChangedContent()
-    {        
+    {
         foreach (var file in this.FileSystem.GetChangedFiles())
         {
             foreach (var content in this.Stack)

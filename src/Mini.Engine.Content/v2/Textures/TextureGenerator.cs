@@ -25,6 +25,7 @@ public class TextureGenerator : IContentGenerator<TextureContent>
     }
 
     public string GeneratorKey => nameof(TextureGenerator);
+    public Type ContentType => typeof(TextureContent);
 
     public void Reload(IContent original, TrackingVirtualFileSystem fileSystem, Stream rwStream)
     {

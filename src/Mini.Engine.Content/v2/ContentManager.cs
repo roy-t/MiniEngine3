@@ -12,32 +12,48 @@ namespace Mini.Engine.Content.v2;
 public sealed class ContentManager : IDisposable
 {
     private readonly Device Device;
-    private readonly ContentCache<TextureContent> TextureCache;
+    private readonly IVirtualFileSystem FileSystem;
     private readonly ContentStack ContentStack;
-    private readonly HotReloader HotReloader; // WIP test reloading!
+    private readonly HotReloader HotReloader;
 
-    public ContentManager(ILogger logger, Device device, Textures.TextureGenerator textureLoader, IVirtualFileSystem fileSystem)
+    private readonly Dictionary<string, IContentCache> Caches;
+
+    public ContentManager(ILogger logger, Device device, IVirtualFileSystem fileSystem, IReadOnlyList<IContentGenerator> generators)
     {
-        this.Device = device;
-        this.TextureCache = new ContentCache<TextureContent>(textureLoader, fileSystem);
-        this.ContentStack = new ContentStack(this.TextureCache);
+        this.Caches = new Dictionary<string, IContentCache>();
+        foreach (var generator in generators)
+        {
+            var cacheType = typeof(ContentCache<>).MakeGenericType(generator.ContentType);
+            var cache = Activator.CreateInstance(cacheType, generator, fileSystem)!;
+            this.Caches.Add(generator.GeneratorKey, (IContentCache)cache);
+        }
 
-        this.HotReloader = new HotReloader(logger, this.ContentStack, fileSystem, textureLoader);
+        this.Device = device;
+        this.FileSystem = fileSystem;
+        this.ContentStack = new ContentStack(this.Caches);
+        this.HotReloader = new HotReloader(logger, this.ContentStack, fileSystem, generators);
+    }
+
+    public IResource<T> Load<T>(string generatorKey, string path, string key = "", ContentRecord? record = null)
+        where T : IDeviceResource, IContent
+    {
+        var id = new ContentId(path, key);
+        var cache = this.Caches[generatorKey];
+        var content = (T)cache.Load(id, record ?? ContentRecord.Default);
+        this.HotReloader.Register(content);
+        return this.RegisterContentResource(content);
     }
 
     public IResource<ITexture> LoadTexture(string path, string key = "", TextureLoaderSettings? settings = null)
     {
-        var id = new ContentId(path, key);
-        var content = this.TextureCache.Load(id, new ContentRecord(settings));
-        this.HotReloader.Register(content);
-        return this.RegisterContentResource(content);        
+        return this.Load<TextureContent>(nameof(TextureGenerator), path, key, new ContentRecord(settings));
     }
 
     private IResource<T> RegisterContentResource<T>(T content)
         where T : IDeviceResource, IContent
     {
         this.ContentStack.Add(content);
-        return this.Device.Resources.Add(content);        
+        return this.Device.Resources.Add(content);
     }
 
     public void Pop()
