@@ -16,7 +16,7 @@ public sealed class ContentManager : IDisposable
     private readonly ContentStack ContentStack;
     private readonly HotReloader HotReloader; // WIP test reloading!
 
-    public ContentManager(ILogger logger, Device device, Textures.TextureLoader textureLoader, IVirtualFileSystem fileSystem)
+    public ContentManager(ILogger logger, Device device, Textures.TextureGenerator textureLoader, IVirtualFileSystem fileSystem)
     {
         this.Device = device;
         this.TextureCache = new ContentCache<TextureContent>(textureLoader, fileSystem);

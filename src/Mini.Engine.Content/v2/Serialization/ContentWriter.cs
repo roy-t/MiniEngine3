@@ -4,58 +4,70 @@ using Mini.Engine.Content.Models;
 using Mini.Engine.Content.Textures;
 
 namespace Mini.Engine.Content.v2.Serialization;
-internal static class ContentWriter
-{
-    public static void WriteAll(Stream stream, Guid header, ContentRecord meta, ISet<string> dependencies, ReadOnlySpan<byte> contents)
+public sealed class ContentWriter : IDisposable
+{    
+    public ContentWriter(Stream stream)
     {
-        using var writer = new BinaryWriter(stream, Encoding.UTF8, true);
-        WriteHeader(writer, header);
-        WriteMeta(writer, meta);
-        WriteDependencies(writer, dependencies);
-        WriteContents(writer, contents);        
+        this.Writer = new BinaryWriter(stream, Encoding.UTF8, true);
     }
 
-    private static void WriteHeader(BinaryWriter writer, Guid header)
-    {
-        writer.Write(header.ToByteArray());
-        writer.Write(DateTime.Now.Ticks);
+    public BinaryWriter Writer { get; }
+
+    public void WriteCommon(Guid header, ContentRecord meta, ISet<string> dependencies, ReadOnlySpan<byte> contents)
+    {        
+        this.WriteHeader(header);
+        this.WriteMeta(meta);
+        this.WriteDependencies(dependencies);
+        this.WriteContents(contents);
     }
 
-    private static void WriteMeta(BinaryWriter writer, ContentRecord record)
+    private void WriteHeader(Guid header)
     {
-        Write(writer, record.TextureSettings);
-        Write(writer, record.MaterialSettings);
-        Write(writer, record.ModelSettings);
+        this.Writer.Write(header.ToByteArray());
+        this.Writer.Write(DateTime.Now.Ticks);
     }
 
-    private static void WriteDependencies(BinaryWriter writer, ISet<string> dependencies)
+    private void WriteMeta(ContentRecord record)
     {
-        writer.Write(string.Join(Constants.StringSeperator, dependencies));
+        this.Write(record.TextureSettings);
+        this.Write(record.MaterialSettings);
+        this.Write(record.ModelSettings);
     }
 
-    private static void WriteContents(BinaryWriter writer, ReadOnlySpan<byte> bytes)
+    private void WriteDependencies(ISet<string> dependencies)
     {
-        writer.Write(bytes.Length);
-        writer.Write(bytes);
+        this.Writer.Write(string.Join(Constants.StringSeperator, dependencies));
     }
 
-    private static void Write(BinaryWriter writer, TextureLoaderSettings textureSettings)
+    private void WriteContents(ReadOnlySpan<byte> bytes)
     {
-        writer.Write((int)textureSettings.Mode);
-        writer.Write(textureSettings.ShouldMipMap);
+        this.Writer.Write(bytes.Length);
+        this.Writer.Write(bytes);
     }
 
-    private static void Write(BinaryWriter writer, MaterialLoaderSettings materialSettings)
+    private void Write(TextureLoaderSettings textureSettings)
     {
-        Write(writer, materialSettings.AlbedoFormat);
-        Write(writer, materialSettings.MetalicnessFormat);
-        Write(writer, materialSettings.NormalFormat);
-        Write(writer, materialSettings.RoughnessFormat);
-        Write(writer, materialSettings.AmbientOcclusionFormat);
+        this.Writer.Write((int)textureSettings.Mode);
+        this.Writer.Write(textureSettings.ShouldMipMap);
     }
 
-    private static void Write(BinaryWriter writer, ModelLoaderSettings modelSettings)
+    private void Write(MaterialLoaderSettings materialSettings)
     {
-        Write(writer, modelSettings.MaterialSettings);
+        this.Write(materialSettings.AlbedoFormat);
+        this.Write(materialSettings.MetalicnessFormat);
+        this.Write(materialSettings.NormalFormat);
+        this.Write(materialSettings.RoughnessFormat);
+        this.Write(materialSettings.AmbientOcclusionFormat);
+    }
+
+    private void Write(ModelLoaderSettings modelSettings)
+    {
+        this.Write(modelSettings.MaterialSettings);
+    }
+
+    public void Dispose()
+    {
+        this.Writer.Flush();
+        this.Writer.Dispose();
     }
 }

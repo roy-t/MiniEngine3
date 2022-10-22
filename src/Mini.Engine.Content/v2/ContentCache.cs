@@ -15,7 +15,7 @@ public sealed class ContentCache<T>
     private readonly Dictionary<ContentId, Entry> Cache;
 
     public ContentCache(IContentGenerator<T> generator, IVirtualFileSystem fileSystem)
-    {        
+    {
         this.Generator = generator;
         this.FileSystem = fileSystem;
         this.Cache = new Dictionary<ContentId, Entry>();
@@ -26,9 +26,7 @@ public sealed class ContentCache<T>
         var content = this.Get(id);
         if (content != null) { return content; }
 
-        var path = id.Path + Constants.Extension;
-        var blob = this.LoadFromFile(path) ?? this.Generate(id, meta, path);
-        content = this.Generator.Load(id, blob);
+        content = this.LoadFromFile(id) ?? this.Generate(id, meta);
 
         this.Cache.Add(id, new Entry(content));
         return content;
@@ -57,19 +55,22 @@ public sealed class ContentCache<T>
         return default;
     }
 
-    private ContentBlob? LoadFromFile(string path)
+    private T? LoadFromFile(ContentId id)
     {
+        var path = id.Path + Constants.Extension;
         if (this.FileSystem.Exists(path))
         {
-            using var rStream = this.FileSystem.OpenRead(path);
-            var blob = ContentReader.ReadAll(rStream);
-            if (this.IsCurrent(blob))
+            using var stream = this.FileSystem.OpenRead(path);
+            using var reader = new ContentReader(stream);
+            var common = reader.ReadCommon();
+            if (this.IsCurrent(common))
             {
-                return blob;
+                stream.Seek(0, SeekOrigin.Begin);
+                return this.Generator.Load(id, reader);
             }
         }
 
-        return null;
+        return default;
     }
 
     private bool IsCurrent(ContentBlob blob)
@@ -81,13 +82,24 @@ public sealed class ContentCache<T>
         return lastWrite <= blob.Timestamp;
     }
 
-    private ContentBlob Generate(ContentId id, ContentRecord meta, string path)
+    private T Generate(ContentId id, ContentRecord meta)
     {
-        using var rwStream = this.FileSystem.CreateWriteRead(path);
-        var tracker = new TrackingVirtualFileSystem(this.FileSystem);
-        this.Generator.Generate(id, meta, tracker, rwStream);
+        var path = id.Path + Constants.Extension;
 
-        rwStream.Seek(0, SeekOrigin.Begin);
-        return ContentReader.ReadAll(rwStream);
+        using (var rwStream = this.FileSystem.CreateWriteRead(path))
+        {
+            using (var writer = new ContentWriter(rwStream))
+            {
+                var tracker = new TrackingVirtualFileSystem(this.FileSystem);
+                this.Generator.Generate(id, meta, tracker, writer);
+            }
+
+            rwStream.Seek(0, SeekOrigin.Begin);
+
+            using (var reader = new ContentReader(rwStream))
+            {
+                return this.Generator.Load(id, reader);
+            }
+        }
     }
 }

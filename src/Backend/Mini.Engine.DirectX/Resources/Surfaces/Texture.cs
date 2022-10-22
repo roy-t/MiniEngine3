@@ -2,7 +2,7 @@
 
 namespace Mini.Engine.DirectX.Resources.Surfaces;
 
-public class Texture : Surface, ISurface
+public class Texture : Surface, ITexture
 {
     public Texture(Device device, string name, ImageInfo image, MipMapInfo mipMap)
         : base(name, image, mipMap)

@@ -5,79 +5,89 @@ using Mini.Engine.Content.Textures;
 using SuperCompressed;
 
 namespace Mini.Engine.Content.v2.Serialization;
-internal static class ContentReader
+public sealed class ContentReader : IDisposable
 {
-    public static ContentBlob ReadAll(Stream stream)
+    public ContentReader(Stream stream)
     {
-        using var reader = new BinaryReader(stream, Encoding.UTF8, true);
+        this.Reader = new BinaryReader(stream, Encoding.UTF8, true);
+    }
 
-        var (guid, timestamp) = ReadHeader(reader);
-        var meta = ReadMeta(reader);
-        var dependencies = ReadDependencies(reader);
-        var contents = ReadContents(reader);
+    public BinaryReader Reader { get; }
+
+    public ContentBlob ReadCommon()
+    {
+        var (guid, timestamp) = this.ReadHeader();
+        var meta = this.ReadMeta();
+        var dependencies = this.ReadDependencies();
+        var contents = this.ReadContents();
 
         return new ContentBlob(guid, timestamp, meta, dependencies, contents);
     }
 
-    private static (Guid, DateTime) ReadHeader(BinaryReader reader)
+    private (Guid, DateTime) ReadHeader()
     {
         var buffer = new byte[16];
-        reader.Read(buffer);
+        this.Reader.Read(buffer);
         var guid = new Guid(buffer);
 
-        var ticks = reader.ReadInt64();
+        var ticks = this.Reader.ReadInt64();
         var timestamp = new DateTime(ticks);
 
         return (guid, timestamp);
     }
 
-    private static ContentRecord ReadMeta(BinaryReader reader)
+    private ContentRecord ReadMeta()
     {
-        var textureSettings = ReadTextureSettings(reader);
-        var materialSettings = ReadMaterialSettings(reader);
-        var modelSettings = ReadModelSettings(reader);
+        var textureSettings = this.ReadTextureSettings();
+        var materialSettings = this.ReadMaterialSettings();
+        var modelSettings = this.ReadModelSettings();
 
         return new ContentRecord(textureSettings, materialSettings, modelSettings);
     }
 
-    private static ISet<string> ReadDependencies(BinaryReader reader)
+    private ISet<string> ReadDependencies()
     {
-        var dependencies = reader.ReadString();
+        var dependencies = this.Reader.ReadString();
         return new HashSet<string>(dependencies.Split(Constants.StringSeperator), new PathComparer());
     }
 
-    private static byte[] ReadContents(BinaryReader reader)
+    private byte[] ReadContents()
     {
-        var length = reader.ReadInt32();
+        var length = this.Reader.ReadInt32();
         var bytes = new byte[length];
 
-        reader.Read(bytes);
+        this.Reader.Read(bytes);
 
         return bytes;
     }
 
-    private static TextureLoaderSettings ReadTextureSettings(BinaryReader reader)
+    private TextureLoaderSettings ReadTextureSettings()
     {
-        var mode = (Mode)reader.ReadInt32();
-        var shouldMipMap = reader.ReadBoolean();
+        var mode = (Mode)this.Reader.ReadInt32();
+        var shouldMipMap = this.Reader.ReadBoolean();
 
         return new TextureLoaderSettings(mode, shouldMipMap);
     }
 
-    private static MaterialLoaderSettings ReadMaterialSettings(BinaryReader reader)
+    private MaterialLoaderSettings ReadMaterialSettings()
     {
-        var albedo = ReadTextureSettings(reader);
-        var metalicness = ReadTextureSettings(reader);
-        var normal = ReadTextureSettings(reader);
-        var roughness = ReadTextureSettings(reader);
-        var ambientOcclusion = ReadTextureSettings(reader);
+        var albedo = this.ReadTextureSettings();
+        var metalicness = this.ReadTextureSettings();
+        var normal = this.ReadTextureSettings();
+        var roughness = this.ReadTextureSettings();
+        var ambientOcclusion = this.ReadTextureSettings();
 
         return new MaterialLoaderSettings(albedo, metalicness, normal, roughness, ambientOcclusion);
     }
 
-    private static ModelLoaderSettings ReadModelSettings(BinaryReader reader)
+    private ModelLoaderSettings ReadModelSettings()
     {
-        var material = ReadMaterialSettings(reader);
+        var material = this.ReadMaterialSettings();
         return new ModelLoaderSettings(material);
+    }
+
+    public void Dispose()
+    {
+        this.Reader.Dispose();
     }
 }
