@@ -1,7 +1,5 @@
 ﻿using Mini.Engine.Content.v2.Serialization;
 using Mini.Engine.IO;
-using Serilog;
-using Serilog.Core;
 using Constants = Mini.Engine.Content.v2.Serialization.Constants;
 
 namespace Mini.Engine.Content.v2;
@@ -79,7 +77,7 @@ public sealed class ContentCache<T> : IContentCache
             {
                 using var stream = this.FileSystem.OpenRead(path);
                 using var reader = new ContentReader(stream);
-                var common = reader.ReadCommon();
+                var common = reader.ReadHeader();
                 if (this.IsCurrent(common))
                 {
                     stream.Seek(0, SeekOrigin.Begin);
@@ -94,7 +92,7 @@ public sealed class ContentCache<T> : IContentCache
         return default;
     }
 
-    private bool IsCurrent(ContentBlob blob)
+    private bool IsCurrent(ContentHeader blob)
     {
         var lastWrite = blob.Dependencies
             .Select(d => this.FileSystem.GetLastWriteTime(d))

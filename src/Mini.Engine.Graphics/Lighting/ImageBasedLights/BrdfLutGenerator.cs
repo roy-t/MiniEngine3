@@ -10,6 +10,9 @@ using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.DXGI;
 using StbImageSharp;
 using ImageInfo = Mini.Engine.DirectX.Resources.Surfaces.ImageInfo;
+using Mini.Engine.Content.v2.Textures.Writers;
+using Mini.Engine.Content.v2.Textures.Readers;
+using Mini.Engine.Content.Textures;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 [Service]
@@ -37,7 +40,7 @@ public sealed class BrdfLutGenerator : IContentGenerator<TextureContent>
         return new ContentCache<TextureContent>(this, fileSystem);
     }
 
-    public void Generate(ContentId id, ContentRecord _, TrackingVirtualFileSystem fileSystem, ContentWriter contentWriter)
+    public void Generate(ContentId id, ContentRecord _, TrackingVirtualFileSystem __, ContentWriter contentWriter)
     {
         var context = this.Device.ImmediateContext;
 
@@ -65,28 +68,23 @@ public sealed class BrdfLutGenerator : IContentGenerator<TextureContent>
             Data = buffer
         };
 
-        fileSystem.AddDependency(BrdfLutCompute.SourceFile);
+        var dependencies = new HashSet<string>() { BrdfLutCompute.SourceFile };
         var meta = new ContentRecord(new Content.Textures.TextureLoaderSettings(SuperCompressed.Mode.Linear, false));
-        TextureGenerator.WriteHdrImage(meta, fileSystem, contentWriter, image);
+
+        HdrTextureWriter.Write(contentWriter, meta, dependencies, image);
     }
 
     public TextureContent Load(ContentId id, ContentReader contentReader)
     {
-        return this.TextureGenerator.Load(id, contentReader);
+        var header = contentReader.ReadHeader();
+        var settings = new TextureLoaderSettings(SuperCompressed.Mode.Linear, false);
+        var texture = HdrTextureReader.Read(this.Device, id, settings, contentReader);
+
+        return new TextureContent(id, texture, new ContentRecord(settings), header.Dependencies);
     }
 
     public void Reload(Content.v2.IContent original, TrackingVirtualFileSystem fileSystem, Stream rwStream)
     {
-        var wrapper = (TextureContent)original;
-
-        using var writer = new ContentWriter(rwStream);
-        this.Generate(original.Id, wrapper.Meta, fileSystem, writer);
-
-        rwStream.Seek(0, SeekOrigin.Begin);
-
-        using var reader = new ContentReader(rwStream);
-        var texture = this.Load(wrapper.Id, reader);
-
-        wrapper.Reload(texture);
+        TextureReloader.Reload(this, (TextureContent)original, fileSystem, rwStream);
     }
 }

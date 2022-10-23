@@ -13,15 +13,20 @@ public sealed class ContentWriter : IDisposable
 
     public BinaryWriter Writer { get; }
 
-    public void WriteCommon(Guid header, ContentRecord meta, ISet<string> dependencies, ReadOnlySpan<byte> contents)
+    public void WriteHeader(Guid header, ContentRecord meta, ISet<string> dependencies)
     {        
-        this.WriteHeader(header);
+        this.WriteType(header);
         this.WriteMeta(meta);
-        this.WriteDependencies(dependencies);
-        this.WriteContents(contents);
+        this.WriteDependencies(dependencies);        
     }
 
-    private void WriteHeader(Guid header)
+    public void WriteArray(ReadOnlySpan<byte> bytes)
+    {
+        this.Writer.Write(bytes.Length);
+        this.Writer.Write(bytes);
+    }
+
+    private void WriteType(Guid header)
     {
         this.Writer.Write(header.ToByteArray());
         this.Writer.Write(DateTime.Now.Ticks);
@@ -38,12 +43,6 @@ public sealed class ContentWriter : IDisposable
     {
         var dependencyString = string.Join(Constants.StringSeperator, dependencies);
         this.Writer.Write(dependencyString);
-    }
-
-    private void WriteContents(ReadOnlySpan<byte> bytes)
-    {
-        this.Writer.Write(bytes.Length);
-        this.Writer.Write(bytes);
     }
 
     private void Write(TextureLoaderSettings textureSettings)

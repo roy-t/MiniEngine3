@@ -34,7 +34,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.Shader = shader;
         this.User = shader.CreateUserFor<ImageBasedLightSystem>();
 
-        this.BrdfLut = contentManager.Load<TextureContent>(nameof(BrdfLutGenerator), "brdflut.hdr", record: new ContentRecord(TextureLoaderSettings.RenderData));
+        this.BrdfLut = contentManager.Load<TextureContent>(nameof(BrdfLutGenerator), "brdflut.hdr");
     }
 
     public void OnSet()

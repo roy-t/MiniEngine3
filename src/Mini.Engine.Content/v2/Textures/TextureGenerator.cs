@@ -1,27 +1,18 @@
 ﻿using Mini.Engine.Configuration;
-using Mini.Engine.Content.Textures;
 using Mini.Engine.Content.v2.Serialization;
+using Mini.Engine.Content.v2.Textures.Readers;
+using Mini.Engine.Content.v2.Textures.Writers;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.IO;
-using Serilog;
-using StbImageSharp;
 using SuperCompressed;
-using ColorComponents = StbImageSharp.ColorComponents;
-using ImageInfo = Mini.Engine.DirectX.Resources.Surfaces.ImageInfo;
 using Stb = StbImageSharp;
 
 namespace Mini.Engine.Content.v2.Textures;
 
 [Service]
 public class TextureGenerator : IContentGenerator<TextureContent>
-{
-    private const int MinBlockSize = 4;
-
-    private static readonly Guid HeaderCompressed = new("{650531A2-0DF5-4E36-85AB-2AC5A01DBEA2}");
-    private static readonly Guid HeaderUncompressed = new("{650531A2-0DF5-4E36-85AB-A0850356195E}");
-    private static readonly Guid HeaderHdr = new("{650531A2-0DF5-4E36-85AB-F5525464F962}");
-
+{    
     private readonly Device Device;
 
     public TextureGenerator(Device device)
@@ -31,34 +22,19 @@ public class TextureGenerator : IContentGenerator<TextureContent>
 
     public string GeneratorKey => nameof(TextureGenerator);
 
-    public void Reload(IContent original, TrackingVirtualFileSystem fileSystem, Stream rwStream)
-    {
-        var wrapper = (TextureContent)original;
-
-        using var writer = new ContentWriter(rwStream);
-        this.Generate(original.Id, wrapper.Meta, fileSystem, writer);
-
-        rwStream.Seek(0, SeekOrigin.Begin);
-
-        using var reader = new ContentReader(rwStream);
-        var texture = this.Load(wrapper.Id, reader);
-
-        wrapper.Reload(texture);
-    }
-
     public void Generate(ContentId id, ContentRecord meta, TrackingVirtualFileSystem fileSystem, ContentWriter contentWriter)
     {
         if (HasSupportedSdrExtension(id))
         {
             var bytes = fileSystem.ReadAllBytes(id.Path);
             var image = Image.FromMemory(bytes);
-            WriteImage(meta, fileSystem, contentWriter, image);
+            CompressedTextureWriter.Write(contentWriter, meta, fileSystem.GetDependencies(), image);
         }
         else if (HasSupportedHdrExtension(id))
         {
             var bytes = fileSystem.ReadAllBytes(id.Path);
             var image = Stb.ImageResultFloat.FromMemory(bytes, Stb.ColorComponents.RedGreenBlue);
-            WriteHdrImage(meta, fileSystem, contentWriter, image);
+            HdrTextureWriter.Write(contentWriter, meta, fileSystem.GetDependencies(), image);
         }
         else
         {
@@ -66,160 +42,40 @@ public class TextureGenerator : IContentGenerator<TextureContent>
         }
     }
 
-    public static void WriteImage(ContentRecord meta, TrackingVirtualFileSystem fileSystem, ContentWriter contentWriter, Image image)
-    {        
-        var header = (image.Width < MinBlockSize || image.Height < MinBlockSize)
-            ? HeaderUncompressed
-            : HeaderCompressed;
-
-        var encoded = Encoder.Instance.Encode(image, meta.TextureSettings.Mode, MipMapGeneration.Lanczos3, Quality.Default);
-        contentWriter.WriteCommon(header, meta, fileSystem.GetDependencies(), encoded);
-    }
-
-    public static void WriteHdrImage(ContentRecord meta, TrackingVirtualFileSystem fileSystem, ContentWriter contentWriter, Stb.ImageResultFloat image)
-    {
-        var floats = image.Data;
-        unsafe
-        {
-            fixed (float* ptr = floats)
-            {
-                var data = new ReadOnlySpan<byte>(ptr, image.Data.Length * 4);
-                contentWriter.WriteCommon(HeaderHdr, meta, fileSystem.GetDependencies(), data);
-                contentWriter.Writer.Write(CountComponents(image.Comp));
-                contentWriter.Writer.Write(image.Width);
-                contentWriter.Writer.Write(image.Height);
-            }
-        }
-    }
-
-    private static int CountComponents(ColorComponents components)
-    {
-        switch (components)
-        {                        
-            case ColorComponents.Grey:
-                return 1;
-            case ColorComponents.GreyAlpha:
-                return 2;
-            case ColorComponents.RedGreenBlue:
-                return 3;
-            case ColorComponents.RedGreenBlueAlpha:
-                return 4;
-            case ColorComponents.Default:
-            default:
-                throw new ArgumentOutOfRangeException(nameof(components));
-        }
-    }
-
     public TextureContent Load(ContentId id, ContentReader reader)
     {
-        var blob = reader.ReadCommon();
-
+        var header = reader.ReadHeader();
+        var settings = header.Meta.TextureSettings;
         ITexture texture;
-        if (blob.Header == HeaderCompressed)
+        if (header.Type == TextureConstants.HeaderCompressed)
         {
-            texture = this.LoadData(id, blob, TranscodeFormats.BC7_RGBA);
+            texture = CompressedTextureReader.Read(this.Device, id, settings, TranscodeFormats.BC7_RGBA, reader);
         }
-        else if (blob.Header == HeaderUncompressed)
+        else if (header.Type == TextureConstants.HeaderUncompressed)
         {
-            texture = this.LoadData(id, blob, TranscodeFormats.RGBA32);
+            texture = CompressedTextureReader.Read(this.Device, id, settings, TranscodeFormats.RGBA32, reader);
         }
-        else if (blob.Header == HeaderHdr)
+        else if (header.Type == TextureConstants.HeaderHdr)
         {
-            var components = reader.Reader.ReadInt32();
-            var width = reader.Reader.ReadInt32();
-            var heigth = reader.Reader.ReadInt32();
-            texture = this.LoadHdrData(id, blob, components, width, heigth);
+
+            texture = HdrTextureReader.Read(this.Device, id, settings, reader);
         }
         else
         {
-            throw new NotSupportedException($"Unexpected header: {blob.Header}");
+            throw new NotSupportedException($"Unexpected header: {header}");
         }
 
-        return new TextureContent(id, texture, blob.Meta, blob.Dependencies);
+        return new TextureContent(id, texture, header.Meta, header.Dependencies);
+    }
+
+    public void Reload(IContent original, TrackingVirtualFileSystem fileSystem, Stream rwStream)
+    {
+        TextureReloader.Reload(this, (TextureContent)original, fileSystem, rwStream);        
     }
 
     public IContentCache CreateCache(IVirtualFileSystem fileSystem)
     {
         return new ContentCache<TextureContent>(this, fileSystem);
-    }
-
-    private ITexture LoadData(ContentId id, ContentBlob blob, TranscodeFormats transcodeFormat)
-    {
-        var settings = blob.Meta.TextureSettings;
-        var image = blob.Contents;
-
-        var imageCount = Transcoder.Instance.GetImageCount(image);
-        if (imageCount != 1)
-        {
-            throw new Exception($"Image file invalid it contains {imageCount} image(s)");
-        }
-
-        var mipMapCount = Transcoder.Instance.GetLevelCount(image, 0);
-        if (mipMapCount < 1)
-        {
-            throw new Exception($"Image invalid it contains {mipMapCount} mipmaps");
-        }
-
-        using var trancoded = Transcoder.Instance.Transcode(image, 0, 0, transcodeFormat);
-        var width = trancoded.Width;
-        var heigth = trancoded.Heigth;
-        var pitch = trancoded.Pitch;
-        var format = FormatSelector.SelectCompressedFormat(settings.Mode, transcodeFormat);
-
-        var imageInfo = new ImageInfo(width, heigth, format, pitch);
-
-        var mipMapInfo = MipMapInfo.None();
-        if (settings.ShouldMipMap && mipMapCount > 1)
-        {
-            mipMapInfo = MipMapInfo.Provided(mipMapCount);
-        }
-
-        if (settings.ShouldMipMap && mipMapCount == 1)
-        {
-            mipMapInfo = MipMapInfo.Generated(width);
-        }
-
-        var texture = new Texture(this.Device, id.ToString(), imageInfo, mipMapInfo);
-        texture.SetPixels<byte>(this.Device, trancoded.Data);
-
-        if (settings.ShouldMipMap && mipMapCount > 1)
-        {
-            for (var i = 1; i < mipMapCount; i++)
-            {
-                using var transcodedMipMap = Transcoder.Instance.Transcode(image, 0, i, transcodeFormat);
-                texture.SetPixels<byte>(this.Device, transcodedMipMap.Data, i, 0);
-            }
-        }
-
-        return texture;
-    }
-
-    private ITexture LoadHdrData(ContentId id, ContentBlob blob, int components, int width, int heigth)
-    {
-        var settings = blob.Meta.TextureSettings;
-        var data = blob.Contents;
-        unsafe
-        {
-            fixed (byte* ptr = data)
-            {
-                var image = new ReadOnlySpan<float>(ptr, data.Length / 4);
-                var format = FormatSelector.SelectHDRFormat(settings.Mode, components);
-
-                var pitch = width * format.BytesPerPixel();
-
-                var imageInfo = new ImageInfo(width, heigth, format, pitch);
-                var mipMapInfo = MipMapInfo.None();
-                if (settings.ShouldMipMap)
-                {
-                    mipMapInfo = MipMapInfo.Generated(width);
-                }
-
-                var texture = new Texture(this.Device, id.ToString(), imageInfo, mipMapInfo);
-                texture.SetPixels(this.Device, image);
-
-                return texture;
-            }
-        }
     }
 
     private static bool HasSupportedSdrExtension(ContentId id)

@@ -5,6 +5,7 @@ using Mini.Engine.Content.Textures;
 using SuperCompressed;
 
 namespace Mini.Engine.Content.v2.Serialization;
+
 public sealed class ContentReader : IDisposable
 {
     public ContentReader(Stream stream)
@@ -14,17 +15,26 @@ public sealed class ContentReader : IDisposable
 
     public BinaryReader Reader { get; }
 
-    public ContentBlob ReadCommon()
+    public ContentHeader ReadHeader()
     {
-        var (guid, timestamp) = this.ReadHeader();
+        var (guid, timestamp) = this.ReadType();
         var meta = this.ReadMeta();
         var dependencies = this.ReadDependencies();
-        var contents = this.ReadContents();
 
-        return new ContentBlob(guid, timestamp, meta, dependencies, contents);
+        return new ContentHeader(guid, timestamp, meta, dependencies);        
     }
 
-    private (Guid, DateTime) ReadHeader()
+    public byte[] ReadArray()
+    {
+        var length = this.Reader.ReadInt32();
+        var bytes = new byte[length];
+
+        this.Reader.Read(bytes);
+
+        return bytes;
+    }
+
+    private (Guid, DateTime) ReadType()
     {
         var buffer = new byte[16];
         this.Reader.Read(buffer);
@@ -53,16 +63,6 @@ public sealed class ContentReader : IDisposable
             return new HashSet<string>(0);
         }
         return new HashSet<string>(dependencies.Split(Constants.StringSeperator), new PathComparer());
-    }
-
-    private byte[] ReadContents()
-    {
-        var length = this.Reader.ReadInt32();
-        var bytes = new byte[length];
-
-        this.Reader.Read(bytes);
-
-        return bytes;
     }
 
     private TextureLoaderSettings ReadTextureSettings()
