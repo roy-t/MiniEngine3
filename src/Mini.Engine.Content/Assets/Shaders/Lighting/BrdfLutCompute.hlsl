@@ -18,8 +18,9 @@ void BrdfLutKernel(in uint3 dispatchId : SV_DispatchThreadID)
         return;
     }
 	
-    float rx = dispatchId.x / (float) Width;
-    float ry = dispatchId.y / (float) Heigth;
+    // Start at center of a pixel
+    float rx = (0.5f + dispatchId.x) / (float) Width;
+    float ry = (0.5f + dispatchId.y) / (float) Heigth;
 
     float NdotV = rx;
     float roughness = 1.0f - ry;
