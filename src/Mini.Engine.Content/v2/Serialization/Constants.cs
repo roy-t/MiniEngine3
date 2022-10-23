@@ -2,5 +2,5 @@
 internal static class Constants
 {
     public static char StringSeperator = ';';
-    public static string Extension = ".content";
+    public static string Extension = ".mec";
 }
