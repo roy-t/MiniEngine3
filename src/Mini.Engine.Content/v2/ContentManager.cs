@@ -23,9 +23,8 @@ public sealed class ContentManager : IDisposable
         this.Caches = new Dictionary<string, IContentCache>();
         foreach (var generator in generators)
         {
-            var cacheType = typeof(ContentCache<>).MakeGenericType(generator.ContentType);
-            var cache = Activator.CreateInstance(cacheType, generator, fileSystem)!;
-            this.Caches.Add(generator.GeneratorKey, (IContentCache)cache);
+            var cache = generator.CreateCache(fileSystem);
+            this.Caches.Add(generator.GeneratorKey, cache);
         }
 
         this.Device = device;

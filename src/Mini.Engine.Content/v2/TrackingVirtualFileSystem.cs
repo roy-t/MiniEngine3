@@ -17,6 +17,11 @@ public sealed class TrackingVirtualFileSystem : IReadOnlyVirtualFileSystem
         return this.Dependencies;
     }
 
+    public void AddDependency(string path)
+    {
+        this.Dependencies.Add(path);
+    }
+
     public bool Exists(string path)
     {
         return this.VirtualFileSystem.Exists(path);

@@ -43,11 +43,13 @@ public sealed class ContentStack : IEnumerable<IContent>
 
     public IEnumerator<IContent> GetEnumerator()
     {
-        return this.Stack.SelectMany(x => x.Content).GetEnumerator();
+        // Traverse oldest to newest first to make sure content that depends
+        // on other content is loaded in the correct order.
+        return Enumerable.Reverse(this.Stack.SelectMany(x => x.Content)).GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return this.Stack.SelectMany(x => x.Content).GetEnumerator();
+        return this.GetEnumerator();
     }
 }

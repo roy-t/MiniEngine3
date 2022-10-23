@@ -45,7 +45,13 @@ namespace Mini.Engine.ECS.Generators
         private static IReadOnlyList<string> GetUsings(TypeDeclarationSyntax type)
         {
             var usings = SearchUpForNodesOfType<UsingDirectiveSyntax>(type);
-            return usings.Select(u => u.Name.ToString()).ToList();
+            return usings.Select(u =>
+            {
+                var ul = "using ".Length;
+                var str = u.ToString();
+                str = str.Substring(ul, str.Length - ul - 1);
+                return str;
+            }).ToList();
         }
 
         private static IEnumerable<T> SearchUpForNodesOfType<T>(SyntaxNode? node)

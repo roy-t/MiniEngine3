@@ -9,10 +9,10 @@ public sealed class TextureContent : ITexture, IContent
 {
     private ITexture original;
 
-    public TextureContent(ContentId id, ITexture original, ContentRecord meta, string generatorKey, ISet<string> dependencies)
+    public TextureContent(ContentId id, ITexture original, ContentRecord meta, ISet<string> dependencies)
     {
         this.Id = id;
-        this.GeneratorKey = generatorKey;
+        this.GeneratorKey = string.Empty;
         this.Meta = meta;
         this.Dependencies = dependencies;
 
@@ -29,7 +29,7 @@ public sealed class TextureContent : ITexture, IContent
     }
 
     public ContentId Id { get; }
-    public string GeneratorKey { get; }
+    public string GeneratorKey { get; set; }
     public ContentRecord Meta { get; }
     public string Name { get; }
 

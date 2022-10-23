@@ -1,6 +1,4 @@
-﻿using Mini.Engine.DirectX.Buffers;
-using Mini.Engine.DirectX.Contexts;
-using Vortice.Direct3D11;
+﻿using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX.Resources.Surfaces;
 public sealed class RWTexture : Surface, IRWTexture

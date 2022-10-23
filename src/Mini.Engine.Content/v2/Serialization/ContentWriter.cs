@@ -36,7 +36,8 @@ public sealed class ContentWriter : IDisposable
 
     private void WriteDependencies(ISet<string> dependencies)
     {
-        this.Writer.Write(string.Join(Constants.StringSeperator, dependencies));
+        var dependencyString = string.Join(Constants.StringSeperator, dependencies);
+        this.Writer.Write(dependencyString);
     }
 
     private void WriteContents(ReadOnlySpan<byte> bytes)

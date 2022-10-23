@@ -1,5 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
+    <None Remove="Assets\Shaders\Lighting\BrdfLutCompute.hlsl" />
+  </ItemGroup> 
+  <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
     <ProjectReference Include="..\Backend\Mini.Engine.IO\Mini.Engine.IO.csproj" />
     <ProjectReference Include="..\Generators\Mini.Engine.Content.Generators\Mini.Engine.Content.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
@@ -14,6 +17,7 @@
     <AdditionalFiles Include="Assets\Shaders\Includes\Easings.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Radians.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\AntiAliasShader.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Lighting\BrdfLutCompute.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\TextureShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\HydraulicErosion.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\Includes\Wind.hlsl" />
@@ -38,7 +42,6 @@
     <AdditionalFiles Include="Assets\Shaders\Includes\Material.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\Includes\Lights.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\Includes\BRDF.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\Lighting\BrdfLutGenerator.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\FullScreenTriangle.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\ToneMapShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\ColorShader.hlsl" />

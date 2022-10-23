@@ -1,11 +1,15 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
+using Mini.Engine.Content.Textures;
+using Mini.Engine.Content.v2;
+using Mini.Engine.Content.v2.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
+using ContentManager = Mini.Engine.Content.v2.ContentManager;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
@@ -19,9 +23,9 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
     private readonly ImageBasedLight Shader;
     private readonly ImageBasedLight.User User;
 
-    private readonly ISurface BrdfLut;
+    private readonly IResource<ITexture> BrdfLut;
 
-    public ImageBasedLightSystem(Device device, FrameService frameService, BrdfLutGenerator generator, FullScreenTriangle fullScreenTriangleShader, ImageBasedLight shader)
+    public ImageBasedLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangleShader, ImageBasedLight shader, ContentManager contentManager)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<ImageBasedLightSystem>();
@@ -30,7 +34,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.Shader = shader;
         this.User = shader.CreateUserFor<ImageBasedLightSystem>();
 
-        this.BrdfLut = generator.Generate();
+        this.BrdfLut = contentManager.Load<TextureContent>(nameof(BrdfLutGenerator), "brdflut.hdr", record: new ContentRecord(TextureLoaderSettings.RenderData));
     }
 
     public void OnSet()
@@ -79,7 +83,6 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
 
     public void Dispose()
     {
-        this.BrdfLut.Dispose();
         this.User.Dispose();
         this.Context.Dispose();
     }

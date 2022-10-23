@@ -48,6 +48,10 @@ public sealed class ContentReader : IDisposable
     private ISet<string> ReadDependencies()
     {
         var dependencies = this.Reader.ReadString();
+        if (string.IsNullOrEmpty(dependencies))
+        {
+            return new HashSet<string>(0);
+        }
         return new HashSet<string>(dependencies.Split(Constants.StringSeperator), new PathComparer());
     }
 

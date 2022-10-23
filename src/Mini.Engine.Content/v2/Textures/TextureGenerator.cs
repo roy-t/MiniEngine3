@@ -3,7 +3,12 @@ using Mini.Engine.Content.Textures;
 using Mini.Engine.Content.v2.Serialization;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
+using Mini.Engine.IO;
+using Serilog;
+using StbImageSharp;
 using SuperCompressed;
+using ColorComponents = StbImageSharp.ColorComponents;
+using ImageInfo = Mini.Engine.DirectX.Resources.Surfaces.ImageInfo;
 using Stb = StbImageSharp;
 
 namespace Mini.Engine.Content.v2.Textures;
@@ -25,7 +30,6 @@ public class TextureGenerator : IContentGenerator<TextureContent>
     }
 
     public string GeneratorKey => nameof(TextureGenerator);
-    public Type ContentType => typeof(TextureContent);
 
     public void Reload(IContent original, TrackingVirtualFileSystem fileSystem, Stream rwStream)
     {
@@ -48,33 +52,61 @@ public class TextureGenerator : IContentGenerator<TextureContent>
         {
             var bytes = fileSystem.ReadAllBytes(id.Path);
             var image = Image.FromMemory(bytes);
-
-            var header = (image.Width < MinBlockSize || image.Height < MinBlockSize)
-                ? HeaderUncompressed
-                : HeaderCompressed;
-
-            var encoded = Encoder.Instance.Encode(image, meta.TextureSettings.Mode, MipMapGeneration.Lanczos3, Quality.Default);
-            contentWriter.WriteCommon(header, meta, fileSystem.GetDependencies(), encoded);
+            WriteImage(meta, fileSystem, contentWriter, image);
         }
         else if (HasSupportedHdrExtension(id))
         {
             var bytes = fileSystem.ReadAllBytes(id.Path);
             var image = Stb.ImageResultFloat.FromMemory(bytes, Stb.ColorComponents.RedGreenBlue);
-            var floats = image.Data;
-            unsafe
-            {
-                fixed (float* ptr = floats)
-                {
-                    var data = new ReadOnlySpan<byte>(ptr, image.Data.Length * 4);
-                    contentWriter.WriteCommon(HeaderHdr, meta, fileSystem.GetDependencies(), data);
-                    contentWriter.Writer.Write(image.Width);
-                    contentWriter.Writer.Write(image.Height);
-                }
-            }
+            WriteHdrImage(meta, fileSystem, contentWriter, image);
         }
         else
         {
             throw new NotSupportedException($"Unsupported extension {id}");
+        }
+    }
+
+    public static void WriteImage(ContentRecord meta, TrackingVirtualFileSystem fileSystem, ContentWriter contentWriter, Image image)
+    {        
+        var header = (image.Width < MinBlockSize || image.Height < MinBlockSize)
+            ? HeaderUncompressed
+            : HeaderCompressed;
+
+        var encoded = Encoder.Instance.Encode(image, meta.TextureSettings.Mode, MipMapGeneration.Lanczos3, Quality.Default);
+        contentWriter.WriteCommon(header, meta, fileSystem.GetDependencies(), encoded);
+    }
+
+    public static void WriteHdrImage(ContentRecord meta, TrackingVirtualFileSystem fileSystem, ContentWriter contentWriter, Stb.ImageResultFloat image)
+    {
+        var floats = image.Data;
+        unsafe
+        {
+            fixed (float* ptr = floats)
+            {
+                var data = new ReadOnlySpan<byte>(ptr, image.Data.Length * 4);
+                contentWriter.WriteCommon(HeaderHdr, meta, fileSystem.GetDependencies(), data);
+                contentWriter.Writer.Write(CountComponents(image.Comp));
+                contentWriter.Writer.Write(image.Width);
+                contentWriter.Writer.Write(image.Height);
+            }
+        }
+    }
+
+    private static int CountComponents(ColorComponents components)
+    {
+        switch (components)
+        {                        
+            case ColorComponents.Grey:
+                return 1;
+            case ColorComponents.GreyAlpha:
+                return 2;
+            case ColorComponents.RedGreenBlue:
+                return 3;
+            case ColorComponents.RedGreenBlueAlpha:
+                return 4;
+            case ColorComponents.Default:
+            default:
+                throw new ArgumentOutOfRangeException(nameof(components));
         }
     }
 
@@ -93,16 +125,22 @@ public class TextureGenerator : IContentGenerator<TextureContent>
         }
         else if (blob.Header == HeaderHdr)
         {
+            var components = reader.Reader.ReadInt32();
             var width = reader.Reader.ReadInt32();
             var heigth = reader.Reader.ReadInt32();
-            texture = this.LoadHdrData(id, blob, width, heigth);
+            texture = this.LoadHdrData(id, blob, components, width, heigth);
         }
         else
         {
             throw new NotSupportedException($"Unexpected header: {blob.Header}");
         }
 
-        return new TextureContent(id, texture, blob.Meta, this.GeneratorKey, blob.Dependencies);
+        return new TextureContent(id, texture, blob.Meta, blob.Dependencies);
+    }
+
+    public IContentCache CreateCache(IVirtualFileSystem fileSystem)
+    {
+        return new ContentCache<TextureContent>(this, fileSystem);
     }
 
     private ITexture LoadData(ContentId id, ContentBlob blob, TranscodeFormats transcodeFormat)
@@ -156,7 +194,7 @@ public class TextureGenerator : IContentGenerator<TextureContent>
         return texture;
     }
 
-    private ITexture LoadHdrData(ContentId id, ContentBlob blob, int width, int heigth)
+    private ITexture LoadHdrData(ContentId id, ContentBlob blob, int components, int width, int heigth)
     {
         var settings = blob.Meta.TextureSettings;
         var data = blob.Contents;
@@ -165,7 +203,7 @@ public class TextureGenerator : IContentGenerator<TextureContent>
             fixed (byte* ptr = data)
             {
                 var image = new ReadOnlySpan<float>(ptr, data.Length / 4);
-                var format = FormatSelector.SelectHDRFormat(settings.Mode, 3);
+                var format = FormatSelector.SelectHDRFormat(settings.Mode, components);
 
                 var pitch = width * format.BytesPerPixel();
 

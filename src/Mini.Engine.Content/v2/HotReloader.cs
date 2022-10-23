@@ -38,7 +38,6 @@ internal sealed class HotReloader
                     this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, file);
                     var generator = this.Generators[content.GeneratorKey];
 
-                    // TODO: duplicate code, see ContentCache
                     var path = content.Id.Path + Constants.Extension;
                     using var rwStream = this.FileSystem.CreateWriteRead(path);
 

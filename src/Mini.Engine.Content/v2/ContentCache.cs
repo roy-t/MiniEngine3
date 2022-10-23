@@ -1,5 +1,8 @@
 ﻿using Mini.Engine.Content.v2.Serialization;
 using Mini.Engine.IO;
+using Serilog;
+using Serilog.Core;
+using Constants = Mini.Engine.Content.v2.Serialization.Constants;
 
 namespace Mini.Engine.Content.v2;
 
@@ -72,14 +75,20 @@ public sealed class ContentCache<T> : IContentCache
         var path = id.Path + Constants.Extension;
         if (this.FileSystem.Exists(path))
         {
-            using var stream = this.FileSystem.OpenRead(path);
-            using var reader = new ContentReader(stream);
-            var common = reader.ReadCommon();
-            if (this.IsCurrent(common))
+            try
             {
-                stream.Seek(0, SeekOrigin.Begin);
-                return this.Generator.Load(id, reader);
+                using var stream = this.FileSystem.OpenRead(path);
+                using var reader = new ContentReader(stream);
+                var common = reader.ReadCommon();
+                if (this.IsCurrent(common))
+                {
+                    stream.Seek(0, SeekOrigin.Begin);
+                    var content = this.Generator.Load(id, reader);
+                    content.GeneratorKey = this.Generator.GeneratorKey;
+                    return content;
+                }
             }
+            catch { }
         }
 
         return default;
@@ -110,7 +119,9 @@ public sealed class ContentCache<T> : IContentCache
 
             using (var reader = new ContentReader(rwStream))
             {
-                return this.Generator.Load(id, reader);
+                var content = this.Generator.Load(id, reader);
+                content.GeneratorKey = this.Generator.GeneratorKey;
+                return content;
             }
         }
     }

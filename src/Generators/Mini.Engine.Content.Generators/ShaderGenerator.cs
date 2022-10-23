@@ -49,9 +49,9 @@ public sealed class ShaderGenerator : IIncrementalGenerator
 
         var arguments = "Mini.Engine.DirectX.Device device, Mini.Engine.IO.IVirtualFileSystem fileSystem, Mini.Engine.Content.ContentManager content";
 
-        var assignments = GenerateFieldAssignments() + GenerateShaderPropertyAssignments(shader.FilePath, shader.Functions);
+        var assignments = GenerateFieldAssignments() + Environment.NewLine + GenerateShaderPropertyAssignments(shader.FilePath, shader.Functions);
 
-        var properties = GenerateShaderProperties(shader.Functions);
+        var properties = GenerateShaderProperties(shader.Functions) + Environment.NewLine + GenerateSourceProperty(shader.FilePath);
 
         var structures = StructGenerator.Generate(shader.Structures) + StructGenerator.Generate(shader.CBuffers, shader.Structures);
 
@@ -157,9 +157,14 @@ public sealed class ShaderGenerator : IIncrementalGenerator
             {
                 builder.AppendLine($"public {interfaceType} {Naming.ToUpperCamelCase(function.Name)} {{ get; }}");
             }
-        }
+        }        
 
         return builder.ToString();
+    }
+
+    private static string GenerateSourceProperty(string filePath)
+    {
+        return $"public static string SourceFile => {SourceUtilities.ToLiteral(filePath)};";
     }
 
     private static string FormatFileSkeleton(string @namespace, string @class, string constants, string fields, string arguments, string assignments, string properties, string structures, string methods, string innerClass)

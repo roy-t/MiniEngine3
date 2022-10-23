@@ -5,7 +5,7 @@
 
 # MiniEngine Run-time Generated Files
 *.uastc
-
+*.content
 
 # Ignore launch settings
 

@@ -36,6 +36,11 @@ internal static class FormatSelector
     {
         if (mode == Mode.Linear || mode == Mode.Normalized)
         {
+            if (components == 2)
+            {
+                return Format.R32G32_Float;
+            }
+
             if (components == 3)
             {
                 return Format.R32G32B32_Float;
