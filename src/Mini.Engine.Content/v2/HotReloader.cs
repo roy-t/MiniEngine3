@@ -6,7 +6,7 @@ namespace Mini.Engine.Content.v2;
 
 internal sealed class HotReloader
 {
-    private record ReloadReference(WeakReference<IContent> Content, IContentTypeManager Manager);
+    private record ReloadReference(WeakReference<IContent> Content, IContentProcessor Manager);
 
     private readonly ILogger Logger;
     private readonly IVirtualFileSystem FileSystem;    
@@ -19,7 +19,7 @@ internal sealed class HotReloader
         this.References = new List<ReloadReference>();
     }
 
-    internal void Register(IContent content, IContentTypeManager manager)
+    internal void Register(IContent content, IContentProcessor manager)
     {
         foreach (var dependency in content.Dependencies)
         {

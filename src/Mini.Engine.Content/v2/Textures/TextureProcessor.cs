@@ -9,11 +9,11 @@ using Stb = StbImageSharp;
 
 namespace Mini.Engine.Content.v2.Textures;
 
-internal sealed class TextureGenerator : IContentTypeManager<TextureContent, TextureLoaderSettings>
+internal sealed class TextureProcessor : IContentProcessor<TextureContent, TextureLoaderSettings>
 {
     private readonly Device Device;
 
-    public TextureGenerator(Device device)
+    public TextureProcessor(Device device)
     {
         this.Device = device;
         this.Cache = new ContentTypeCache<TextureContent>();
@@ -28,13 +28,16 @@ internal sealed class TextureGenerator : IContentTypeManager<TextureContent, Tex
         {
             var bytes = fileSystem.ReadAllBytes(id.Path);
             var image = Image.FromMemory(bytes);
-            CompressedTextureWriter.Write(contentWriter, this.Version, settings, fileSystem.GetDependencies(), image);
+            var header = (image.Width < TextureConstants.MinBlockSize || image.Height < TextureConstants.MinBlockSize)
+                ? TextureConstants.HeaderUncompressed
+                : TextureConstants.HeaderCompressed;
+            CompressedTextureWriter.Write(contentWriter, header, this.Version, settings, fileSystem.GetDependencies(), image);
         }
         else if (HasSupportedHdrExtension(id))
         {
             var bytes = fileSystem.ReadAllBytes(id.Path);
             var image = Stb.ImageResultFloat.FromMemory(bytes, Stb.ColorComponents.RedGreenBlue);
-            HdrTextureWriter.Write(contentWriter, this.Version, settings, fileSystem.GetDependencies(), image);
+            HdrTextureWriter.Write(contentWriter, TextureConstants.HeaderHdr, this.Version, settings, fileSystem.GetDependencies(), image);
         }
         else
         {

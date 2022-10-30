@@ -10,13 +10,13 @@ public interface IContentTypeCache<T>
     public void Store(ContentId id, ILifetime<T> value);
 }
 
-public interface IContentTypeManager
+public interface IContentProcessor
 {
     int Version { get; }
     void Reload(IContent original, ContentWriterReader writerReader, TrackingVirtualFileSystem fileSystem);
 }
 
-public interface IContentTypeManager<TContent, TSettings> : IContentTypeManager
+public interface IContentProcessor<TContent, TSettings> : IContentProcessor
     where TContent : IDisposable, IContent
 {
     void Generate(ContentId id, TSettings settings, ContentWriter writer, TrackingVirtualFileSystem fileSystem);

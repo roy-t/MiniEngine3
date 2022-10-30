@@ -26,7 +26,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
 
     private readonly ILifetime<ITexture> BrdfLut;
 
-    public ImageBasedLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangleShader, ImageBasedLight shader, ContentManager contentManager, BrdfLutGenerator generator)
+    public ImageBasedLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangleShader, ImageBasedLight shader, ContentManager contentManager, BrdfLutProcessor generator)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<ImageBasedLightSystem>();

@@ -16,23 +16,25 @@ using ImageInfo = Mini.Engine.DirectX.Resources.Surfaces.ImageInfo;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 [Service]
-public sealed class BrdfLutGenerator : IContentTypeManager<TextureContent, TextureLoaderSettings>
+public sealed class BrdfLutProcessor : IContentProcessor<TextureContent, TextureLoaderSettings>
 {
+    internal static readonly Guid Header = new("{0021262F-65A4-4D2C-AF2F-F6FEB7E62229}");
+
     private const int Resolution = 512;
 
     private readonly Device Device;
     private readonly BrdfLutCompute Shader;
     private readonly BrdfLutCompute.User User;
 
-    public BrdfLutGenerator(Device device, BrdfLutCompute shader)
+    public BrdfLutProcessor(Device device, BrdfLutCompute shader)
     {
         this.Device = device;
         this.Shader = shader;
-        this.User = this.Shader.CreateUserFor<BrdfLutGenerator>();
+        this.User = this.Shader.CreateUserFor<BrdfLutProcessor>();
         this.Cache = new ContentTypeCache<TextureContent>();
     }
 
-    public int Version => 6;
+    public int Version => 7;
     public IContentTypeCache<TextureContent> Cache { get; }
 
     public void Generate(ContentId id, TextureLoaderSettings _, ContentWriter contentWriter, TrackingVirtualFileSystem fileSystem)
@@ -64,14 +66,17 @@ public sealed class BrdfLutGenerator : IContentTypeManager<TextureContent, Textu
         };
 
         var dependencies = new HashSet<string>() { BrdfLutCompute.SourceFile };
-        var meta = new ContentRecord(new TextureLoaderSettings(SuperCompressed.Mode.Linear, false));
-
         var settings = new TextureLoaderSettings(SuperCompressed.Mode.Linear, false);
-        HdrTextureWriter.Write(contentWriter, this.Version, settings, dependencies, image);
+        HdrTextureWriter.Write(contentWriter, Header, this.Version, settings, dependencies, image);
     }
 
     public TextureContent Load(ContentId id, ContentHeader header, ContentReader contentReader)
     {
+        if (header.Type != Header)
+        {
+            throw new NotSupportedException($"Unexpected header: {header}");
+        }
+
         var (settings, texture) = HdrTextureReader.Read(this.Device, id, contentReader);
         return new TextureContent(id, texture, settings, header.Dependencies);
     }

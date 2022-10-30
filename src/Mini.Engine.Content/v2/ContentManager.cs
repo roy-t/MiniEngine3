@@ -17,7 +17,7 @@ public sealed class ContentManager
     private readonly IVirtualFileSystem FileSystem;
     private readonly HotReloader HotReloader;
 
-    private readonly TextureGenerator TextureGenerator;
+    private readonly TextureProcessor TextureGenerator;
 
     public ContentManager(ILogger logger, Device device, LifetimeManager lifetimeManager, IVirtualFileSystem fileSystem)
     {
@@ -25,7 +25,7 @@ public sealed class ContentManager
         this.FileSystem = fileSystem;
         this.HotReloader = new HotReloader(logger, fileSystem);
 
-        this.TextureGenerator = new TextureGenerator(device);
+        this.TextureGenerator = new TextureProcessor(device);
     }
 
     public ILifetime<ITexture> LoadTexture(string path, TextureLoaderSettings settings)
@@ -33,15 +33,15 @@ public sealed class ContentManager
         return this.Load(this.TextureGenerator, settings, path);
     }
 
-    public ILifetime<TContent> Load<TContent, TSettings>(IContentTypeManager<TContent, TSettings> manager, TSettings settings, string path, string? key = null)
-        where TContent : IDisposable, IContent
+    public ILifetime<TContent> Load<TContent, TSettings>(IContentProcessor<TContent, TSettings> manager, TSettings settings, string path, string? key = null)
+        where TContent : IContent
     {
         return this.Load(manager, settings, new ContentId(path, key ?? string.Empty));
     }
 
-    public ILifetime<TContent> Load<TContent, TSettings>(IContentTypeManager<TContent, TSettings> manager, TSettings settings, ContentId id)
-        where TContent : IDisposable, IContent
-    {
+    public ILifetime<TContent> Load<TContent, TSettings>(IContentProcessor<TContent, TSettings> manager, TSettings settings, ContentId id)
+        where TContent : IContent
+    {        
         // 1. Return existing reference        
         if (manager.Cache.TryGetValue(id, out var t))
         {
@@ -56,7 +56,7 @@ public sealed class ContentManager
             {
                 using var reader = new ContentReader(rStream);
                 var header = reader.ReadHeader();
-                if (this.IsCurrent(manager, header))
+                if (Utilities.IsCurrent(manager, header, this.FileSystem))
                 {                    
                     var content = manager.Load(id, header, reader);
                     this.HotReloader.Register(content, manager);
@@ -79,23 +79,8 @@ public sealed class ContentManager
         return this.Load(manager, settings, id);
     }
 
-    private bool IsCurrent(IContentTypeManager manager, ContentHeader header)
-    {
-        if (header.Version != manager.Version)
-        {
-            return false;
-        }
-
-        var lastWrite = header.Dependencies
-            .Select(d => this.FileSystem.GetLastWriteTime(d))
-            .Append(header.Timestamp).Max();
-
-        return lastWrite <= header.Timestamp;
-    }
-
-
     private ILifetime<T> RegisterContentResource<T>(T content)
-        where T : IDisposable, IContent
+        where T : IContent
     {
         return this.LifetimeManager.Add(content);
     }

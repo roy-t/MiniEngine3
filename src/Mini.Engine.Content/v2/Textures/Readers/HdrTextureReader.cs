@@ -6,6 +6,8 @@ using Mini.Engine.DirectX.Resources.Surfaces;
 namespace Mini.Engine.Content.v2.Textures.Readers;
 public static class HdrTextureReader
 {
+
+
     public static (TextureLoaderSettings, ITexture) Read(Device device, ContentId id, ContentReader reader)
     {        
         var settings = reader.ReadTextureSettings();

@@ -4,7 +4,7 @@ using Mini.Engine.Content.v2.Serialization;
 namespace Mini.Engine.Content.v2.Textures;
 public static class TextureReloader
 {
-    public static void Reload(IContentTypeManager<TextureContent, TextureLoaderSettings> generator, TextureContent original, TrackingVirtualFileSystem fileSystem, ContentWriterReader writerReader)
+    public static void Reload(IContentProcessor<TextureContent, TextureLoaderSettings> generator, TextureContent original, TrackingVirtualFileSystem fileSystem, ContentWriterReader writerReader)
     {            
         generator.Generate(original.Id, original.Settings, writerReader.Writer, fileSystem);
 
