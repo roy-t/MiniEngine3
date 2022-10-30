@@ -1,40 +1,40 @@
-﻿using Mini.Engine.Configuration;
+﻿using Mini.Engine.Content.Textures;
 using Mini.Engine.Content.v2.Serialization;
 using Mini.Engine.Content.v2.Textures.Readers;
 using Mini.Engine.Content.v2.Textures.Writers;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
-using Mini.Engine.IO;
 using SuperCompressed;
 using Stb = StbImageSharp;
 
 namespace Mini.Engine.Content.v2.Textures;
 
-[Service]
-public class TextureGenerator : IContentGenerator<TextureContent>
-{    
+internal sealed class TextureGenerator : IContentTypeManager<TextureContent, TextureLoaderSettings>
+{
     private readonly Device Device;
 
     public TextureGenerator(Device device)
     {
         this.Device = device;
+        this.Cache = new ContentTypeCache<TextureContent>();
     }
 
-    public string GeneratorKey => nameof(TextureGenerator);
+    public int Version => 2;
+    public IContentTypeCache<TextureContent> Cache { get; }
 
-    public void Generate(ContentId id, ContentRecord meta, TrackingVirtualFileSystem fileSystem, ContentWriter contentWriter)
+    public void Generate(ContentId id, TextureLoaderSettings settings, ContentWriter contentWriter, TrackingVirtualFileSystem fileSystem)
     {
         if (HasSupportedSdrExtension(id))
         {
             var bytes = fileSystem.ReadAllBytes(id.Path);
             var image = Image.FromMemory(bytes);
-            CompressedTextureWriter.Write(contentWriter, meta, fileSystem.GetDependencies(), image);
+            CompressedTextureWriter.Write(contentWriter, this.Version, settings, fileSystem.GetDependencies(), image);
         }
         else if (HasSupportedHdrExtension(id))
         {
             var bytes = fileSystem.ReadAllBytes(id.Path);
             var image = Stb.ImageResultFloat.FromMemory(bytes, Stb.ColorComponents.RedGreenBlue);
-            HdrTextureWriter.Write(contentWriter, meta, fileSystem.GetDependencies(), image);
+            HdrTextureWriter.Write(contentWriter, this.Version, settings, fileSystem.GetDependencies(), image);
         }
         else
         {
@@ -42,40 +42,34 @@ public class TextureGenerator : IContentGenerator<TextureContent>
         }
     }
 
-    public TextureContent Load(ContentId id, ContentReader reader)
+    public TextureContent Load(ContentId id, ContentHeader header, ContentReader reader)
     {
-        var header = reader.ReadHeader();
-        var settings = header.Meta.TextureSettings;
+                TextureLoaderSettings settings;
         ITexture texture;
         if (header.Type == TextureConstants.HeaderCompressed)
         {
-            texture = CompressedTextureReader.Read(this.Device, id, settings, TranscodeFormats.BC7_RGBA, reader);
+            (settings, texture) = CompressedTextureReader.Read(this.Device, id, TranscodeFormats.BC7_RGBA, reader);
         }
         else if (header.Type == TextureConstants.HeaderUncompressed)
         {
-            texture = CompressedTextureReader.Read(this.Device, id, settings, TranscodeFormats.RGBA32, reader);
+            (settings, texture) = CompressedTextureReader.Read(this.Device, id, TranscodeFormats.RGBA32, reader);
         }
         else if (header.Type == TextureConstants.HeaderHdr)
         {
 
-            texture = HdrTextureReader.Read(this.Device, id, settings, reader);
+            (settings, texture) = HdrTextureReader.Read(this.Device, id, reader);
         }
         else
         {
             throw new NotSupportedException($"Unexpected header: {header}");
         }
 
-        return new TextureContent(id, texture, header.Meta, header.Dependencies);
+        return new TextureContent(id, texture, settings, header.Dependencies);
     }
 
-    public void Reload(IContent original, TrackingVirtualFileSystem fileSystem, Stream rwStream)
+    public void Reload(IContent original, ContentWriterReader writerReader, TrackingVirtualFileSystem fileSystem)
     {
-        TextureReloader.Reload(this, (TextureContent)original, fileSystem, rwStream);        
-    }
-
-    public IContentCache CreateCache(IVirtualFileSystem fileSystem)
-    {
-        return new ContentCache<TextureContent>(this, fileSystem);
+        TextureReloader.Reload(this, (TextureContent)original, fileSystem, writerReader);
     }
 
     private static bool HasSupportedSdrExtension(ContentId id)
@@ -97,5 +91,7 @@ public class TextureGenerator : IContentGenerator<TextureContent>
             _ => false
         };
     }
+        
+
 }
 

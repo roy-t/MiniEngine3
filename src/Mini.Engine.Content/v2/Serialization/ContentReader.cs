@@ -18,10 +18,10 @@ public sealed class ContentReader : IDisposable
     public ContentHeader ReadHeader()
     {
         var (guid, timestamp) = this.ReadType();
-        var meta = this.ReadMeta();
+        var version = this.Reader.ReadInt32();
         var dependencies = this.ReadDependencies();
 
-        return new ContentHeader(guid, timestamp, meta, dependencies);        
+        return new ContentHeader(guid, version, timestamp, dependencies);        
     }
 
     public byte[] ReadArray()
@@ -46,26 +46,7 @@ public sealed class ContentReader : IDisposable
         return (guid, timestamp);
     }
 
-    private ContentRecord ReadMeta()
-    {
-        var textureSettings = this.ReadTextureSettings();
-        var materialSettings = this.ReadMaterialSettings();
-        var modelSettings = this.ReadModelSettings();
-
-        return new ContentRecord(textureSettings, materialSettings, modelSettings);
-    }
-
-    private ISet<string> ReadDependencies()
-    {
-        var dependencies = this.Reader.ReadString();
-        if (string.IsNullOrEmpty(dependencies))
-        {
-            return new HashSet<string>(0);
-        }
-        return new HashSet<string>(dependencies.Split(Constants.StringSeperator), new PathComparer());
-    }
-
-    private TextureLoaderSettings ReadTextureSettings()
+    public TextureLoaderSettings ReadTextureSettings()
     {
         var mode = (Mode)this.Reader.ReadInt32();
         var shouldMipMap = this.Reader.ReadBoolean();
@@ -73,7 +54,7 @@ public sealed class ContentReader : IDisposable
         return new TextureLoaderSettings(mode, shouldMipMap);
     }
 
-    private MaterialLoaderSettings ReadMaterialSettings()
+    public MaterialLoaderSettings ReadMaterialSettings()
     {
         var albedo = this.ReadTextureSettings();
         var metalicness = this.ReadTextureSettings();
@@ -84,14 +65,24 @@ public sealed class ContentReader : IDisposable
         return new MaterialLoaderSettings(albedo, metalicness, normal, roughness, ambientOcclusion);
     }
 
-    private ModelLoaderSettings ReadModelSettings()
+    public ModelLoaderSettings ReadModelSettings()
     {
         var material = this.ReadMaterialSettings();
         return new ModelLoaderSettings(material);
-    }
+    }    
 
     public void Dispose()
     {
         this.Reader.Dispose();
+    }
+
+    private ISet<string> ReadDependencies()
+    {
+        var dependencies = this.Reader.ReadString();
+        if (string.IsNullOrEmpty(dependencies))
+        {
+            return new HashSet<string>(0);
+        }
+        return new HashSet<string>(dependencies.Split(Constants.StringSeperator), new PathComparer());
     }
 }

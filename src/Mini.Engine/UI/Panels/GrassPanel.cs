@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
+using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
@@ -120,7 +121,7 @@ internal sealed class GrassPanel : IPanel
 
         //ref var terrainComponent = ref this.TerrainComponentSelector.Get();
         //ref var terrainTransform = ref this.Transforms[terrainComponent.Entity];
-        component.Texture = this.ContentV2.LoadTexture(@"Shaders/World/GrassTexture.png");
+        component.Texture = this.ContentV2.LoadTexture(@"Shaders/World/GrassTexture.png", TextureLoaderSettings.Default);
         //component.Texture = this.Content.LoadTexture(@"Shaders/World/GrassTexture.png");
         //component.InstanceBuffer = this.GrassPlacer.GenerateClumpedInstanceData(ref terrainComponent, ref terrainTransform, out var instances);
         component.InstanceBuffer = this.GrassPlacer.GenerateClumpedInstanceData(out var instances);

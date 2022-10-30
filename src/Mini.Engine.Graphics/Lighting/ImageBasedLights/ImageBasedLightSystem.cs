@@ -26,7 +26,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
 
     private readonly ILifetime<ITexture> BrdfLut;
 
-    public ImageBasedLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangleShader, ImageBasedLight shader, ContentManager contentManager)
+    public ImageBasedLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangleShader, ImageBasedLight shader, ContentManager contentManager, BrdfLutGenerator generator)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<ImageBasedLightSystem>();
@@ -35,7 +35,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.Shader = shader;
         this.User = shader.CreateUserFor<ImageBasedLightSystem>();
 
-        this.BrdfLut = contentManager.Load<TextureContent>(nameof(BrdfLutGenerator), "brdflut.hdr");
+        this.BrdfLut = contentManager.Load(generator, TextureLoaderSettings.RenderData, "brdflut.hdr");            
     }
 
     public void OnSet()

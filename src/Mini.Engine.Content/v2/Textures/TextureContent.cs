@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.Direct3D11;
@@ -9,11 +10,11 @@ public sealed class TextureContent : ITexture, IContent
 {
     private ITexture original;
 
-    public TextureContent(ContentId id, ITexture original, ContentRecord meta, ISet<string> dependencies)
+    public TextureContent(ContentId id, ITexture original, TextureLoaderSettings settings, ISet<string> dependencies)
     {
         this.Id = id;
         this.GeneratorKey = string.Empty;
-        this.Meta = meta;
+        this.Settings = settings;
         this.Dependencies = dependencies;
 
         this.Reload(original);
@@ -30,7 +31,7 @@ public sealed class TextureContent : ITexture, IContent
 
     public ContentId Id { get; }
     public string GeneratorKey { get; set; }
-    public ContentRecord Meta { get; }
+    public TextureLoaderSettings Settings { get; }
     public string Name { get; }
 
     public ImageInfo ImageInfo => this.original.ImageInfo;

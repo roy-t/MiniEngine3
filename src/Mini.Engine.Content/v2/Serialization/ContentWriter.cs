@@ -13,10 +13,10 @@ public sealed class ContentWriter : IDisposable
 
     public BinaryWriter Writer { get; }
 
-    public void WriteHeader(Guid header, ContentRecord meta, ISet<string> dependencies)
+    public void WriteHeader(Guid header, int version, ISet<string> dependencies)
     {        
         this.WriteType(header);
-        this.WriteMeta(meta);
+        this.Writer.Write(version);
         this.WriteDependencies(dependencies);        
     }
 
@@ -26,32 +26,13 @@ public sealed class ContentWriter : IDisposable
         this.Writer.Write(bytes);
     }
 
-    private void WriteType(Guid header)
-    {
-        this.Writer.Write(header.ToByteArray());
-        this.Writer.Write(DateTime.Now.Ticks);
-    }
-
-    private void WriteMeta(ContentRecord record)
-    {
-        this.Write(record.TextureSettings);
-        this.Write(record.MaterialSettings);
-        this.Write(record.ModelSettings);
-    }
-
-    private void WriteDependencies(ISet<string> dependencies)
-    {
-        var dependencyString = string.Join(Constants.StringSeperator, dependencies);
-        this.Writer.Write(dependencyString);
-    }
-
-    private void Write(TextureLoaderSettings textureSettings)
+    public void Write(TextureLoaderSettings textureSettings)
     {
         this.Writer.Write((int)textureSettings.Mode);
         this.Writer.Write(textureSettings.ShouldMipMap);
     }
 
-    private void Write(MaterialLoaderSettings materialSettings)
+    public void Write(MaterialLoaderSettings materialSettings)
     {
         this.Write(materialSettings.AlbedoFormat);
         this.Write(materialSettings.MetalicnessFormat);
@@ -60,7 +41,7 @@ public sealed class ContentWriter : IDisposable
         this.Write(materialSettings.AmbientOcclusionFormat);
     }
 
-    private void Write(ModelLoaderSettings modelSettings)
+    public void Write(ModelLoaderSettings modelSettings)
     {
         this.Write(modelSettings.MaterialSettings);
     }
@@ -69,5 +50,17 @@ public sealed class ContentWriter : IDisposable
     {
         this.Writer.Flush();
         this.Writer.Dispose();
+    }
+
+    private void WriteType(Guid header)
+    {
+        this.Writer.Write(header.ToByteArray());
+        this.Writer.Write(DateTime.Now.Ticks);
+    }
+
+    private void WriteDependencies(ISet<string> dependencies)
+    {
+        var dependencyString = string.Join(Constants.StringSeperator, dependencies);
+        this.Writer.Write(dependencyString);
     }
 }

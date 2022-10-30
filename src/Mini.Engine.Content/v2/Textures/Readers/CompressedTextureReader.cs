@@ -7,8 +7,9 @@ using SuperCompressed;
 namespace Mini.Engine.Content.v2.Textures.Readers;
 public static class CompressedTextureReader
 {
-    public static ITexture Read(Device device, ContentId id, TextureLoaderSettings settings, TranscodeFormats transcodeFormat, ContentReader reader)
-    {
+    public static (TextureLoaderSettings, ITexture) Read(Device device, ContentId id, TranscodeFormats transcodeFormat, ContentReader reader)
+    {        
+        var settings = reader.ReadTextureSettings();
         var image = reader.ReadArray();
 
         var imageCount = Transcoder.Instance.GetImageCount(image);
@@ -54,6 +55,6 @@ public static class CompressedTextureReader
             }
         }
 
-        return texture;
+        return (settings, texture);
     }
 }

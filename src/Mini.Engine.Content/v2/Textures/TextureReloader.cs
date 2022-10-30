@@ -1,18 +1,17 @@
-﻿using Mini.Engine.Content.v2.Serialization;
+﻿using Mini.Engine.Content.Textures;
+using Mini.Engine.Content.v2.Serialization;
 
 namespace Mini.Engine.Content.v2.Textures;
 public static class TextureReloader
 {
-    public static void Reload(IContentGenerator<TextureContent> generator, TextureContent original, TrackingVirtualFileSystem fileSystem, Stream rwStream)
-    {        
-        using var writer = new ContentWriter(rwStream);
-        generator.Generate(original.Id, original.Meta, fileSystem, writer);
+    public static void Reload(IContentTypeManager<TextureContent, TextureLoaderSettings> generator, TextureContent original, TrackingVirtualFileSystem fileSystem, ContentWriterReader writerReader)
+    {            
+        generator.Generate(original.Id, original.Settings, writerReader.Writer, fileSystem);
 
-        rwStream.Seek(0, SeekOrigin.Begin);
+        writerReader.Rewind();
 
-        using var reader = new ContentReader(rwStream);
-        var texture = generator.Load(original.Id, reader);
-
+        var header = writerReader.Reader.ReadHeader();
+        var texture = generator.Load(original.Id, header, writerReader.Reader);
         original.Reload(texture);
     }
 }

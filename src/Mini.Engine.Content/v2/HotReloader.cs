@@ -6,27 +6,28 @@ namespace Mini.Engine.Content.v2;
 
 internal sealed class HotReloader
 {
-    private readonly ILogger Logger;    
-    private readonly IVirtualFileSystem FileSystem;
-    private readonly Dictionary<string, IContentGenerator> Generators;
-    private readonly List<WeakReference<IContent>> References;
+    private record ReloadReference(WeakReference<IContent> Content, IContentTypeManager Manager);
 
-    public HotReloader(ILogger logger, IVirtualFileSystem fileSystem, IReadOnlyList<IContentGenerator> generators)
+    private readonly ILogger Logger;
+    private readonly IVirtualFileSystem FileSystem;    
+    private readonly List<ReloadReference> References;
+
+    public HotReloader(ILogger logger, IVirtualFileSystem fileSystem)
     {
-        this.Logger = logger.ForContext<HotReloader>();        
-        this.FileSystem = fileSystem;
-        this.Generators = generators.ToDictionary(x => x.GeneratorKey);
-        this.References = new List<WeakReference<IContent>>();
+        this.Logger = logger.ForContext<HotReloader>();
+        this.FileSystem = fileSystem;        
+        this.References = new List<ReloadReference>();
     }
 
-    public void Register(IContent content)
+    internal void Register(IContent content, IContentTypeManager manager)
     {
         foreach (var dependency in content.Dependencies)
         {
             this.FileSystem.WatchFile(dependency);
         }
 
-        this.References.Add(new WeakReference<IContent>(content));
+        var reference = new ReloadReference(new WeakReference<IContent>(content), manager);
+        this.References.Add(reference);
     }
 
     public void ReloadChangedContent()
@@ -35,19 +36,19 @@ internal sealed class HotReloader
         {
             for (var i = this.References.Count - 1; i >= 0; i--)
             {
-                var reference = this.References[i];
+                var reference = this.References[i].Content;
                 if (reference.TryGetTarget(out var content))
                 {
                     if (content.Dependencies.Contains(file))
                     {
                         this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, file);
-                        var generator = this.Generators[content.GeneratorKey];
-
+                        
                         var path = content.Id.Path + Constants.Extension;
                         using var rwStream = this.FileSystem.CreateWriteRead(path);
-
+                        using var writerReader = new ContentWriterReader(rwStream);
+                        
                         var trackingFileSystem = new TrackingVirtualFileSystem(this.FileSystem);
-                        generator.Reload(content, trackingFileSystem, rwStream);
+                        this.References[i].Manager.Reload(content, writerReader, trackingFileSystem);
                     }
                 }
                 else
@@ -56,5 +57,5 @@ internal sealed class HotReloader
                 }
             }
         }
-    }
+    }    
 }

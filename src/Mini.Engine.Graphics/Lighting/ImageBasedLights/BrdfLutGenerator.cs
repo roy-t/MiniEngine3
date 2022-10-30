@@ -9,14 +9,14 @@ using Mini.Engine.Content.v2.Textures.Readers;
 using Mini.Engine.Content.v2.Textures.Writers;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
-using Mini.Engine.IO;
 using StbImageSharp;
 using Vortice.DXGI;
+using IContent = Mini.Engine.Content.v2.IContent;
 using ImageInfo = Mini.Engine.DirectX.Resources.Surfaces.ImageInfo;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 [Service]
-public sealed class BrdfLutGenerator : IContentGenerator<TextureContent>
+public sealed class BrdfLutGenerator : IContentTypeManager<TextureContent, TextureLoaderSettings>
 {
     private const int Resolution = 512;
 
@@ -29,16 +29,13 @@ public sealed class BrdfLutGenerator : IContentGenerator<TextureContent>
         this.Device = device;
         this.Shader = shader;
         this.User = this.Shader.CreateUserFor<BrdfLutGenerator>();
+        this.Cache = new ContentTypeCache<TextureContent>();
     }
 
-    public string GeneratorKey => nameof(BrdfLutGenerator);
+    public int Version => 6;
+    public IContentTypeCache<TextureContent> Cache { get; }
 
-    public IContentCache CreateCache(IVirtualFileSystem fileSystem)
-    {
-        return new ContentCache<TextureContent>(this, fileSystem);
-    }
-
-    public void Generate(ContentId id, ContentRecord _, TrackingVirtualFileSystem __, ContentWriter contentWriter)
+    public void Generate(ContentId id, TextureLoaderSettings _, ContentWriter contentWriter, TrackingVirtualFileSystem fileSystem)
     {
         var context = this.Device.ImmediateContext;
 
@@ -69,20 +66,18 @@ public sealed class BrdfLutGenerator : IContentGenerator<TextureContent>
         var dependencies = new HashSet<string>() { BrdfLutCompute.SourceFile };
         var meta = new ContentRecord(new TextureLoaderSettings(SuperCompressed.Mode.Linear, false));
 
-        HdrTextureWriter.Write(contentWriter, meta, dependencies, image);
-    }
-
-    public TextureContent Load(ContentId id, ContentReader contentReader)
-    {
-        var header = contentReader.ReadHeader();
         var settings = new TextureLoaderSettings(SuperCompressed.Mode.Linear, false);
-        var texture = HdrTextureReader.Read(this.Device, id, settings, contentReader);
-
-        return new TextureContent(id, texture, new ContentRecord(settings), header.Dependencies);
+        HdrTextureWriter.Write(contentWriter, this.Version, settings, dependencies, image);
     }
 
-    public void Reload(Content.v2.IContent original, TrackingVirtualFileSystem fileSystem, Stream rwStream)
+    public TextureContent Load(ContentId id, ContentHeader header, ContentReader contentReader)
     {
-        TextureReloader.Reload(this, (TextureContent)original, fileSystem, rwStream);
+        var (settings, texture) = HdrTextureReader.Read(this.Device, id, contentReader);
+        return new TextureContent(id, texture, settings, header.Dependencies);
+    }
+
+    public void Reload(IContent original, ContentWriterReader writerReader, TrackingVirtualFileSystem fileSystem)
+    {
+        TextureReloader.Reload(this, (TextureContent)original, fileSystem, writerReader);
     }
 }
