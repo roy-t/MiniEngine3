@@ -6,6 +6,7 @@ using GrassInstanceData = Mini.Engine.Content.Shaders.Generated.Grass.InstanceDa
 using Mini.Engine.Content;
 using Mini.Engine.Configuration;
 using Mini.Engine.Core;
+using Mini.Engine.Core.Lifetime;
 
 namespace Mini.Engine.Graphics.World.Vegetation;
 
@@ -28,7 +29,7 @@ public sealed class DebugGrassPlacer
         this.Content = content;
     }
 
-    public IResource<StructuredBuffer<GrassInstanceData>> GenerateDebugGrass(DebugGrassLayout layout, Palette palette, out int instances)
+    public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateDebugGrass(DebugGrassLayout layout, Palette palette, out int instances)
     {
 
         var instanceBuffer = new StructuredBuffer<GrassInstanceData>(this.Device, "Grass");

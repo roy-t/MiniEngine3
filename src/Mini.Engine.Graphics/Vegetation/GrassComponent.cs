@@ -1,4 +1,4 @@
-﻿using Mini.Engine.DirectX;
+﻿using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
@@ -12,8 +12,8 @@ public struct GrassComponent : IComponent
 {
     // TODO: maybe create an IVertexBuffer interface that inherits from IDeviceResource
     // and remove IDeviceResource from DeviceBuffer
-    public IResource<StructuredBuffer<GrassInstanceData>> InstanceBuffer;
-    public IResource<ITexture> Texture;
+    public ILifetime<StructuredBuffer<GrassInstanceData>> InstanceBuffer;
+    public ILifetime<ITexture> Texture;
     public int Instances;
 
     public Entity Entity { get; set; }

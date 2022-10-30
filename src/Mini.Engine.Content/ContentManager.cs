@@ -4,6 +4,7 @@ using Mini.Engine.Content.Materials;
 using Mini.Engine.Content.Models;
 using Mini.Engine.Content.Shaders;
 using Mini.Engine.Content.Textures;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.DirectX.Resources.Surfaces;
@@ -53,43 +54,43 @@ public sealed partial class ContentManager : IDisposable
         this.Callbacks = new Dictionary<ContentId, List<ReloadCallback>>();
     }
 
-    public IResource<ITexture> LoadTexture(string path, string key = "", TextureLoaderSettings? settings = null)
+    public ILifetime<ITexture> LoadTexture(string path, string key = "", TextureLoaderSettings? settings = null)
     {
         var id = new ContentId(path, key);
         var texture = this.TextureLoader.Load(this.Device, id, settings ?? TextureLoaderSettings.Default);
         return this.ToResource(texture, id);
     }
 
-    public IResource<IMaterial> LoadMaterial(string path, string key = "", MaterialLoaderSettings? settings = null)
+    public ILifetime<IMaterial> LoadMaterial(string path, string key = "", MaterialLoaderSettings? settings = null)
     {
         var id = new ContentId(path, key);
         var material = this.MaterialLoader.Load(this.Device, id, settings ?? MaterialLoaderSettings.Default);
         return this.ToResource(material, id);
     }
 
-    public IResource<IModel> LoadModel(string path, string key = "", ModelLoaderSettings? settings = null)
+    public ILifetime<IModel> LoadModel(string path, string key = "", ModelLoaderSettings? settings = null)
     {
         var id = new ContentId(path, key);
         var model = this.ModelLoader.Load(this.Device, id, settings ?? ModelLoaderSettings.Default);
         return this.ToResource(model, id);
     }
 
-    public IResource<IModel> LoadSponza()
+    public ILifetime<IModel> LoadSponza()
     {
         return this.LoadModel(@"Scenes\sponza\sponza.obj");
     }
 
-    public IResource<IModel> LoadAsteroid()
+    public ILifetime<IModel> LoadAsteroid()
     {
         return this.LoadModel(@"Scenes\AsteroidField\Asteroid001.obj");
     }
 
-    public IResource<IModel> LoadCube()
+    public ILifetime<IModel> LoadCube()
     {
         return this.LoadModel(@"Scenes\cube\cube.obj");
     }
 
-    public IResource<IMaterial> LoadDefaultMaterial()
+    public ILifetime<IMaterial> LoadDefaultMaterial()
     {
         var settings = new MaterialLoaderSettings
         (
@@ -121,13 +122,13 @@ public sealed partial class ContentManager : IDisposable
         }
     }
 
-    public void Link(IResource resource, ContentId id)
+    public void Link(ILifetime resource, ContentId id)
     {
         var wrapper = new ExternalContent(resource, id);
         this.Add(wrapper);
     }
 
-    public void Link(IResource resource, string id)
+    public void Link(ILifetime resource, string id)
     {
         var wrapper = new ExternalContent(resource, id);
         this.Add(wrapper);
@@ -145,8 +146,8 @@ public sealed partial class ContentManager : IDisposable
         this.ContentStack.Peek().Content.Add(content);
     }
 
-    private IResource<T> ToResource<T>(T content, ContentId id)
-    where T : IDeviceResource
+    private ILifetime<T> ToResource<T>(T content, ContentId id)
+    where T : IDisposable
     {
         var resource = this.Device.Resources.Add(content);
         this.Link(resource, id);
@@ -256,10 +257,11 @@ public sealed partial class ContentManager : IDisposable
                     {
                         disposable.Dispose();
                     }
-                    else if(external.Content is IResource resource)
-                    {
-                        this.Device.Resources.Dispose(resource);
-                    }
+                    // TODO: remove via stack!
+                    //else if(external.Content is ILifetime resource)
+                    //{
+                        //this.Device.Resources.Dispose(resource);
+                    //}
                     break;
                 default:
                     throw new NotSupportedException($"Cannot unload {content.Id}, unsupported content type {content.GetType()}");

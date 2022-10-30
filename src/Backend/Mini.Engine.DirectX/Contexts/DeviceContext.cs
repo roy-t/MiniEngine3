@@ -1,6 +1,6 @@
-﻿using Mini.Engine.DirectX.Buffers;
+﻿using Mini.Engine.Core.Lifetime;
+using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts.States;
-using Mini.Engine.DirectX.Resources;
 using Mini.Engine.DirectX.Resources.Shaders;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.Direct3D;
@@ -11,11 +11,11 @@ namespace Mini.Engine.DirectX.Contexts;
 
 public abstract class DeviceContext : IDisposable
 {
-    internal DeviceContext(Device device, ID3D11DeviceContext context, ResourceManager resources, string user, string meaning)
+    internal DeviceContext(Device device, ID3D11DeviceContext context, string user, string meaning)
     {
         this.Device = device;
         this.ID3D11DeviceContext = context;
-        this.Resources = resources;
+        this.Resources = device.Resources;
         this.ID3D11DeviceContext.DebugName = DebugNameGenerator.GetName(user, user, meaning);
 
         this.IA = new InputAssemblerContext(this);
@@ -34,7 +34,7 @@ public abstract class DeviceContext : IDisposable
     public ComputeShaderContext CS { get; }
 
     public Device Device { get; }
-    public ResourceManager Resources { get; }
+    public LifetimeManager Resources { get; }
 
     internal ID3D11DeviceContext ID3D11DeviceContext { get; }
 
@@ -95,7 +95,7 @@ public abstract class DeviceContext : IDisposable
         this.ID3D11DeviceContext.ClearDepthStencilView(depthStencilBuffers.DepthStencilViews[slice], flags, depth, stencil);
     }
 
-    public void Clear(IResource<IDepthStencilBuffer> depthStencilBuffers, int slice, DepthStencilClearFlags flags, float depth, byte stencil)
+    public void Clear(ILifetime<IDepthStencilBuffer> depthStencilBuffers, int slice, DepthStencilClearFlags flags, float depth, byte stencil)
     {
         var dsv = this.Resources.Get(depthStencilBuffers).DepthStencilViews[slice];
         this.ID3D11DeviceContext.ClearDepthStencilView(dsv, flags, depth, stencil);

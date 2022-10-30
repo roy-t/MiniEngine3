@@ -1,4 +1,5 @@
-﻿using Mini.Engine.DirectX.Buffers;
+﻿using Mini.Engine.Core.Lifetime;
+using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.DirectX.Resources.Shaders;
@@ -39,7 +40,7 @@ public sealed class PixelShaderContext : DeviceContextPart
         this.ID3D11DeviceContext.PSSetShaderResource(slot, texture.ShaderResourceView);
     }
 
-    public void SetShaderResource(int slot, IResource<ISurface> texture)
+    public void SetShaderResource(int slot, ILifetime<ISurface> texture)
     {
         var srv = this.DeviceContext.Resources.Get(texture).ShaderResourceView;
         this.ID3D11DeviceContext.PSSetShaderResource(slot, srv);
@@ -51,7 +52,7 @@ public sealed class PixelShaderContext : DeviceContextPart
         this.ID3D11DeviceContext.PSSetConstantBuffer(slot, buffer.Buffer);
     }
 
-    public void SetInstanceBuffer<T>(int slot, IResource<StructuredBuffer<T>> instanceBuffer)
+    public void SetInstanceBuffer<T>(int slot, ILifetime<StructuredBuffer<T>> instanceBuffer)
        where T : unmanaged
     {
         var resource = this.DeviceContext.Resources.Get(instanceBuffer);

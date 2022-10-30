@@ -1,4 +1,5 @@
-﻿using Mini.Engine.DirectX;
+﻿using Mini.Engine.Core.Lifetime;
+using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
@@ -7,16 +8,16 @@ namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 public struct SkyboxComponent : IComponent
 {
-    public IResource<IRenderTargetCube> Albedo;
-    public IResource<IRenderTargetCube> Irradiance;
-    public IResource<IRenderTargetCube> Environment;
+    public ILifetime<IRenderTargetCube> Albedo;
+    public ILifetime<IRenderTargetCube> Irradiance;
+    public ILifetime<IRenderTargetCube> Environment;
     public float Strength;
     public int EnvironmentLevels;
 
     public Entity Entity { get; set; }
     public LifeCycle LifeCycle { get; set; }
 
-    public void Init(IResource<IRenderTargetCube> albedo, IResource<IRenderTargetCube> irradiance, IResource<IRenderTargetCube> environment, int environmentLevels, float strength)
+    public void Init(ILifetime<IRenderTargetCube> albedo, ILifetime<IRenderTargetCube> irradiance, ILifetime<IRenderTargetCube> environment, int environmentLevels, float strength)
     {
         this.Albedo = albedo;
         this.Irradiance = irradiance;

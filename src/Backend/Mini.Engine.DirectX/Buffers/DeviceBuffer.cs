@@ -3,7 +3,7 @@ using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX.Buffers;
 
-public abstract class DeviceBuffer<T> : IDeviceResource
+public abstract class DeviceBuffer<T> : IDisposable
     where T : unmanaged
 {
     protected readonly ID3D11Device Device;

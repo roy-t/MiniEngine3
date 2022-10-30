@@ -4,8 +4,8 @@ namespace Mini.Engine.DirectX.Contexts;
 
 public sealed class ImmediateDeviceContext : DeviceContext
 {
-    public ImmediateDeviceContext(Device device, ID3D11DeviceContext context, ResourceManager resources, string user)
-        : base(device, context, resources, user, nameof(ImmediateDeviceContext)) { }
+    public ImmediateDeviceContext(Device device, ID3D11DeviceContext context, string user)
+        : base(device, context, user, nameof(ImmediateDeviceContext)) { }
 
     public void ExecuteCommandList(CommandList commandList)
     {

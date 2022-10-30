@@ -2,6 +2,7 @@
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Core;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources.Surfaces;
@@ -23,8 +24,8 @@ public sealed class GrassGenerator
         this.Content = content;
     }
 
-    //public IResource<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(ref TerrainComponent terrainComponent, ref TransformComponent terrainTransform, out int instances)
-    public IResource<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(out int instances)
+    //public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(ref TerrainComponent terrainComponent, ref TransformComponent terrainTransform, out int instances)
+    public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(out int instances)
     {
         var random = new Random(12345);
 
@@ -115,7 +116,7 @@ public sealed class GrassGenerator
     }
 
 
-    public IResource<StructuredBuffer<GrassInstanceData>> GenerateInstanceData(ref TerrainComponent terrainComponent, ref TransformComponent terrainTransform, out int instances)
+    public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateInstanceData(ref TerrainComponent terrainComponent, ref TransformComponent terrainTransform, out int instances)
     {
         var random = new Random(1234);
 
@@ -170,7 +171,7 @@ public sealed class GrassGenerator
         return this.ArrayToResource(data);
     }
 
-    private IResource<StructuredBuffer<GrassInstanceData>> ArrayToResource(GrassInstanceData[] data)
+    private ILifetime<StructuredBuffer<GrassInstanceData>> ArrayToResource(GrassInstanceData[] data)
     {
         var instanceBuffer = new StructuredBuffer<GrassInstanceData>(this.Device, "Grass");
         instanceBuffer.MapData(this.Device.ImmediateContext, data);

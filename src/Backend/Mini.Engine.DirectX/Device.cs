@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Contexts.States;
 using Vortice.Direct3D;
@@ -49,9 +50,9 @@ public sealed class Device : IDisposable
         this.DepthStencilStates = new DepthStencilStates(device);
         this.RasterizerStates = new RasterizerStates(device);
 
-        this.Resources = new ResourceManager();
+        this.Resources = new LifetimeManager();
 
-        this.ImmediateContext = new ImmediateDeviceContext(this, context, this.Resources, nameof(Device));
+        this.ImmediateContext = new ImmediateDeviceContext(this, context, nameof(Device));
     }
 
     public ImmediateDeviceContext ImmediateContext { get; }
@@ -65,7 +66,7 @@ public sealed class Device : IDisposable
     public DepthStencilStates DepthStencilStates { get; }
     public RasterizerStates RasterizerStates { get; }
 
-    public ResourceManager Resources { get; }
+    public LifetimeManager Resources { get; }
 
     internal ID3D11Device ID3D11Device { get; }
 #if DEBUG
@@ -78,7 +79,7 @@ public sealed class Device : IDisposable
 
     public DeferredDeviceContext CreateDeferredContextFor<T>()
     {
-        return new(this, this.ID3D11Device.CreateDeferredContext(), this.Resources, typeof(T).Name);
+        return new(this, this.ID3D11Device.CreateDeferredContext(), typeof(T).Name);
     }
 
     public void Present()

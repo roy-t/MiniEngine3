@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using Mini.Engine.DirectX;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
@@ -8,7 +8,7 @@ namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 public struct CascadedShadowMapComponent : IComponent
 {
     public int Resolution;
-    public IResource<IDepthStencilBuffer> DepthBuffers;
+    public ILifetime<IDepthStencilBuffer> DepthBuffers;
     public Vector4 Cascades;
     public Vector4 Splits;
     public Matrix4x4 Scales;
@@ -18,7 +18,7 @@ public struct CascadedShadowMapComponent : IComponent
     public Entity Entity { get; set; }
     public LifeCycle LifeCycle { get; set; }
 
-    public void Init(IResource<IDepthStencilBuffer> depthStencilBuffers, int resolution, float cascade0, float cascade1, float cascade2, float cascade3)        
+    public void Init(ILifetime<IDepthStencilBuffer> depthStencilBuffers, int resolution, float cascade0, float cascade1, float cascade2, float cascade3)        
     {
         this.Resolution = resolution;
 

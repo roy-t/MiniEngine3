@@ -2,7 +2,7 @@
 
 namespace Mini.Engine.DirectX.Resources.Models;
 
-public interface IMaterial : IDeviceResource
+public interface IMaterial : IDisposable
 {
     public ISurface Albedo { get; }
     public ISurface Metalicness { get; }

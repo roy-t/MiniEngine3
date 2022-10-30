@@ -1,4 +1,5 @@
 ﻿using Mini.Engine.Core;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.Direct3D11;
@@ -39,7 +40,7 @@ public sealed class OutputMergerContext : DeviceContextPart
 #nullable restore
     }
 
-    public void SetRenderTarget(IResource<IDepthStencilBuffer> depthStencilBuffers, int slice)
+    public void SetRenderTarget(ILifetime<IDepthStencilBuffer> depthStencilBuffers, int slice)
     {
         var dsv = this.DeviceContext.Resources.Get(depthStencilBuffers).DepthStencilViews[slice];
 #nullable disable

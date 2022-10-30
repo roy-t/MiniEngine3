@@ -1,34 +1,32 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content;
+using Mini.Engine.Content.Shaders.Generated;
+using Mini.Engine.Content.Textures;
 using Mini.Engine.Content.v2;
 using Mini.Engine.Content.v2.Serialization;
 using Mini.Engine.Content.v2.Textures;
-using Mini.Engine.DirectX;
-using Mini.Engine.IO;
-using Mini.Engine.Content.Shaders.Generated;
-using Mini.Engine.DirectX.Resources.Surfaces;
-using Vortice.DXGI;
-using StbImageSharp;
-using ImageInfo = Mini.Engine.DirectX.Resources.Surfaces.ImageInfo;
-using Mini.Engine.Content.v2.Textures.Writers;
 using Mini.Engine.Content.v2.Textures.Readers;
-using Mini.Engine.Content.Textures;
+using Mini.Engine.Content.v2.Textures.Writers;
+using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources.Surfaces;
+using Mini.Engine.IO;
+using StbImageSharp;
+using Vortice.DXGI;
+using ImageInfo = Mini.Engine.DirectX.Resources.Surfaces.ImageInfo;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 [Service]
 public sealed class BrdfLutGenerator : IContentGenerator<TextureContent>
 {
     private const int Resolution = 512;
-    
-    private readonly TextureGenerator TextureGenerator;
+
     private readonly Device Device;
     private readonly BrdfLutCompute Shader;
     private readonly BrdfLutCompute.User User;
 
-    public BrdfLutGenerator(Device device, TextureGenerator textureGenerator, BrdfLutCompute shader)
+    public BrdfLutGenerator(Device device, BrdfLutCompute shader)
     {
         this.Device = device;
-        this.TextureGenerator = textureGenerator;        
         this.Shader = shader;
         this.User = this.Shader.CreateUserFor<BrdfLutGenerator>();
     }
@@ -69,7 +67,7 @@ public sealed class BrdfLutGenerator : IContentGenerator<TextureContent>
         };
 
         var dependencies = new HashSet<string>() { BrdfLutCompute.SourceFile };
-        var meta = new ContentRecord(new Content.Textures.TextureLoaderSettings(SuperCompressed.Mode.Linear, false));
+        var meta = new ContentRecord(new TextureLoaderSettings(SuperCompressed.Mode.Linear, false));
 
         HdrTextureWriter.Write(contentWriter, meta, dependencies, image);
     }

@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Core;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources;
 using Mini.Engine.DirectX.Resources.Surfaces;
@@ -40,7 +41,7 @@ public sealed class CubeMapGenerator
         this.User = shader.CreateUserFor<CubeMapGenerator>();
     }
 
-    public IResource<IRenderTargetCube> GenerateAlbedo(IResource<ISurface> equirectangular, string user)
+    public ILifetime<IRenderTargetCube> GenerateAlbedo(ILifetime<ISurface> equirectangular, string user)
     {
         var eqTexture = this.Device.Resources.Get(equirectangular);
         var resolution = eqTexture.DimY / 2;
@@ -61,7 +62,7 @@ public sealed class CubeMapGenerator
         return this.Device.Resources.Add(texture);
     }
 
-    public IResource<IRenderTargetCube> GenerateIrradiance(IResource<ISurface> equirectangular, string user, int resolution = IrradianceResolution)
+    public ILifetime<IRenderTargetCube> GenerateIrradiance(ILifetime<ISurface> equirectangular, string user, int resolution = IrradianceResolution)
     {
         var eqTexture = this.Device.Resources.Get(equirectangular);
         var imageInfo = new ImageInfo(resolution, resolution, eqTexture.Format, eqTexture.Format.BytesPerPixel() * resolution, 6);
@@ -79,7 +80,7 @@ public sealed class CubeMapGenerator
         return this.Device.Resources.Add(texture);
     }
 
-    public IResource<IRenderTargetCube> GenerateEnvironment(IResource<ISurface> equirectangular, string user, int resolution = EnvironmentResolution)
+    public ILifetime<IRenderTargetCube> GenerateEnvironment(ILifetime<ISurface> equirectangular, string user, int resolution = EnvironmentResolution)
     {
         var eqTexture = this.Device.Resources.Get(equirectangular);
 

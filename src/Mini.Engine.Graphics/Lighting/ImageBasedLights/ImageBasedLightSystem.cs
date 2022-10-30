@@ -4,6 +4,7 @@ using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.Content.v2;
 using Mini.Engine.Content.v2.Textures;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources.Surfaces;
@@ -23,7 +24,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
     private readonly ImageBasedLight Shader;
     private readonly ImageBasedLight.User User;
 
-    private readonly IResource<ITexture> BrdfLut;
+    private readonly ILifetime<ITexture> BrdfLut;
 
     public ImageBasedLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangleShader, ImageBasedLight shader, ContentManager contentManager)
     {
