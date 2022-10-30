@@ -6,17 +6,17 @@ namespace Mini.Engine.Content.v2;
 
 internal sealed class HotReloader
 {
-    private readonly ILogger Logger;
-    private readonly ContentStack Stack;
+    private readonly ILogger Logger;    
     private readonly IVirtualFileSystem FileSystem;
     private readonly Dictionary<string, IContentGenerator> Generators;
+    private readonly List<WeakReference<IContent>> References;
 
-    public HotReloader(ILogger logger, ContentStack stack, IVirtualFileSystem fileSystem, IReadOnlyList<IContentGenerator> generators)
+    public HotReloader(ILogger logger, IVirtualFileSystem fileSystem, IReadOnlyList<IContentGenerator> generators)
     {
-        this.Logger = logger.ForContext<HotReloader>();
-        this.Stack = stack;
+        this.Logger = logger.ForContext<HotReloader>();        
         this.FileSystem = fileSystem;
         this.Generators = generators.ToDictionary(x => x.GeneratorKey);
+        this.References = new List<WeakReference<IContent>>();
     }
 
     public void Register(IContent content)
@@ -25,24 +25,34 @@ internal sealed class HotReloader
         {
             this.FileSystem.WatchFile(dependency);
         }
+
+        this.References.Add(new WeakReference<IContent>(content));
     }
 
     public void ReloadChangedContent()
     {
         foreach (var file in this.FileSystem.GetChangedFiles())
         {
-            foreach (var content in this.Stack)
+            for (var i = this.References.Count - 1; i >= 0; i--)
             {
-                if (content.Dependencies.Contains(file))
+                var reference = this.References[i];
+                if (reference.TryGetTarget(out var content))
                 {
-                    this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, file);
-                    var generator = this.Generators[content.GeneratorKey];
+                    if (content.Dependencies.Contains(file))
+                    {
+                        this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, file);
+                        var generator = this.Generators[content.GeneratorKey];
 
-                    var path = content.Id.Path + Constants.Extension;
-                    using var rwStream = this.FileSystem.CreateWriteRead(path);
+                        var path = content.Id.Path + Constants.Extension;
+                        using var rwStream = this.FileSystem.CreateWriteRead(path);
 
-                    var trackingFileSystem = new TrackingVirtualFileSystem(this.FileSystem);
-                    generator.Reload(content, trackingFileSystem, rwStream);
+                        var trackingFileSystem = new TrackingVirtualFileSystem(this.FileSystem);
+                        generator.Reload(content, trackingFileSystem, rwStream);
+                    }
+                }
+                else
+                {
+                    this.References.RemoveAt(i);
                 }
             }
         }

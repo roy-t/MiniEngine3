@@ -1,20 +1,28 @@
-﻿namespace Mini.Engine.Core.Lifetime;
+﻿using Serilog;
 
-public sealed class LifetimeManager
+namespace Mini.Engine.Core.Lifetime;
+
+public sealed class LifetimeManager : IDisposable
 {
+    private readonly ILogger Logger;
     private readonly StackPool Pool;
-    private int currentFrame;
+    private readonly Stack<string> Names;
 
-    public LifetimeManager()
+    public LifetimeManager(ILogger logger)
     {
+        this.Logger = logger.ForContext<LifetimeManager>();
         this.Pool = new StackPool();
-        this.currentFrame = 1;
+        this.Names = new Stack<string>();
     }
 
     public ILifetime<T> Add<T>(T disposable)
         where T : IDisposable
     {
-        return this.Pool.Add(disposable, this.currentFrame);
+        if (this.Names.Count == 0)
+        {
+            throw new InvalidOperationException("Push a frame before trying to something");
+        }
+        return this.Pool.Add(disposable, this.Names.Count);
     }
 
     public T Get<T>(ILifetime<T> lifetime)
@@ -23,21 +31,26 @@ public sealed class LifetimeManager
         return (T)this.Pool[lifetime];
     }
 
-    public void PushFrame()
+    public void PushFrame(string name)
     {
-        this.currentFrame += 1;
+        this.Logger.Information("Pushing lifetime frame {@frame}", name);
+        this.Names.Push(name);
     }
 
     public void PopFrame()
     {
-        var frame = this.currentFrame;
-        this.currentFrame -= 1;
+        var index = this.Names.Count;
+        var name = this.Names.Pop();
+        this.Logger.Information("Disposing lifetime frame {@frame}", name);
 
-        if (this.currentFrame <= 0)
+        this.Pool.DisposeAll(index);
+    }
+
+    public void Dispose()
+    {
+        while (this.Names.Count > 0)
         {
-            throw new Exception("Nothing to pop");
+            this.PopFrame();
         }
-
-        this.Pool.DisposeAll(frame);
     }
 }

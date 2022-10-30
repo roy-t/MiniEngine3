@@ -1,6 +1,5 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content.Textures;
-using Mini.Engine.Content.v2.Serialization;
 using Mini.Engine.Content.v2.Textures;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
@@ -11,17 +10,18 @@ using Serilog;
 namespace Mini.Engine.Content.v2;
 
 [Service]
-public sealed class ContentManager : IDisposable
+public sealed class ContentManager
 {
     private readonly Device Device;
+    private readonly LifetimeManager LifetimeManager;
     private readonly IVirtualFileSystem FileSystem;
-    private readonly ContentStack ContentStack;
     private readonly HotReloader HotReloader;
 
     private readonly Dictionary<string, IContentCache> Caches;
 
-    public ContentManager(ILogger logger, Device device, IVirtualFileSystem fileSystem, IReadOnlyList<IContentGenerator> generators)
+    public ContentManager(ILogger logger, LifetimeManager lifetimeManager, Device device, IVirtualFileSystem fileSystem, IReadOnlyList<IContentGenerator> generators)
     {
+        this.LifetimeManager = lifetimeManager;
         this.Caches = new Dictionary<string, IContentCache>();
         foreach (var generator in generators)
         {
@@ -31,8 +31,7 @@ public sealed class ContentManager : IDisposable
 
         this.Device = device;
         this.FileSystem = fileSystem;
-        this.ContentStack = new ContentStack(this.Caches);
-        this.HotReloader = new HotReloader(logger, this.ContentStack, fileSystem, generators);
+        this.HotReloader = new HotReloader(logger, fileSystem, generators);
     }
 
     //public IResource<TContent> Load<TContent, TSettings>(IContentTypeManager<TContent, TSettings> manager, ContentId id, TSettings settings)
@@ -97,23 +96,7 @@ public sealed class ContentManager : IDisposable
     private ILifetime<T> RegisterContentResource<T>(T content)
         where T : IDisposable, IContent
     {
-        this.ContentStack.Add(content);
-        return this.Device.Resources.Add(content);
-    }
-
-    public void Pop()
-    {
-        this.ContentStack.Pop();
-    }
-
-    public void Push(string frameName)
-    {
-        this.ContentStack.Push(frameName);
-    }
-
-    public void Dispose()
-    {
-        this.ContentStack.Clear();
+        return this.LifetimeManager.Add(content);
     }
 
     public void ReloadChangedContent()

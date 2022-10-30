@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Mini.Engine.Configuration;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Mini.Engine.IO;
@@ -20,6 +18,7 @@ public sealed class GameBootstrapper
     private static readonly ushort Escape = InputService.GetScanCode(VIRTUAL_KEY.VK_ESCAPE);
     private static readonly ushort F1 = InputService.GetScanCode(VIRTUAL_KEY.VK_F1);
 
+    private readonly LifetimeManager LifetimeManager;
     private readonly Win32Window Window;
     private readonly Device Device;
     private readonly DiskFileSystem FileSystem;
@@ -49,12 +48,16 @@ public sealed class GameBootstrapper
 
         this.LoadRenderDoc(services);
 
-        this.Device = new Device(this.Window.Handle, this.width, this.height);
+        this.LifetimeManager = new LifetimeManager(this.Logger);
+        this.LifetimeManager.PushFrame(nameof(GameBootstrapper));
+
+        this.Device = new Device(this.Window.Handle, this.width, this.height, this.LifetimeManager);
         this.InputService = new InputService(this.Window);
         this.Keyboard = new Keyboard();
         this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
 
         // Handle ownership/lifetime control over to LightInject
+        services.Register(this.LifetimeManager);
         services.Register(this.Device);
         services.Register(this.InputService);
         services.Register(this.Window);

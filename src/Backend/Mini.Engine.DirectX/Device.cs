@@ -28,7 +28,7 @@ public sealed class Device : IDisposable
         private static readonly DeviceCreationFlags Flags = DeviceCreationFlags.None;
 #endif
 
-    public Device(IntPtr windowHandle, int width, int height)
+    public Device(IntPtr windowHandle, int width, int height, LifetimeManager lifetimeManager)
     {
         this.WindowHandle = windowHandle;
         this.Width = width;
@@ -50,7 +50,7 @@ public sealed class Device : IDisposable
         this.DepthStencilStates = new DepthStencilStates(device);
         this.RasterizerStates = new RasterizerStates(device);
 
-        this.Resources = new LifetimeManager();
+        this.Resources = lifetimeManager;
 
         this.ImmediateContext = new ImmediateDeviceContext(this, context, nameof(Device));
     }
