@@ -1,9 +1,11 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.Content.v2.Serialization;
+using Mini.Engine.Content.v2.Shaders;
 using Mini.Engine.Content.v2.Textures;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources.Shaders;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.IO;
 using Serilog;
@@ -19,6 +21,7 @@ public sealed class ContentManager
 
     private readonly SdrTextureProcessor SdrTextureProcessor;
     private readonly HdrTextureProcessor HdrTextureProcessor;
+    private readonly ComputeShaderProcessor ComputeShaderProcessor;
 
     public ContentManager(ILogger logger, Device device, LifetimeManager lifetimeManager, IVirtualFileSystem fileSystem)
     {
@@ -28,6 +31,7 @@ public sealed class ContentManager
 
         this.SdrTextureProcessor = new SdrTextureProcessor(device);
         this.HdrTextureProcessor = new HdrTextureProcessor(device);
+        this.ComputeShaderProcessor = new ComputeShaderProcessor(device);
     }
 
     public ILifetime<ITexture> LoadTexture(string path, TextureLoaderSettings settings)
@@ -42,6 +46,11 @@ public sealed class ContentManager
         }
 
         throw new NotSupportedException($"No texture processor found that supports file {path}");
+    }
+
+    public ILifetime<IComputeShader> LoadComputeShader(string path, string key, int numThreadsX, int numThreadsY, int numThreadsZ)
+    {
+        return this.Load(this.ComputeShaderProcessor, new ComputeShaderSettings(numThreadsX, numThreadsY, numThreadsZ), path, key);
     }
 
     public ILifetime<TContent> Load<TContent, TSettings>(IContentProcessor<TContent, TSettings> processor, TSettings settings, string path, string? key = null)

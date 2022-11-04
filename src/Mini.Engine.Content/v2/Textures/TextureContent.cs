@@ -13,7 +13,6 @@ public sealed class TextureContent : ITexture, IContent
     public TextureContent(ContentId id, ITexture original, TextureLoaderSettings settings, ISet<string> dependencies)
     {
         this.Id = id;
-        this.GeneratorKey = string.Empty;
         this.Settings = settings;
         this.Dependencies = dependencies;
 
@@ -30,8 +29,10 @@ public sealed class TextureContent : ITexture, IContent
     }
 
     public ContentId Id { get; }
-    public string GeneratorKey { get; set; }
+    public ISet<string> Dependencies { get; }
+
     public TextureLoaderSettings Settings { get; }
+
     public string Name { get; }
 
     public ImageInfo ImageInfo => this.original.ImageInfo;
@@ -45,8 +46,6 @@ public sealed class TextureContent : ITexture, IContent
 
     ID3D11ShaderResourceView ISurface.ShaderResourceView => this.original.ShaderResourceView;
     ID3D11Texture2D ISurface.Texture => this.original.Texture;
-
-    public ISet<string> Dependencies { get; }
 
     public void Dispose()
     {

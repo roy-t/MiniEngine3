@@ -2,7 +2,7 @@
   "profiles": {
     "Content - Shader": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\Projects\\CSharp\\MiniEngine3\\src\\Mini.Engine.Content\\Assets\\Shaders\\Lighting\\SunLight.hlsl\""
+      "commandLineArgs": "\"D:\\Projects\\CSharp\\MiniEngine3\\src\\Mini.Engine.Content\\Assets\\Shaders\\Lighting\\BrdfLutCompute.hlsl\""
     },
     "Content - System": {
       "commandName": "Project",

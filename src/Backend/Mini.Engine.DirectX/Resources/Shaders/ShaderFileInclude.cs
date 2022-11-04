@@ -7,12 +7,12 @@ namespace Mini.Engine.DirectX.Resources.Shaders;
 
 internal sealed class ShaderFileInclude : CallbackBase, Include
 {
-    private readonly IVirtualFileSystem FileSystem;
+    private readonly IReadOnlyVirtualFileSystem FileSystem;
     private readonly string RootFolder;
     private readonly Dictionary<Stream, string> Streams;
     private readonly List<string> IncludedList;
 
-    public ShaderFileInclude(IVirtualFileSystem fileSystem, string? rootFolder = null)
+    public ShaderFileInclude(IReadOnlyVirtualFileSystem fileSystem, string? rootFolder = null)
     {
         this.FileSystem = fileSystem;
         this.RootFolder = rootFolder ?? Environment.CurrentDirectory;

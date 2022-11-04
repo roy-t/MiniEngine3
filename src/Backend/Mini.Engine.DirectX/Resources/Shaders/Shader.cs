@@ -4,23 +4,7 @@ using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX.Resources.Shaders;
 
-public interface IPixelShader : IShader
-{
-    internal ID3D11PixelShader ID3D11Shader { get; set; }
-}
-
-public interface IVertexShader : IShader
-{
-    internal ID3D11VertexShader ID3D11Shader { get; set; }
-}
-
-public interface IComputeShader : IShader
-{
-    internal ID3D11ComputeShader ID3D11Shader { get; set; }
-    (int X, int Y, int Z) GetDispatchSize(int dimX, int dimY, int dimZ);
-}
-
-public interface IShader
+public interface IShader : IDisposable
 {
     InputLayout CreateInputLayout(Device device, params InputElementDescription[] elements);
 }
@@ -38,7 +22,7 @@ public abstract class Shader<TShader> : IDisposable
         this.ID3D11Shader = null!;
     }
 
-    public TShader ID3D11Shader { get; set; }
+    public TShader ID3D11Shader { get; set; } // TODO: we can probably get rid of the set method soon!
 
     public InputLayout CreateInputLayout(Device device, params InputElementDescription[] elements)
     {
