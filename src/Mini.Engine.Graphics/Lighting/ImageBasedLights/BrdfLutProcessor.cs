@@ -13,12 +13,13 @@ using IContent = Mini.Engine.Content.v2.IContent;
 using ImageInfo = Mini.Engine.DirectX.Resources.Surfaces.ImageInfo;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
+
 [Service]
 public sealed class BrdfLutProcessor : IContentProcessor<TextureContent, TextureLoaderSettings>
 {
-    internal static readonly Guid Header = new("{0021262F-65A4-4D2C-AF2F-F6FEB7E62229}");
-
     private const int Resolution = 512;
+
+    private static readonly Guid Header = new("{0021262F-65A4-4D2C-AF2F-F6FEB7E62229}");
 
     private readonly Device Device;
     private readonly BrdfLutCompute Shader;
@@ -27,21 +28,46 @@ public sealed class BrdfLutProcessor : IContentProcessor<TextureContent, Texture
     public BrdfLutProcessor(Device device, BrdfLutCompute shader)
     {
         this.Device = device;
+        this.Cache = new ContentTypeCache<TextureContent>();
+
         this.Shader = shader;
         this.User = this.Shader.CreateUserFor<BrdfLutProcessor>();
-        this.Cache = new ContentTypeCache<TextureContent>();
     }
 
-    public int Version => 7;
+    public int Version => 8;
     public IContentTypeCache<TextureContent> Cache { get; }
 
     public void Generate(ContentId id, TextureLoaderSettings _, ContentWriter contentWriter, TrackingVirtualFileSystem fileSystem)
+    {
+        var image = this.ComputeImage();
+        var dependencies = new HashSet<string>() { BrdfLutCompute.SourceFile };
+        var settings = new TextureLoaderSettings(SuperCompressed.Mode.Linear, false);
+        HdrTextureWriter.Write(contentWriter, Header, this.Version, settings, dependencies, image);
+    }
+
+    public TextureContent Load(ContentId id, ContentHeader header, ContentReader contentReader)
+    {
+        if (header.Type == Header)
+        {
+
+            var (settings, texture) = HdrTextureReader.Read(this.Device, id, contentReader);
+            return new TextureContent(id, texture, settings, header.Dependencies);
+        }
+
+        throw new NotSupportedException($"Unexpected header: {header}");
+    }
+
+    public void Reload(IContent original, ContentWriterReader writerReader, TrackingVirtualFileSystem fileSystem)
+    {
+        TextureReloader.Reload(this, (TextureContent)original, fileSystem, writerReader);
+    }
+
+    private ImageResultFloat ComputeImage()
     {
         var context = this.Device.ImmediateContext;
 
         var imageInfo = new ImageInfo(Resolution, Resolution, Format.R32G32_Float);
         using var texture = new RWTexture(this.Device, "BrdfLut", imageInfo, MipMapInfo.None());
-
         this.User.MapConstants(context, Resolution, Resolution);
         context.CS.SetConstantBuffer(BrdfLutCompute.ConstantsSlot, this.User.ConstantsBuffer);
         context.CS.SetShader(this.Shader.BrdfLutKernel);
@@ -63,24 +89,6 @@ public sealed class BrdfLutProcessor : IContentProcessor<TextureContent, Texture
             Data = buffer
         };
 
-        var dependencies = new HashSet<string>() { BrdfLutCompute.SourceFile };
-        var settings = new TextureLoaderSettings(SuperCompressed.Mode.Linear, false);
-        HdrTextureWriter.Write(contentWriter, Header, this.Version, settings, dependencies, image);
-    }
-
-    public TextureContent Load(ContentId id, ContentHeader header, ContentReader contentReader)
-    {
-        if (header.Type != Header)
-        {
-            throw new NotSupportedException($"Unexpected header: {header}");
-        }
-
-        var (settings, texture) = HdrTextureReader.Read(this.Device, id, contentReader);
-        return new TextureContent(id, texture, settings, header.Dependencies);
-    }
-
-    public void Reload(IContent original, ContentWriterReader writerReader, TrackingVirtualFileSystem fileSystem)
-    {
-        TextureReloader.Reload(this, (TextureContent)original, fileSystem, writerReader);
+        return image;
     }
 }
