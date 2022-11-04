@@ -2,7 +2,7 @@
 using Mini.Engine.Content.v2.Serialization;
 using StbImageSharp;
 
-namespace Mini.Engine.Content.v2.Textures.Writers;
+namespace Mini.Engine.Content.v2.Textures;
 public static class HdrTextureWriter
 {
     public static void Write(ContentWriter contentWriter, Guid header, int version, TextureLoaderSettings settings, ISet<string> dependencies, ImageResultFloat image)

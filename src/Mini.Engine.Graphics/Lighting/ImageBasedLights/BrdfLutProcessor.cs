@@ -5,8 +5,6 @@ using Mini.Engine.Content.Textures;
 using Mini.Engine.Content.v2;
 using Mini.Engine.Content.v2.Serialization;
 using Mini.Engine.Content.v2.Textures;
-using Mini.Engine.Content.v2.Textures.Readers;
-using Mini.Engine.Content.v2.Textures.Writers;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using StbImageSharp;

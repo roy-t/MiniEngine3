@@ -3,13 +3,13 @@ using Mini.Engine.Content.v2.Serialization;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 
-namespace Mini.Engine.Content.v2.Textures.Readers;
+namespace Mini.Engine.Content.v2.Textures;
 public static class HdrTextureReader
 {
 
 
     public static (TextureLoaderSettings, ITexture) Read(Device device, ContentId id, ContentReader reader)
-    {        
+    {
         var settings = reader.ReadTextureSettings();
         var components = reader.Reader.ReadInt32();
         var width = reader.Reader.ReadInt32();

@@ -17,7 +17,8 @@ public sealed class ContentManager
     private readonly IVirtualFileSystem FileSystem;
     private readonly HotReloader HotReloader;
 
-    private readonly TextureProcessor TextureGenerator;
+    private readonly SdrTextureProcessor SdrTextureProcessor;
+    private readonly HdrTextureProcessor HdrTextureProcessor;
 
     public ContentManager(ILogger logger, Device device, LifetimeManager lifetimeManager, IVirtualFileSystem fileSystem)
     {
@@ -25,12 +26,23 @@ public sealed class ContentManager
         this.FileSystem = fileSystem;
         this.HotReloader = new HotReloader(logger, fileSystem);
 
-        this.TextureGenerator = new TextureProcessor(device);
+        this.SdrTextureProcessor = new SdrTextureProcessor(device);
+        this.HdrTextureProcessor = new HdrTextureProcessor(device);
     }
 
     public ILifetime<ITexture> LoadTexture(string path, TextureLoaderSettings settings)
     {
-        return this.Load(this.TextureGenerator, settings, path);
+        if (this.SdrTextureProcessor.HasSupportedSdrExtension(path))
+        {
+            return this.Load(this.SdrTextureProcessor, settings, path);
+        }
+        else if (this.HdrTextureProcessor.HasSupportedHdrExtension(path))
+        {
+            return this.Load(this.HdrTextureProcessor, settings, path);
+        }
+
+        var extension = Path.GetExtension(path).ToLowerInvariant();
+        throw new NotSupportedException($"No texture processor found that supports the {extension}");
     }
 
     public ILifetime<TContent> Load<TContent, TSettings>(IContentProcessor<TContent, TSettings> manager, TSettings settings, string path, string? key = null)
@@ -41,7 +53,7 @@ public sealed class ContentManager
 
     public ILifetime<TContent> Load<TContent, TSettings>(IContentProcessor<TContent, TSettings> manager, TSettings settings, ContentId id)
         where TContent : IContent
-    {        
+    {
         // 1. Return existing reference        
         if (manager.Cache.TryGetValue(id, out var t))
         {
@@ -57,7 +69,7 @@ public sealed class ContentManager
                 using var reader = new ContentReader(rStream);
                 var header = reader.ReadHeader();
                 if (Utilities.IsCurrent(manager, header, this.FileSystem))
-                {                    
+                {
                     var content = manager.Load(id, header, reader);
                     this.HotReloader.Register(content, manager);
 
@@ -72,7 +84,7 @@ public sealed class ContentManager
         // 3. Generate, store, load from disk                
         using (var rwStream = this.FileSystem.CreateWriteRead(path))
         {
-            using var writer = new ContentWriter(rwStream);            
+            using var writer = new ContentWriter(rwStream);
             manager.Generate(id, settings, writer, new TrackingVirtualFileSystem(this.FileSystem));
         }
 

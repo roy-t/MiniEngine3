@@ -2,14 +2,16 @@
 using Mini.Engine.Content.v2.Serialization;
 using SuperCompressed;
 
-namespace Mini.Engine.Content.v2.Textures.Writers;
-public static class CompressedTextureWriter
+namespace Mini.Engine.Content.v2.Textures;
+public static class SdrTextureWriter
 {
     public static void Write(ContentWriter contentWriter, Guid header, int version, TextureLoaderSettings settings, ISet<string> dependencies, Image image)
     {
         var encoded = Encoder.Instance.Encode(image, settings.Mode, MipMapGeneration.Lanczos3, Quality.Default);
         contentWriter.WriteHeader(header, version, dependencies);
         contentWriter.Write(settings);
+        contentWriter.Writer.Write(image.Width);
+        contentWriter.Writer.Write(image.Height);
         contentWriter.WriteArray(encoded);
     }
 }
