@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Content.v2.Serialization;
+﻿using System.Diagnostics;
+using Mini.Engine.Content.v2.Serialization;
 using Mini.Engine.IO;
 using Serilog;
 
@@ -19,6 +20,7 @@ internal sealed class HotReloader
         this.References = new List<ReloadReference>();
     }
 
+    [Conditional("DEBUG")]
     internal void Register(IContent content, IContentProcessor manager)
     {
         foreach (var dependency in content.Dependencies)
@@ -30,6 +32,7 @@ internal sealed class HotReloader
         this.References.Add(reference);
     }
 
+    [Conditional("DEBUG")]
     public void ReloadChangedContent()
     {
         foreach (var file in this.FileSystem.GetChangedFiles())

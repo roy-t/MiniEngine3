@@ -41,21 +41,20 @@ public sealed class ContentManager
             return this.Load(this.HdrTextureProcessor, settings, path);
         }
 
-        var extension = Path.GetExtension(path).ToLowerInvariant();
-        throw new NotSupportedException($"No texture processor found that supports the {extension}");
+        throw new NotSupportedException($"No texture processor found that supports file {path}");
     }
 
-    public ILifetime<TContent> Load<TContent, TSettings>(IContentProcessor<TContent, TSettings> manager, TSettings settings, string path, string? key = null)
+    public ILifetime<TContent> Load<TContent, TSettings>(IContentProcessor<TContent, TSettings> processor, TSettings settings, string path, string? key = null)
         where TContent : IContent
     {
-        return this.Load(manager, settings, new ContentId(path, key ?? string.Empty));
+        return this.Load(processor, settings, new ContentId(path, key ?? string.Empty));
     }
 
-    public ILifetime<TContent> Load<TContent, TSettings>(IContentProcessor<TContent, TSettings> manager, TSettings settings, ContentId id)
+    public ILifetime<TContent> Load<TContent, TSettings>(IContentProcessor<TContent, TSettings> processor, TSettings settings, ContentId id)
         where TContent : IContent
     {
         // 1. Return existing reference        
-        if (manager.Cache.TryGetValue(id, out var t))
+        if (processor.Cache.TryGetValue(id, out var t))
         {
             return t;
         }
@@ -64,20 +63,18 @@ public sealed class ContentManager
         var path = id.Path + Constants.Extension;
         if (this.FileSystem.Exists(path))
         {
-            using (var rStream = this.FileSystem.OpenRead(path))
+            using var rStream = this.FileSystem.OpenRead(path);
+            using var reader = new ContentReader(rStream);
+            var header = reader.ReadHeader();
+            if (Utilities.IsCurrent(processor, header, this.FileSystem))
             {
-                using var reader = new ContentReader(rStream);
-                var header = reader.ReadHeader();
-                if (Utilities.IsCurrent(manager, header, this.FileSystem))
-                {
-                    var content = manager.Load(id, header, reader);
-                    this.HotReloader.Register(content, manager);
+                var content = processor.Load(id, header, reader);
+                this.HotReloader.Register(content, processor);
 
-                    var resource = this.RegisterContentResource(content);
-                    manager.Cache.Store(id, resource);
+                var resource = this.RegisterContentResource(content);
+                processor.Cache.Store(id, resource);
 
-                    return resource;
-                }
+                return resource;
             }
         }
 
@@ -85,10 +82,10 @@ public sealed class ContentManager
         using (var rwStream = this.FileSystem.CreateWriteRead(path))
         {
             using var writer = new ContentWriter(rwStream);
-            manager.Generate(id, settings, writer, new TrackingVirtualFileSystem(this.FileSystem));
+            processor.Generate(id, settings, writer, new TrackingVirtualFileSystem(this.FileSystem));
         }
 
-        return this.Load(manager, settings, id);
+        return this.Load(processor, settings, id);
     }
 
     private ILifetime<T> RegisterContentResource<T>(T content)

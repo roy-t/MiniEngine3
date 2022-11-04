@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Diagnostics;
 
 namespace Mini.Engine.Content;
 
@@ -7,6 +6,7 @@ public sealed class ContentId : IEquatable<ContentId>
 {
     private const char Separator = '#';
 
+    [DebuggerStepThrough]
     public ContentId(string path, string key = "")
     {
         this.Path = path;
