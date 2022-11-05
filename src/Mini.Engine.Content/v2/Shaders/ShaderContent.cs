@@ -1,8 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Mini.Engine.DirectX.Resources.Shaders;
 
 namespace Mini.Engine.Content.v2.Shaders;
 internal abstract class ShaderContent<TShader, TSettings> : IContent<TShader, TSettings>
-    where TShader : IDisposable
+    where TShader : IShader, IDisposable
 {
     protected TShader original;
 
@@ -12,14 +13,15 @@ internal abstract class ShaderContent<TShader, TSettings> : IContent<TShader, TS
         this.Settings = settings;
         this.Dependencies = dependencies;
 
-        this.Reload(original);
-    }
+        this.Reload(original);        
+    }    
 
     public ContentId Id { get; }
     public ISet<string> Dependencies { get; }
 
     public TSettings Settings { get; }
 
+    public string Name => this.original.Name;
 
     [MemberNotNull(nameof(original))]
     public void Reload(TShader original)

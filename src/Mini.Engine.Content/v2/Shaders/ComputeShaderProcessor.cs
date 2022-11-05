@@ -22,7 +22,8 @@ internal sealed class ComputeShaderProcessor : ShaderProcessor<IComputeShader, C
 
     protected override IComputeShader Load(ContentId contentId, ComputeShaderSettings settings, byte[] byteCode)
     {
-        return new ComputeShader(this.Device, byteCode, settings.NumThreadsX, settings.NumThreadsY, settings.NumThreadsZ);
+        var name = DebugNameGenerator.GetName(contentId.ToString(), "COMPUTESHADER");
+        return new ComputeShader(this.Device, name, byteCode, settings.NumThreadsX, settings.NumThreadsY, settings.NumThreadsZ);
     }
 
     protected override ComputeShaderSettings LoadSetings(ContentReader reader)

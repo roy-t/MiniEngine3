@@ -1,12 +1,11 @@
-﻿using Mini.Engine.DirectX.Buffers;
-using Vortice.Direct3D;
+﻿using Vortice.Direct3D;
 using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX.Resources.Shaders;
 
 public interface IShader : IDisposable
 {
-    
+    public string Name { get; }
 }
 
 // TODO: we can probably get rid of this soon!
@@ -16,12 +15,15 @@ public abstract class Shader<TShader> : IDisposable
     protected readonly Device Device;
     protected Blob blob;
 
-    public Shader(Device device)
+    public Shader(Device device, string name)
     {
         this.Device = device;
         this.blob = null!;
         this.ID3D11Shader = null!;
+        this.Name = name;
     }
+
+    public string Name { get; }
 
     public TShader ID3D11Shader { get; set; } 
 

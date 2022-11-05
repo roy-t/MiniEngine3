@@ -15,11 +15,14 @@ public sealed class VertexShader : IVertexShader
     private readonly byte[] ByteCode;
     private readonly ID3D11VertexShader Shader;
 
-    public VertexShader(Device device, byte[] byteCode)
+    public VertexShader(Device device, string name, byte[] byteCode)
     {
         this.Shader = device.ID3D11Device.CreateVertexShader(byteCode);
+        this.Shader.DebugName = this.Name = name;
         this.ByteCode = byteCode;
     }
+
+    public string Name { get; }
 
     ID3D11VertexShader IVertexShader.ID3D11Shader => this.Shader;
 

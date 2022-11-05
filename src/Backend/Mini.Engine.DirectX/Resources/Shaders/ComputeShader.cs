@@ -14,19 +14,20 @@ public sealed class ComputeShader : IComputeShader
     private readonly int NumThreadsX;
     private readonly int NumThreadsY;
     private readonly int NumThreadsZ;
-
-    private readonly byte[] ByteCode;
+    
     private readonly ID3D11ComputeShader Shader;
 
-    public ComputeShader(Device device, byte[] byteCode, int numThreadsX, int numThreadsY, int numThreadsZ)
+    public ComputeShader(Device device, string name, byte[] byteCode, int numThreadsX, int numThreadsY, int numThreadsZ)        
     {
-        this.Shader = device.ID3D11Device.CreateComputeShader(byteCode);
-        this.ByteCode = byteCode;
+        this.Shader = device.ID3D11Device.CreateComputeShader(byteCode);         
+        this.Shader.DebugName = this.Name = name;
 
         this.NumThreadsX = numThreadsX;
         this.NumThreadsY = numThreadsY;
-        this.NumThreadsZ = numThreadsZ;                
+        this.NumThreadsZ = numThreadsZ;        
     }
+
+    public string Name { get; }
 
     ID3D11ComputeShader IComputeShader.ID3D11Shader => this.Shader;
 

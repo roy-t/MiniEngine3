@@ -249,9 +249,9 @@ public sealed partial class ContentManager : IDisposable
                 case ModelContent model:
                     this.ModelLoader.Unload(model);
                     break;
-                case IShaderContent shader:
-                    shader.Dispose();
-                    break;
+                //case IShaderContent shader:
+                //    shader.Dispose();
+                //    break;
                 case ExternalContent external:
                     if (external.Content is IDisposable disposable)
                     {

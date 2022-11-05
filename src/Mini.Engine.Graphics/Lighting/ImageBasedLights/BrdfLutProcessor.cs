@@ -72,7 +72,7 @@ public sealed class BrdfLutProcessor : IContentProcessor<ITexture, TextureConten
         context.CS.SetShader(this.Shader.BrdfLutKernel);
         context.CS.SetUnorderedAccessView(BrdfLutCompute.Lut, texture);
 
-        var (x, y, z) = this.Shader.BrdfLutKernel.GetDispatchSize(Resolution, Resolution, 1);
+        var (x, y, z) = this.Shader.GetDispatchSizeForBrdfLutKernel(Resolution, Resolution, 1);
         context.CS.Dispatch(x, y, z);
         context.CS.ClearUnorderedAccessView(BrdfLutCompute.Lut);
 

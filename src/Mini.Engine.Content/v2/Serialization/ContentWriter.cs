@@ -5,7 +5,9 @@ using Mini.Engine.Content.Textures;
 
 namespace Mini.Engine.Content.v2.Serialization;
 public sealed class ContentWriter : IDisposable
-{    
+{
+    public static char DependencySeperator = ';';
+
     public ContentWriter(Stream stream)
     {
         this.Writer = new BinaryWriter(stream, Encoding.UTF8, true);
@@ -60,7 +62,7 @@ public sealed class ContentWriter : IDisposable
 
     private void WriteDependencies(ISet<string> dependencies)
     {
-        var dependencyString = string.Join(Constants.StringSeperator, dependencies);
+        var dependencyString = string.Join(DependencySeperator, dependencies);
         this.Writer.Write(dependencyString);
     }
 }

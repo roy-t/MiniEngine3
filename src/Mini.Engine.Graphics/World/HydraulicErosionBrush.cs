@@ -43,7 +43,7 @@ public sealed class HydraulicErosionBrush : IDisposable
 
         // TODO: dispatch dimension must be below D3D11_CS_DISPATCH_MAX_THREAD_GROUPS_PER_DIMENSION for higher than 1M dorplets
         // we need to tweak numthreads or dispatch multiple times
-        var (x, y, z) = this.Shader.Kernel.GetDispatchSize((int)settings.Droplets, 1, 1);                
+        var (x, y, z) = this.Shader.GetDispatchSizeForKernel(settings.Droplets, 1, 1);                
         context.CS.Dispatch(x, y, z);
 
         context.CS.ClearUnorderedAccessView(HydraulicErosion.MapHeight);

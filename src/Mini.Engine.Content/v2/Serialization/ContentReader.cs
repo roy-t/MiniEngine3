@@ -83,6 +83,6 @@ public sealed class ContentReader : IDisposable
         {
             return new HashSet<string>(0);
         }
-        return new HashSet<string>(dependencies.Split(Constants.StringSeperator), new PathComparer());
+        return new HashSet<string>(dependencies.Split(ContentWriter.DependencySeperator), new PathComparer());
     }
 }

@@ -20,7 +20,8 @@ internal sealed class PixelShaderProcessor : ShaderProcessor<IPixelShader, Pixel
 
     protected override IPixelShader Load(ContentId contentId, PixelShaderSettings settings, byte[] byteCode)
     {
-        return new PixelShader(this.Device, byteCode);
+        var name = DebugNameGenerator.GetName(contentId.ToString(), "PIXELSHADER");
+        return new PixelShader(this.Device, name, byteCode);
     }
 
     protected override PixelShaderSettings LoadSetings(ContentReader reader)

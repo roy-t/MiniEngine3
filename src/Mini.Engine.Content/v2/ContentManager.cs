@@ -22,6 +22,8 @@ public sealed class ContentManager
     private readonly SdrTextureProcessor SdrTextureProcessor;
     private readonly HdrTextureProcessor HdrTextureProcessor;
     private readonly ComputeShaderProcessor ComputeShaderProcessor;
+    private readonly VertexShaderProcessor VertexShaderProcessor;
+    private readonly PixelShaderProcessor PixelShaderProcessor;
 
     public ContentManager(ILogger logger, Device device, LifetimeManager lifetimeManager, IVirtualFileSystem fileSystem)
     {
@@ -32,6 +34,8 @@ public sealed class ContentManager
         this.SdrTextureProcessor = new SdrTextureProcessor(device);
         this.HdrTextureProcessor = new HdrTextureProcessor(device);
         this.ComputeShaderProcessor = new ComputeShaderProcessor(device);
+        this.VertexShaderProcessor = new VertexShaderProcessor(device);
+        this.PixelShaderProcessor = new PixelShaderProcessor(device);
     }
 
     public ILifetime<ITexture> LoadTexture(string path, TextureLoaderSettings settings)
@@ -48,9 +52,19 @@ public sealed class ContentManager
         throw new NotSupportedException($"No texture processor found that supports file {path}");
     }
 
-    public ILifetime<IComputeShader> LoadComputeShader(string path, string key, int numThreadsX, int numThreadsY, int numThreadsZ)
+    public ILifetime<IComputeShader> LoadComputeShader(ContentId id, int numThreadsX, int numThreadsY, int numThreadsZ)
     {
-        return this.Load(this.ComputeShaderProcessor, new ComputeShaderSettings(numThreadsX, numThreadsY, numThreadsZ), path, key);        
+        return this.Load(this.ComputeShaderProcessor, new ComputeShaderSettings(numThreadsX, numThreadsY, numThreadsZ), id);        
+    }
+
+    public ILifetime<IVertexShader> LoadVertexShader(ContentId id)
+    {
+        return this.Load(this.VertexShaderProcessor, VertexShaderSettings.Empty, id);
+    }
+
+    public ILifetime<IPixelShader> LoadPixelShader(ContentId id)
+    {
+        return this.Load(this.PixelShaderProcessor, PixelShaderSettings.Empty, id);
     }
 
     public ILifetime<TContent> Load<TContent, TWrapped, TSettings>(IContentProcessor<TContent, TWrapped, TSettings> processor, TSettings settings, string path, string? key = null)
@@ -71,7 +85,7 @@ public sealed class ContentManager
         }
 
         // 2. Load from disk
-        var path = id.Path + Constants.Extension;
+        var path = PathGenerator.GetPath(id);
         if (this.FileSystem.Exists(path))
         {
             using var rStream = this.FileSystem.OpenRead(path);

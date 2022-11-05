@@ -111,7 +111,7 @@ public abstract class DeviceContext : IDisposable
         this.ID3D11DeviceContext.ClearRenderTargetView(this.Device.BackBufferView, color);
     }
 
-    public void Setup(InputLayout inputLayout, IVertexShader vertex, IPixelShader pixel, BlendState blend, DepthStencilState depth)
+    public void Setup(InputLayout inputLayout, ILifetime<IVertexShader> vertex, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
     {
         this.Setup
         (
@@ -129,7 +129,7 @@ public abstract class DeviceContext : IDisposable
         );
     }
 
-    public void Setup(InputLayout inputLayout, IVertexShader vertex, int width, int height, IPixelShader pixel, BlendState blend, DepthStencilState depth)
+    public void Setup(InputLayout inputLayout, ILifetime<IVertexShader> vertex, int width, int height, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
     {
         this.Setup
         (
@@ -147,7 +147,7 @@ public abstract class DeviceContext : IDisposable
         );
     }
 
-    public void Setup(InputLayout layout, PrimitiveTopology primitive, IVertexShader vertex, RasterizerState rasterizer, int x, int y, int width, int height, IPixelShader pixel, BlendState blend, DepthStencilState depth)
+    public void Setup(InputLayout layout, PrimitiveTopology primitive, ILifetime<IVertexShader> vertex, RasterizerState rasterizer, int x, int y, int width, int height, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
     {
         this.IA.SetInputLayout(layout);
         this.IA.SetPrimitiveTopology(primitive);
@@ -164,17 +164,17 @@ public abstract class DeviceContext : IDisposable
         this.OM.SetDepthStencilState(depth);
     }
 
-    public void SetupFullScreenTriangle(IVertexShader vertex, IPixelShader pixel, BlendState blend, DepthStencilState depth)
+    public void SetupFullScreenTriangle(ILifetime<IVertexShader> vertex, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
     {
         this.SetupFullScreenTriangle(vertex, 0, 0, this.Device.Width, this.Device.Height, pixel, blend, depth);
     }
 
-    public void SetupFullScreenTriangle(IVertexShader vertex, int width, int height, IPixelShader pixel, BlendState blend, DepthStencilState depth)
+    public void SetupFullScreenTriangle(ILifetime<IVertexShader> vertex, int width, int height, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
     {
         this.SetupFullScreenTriangle(vertex, 0, 0, width, height, pixel, blend, depth);
     }
 
-    public void SetupFullScreenTriangle(IVertexShader vertex, int x, int y, int width, int height, IPixelShader pixel, BlendState blend, DepthStencilState depth)
+    public void SetupFullScreenTriangle(ILifetime<IVertexShader> vertex, int x, int y, int width, int height, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
     {
         this.IA.ClearInputLayout();
         this.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);

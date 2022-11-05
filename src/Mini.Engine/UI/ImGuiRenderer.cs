@@ -1,10 +1,12 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Content.Shaders.Generated;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources;
+using Mini.Engine.DirectX.Resources.Shaders;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
@@ -40,11 +42,10 @@ internal sealed class ImGuiRenderer
         this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device, $"{nameof(ImGuiRenderer)}_IB");
 
         this.Shader = shader;
-        this.User = shader.CreateUserFor<ImGuiRenderer>();
+        this.User = shader.CreateUserFor<ImGuiRenderer>();        
 
-        this.InputLayout = this.Shader.Vs.CreateInputLayout
+        this.InputLayout = this.Shader.CreateInputLayoutForVs
         (
-            device,
             new InputElementDescription("POSITION", 0, Format.R32G32_Float, 0, 0, InputClassification.PerVertexData, 0),
             new InputElementDescription("TEXCOORD", 0, Format.R32G32_Float, 8, 0, InputClassification.PerVertexData, 0),
             new InputElementDescription("COLOR", 0, Format.R8G8B8A8_UNorm, 16, 0, InputClassification.PerVertexData, 0)

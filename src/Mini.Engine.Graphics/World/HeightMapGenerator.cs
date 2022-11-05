@@ -53,7 +53,7 @@ public sealed class HeightMapGenerator : IDisposable
         context.CS.SetShader(this.Shader.NoiseMapKernel);
         context.CS.SetUnorderedAccessView(HeightMap.MapHeight, height);
 
-        var (x, y, z) = this.Shader.NoiseMapKernel.GetDispatchSize(dimensions, dimensions, 1);
+        var (x, y, z) = this.Shader.GetDispatchSizeForNoiseMapKernel(dimensions, dimensions, 1);
         context.CS.Dispatch(x, y, z);
 
         context.CS.ClearUnorderedAccessView(HeightMap.MapHeight);
@@ -81,7 +81,7 @@ public sealed class HeightMapGenerator : IDisposable
         context.CS.SetUnorderedAccessView(HeightMap.MapHeight, heightMap);
         context.CS.SetUnorderedAccessView(HeightMap.MapNormal, normals);
 
-        var (x, y, z) = this.Shader.NormalMapKernel.GetDispatchSize(dimensions, dimensions, 1);
+        var (x, y, z) = this.Shader.GetDispatchSizeForNormalMapKernel(dimensions, dimensions, 1);
         context.CS.Dispatch(x, y, z);
     }
 
@@ -110,7 +110,7 @@ public sealed class HeightMapGenerator : IDisposable
         context.CS.SetShader(this.Shader.TriangulateKernel);
         context.CS.SetUnorderedAccessView(HeightMap.MapHeight, heightMap);
         context.CS.SetUnorderedAccessView(HeightMap.Vertices, output);
-        var (x, y, z) = this.Shader.TriangulateKernel.GetDispatchSize(width, height, 1);
+        var (x, y, z) = this.Shader.GetDispatchSizeForTriangulateKernel(width, height, 1);
         context.CS.Dispatch(x, y, z);
 
         var data = new ModelVertex[length];
@@ -142,7 +142,7 @@ public sealed class HeightMapGenerator : IDisposable
 
         context.CS.SetShader(this.Shader.IndicesKernel);
         context.CS.SetUnorderedAccessView(HeightMap.Indices, output);
-        var (x, y, z) = this.Shader.IndicesKernel.GetDispatchSize(indices, 1, 1);
+        var (x, y, z) = this.Shader.GetDispatchSizeForIndicesKernel(indices, 1, 1);
         context.CS.Dispatch(x, y, z);
 
         var data = new int[indices];

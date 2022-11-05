@@ -33,7 +33,7 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
         this.Shader = shader;
         this.User = shader.CreateUserFor<ModelSystem>();
 
-        this.InputLayout = this.Shader.Vs.CreateInputLayout(device, ModelVertex.Elements);
+        this.InputLayout = this.Shader.CreateInputLayoutForVs(ModelVertex.Elements);
     }
 
     public void OnSet()

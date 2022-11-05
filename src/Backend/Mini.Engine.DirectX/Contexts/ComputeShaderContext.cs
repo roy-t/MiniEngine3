@@ -1,6 +1,6 @@
-﻿using Mini.Engine.DirectX.Buffers;
+﻿using Mini.Engine.Core.Lifetime;
+using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts.States;
-using Mini.Engine.DirectX.Resources;
 using Mini.Engine.DirectX.Resources.Shaders;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.Direct3D11;
@@ -28,9 +28,10 @@ public sealed class ComputeShaderContext : DeviceContextPart
         this.ID3D11DeviceContext.CSSetSamplers(startSlot, nativeSamplers);
     }
 
-    public void SetShader(IComputeShader shader)
+    public void SetShader(ILifetime<IComputeShader> shader)
     {
-        this.ID3D11DeviceContext.CSSetShader(shader.ID3D11Shader);
+        var resource = this.DeviceContext.Resources.Get(shader).ID3D11Shader;
+        this.ID3D11DeviceContext.CSSetShader(resource);
     }
 
     public void SetShaderResource(int slot, ISurface texture)

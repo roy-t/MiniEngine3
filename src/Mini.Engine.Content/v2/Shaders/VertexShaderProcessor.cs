@@ -20,7 +20,8 @@ internal sealed class VertexShaderProcessor : ShaderProcessor<IVertexShader, Ver
 
     protected override IVertexShader Load(ContentId contentId, VertexShaderSettings settings, byte[] byteCode)
     {
-        return new VertexShader(this.Device, byteCode);
+        var name = DebugNameGenerator.GetName(contentId.ToString(), "VERTEXSHADER");
+        return new VertexShader(this.Device, name, byteCode);
     }
 
     protected override VertexShaderSettings LoadSetings(ContentReader reader)

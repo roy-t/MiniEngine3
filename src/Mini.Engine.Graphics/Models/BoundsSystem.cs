@@ -48,9 +48,8 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
             0, 4, 1, 5, 2, 6, 3, 7
         );
 
-        this.InputLayout = this.Shader.Vs.CreateInputLayout
-        (
-            device,
+        this.InputLayout = this.Shader.CreateInputLayoutForVs
+        (            
             new InputElementDescription("POSITION", 0, Format.R32G32B32_Float, 0, 0, InputClassification.PerVertexData, 0)
         );
 

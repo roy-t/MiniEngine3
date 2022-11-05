@@ -42,12 +42,9 @@ public sealed class ShaderGenerator : IIncrementalGenerator
 
         var constants = GenerateResourceSlotConstants(shader.Variables, shader.CBuffers);
 
-        var fields = @"private readonly Mini.Engine.DirectX.Device Device;
-                       private readonly Mini.Engine.IO.IVirtualFileSystem FileSystem;
-                       private readonly Mini.Engine.Content.ContentManager Content;";
+        var fields = @"private readonly Mini.Engine.DirectX.Device Device;";
 
-
-        var arguments = "Mini.Engine.DirectX.Device device, Mini.Engine.IO.IVirtualFileSystem fileSystem, Mini.Engine.Content.ContentManager content";
+        var arguments = "Mini.Engine.DirectX.Device device, Mini.Engine.Content.v2.ContentManager content";
 
         var assignments = GenerateFieldAssignments() + Environment.NewLine + GenerateShaderPropertyAssignments(shader.FilePath, shader.Functions);
 
@@ -55,11 +52,7 @@ public sealed class ShaderGenerator : IIncrementalGenerator
 
         var structures = StructGenerator.Generate(shader.Structures) + StructGenerator.Generate(shader.CBuffers, shader.Structures);
 
-        var methods = string.Empty;
-        if (shader.CBuffers.Count > 0)
-        {
-            methods = $"public {@class}.User CreateUserFor<T>() {{ return new {@class}.User(this.Device, typeof(T).Name); }}";
-        }
+        var methods = GenerateShaderTypeSpecificMethods(shader.Functions) + Environment.NewLine + GenerateCreateUserMethod(@class, shader.CBuffers);
 
         var innerClass = ShaderUserGenerator.Generate(shader);
 
@@ -96,9 +89,7 @@ public sealed class ShaderGenerator : IIncrementalGenerator
 
     private static string GenerateFieldAssignments()
     {
-        return @"this.Device = device;
-                 this.FileSystem = fileSystem;
-                 this.Content = content;";
+        return @"this.Device = device;";
     }
 
     private static string GenerateShaderPropertyAssignments(string filePath, IReadOnlyList<Function> functions)
@@ -110,17 +101,17 @@ public sealed class ShaderGenerator : IIncrementalGenerator
             var instantation = string.Empty;
             switch (function.GetProgramDirective())
             {
-                case ProgramDirectives.VertexShader:
-                    instantation = $"new Mini.Engine.Content.Shaders.VertexShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\")";
+                case ProgramDirectives.VertexShader:                    
+                    instantation = $"content.LoadVertexShader({id})";
                     break;
                 case ProgramDirectives.PixelShader:
-                    instantation = $"new Mini.Engine.Content.Shaders.PixelShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\")";
+                    instantation = $"content.LoadPixelShader({id})";
                     break;
                 case ProgramDirectives.ComputeShader:
                     var x = function.Attributes["numthreads"][0];
                     var y = function.Attributes["numthreads"][1];
                     var z = function.Attributes["numthreads"][2];
-                    instantation = $"new Mini.Engine.Content.Shaders.ComputeShaderContent(this.Device, this.FileSystem, this.Content, {id}, \"{function.GetProfile()}\", {x}, {y}, {z})";
+                    instantation = $"content.LoadComputeShader({id}, {x}, {y}, {z})";
                     break;
             }
 
@@ -155,7 +146,7 @@ public sealed class ShaderGenerator : IIncrementalGenerator
 
             if (!string.IsNullOrEmpty(interfaceType))
             {
-                builder.AppendLine($"public {interfaceType} {Naming.ToUpperCamelCase(function.Name)} {{ get; }}");
+                builder.AppendLine($"public Mini.Engine.Core.Lifetime.ILifetime<{interfaceType}> {Naming.ToUpperCamelCase(function.Name)} {{ get; }}");
             }
         }        
 
@@ -165,6 +156,48 @@ public sealed class ShaderGenerator : IIncrementalGenerator
     private static string GenerateSourceProperty(string filePath)
     {
         return $"public static string SourceFile => {SourceUtilities.ToLiteral(filePath)};";
+    }
+
+
+    private static string GenerateShaderTypeSpecificMethods(IReadOnlyList<Function> functions)
+    {
+        var builder = new StringBuilder();
+        foreach (var function in functions)
+        {
+            var propertyName = Naming.ToUpperCamelCase(function.Name);
+
+            if (function.GetProgramDirective() == ProgramDirectives.VertexShader)
+            {
+                builder.Append($@"
+                    public Mini.Engine.DirectX.Buffers.InputLayout CreateInputLayoutFor{propertyName}(params Vortice.Direct3D11.InputElementDescription[] elements)
+                    {{
+                        return this.Device.Resources.Get(this.{propertyName}).CreateInputLayout(this.Device, elements);
+                    }}
+                    ");
+            }
+
+            if (function.GetProgramDirective() == ProgramDirectives.ComputeShader)
+            {
+                builder.Append($@"
+                    public (int X, int Y, int Z) GetDispatchSizeFor{propertyName}(int dimX, int dimY, int dimZ)
+                    {{
+                        return this.Device.Resources.Get(this.{propertyName}).GetDispatchSize(dimX, dimY, dimZ);
+                    }}
+                    ");
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    private static string GenerateCreateUserMethod(string @class, IReadOnlyList<CBuffer> cBuffers)
+    {
+        if (cBuffers.Count > 0)
+        {
+            return $"public {@class}.User CreateUserFor<T>() {{ return new {@class}.User(this.Device, typeof(T).Name); }}";
+        }
+
+        return string.Empty;
     }
 
     private static string FormatFileSkeleton(string @namespace, string @class, string constants, string fields, string arguments, string assignments, string properties, string structures, string methods, string innerClass)
