@@ -6,7 +6,7 @@ using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Mini.Engine.Content.v2.Textures;
-public sealed class TextureContent : ITexture, IContent
+public sealed class TextureContent : ITexture, IContent<ITexture, TextureLoaderSettings>
 {
     private ITexture original;
 

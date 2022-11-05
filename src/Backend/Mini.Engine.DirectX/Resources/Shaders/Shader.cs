@@ -6,9 +6,10 @@ namespace Mini.Engine.DirectX.Resources.Shaders;
 
 public interface IShader : IDisposable
 {
-    InputLayout CreateInputLayout(Device device, params InputElementDescription[] elements);
+    
 }
 
+// TODO: we can probably get rid of this soon!
 public abstract class Shader<TShader> : IDisposable
     where TShader : ID3D11DeviceChild
 {
@@ -22,12 +23,7 @@ public abstract class Shader<TShader> : IDisposable
         this.ID3D11Shader = null!;
     }
 
-    public TShader ID3D11Shader { get; set; } // TODO: we can probably get rid of the set method soon!
-
-    public InputLayout CreateInputLayout(Device device, params InputElementDescription[] elements)
-    {
-        return new(device.ID3D11Device.CreateInputLayout(elements, this.blob!));
-    }
+    public TShader ID3D11Shader { get; set; } 
 
     public virtual void Dispose()
     {

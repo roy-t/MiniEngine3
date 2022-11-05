@@ -1,11 +1,12 @@
 ﻿using Mini.Engine.Content.Textures;
 using Mini.Engine.Content.v2.Serialization;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources.Surfaces;
 using ColorComponents = StbImageSharp.ColorComponents;
 using ImageResultFloat = StbImageSharp.ImageResultFloat;
 
 namespace Mini.Engine.Content.v2.Textures;
-internal sealed class HdrTextureProcessor : IContentProcessor<TextureContent, TextureLoaderSettings>
+internal sealed class HdrTextureProcessor : IContentProcessor<ITexture, TextureContent, TextureLoaderSettings>
 {
     private static readonly Guid HeaderHdr = new("{650531A2-0DF5-4E36-85AB-F5525464F962}");
 
@@ -14,11 +15,11 @@ internal sealed class HdrTextureProcessor : IContentProcessor<TextureContent, Te
     public HdrTextureProcessor(Device device)
     {
         this.Device = device;
-        this.Cache = new ContentTypeCache<TextureContent>();
+        this.Cache = new ContentTypeCache<ITexture>();
     }
 
     public int Version => 1;
-    public IContentTypeCache<TextureContent> Cache { get; }
+    public IContentTypeCache<ITexture> Cache { get; }
 
     public void Generate(ContentId id, TextureLoaderSettings settings, ContentWriter writer, TrackingVirtualFileSystem fileSystem)
     {
@@ -34,23 +35,21 @@ internal sealed class HdrTextureProcessor : IContentProcessor<TextureContent, Te
         }
     }
 
-    public TextureContent Load(ContentId contentId, ContentHeader header, ContentReader reader)
+    public ITexture Load(ContentId contentId, ContentHeader header, ContentReader reader)
     {
-        if (header.Type == HeaderHdr)
-        {
+        ContentProcessor.ValidateHeader(HeaderHdr, this.Version, header);
+        return HdrTextureReader.Read(this.Device, contentId, reader);
+    }
 
-            var (settings, texture) = HdrTextureReader.Read(this.Device, contentId, reader);
-            return new TextureContent(contentId, texture, settings, header.Dependencies);
-        }
-
-        throw new NotSupportedException($"Unexpected header: {header}");
+    public TextureContent Wrap(ContentId id, ITexture content, TextureLoaderSettings settings, ISet<string> dependencies)
+    {
+        return new TextureContent(id, content, settings, dependencies);
     }
 
     public void Reload(IContent original, ContentWriterReader writerReader, TrackingVirtualFileSystem fileSystem)
     {
-        TextureReloader.Reload(this, (TextureContent)original, fileSystem, writerReader);
+        ContentReloader.Reload(this, (TextureContent)original, fileSystem, writerReader);
     }
-
 
     public bool HasSupportedHdrExtension(string path)
     {

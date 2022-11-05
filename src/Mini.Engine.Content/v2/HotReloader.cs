@@ -44,7 +44,7 @@ internal sealed class HotReloader
                 {
                     if (content.Dependencies.Contains(file))
                     {
-                        this.Logger.Information("Reloading {@content} because it references {@file}", content.GetType().Name, file);
+                        this.Logger.Information("Reloading {@type}:{@content} because it references {@file}", content.GetType().Name, content.Id.ToString(), file);
                         
                         var path = content.Id.Path + Constants.Extension;
                         using var rwStream = this.FileSystem.CreateWriteRead(path);

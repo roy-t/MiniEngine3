@@ -50,17 +50,19 @@ public sealed class ContentManager
 
     public ILifetime<IComputeShader> LoadComputeShader(string path, string key, int numThreadsX, int numThreadsY, int numThreadsZ)
     {
-        return this.Load(this.ComputeShaderProcessor, new ComputeShaderSettings(numThreadsX, numThreadsY, numThreadsZ), path, key);
+        return this.Load(this.ComputeShaderProcessor, new ComputeShaderSettings(numThreadsX, numThreadsY, numThreadsZ), path, key);        
     }
 
-    public ILifetime<TContent> Load<TContent, TSettings>(IContentProcessor<TContent, TSettings> processor, TSettings settings, string path, string? key = null)
-        where TContent : IContent
+    public ILifetime<TContent> Load<TContent, TWrapped, TSettings>(IContentProcessor<TContent, TWrapped, TSettings> processor, TSettings settings, string path, string? key = null)
+        where TContent : IDisposable
+        where TWrapped : IContent, TContent
     {
         return this.Load(processor, settings, new ContentId(path, key ?? string.Empty));
     }
 
-    public ILifetime<TContent> Load<TContent, TSettings>(IContentProcessor<TContent, TSettings> processor, TSettings settings, ContentId id)
-        where TContent : IContent
+    public ILifetime<TContent> Load<TContent, TWrapped, TSettings>(IContentProcessor<TContent, TWrapped, TSettings> processor, TSettings settings, ContentId id)
+        where TContent : IDisposable
+        where TWrapped : IContent, TContent
     {
         // 1. Return existing reference        
         if (processor.Cache.TryGetValue(id, out var t))
@@ -75,14 +77,17 @@ public sealed class ContentManager
             using var rStream = this.FileSystem.OpenRead(path);
             using var reader = new ContentReader(rStream);
             var header = reader.ReadHeader();
-            if (Utilities.IsCurrent(processor, header, this.FileSystem))
+            if (ContentProcessor.IsContentUpToDate(processor, header, this.FileSystem))
             {
                 var content = processor.Load(id, header, reader);
-                this.HotReloader.Register(content, processor);
-
-                var resource = this.RegisterContentResource(content);
+#if DEBUG
+                var wrapped = processor.Wrap(id, content, settings, header.Dependencies);
+                this.HotReloader.Register(wrapped, processor);
+                var resource = this.RegisterContentResource((TContent)wrapped);
+#else
+                var resource = this.RegisterContentResource(content);                
+#endif
                 processor.Cache.Store(id, resource);
-
                 return resource;
             }
         }
@@ -98,7 +103,7 @@ public sealed class ContentManager
     }
 
     private ILifetime<T> RegisterContentResource<T>(T content)
-        where T : IContent
+        where T : IDisposable
     {
         return this.LifetimeManager.Add(content);
     }

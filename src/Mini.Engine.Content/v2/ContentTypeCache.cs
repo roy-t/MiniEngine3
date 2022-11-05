@@ -2,7 +2,7 @@
 
 namespace Mini.Engine.Content.v2;
 public sealed class ContentTypeCache<T> : IContentTypeCache<T>
-    where T : IContent, IDisposable
+    where T : IDisposable
 {
 
     private readonly Dictionary<ContentId, WeakReference<ILifetime<T>>> Cache;

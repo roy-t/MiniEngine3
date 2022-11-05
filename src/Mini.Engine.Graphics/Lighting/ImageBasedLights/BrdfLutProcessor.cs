@@ -15,11 +15,11 @@ using ImageInfo = Mini.Engine.DirectX.Resources.Surfaces.ImageInfo;
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 [Service]
-public sealed class BrdfLutProcessor : IContentProcessor<TextureContent, TextureLoaderSettings>
+public sealed class BrdfLutProcessor : IContentProcessor<ITexture, TextureContent, TextureLoaderSettings>
 {
     private const int Resolution = 512;
 
-    private static readonly Guid Header = new("{0021262F-65A4-4D2C-AF2F-F6FEB7E62229}");
+    private static readonly Guid HeaderBrdfLut = new("{0021262F-65A4-4D2C-AF2F-F6FEB7E62229}");
 
     private readonly Device Device;
     private readonly BrdfLutCompute Shader;
@@ -28,38 +28,37 @@ public sealed class BrdfLutProcessor : IContentProcessor<TextureContent, Texture
     public BrdfLutProcessor(Device device, BrdfLutCompute shader)
     {
         this.Device = device;
-        this.Cache = new ContentTypeCache<TextureContent>();
+        this.Cache = new ContentTypeCache<ITexture>();
 
         this.Shader = shader;
         this.User = this.Shader.CreateUserFor<BrdfLutProcessor>();
     }
 
     public int Version => 8;
-    public IContentTypeCache<TextureContent> Cache { get; }
+    public IContentTypeCache<ITexture> Cache { get; }
 
     public void Generate(ContentId id, TextureLoaderSettings _, ContentWriter contentWriter, TrackingVirtualFileSystem fileSystem)
     {
         var image = this.ComputeImage();
         var dependencies = new HashSet<string>() { BrdfLutCompute.SourceFile };
         var settings = new TextureLoaderSettings(SuperCompressed.Mode.Linear, false);
-        HdrTextureWriter.Write(contentWriter, Header, this.Version, settings, dependencies, image);
+        HdrTextureWriter.Write(contentWriter, HeaderBrdfLut, this.Version, settings, dependencies, image);
     }
 
-    public TextureContent Load(ContentId id, ContentHeader header, ContentReader contentReader)
+    public ITexture Load(ContentId id, ContentHeader header, ContentReader contentReader)
     {
-        if (header.Type == Header)
-        {
+        ContentProcessor.ValidateHeader(HeaderBrdfLut, this.Version, header);
+        return HdrTextureReader.Read(this.Device, id, contentReader);        
+    }
 
-            var (settings, texture) = HdrTextureReader.Read(this.Device, id, contentReader);
-            return new TextureContent(id, texture, settings, header.Dependencies);
-        }
-
-        throw new NotSupportedException($"Unexpected header: {header}");
+    public TextureContent Wrap(ContentId id, ITexture content, TextureLoaderSettings settings, ISet<string> dependencies)
+    {
+        return new TextureContent(id, content, settings, dependencies);
     }
 
     public void Reload(IContent original, ContentWriterReader writerReader, TrackingVirtualFileSystem fileSystem)
     {
-        TextureReloader.Reload(this, (TextureContent)original, fileSystem, writerReader);
+        ContentReloader.Reload(this, (TextureContent)original, fileSystem, writerReader);
     }
 
     private ImageResultFloat ComputeImage()

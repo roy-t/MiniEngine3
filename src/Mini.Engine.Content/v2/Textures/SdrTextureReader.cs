@@ -9,7 +9,7 @@ public static class SdrTextureReader
 {
     private const int MinBlockSize = 4;
 
-    public static (TextureLoaderSettings, ITexture) Read(Device device, ContentId id, TranscodeFormats preferredFormat, ContentReader reader)
+    public static ITexture Read(Device device, ContentId id, TranscodeFormats preferredFormat, ContentReader reader)
     {
         var settings = reader.ReadTextureSettings();
         var imageWidth = reader.Reader.ReadInt32();
@@ -60,7 +60,7 @@ public static class SdrTextureReader
             }
         }
 
-        return (settings, texture);
+        return texture;
     }
 
     private static TranscodeFormats GetSupportedFormat(TranscodeFormats preferredFormat, int width, int heigth)

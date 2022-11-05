@@ -5,9 +5,9 @@ using Vortice.D3DCompiler;
 using Vortice.Direct3D;
 
 namespace Mini.Engine.Content.v2.Shaders;
-internal sealed class ComputeShaderProcessor : IContentProcessor<ComputeShaderContent, ComputeShaderSettings>
+internal sealed class ComputeShaderProcessor : IContentProcessor<IComputeShader, ComputeShaderContent, ComputeShaderSettings>
 {
-    private static readonly Guid Header = new("{8891B57B-C52C-4933-B121-FE6C718DB3D7}");
+    private static readonly Guid HeaderComputeShader = new("{8891B57B-C52C-4933-B121-FE6C718DB3D7}");
     private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();
     private static readonly string Profile = "cs_5_0";
 
@@ -16,10 +16,10 @@ internal sealed class ComputeShaderProcessor : IContentProcessor<ComputeShaderCo
     public ComputeShaderProcessor(Device device)
     {
         this.Device = device;
-        this.Cache = new ContentTypeCache<ComputeShaderContent>();
+        this.Cache = new ContentTypeCache<IComputeShader>();
     }
 
-    public IContentTypeCache<ComputeShaderContent> Cache { get; }
+    public IContentTypeCache<IComputeShader> Cache { get; }
     public int Version => 1;
 
     public void Generate(ContentId id, ComputeShaderSettings settings, ContentWriter writer, TrackingVirtualFileSystem fileSystem)
@@ -30,7 +30,7 @@ internal sealed class ComputeShaderProcessor : IContentProcessor<ComputeShaderCo
         Compiler.Compile(sourceText, Defines, include, id.Key, id.Path, Profile, out var shaderBlob, out var errorBlob);
         ShaderCompilationErrorFilter.ThrowOnWarningOrError(errorBlob, "X3568" /*Undefined Pragma */);
 
-        writer.WriteHeader(Header, this.Version, fileSystem.GetDependencies());
+        writer.WriteHeader(HeaderComputeShader, this.Version, fileSystem.GetDependencies());
         writer.Writer.Write(settings.NumThreadsX);
         writer.Writer.Write(settings.NumThreadsY);
         writer.Writer.Write(settings.NumThreadsZ);
@@ -40,27 +40,25 @@ internal sealed class ComputeShaderProcessor : IContentProcessor<ComputeShaderCo
         errorBlob?.Dispose();
     }
 
-    public ComputeShaderContent Load(ContentId contentId, ContentHeader header, ContentReader reader)
+    public IComputeShader Load(ContentId contentId, ContentHeader header, ContentReader reader)
     {
+        ContentProcessor.ValidateHeader(HeaderComputeShader, this.Version, header);
+
         var numThreadsX = reader.Reader.ReadInt32();
         var numThreadsY = reader.Reader.ReadInt32();
         var numThreadsZ = reader.Reader.ReadInt32();
         var byteCode = reader.ReadArray();
 
-        var shader = new ComputeShader(this.Device, byteCode, numThreadsX, numThreadsY, numThreadsZ);
+        return new ComputeShader(this.Device, byteCode, numThreadsX, numThreadsY, numThreadsZ);
+    }
 
-        return new ComputeShaderContent(contentId, shader, new ComputeShaderSettings(numThreadsX, numThreadsY, numThreadsZ), header.Dependencies);
+    public ComputeShaderContent Wrap(ContentId id, IComputeShader content, ComputeShaderSettings settings, ISet<string> dependencies)
+    {
+        return new ComputeShaderContent(id, content, settings, dependencies);
     }
 
     public void Reload(IContent original, ContentWriterReader writerReader, TrackingVirtualFileSystem fileSystem)
     {
-        var computeShader = (ComputeShaderContent)original;
-        this.Generate(original.Id, computeShader.Settings, writerReader.Writer, fileSystem);
-
-        writerReader.Rewind();
-
-        var header = writerReader.Reader.ReadHeader();
-        var replacement = this.Load(original.Id, header, writerReader.Reader);
-        computeShader.Reload(replacement);
+        ContentReloader.Reload(this, (ComputeShaderContent)original, fileSystem, writerReader);
     }
 }

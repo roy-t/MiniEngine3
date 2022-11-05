@@ -6,6 +6,8 @@ namespace Mini.Engine.DirectX.Resources.Shaders;
 public interface IVertexShader : IShader
 {
     internal ID3D11VertexShader ID3D11Shader { get; }
+
+    InputLayout CreateInputLayout(Device device, params InputElementDescription[] elements);
 }
 
 public sealed class VertexShader : IVertexShader

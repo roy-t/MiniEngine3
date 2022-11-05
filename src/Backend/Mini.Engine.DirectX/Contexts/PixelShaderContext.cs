@@ -1,7 +1,6 @@
 ﻿using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts.States;
-using Mini.Engine.DirectX.Resources;
 using Mini.Engine.DirectX.Resources.Shaders;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.Direct3D11;

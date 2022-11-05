@@ -1,11 +1,12 @@
 ﻿using Mini.Engine.Content.Textures;
 using Mini.Engine.Content.v2.Serialization;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources.Surfaces;
 using SuperCompressed;
 
 namespace Mini.Engine.Content.v2.Textures;
 
-internal sealed class SdrTextureProcessor : IContentProcessor<TextureContent, TextureLoaderSettings>
+internal sealed class SdrTextureProcessor : IContentProcessor<ITexture, TextureContent, TextureLoaderSettings>
 {
     private static readonly Guid HeaderSdr = new("{7AED564E-32B4-4F20-B14A-2D209F0BABBD}");
 
@@ -14,11 +15,11 @@ internal sealed class SdrTextureProcessor : IContentProcessor<TextureContent, Te
     public SdrTextureProcessor(Device device)
     {
         this.Device = device;
-        this.Cache = new ContentTypeCache<TextureContent>();
+        this.Cache = new ContentTypeCache<ITexture>();
     }
 
     public int Version => 6;
-    public IContentTypeCache<TextureContent> Cache { get; }
+    public IContentTypeCache<ITexture> Cache { get; }
 
     public void Generate(ContentId id, TextureLoaderSettings settings, ContentWriter contentWriter, TrackingVirtualFileSystem fileSystem)
     {
@@ -34,20 +35,20 @@ internal sealed class SdrTextureProcessor : IContentProcessor<TextureContent, Te
         }
     }
 
-    public TextureContent Load(ContentId id, ContentHeader header, ContentReader reader)
+    public ITexture Load(ContentId id, ContentHeader header, ContentReader reader)
     {
-        if (header.Type == HeaderSdr)
-        {
-            var (settings, texture) = SdrTextureReader.Read(this.Device, id, TranscodeFormats.BC7_RGBA, reader);
-            return new TextureContent(id, texture, settings, header.Dependencies);
-        }
+        ContentProcessor.ValidateHeader(HeaderSdr, this.Version, header);
+        return SdrTextureReader.Read(this.Device, id, TranscodeFormats.BC7_RGBA, reader);        
+    }
 
-        throw new NotSupportedException($"Unexpected header: {header}");
+    public TextureContent Wrap(ContentId id, ITexture content, TextureLoaderSettings settings, ISet<string> dependencies)
+    {
+        return new TextureContent(id, content, settings, dependencies);
     }
 
     public void Reload(IContent original, ContentWriterReader writerReader, TrackingVirtualFileSystem fileSystem)
     {
-        TextureReloader.Reload(this, (TextureContent)original, fileSystem, writerReader);
+        ContentReloader.Reload(this, (TextureContent)original, fileSystem, writerReader);
     }
 
     public bool HasSupportedSdrExtension(string path)
@@ -59,4 +60,6 @@ internal sealed class SdrTextureProcessor : IContentProcessor<TextureContent, Te
             _ => false
         };
     }
+
+
 }

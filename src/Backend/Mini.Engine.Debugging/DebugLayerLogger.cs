@@ -63,7 +63,7 @@ public sealed class DebugLayerLogger
         this.DebugInfoQueue.ClearStoredMessages();
 #endif
     }
-
+#if DEBUG
     private void OnFirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
     {
         if (e.Exception is SEHException seh)
@@ -78,6 +78,7 @@ public sealed class DebugLayerLogger
 
     private Exception? CheckForException(SEHException exception)
     {
+
         var stored = this.DebugInfoQueue.NumStoredMessages;
         for (ulong i = 0; i < stored; i++)
         {
@@ -93,6 +94,7 @@ public sealed class DebugLayerLogger
 
     private static string UnterminateString(string message)
     {
+
         if (message.EndsWith('\0'))
         {
             return message[0..^1];
@@ -110,4 +112,5 @@ public sealed class DebugLayerLogger
             _ => LogEventLevel.Information,
         };
     }
+#endif
 }
