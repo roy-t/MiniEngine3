@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.IO;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Materials;
 using Mini.Engine.Content.Models;
@@ -90,7 +91,7 @@ public sealed partial class ContentManager : IDisposable
         return this.LoadModel(@"Scenes\cube\cube.obj");
     }
 
-    public ILifetime<IMaterial> LoadDefaultMaterial()
+    public IMaterial LoadDefaultMaterial()
     {
         var settings = new MaterialLoaderSettings
         (
@@ -100,7 +101,9 @@ public sealed partial class ContentManager : IDisposable
             TextureLoaderSettings.RenderData,
             TextureLoaderSettings.RenderData
         );
-        return this.LoadMaterial("default.mtl", "default", settings);
+
+        var id = new ContentId("default.mtl", "default");
+        return this.MaterialLoader.Load(this.Device, id, settings);
     }
 
     public void Push(string name)

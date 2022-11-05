@@ -1,12 +1,13 @@
-﻿using Mini.Engine.DirectX.Resources.Surfaces;
+﻿using Mini.Engine.Core.Lifetime;
+using Mini.Engine.DirectX.Resources.Surfaces;
 
 namespace Mini.Engine.DirectX.Resources.Models;
 
 public sealed class Material : IMaterial
 {
-    public Material(ISurface albedo, ISurface metalicness, ISurface normal, ISurface roughness, ISurface ambientOcclusion, string user)
+    public Material(string name, ILifetime<ISurface> albedo, ILifetime<ISurface> metalicness, ILifetime<ISurface> normal, ILifetime<ISurface> roughness, ILifetime<ISurface> ambientOcclusion)
     {
-        this.Name = DebugNameGenerator.GetName(user);
+        this.Name = name;
         this.Albedo = albedo;
         this.Metalicness = metalicness;
         this.Normal = normal;
@@ -15,18 +16,14 @@ public sealed class Material : IMaterial
     }
 
     public string Name { get; }
-    public ISurface Albedo { get; }
-    public ISurface Metalicness { get; }
-    public ISurface Normal { get; }
-    public ISurface Roughness { get; }
-    public ISurface AmbientOcclusion { get; }
+    public ILifetime<ISurface> Albedo { get; }
+    public ILifetime<ISurface> Metalicness { get; }
+    public ILifetime<ISurface> Normal { get; }
+    public ILifetime<ISurface> Roughness { get; }
+    public ILifetime<ISurface> AmbientOcclusion { get; }
 
     public void Dispose()
     {
-        this.Albedo.Dispose();
-        this.Metalicness.Dispose();
-        this.Normal.Dispose();
-        this.Roughness.Dispose();
-        this.AmbientOcclusion.Dispose();
+        // Do nothing
     }
 }

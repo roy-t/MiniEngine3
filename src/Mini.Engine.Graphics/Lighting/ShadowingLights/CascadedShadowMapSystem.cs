@@ -46,9 +46,8 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
 
         this.InputLayout = this.Shader.CreateInputLayoutForVs(ModelVertex.Elements);
         this.Frustum = new LightFrustum();
-
-        var material = content.LoadDefaultMaterial();
-        this.DefaultMaterial = device.Resources.Get(material);
+        
+        this.DefaultMaterial = content.LoadDefaultMaterial();
     }
 
     public void OnSet()

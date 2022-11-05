@@ -4,8 +4,7 @@ using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.v2;
 
-public interface IContentTypeCache<T>
-    where T : IDisposable
+public interface IContentTypeCache<T>    
 {
     public bool TryGetValue(ContentId id, out ILifetime<T> value);
     public void Store(ContentId id, ILifetime<T> value);

@@ -1,8 +1,7 @@
 ﻿using Mini.Engine.Core.Lifetime;
 
 namespace Mini.Engine.Content.v2;
-public sealed class ContentTypeCache<T> : IContentTypeCache<T>
-    where T : IDisposable
+public sealed class ContentTypeCache<T> : IContentTypeCache<T>   
 {
 
     private readonly Dictionary<ContentId, WeakReference<ILifetime<T>>> Cache;
