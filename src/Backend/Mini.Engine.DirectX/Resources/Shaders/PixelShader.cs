@@ -21,11 +21,6 @@ public sealed class PixelShader : IPixelShader
 
     ID3D11PixelShader IPixelShader.ID3D11Shader => this.Shader;
 
-    public InputLayout CreateInputLayout(Device device, params InputElementDescription[] elements)
-    {
-        return new(device.ID3D11Device.CreateInputLayout(elements, this.ByteCode));
-    }
-
     public void Dispose()
     {
         this.Shader.Dispose();

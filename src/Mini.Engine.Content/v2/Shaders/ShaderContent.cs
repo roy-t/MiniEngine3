@@ -1,0 +1,35 @@
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Mini.Engine.Content.v2.Shaders;
+internal abstract class ShaderContent<TShader, TSettings> : IContent<TShader, TSettings>
+    where TShader : IDisposable
+{
+    protected TShader original;
+
+    public ShaderContent(ContentId id, TShader original, TSettings settings, ISet<string> dependencies)
+    {
+        this.Id = id;
+        this.Settings = settings;
+        this.Dependencies = dependencies;
+
+        this.Reload(original);
+    }
+
+    public ContentId Id { get; }
+    public ISet<string> Dependencies { get; }
+
+    public TSettings Settings { get; }
+
+
+    [MemberNotNull(nameof(original))]
+    public void Reload(TShader original)
+    {
+        this.Dispose();
+        this.original = original;
+    }
+
+    public void Dispose()
+    {
+        this.original?.Dispose();
+    }
+}

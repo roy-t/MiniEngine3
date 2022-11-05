@@ -30,11 +30,6 @@ public sealed class ComputeShader : IComputeShader
 
     ID3D11ComputeShader IComputeShader.ID3D11Shader => this.Shader;
 
-    public InputLayout CreateInputLayout(Device device, params InputElementDescription[] elements)
-    {
-        return new(device.ID3D11Device.CreateInputLayout(elements, this.ByteCode));
-    }
-
     public (int X, int Y, int Z) GetDispatchSize(int dimX, int dimY, int dimZ)
     {
         var x = GetDispatchSize(this.NumThreadsX, dimX);
