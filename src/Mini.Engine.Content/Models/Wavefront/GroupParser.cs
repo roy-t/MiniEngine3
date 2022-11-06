@@ -12,7 +12,7 @@ internal sealed class GroupParser : ObjStatementParser
 {
     public override string Key => "g";
 
-    protected override void ParseArguments(ParseState state, SpanTokenEnumerator arguments, IVirtualFileSystem fileSystem)
+    protected override void ParseArguments(ParseState state, SpanTokenEnumerator arguments, IReadOnlyVirtualFileSystem fileSystem)
     {
         var builder = new StringBuilder();
         foreach (var name in arguments)

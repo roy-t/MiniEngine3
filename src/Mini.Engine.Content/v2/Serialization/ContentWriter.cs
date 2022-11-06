@@ -22,6 +22,12 @@ public sealed class ContentWriter : IDisposable
         this.WriteDependencies(dependencies);        
     }
 
+    public void Write(ContentId id)
+    {
+        this.Writer.Write(id.Path);
+        this.Writer.Write(id.Key);
+    }
+
     public void WriteArray(ReadOnlySpan<byte> bytes)
     {
         this.Writer.Write(bytes.Length);

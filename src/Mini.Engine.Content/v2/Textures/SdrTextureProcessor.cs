@@ -1,12 +1,13 @@
 ﻿using Mini.Engine.Content.Textures;
 using Mini.Engine.Content.v2.Serialization;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using SuperCompressed;
 
 namespace Mini.Engine.Content.v2.Textures;
 
-internal sealed class SdrTextureProcessor : IContentProcessor<ITexture, TextureContent, TextureLoaderSettings>
+internal sealed class SdrTextureProcessor : IUnmanagedContentProcessor<ITexture, TextureContent, TextureLoaderSettings>
 {
     private static readonly Guid HeaderSdr = new("{7AED564E-32B4-4F20-B14A-2D209F0BABBD}");
 
@@ -15,11 +16,11 @@ internal sealed class SdrTextureProcessor : IContentProcessor<ITexture, TextureC
     public SdrTextureProcessor(Device device)
     {
         this.Device = device;
-        this.Cache = new ContentTypeCache<ITexture>();
+        this.Cache = new ContentTypeCache<ILifetime<ITexture>>();
     }
 
     public int Version => 6;
-    public IContentTypeCache<ITexture> Cache { get; }
+    public IContentTypeCache<ILifetime<ITexture>> Cache { get; }
 
     public void Generate(ContentId id, TextureLoaderSettings settings, ContentWriter contentWriter, TrackingVirtualFileSystem fileSystem)
     {

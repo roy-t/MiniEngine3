@@ -3,24 +3,36 @@ using Mini.Engine.Content.v2.Serialization;
 using Mini.Engine.DirectX.Resources.Models;
 
 namespace Mini.Engine.Content.v2.Materials;
-internal sealed class WavefrontMaterialProcessor : IContentProcessor<IMaterial, MaterialContent, MaterialLoaderSettings>
+internal sealed class WavefrontMaterialProcessor : IManagedContentProcessor<IMaterial, MaterialContent, MaterialLoaderSettings>
 {
     private static readonly Guid HeaderMaterial = new("{0124D18A-D3E6-48C4-A733-BD3881171B76}");
+    private readonly WavefrontMaterialParser Parser;
+    private readonly ContentManager Content;
 
-    public WavefrontMaterialProcessor()
+    public WavefrontMaterialProcessor(ContentManager content)
     {
+        this.Parser = new WavefrontMaterialParser();
         this.Cache = new ContentTypeCache<IMaterial>();
+        this.Content = content;
     }
 
     public int Version => 1;
     public IContentTypeCache<IMaterial> Cache { get; }
 
-    public void Generate(ContentId id, MaterialLoaderSettings settings, ContentWriter contentWriter, TrackingVirtualFileSystem fileSystem)
+    public void Generate(ContentId id, MaterialLoaderSettings settings, ContentWriter writer, TrackingVirtualFileSystem fileSystem)
     {
         if (this.HasSupportedExtension(id.Path))
         {
-            // TODO: copy the WavefrontMaterialDataLoader and instead of doing 'Load' only parse the file
-            // and store the contentids of the textures that should be loaded
+            var material = this.Parser.Parse(id, fileSystem);
+
+            writer.WriteHeader(HeaderMaterial, this.Version, fileSystem.GetDependencies());
+            writer.Write(settings);
+            writer.Writer.Write(material.Name);
+            writer.Write(material.Albedo);
+            writer.Write(material.Metalicness);
+            writer.Write(material.Normal);
+            writer.Write(material.Roughness);
+            writer.Write(material.AmbientOcclusion);
         }
         else
         {
@@ -30,8 +42,17 @@ internal sealed class WavefrontMaterialProcessor : IContentProcessor<IMaterial, 
 
     public IMaterial Load(ContentId id, ContentHeader header, ContentReader reader)
     {
-        // TODO: read the original NAME, settings and textures needed
-        // then use the content manager itself to load the required textures
+        ContentProcessor.ValidateHeader(HeaderMaterial, this.Version, header);
+
+        var settings = reader.ReadMaterialSettings();
+        var name = reader.Reader.ReadString();
+        var albedo = this.Content.LoadTexture(reader.ReadContentId(), settings.AlbedoFormat);
+        var metalicness = this.Content.LoadTexture(reader.ReadContentId(), settings.MetalicnessFormat);
+        var normal = this.Content.LoadTexture(reader.ReadContentId(), settings.NormalFormat);
+        var roughness = this.Content.LoadTexture(reader.ReadContentId(), settings.RoughnessFormat);
+        var ambientOcclusion = this.Content.LoadTexture(reader.ReadContentId(), settings.AmbientOcclusionFormat);
+
+        return new Material(name, albedo, metalicness, normal, roughness, ambientOcclusion);
     }
 
     public MaterialContent Wrap(ContentId id, IMaterial content, MaterialLoaderSettings settings, ISet<string> dependencies)

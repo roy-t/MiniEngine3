@@ -12,7 +12,7 @@ internal sealed class FaceParser : ObjStatementParser
 {
     public override string Key => "f";
 
-    protected override void ParseArguments(ParseState state, SpanTokenEnumerator arguments, IVirtualFileSystem fileSystem)
+    protected override void ParseArguments(ParseState state, SpanTokenEnumerator arguments, IReadOnlyVirtualFileSystem fileSystem)
     {
         var face = new List<Int3>(4);
         foreach (var argument in arguments)

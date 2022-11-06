@@ -1,5 +1,4 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Numerics;
 using Mini.Engine.Content.Parsers;
 using Mini.Engine.IO;
@@ -10,7 +9,7 @@ internal abstract class VertexParser : ObjStatementParser
 {
     private static readonly IFormatProvider FloatFormat = CultureInfo.InvariantCulture.NumberFormat;
 
-    protected override void ParseArguments(ParseState state, SpanTokenEnumerator arguments, IVirtualFileSystem fileSystem)
+    protected override void ParseArguments(ParseState state, SpanTokenEnumerator arguments, IReadOnlyVirtualFileSystem fileSystem)
     {
         var elements = new float[4];
         var index = 0;

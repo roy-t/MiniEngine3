@@ -1,5 +1,4 @@
-﻿using System;
-using Mini.Engine.IO;
+﻿using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Models.Wavefront.Objects;
 
@@ -10,7 +9,7 @@ namespace Mini.Engine.Content.Models.Wavefront.Objects;
 internal sealed class UseMtlParser : ObjStatementParser
 {
     public override string Key => "usemtl";
-    protected override void ParseArgument(ParseState state, ReadOnlySpan<char> argument, IVirtualFileSystem fileSystem)
+    protected override void ParseArgument(ParseState state, ReadOnlySpan<char> argument, IReadOnlyVirtualFileSystem fileSystem)
     {
         var material = new string(argument);
         if (string.IsNullOrEmpty(state.Material))

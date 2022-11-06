@@ -24,6 +24,14 @@ public sealed class ContentReader : IDisposable
         return new ContentHeader(guid, version, timestamp, dependencies);        
     }
 
+    public ContentId ReadContentId()
+    {
+        var path = this.Reader.ReadString();
+        var key = this.Reader.ReadString();
+
+        return new ContentId(path, key);
+    }
+
     public byte[] ReadArray()
     {
         var length = this.Reader.ReadInt32();

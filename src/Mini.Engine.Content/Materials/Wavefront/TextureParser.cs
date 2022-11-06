@@ -1,5 +1,4 @@
-﻿using System;
-using Mini.Engine.IO;
+﻿using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Materials.Wavefront;
 
@@ -16,7 +15,7 @@ internal abstract class TextureParser : MtlStatementParser
 
     public override string Key => this.TextureKey;
 
-    protected override void ParseArgument(ParseState state, ReadOnlySpan<char> argument, IVirtualFileSystem fileSystem)
+    protected override void ParseArgument(ParseState state, ReadOnlySpan<char> argument, IReadOnlyVirtualFileSystem fileSystem)
     {
         var name = new string(argument);
         this.Assign(state, name);

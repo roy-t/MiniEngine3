@@ -8,7 +8,7 @@ internal interface IParseState { }
 internal interface IStatementParser<T>
     where T : IParseState
 {
-    bool Parse(T state, ReadOnlySpan<char> line, IVirtualFileSystem fileSystem);
+    bool Parse(T state, ReadOnlySpan<char> line, IReadOnlyVirtualFileSystem fileSystem);
 }
 
 internal abstract class StatementParser<T> : IStatementParser<T>
@@ -16,7 +16,7 @@ internal abstract class StatementParser<T> : IStatementParser<T>
 {
     public abstract string Key { get; }
 
-    public bool Parse(T state, ReadOnlySpan<char> line, IVirtualFileSystem fileSystem)
+    public bool Parse(T state, ReadOnlySpan<char> line, IReadOnlyVirtualFileSystem fileSystem)
     {
         var trimmedLine = line.TrimStart();
         if (IsRelevant(this.Key, trimmedLine))
@@ -37,6 +37,6 @@ internal abstract class StatementParser<T> : IStatementParser<T>
             char.IsWhiteSpace(line[key.Length]);
     }
 
-    protected virtual void ParseArguments(T state, SpanTokenEnumerator arguments, IVirtualFileSystem fileSystem) { }
-    protected virtual void ParseArgument(T state, ReadOnlySpan<char> argument, IVirtualFileSystem fileSystem) { }
+    protected virtual void ParseArguments(T state, SpanTokenEnumerator arguments, IReadOnlyVirtualFileSystem fileSystem) { }
+    protected virtual void ParseArgument(T state, ReadOnlySpan<char> argument, IReadOnlyVirtualFileSystem fileSystem) { }
 }

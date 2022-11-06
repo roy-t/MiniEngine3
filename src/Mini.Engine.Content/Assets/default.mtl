@@ -1,6 +1,6 @@
 newmtl default
-map_Kd albedo.uastc
-map_Ka metalicness.uastc
-map_bump normal.uastc
-map_Ns roughness.uastc
-map_Ke ao.uastc
+map_Kd albedo.tga
+map_Ka metalicness.tga
+map_bump normal.tga
+map_Ns roughness.tga
+map_Ke ao.tga

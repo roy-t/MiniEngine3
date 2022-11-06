@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using Mini.Engine.Content.Textures;
+﻿using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.IO;
-using Vortice.DXGI;
 
 namespace Mini.Engine.Content.Materials.Wavefront;
 

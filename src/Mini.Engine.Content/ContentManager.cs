@@ -91,20 +91,20 @@ public sealed partial class ContentManager : IDisposable
         return this.LoadModel(@"Scenes\cube\cube.obj");
     }
 
-    public IMaterial LoadDefaultMaterial()
-    {
-        var settings = new MaterialLoaderSettings
-        (
-            TextureLoaderSettings.Default,
-            TextureLoaderSettings.RenderData,
-            TextureLoaderSettings.NormalMaps,
-            TextureLoaderSettings.RenderData,
-            TextureLoaderSettings.RenderData
-        );
+    //public IMaterial LoadDefaultMaterial()
+    //{
+    //    var settings = new MaterialLoaderSettings
+    //    (
+    //        TextureLoaderSettings.Default,
+    //        TextureLoaderSettings.RenderData,
+    //        TextureLoaderSettings.NormalMaps,
+    //        TextureLoaderSettings.RenderData,
+    //        TextureLoaderSettings.RenderData
+    //    );
 
-        var id = new ContentId("default.mtl", "default");
-        return this.MaterialLoader.Load(this.Device, id, settings);
-    }
+    //    var id = new ContentId("default.mtl", "default");
+    //    return this.MaterialLoader.Load(this.Device, id, settings);
+    //}
 
     public void Push(string name)
     {

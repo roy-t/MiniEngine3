@@ -11,7 +11,7 @@ internal sealed class MtlLibParser : ObjStatementParser
 {
     public override string Key => "mtllib";
 
-    protected override void ParseArgument(ParseState state, ReadOnlySpan<char> argument, IVirtualFileSystem fileSystem)
+    protected override void ParseArgument(ParseState state, ReadOnlySpan<char> argument, IReadOnlyVirtualFileSystem fileSystem)
     {
         state.MaterialLibrary = new string(argument);
     }

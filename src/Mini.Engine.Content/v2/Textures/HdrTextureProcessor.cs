@@ -1,12 +1,13 @@
 ﻿using Mini.Engine.Content.Textures;
 using Mini.Engine.Content.v2.Serialization;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using ColorComponents = StbImageSharp.ColorComponents;
 using ImageResultFloat = StbImageSharp.ImageResultFloat;
 
 namespace Mini.Engine.Content.v2.Textures;
-internal sealed class HdrTextureProcessor : IContentProcessor<ITexture, TextureContent, TextureLoaderSettings>
+internal sealed class HdrTextureProcessor : IUnmanagedContentProcessor<ITexture, TextureContent, TextureLoaderSettings>
 {
     private static readonly Guid HeaderHdr = new("{650531A2-0DF5-4E36-85AB-F5525464F962}");
 
@@ -15,11 +16,11 @@ internal sealed class HdrTextureProcessor : IContentProcessor<ITexture, TextureC
     public HdrTextureProcessor(Device device)
     {
         this.Device = device;
-        this.Cache = new ContentTypeCache<ITexture>();
+        this.Cache = new ContentTypeCache<ILifetime<ITexture>>();
     }
 
     public int Version => 1;
-    public IContentTypeCache<ITexture> Cache { get; }
+    public IContentTypeCache<ILifetime<ITexture>> Cache { get; }
 
     public void Generate(ContentId id, TextureLoaderSettings settings, ContentWriter writer, TrackingVirtualFileSystem fileSystem)
     {

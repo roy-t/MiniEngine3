@@ -4,10 +4,11 @@ using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.v2;
 
-public interface IContentTypeCache<T>    
+public interface IContentTypeCache<T>
+    where T : class
 {
-    public bool TryGetValue(ContentId id, out ILifetime<T> value);
-    public void Store(ContentId id, ILifetime<T> value);
+    public bool TryGetValue(ContentId id, out T value);
+    public void Store(ContentId id, T value);
 }
 
 public interface IContentProcessor
@@ -17,14 +18,27 @@ public interface IContentProcessor
 }
 
 public interface IContentProcessor<TContent, TWrapped, TSettings> : IContentProcessor
-    where TContent : IDisposable
+    where TContent : class
     where TWrapped : IContent, TContent
 {
-    IContentTypeCache<TContent> Cache { get; }
-
     void Generate(ContentId id, TSettings settings, ContentWriter writer, TrackingVirtualFileSystem fileSystem);
     TContent Load(ContentId contentId, ContentHeader header, ContentReader reader);
     TWrapped Wrap(ContentId id, TContent content, TSettings settings, ISet<string> dependencies);
+}
+
+
+public interface IUnmanagedContentProcessor<TContent, TWrapped, TSettings> : IContentProcessor<TContent, TWrapped, TSettings>
+    where TContent : class, IDisposable
+    where TWrapped : IContent, TContent
+{
+    IContentTypeCache<ILifetime<TContent>> Cache { get; }    
+}
+
+public interface IManagedContentProcessor<TContent, TWrapped, TSettings> : IContentProcessor<TContent, TWrapped, TSettings>
+    where TContent : class
+    where TWrapped : IContent, TContent
+{
+    IContentTypeCache<TContent> Cache { get; }
 }
 
 public static class ContentProcessor
@@ -42,9 +56,9 @@ public static class ContentProcessor
         }
     }
 
-    public static bool IsContentUpToDate(IContentProcessor manager, ContentHeader header, IVirtualFileSystem fileSystem)
+    public static bool IsContentUpToDate(int expectedVersion, ContentHeader header, IVirtualFileSystem fileSystem)
     {
-        if (header.Version != manager.Version)
+        if (header.Version != expectedVersion)
         {
             return false;
         }

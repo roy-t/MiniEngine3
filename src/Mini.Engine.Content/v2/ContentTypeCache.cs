@@ -1,17 +1,16 @@
-﻿using Mini.Engine.Core.Lifetime;
-
-namespace Mini.Engine.Content.v2;
-public sealed class ContentTypeCache<T> : IContentTypeCache<T>   
+﻿namespace Mini.Engine.Content.v2;
+public sealed class ContentTypeCache<T> : IContentTypeCache<T>
+    where T : class
 {
 
-    private readonly Dictionary<ContentId, WeakReference<ILifetime<T>>> Cache;
+    private readonly Dictionary<ContentId, WeakReference<T>> Cache;
 
     public ContentTypeCache()
     {
-        this.Cache = new Dictionary<ContentId, WeakReference<ILifetime<T>>>();
+        this.Cache = new Dictionary<ContentId, WeakReference<T>>();
     }
 
-    public bool TryGetValue(ContentId id, out ILifetime<T> value)
+    public bool TryGetValue(ContentId id, out T value)
     {
         if (this.Cache.TryGetValue(id, out var reference))
         {
@@ -30,8 +29,8 @@ public sealed class ContentTypeCache<T> : IContentTypeCache<T>
         return false;
     }
 
-    public void Store(ContentId id, ILifetime<T> value)
+    public void Store(ContentId id, T value)
     {
-        this.Cache.Add(id, new WeakReference<ILifetime<T>>(value));
+        this.Cache.Add(id, new WeakReference<T>(value));
     }
 }

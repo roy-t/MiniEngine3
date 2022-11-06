@@ -1,12 +1,13 @@
 ﻿using Mini.Engine.Content.v2.Serialization;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Shaders;
 using Vortice.D3DCompiler;
 using Vortice.Direct3D;
 
 namespace Mini.Engine.Content.v2.Shaders;
-internal abstract class ShaderProcessor<TContent, TWrapped, TSettings> : IContentProcessor<TContent, TWrapped, TSettings>
-    where TContent : IShader, IDisposable
+internal abstract class ShaderProcessor<TContent, TWrapped, TSettings> : IUnmanagedContentProcessor<TContent, TWrapped, TSettings>
+    where TContent : class, IShader, IDisposable
     where TWrapped : IContent<TContent, TSettings>, TContent
 {
     private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();
@@ -16,13 +17,13 @@ internal abstract class ShaderProcessor<TContent, TWrapped, TSettings> : IConten
     public ShaderProcessor(Device device, Guid typeHeader, int version)
     {
         this.Device = device;
-        this.Cache = new ContentTypeCache<TContent>();
+        this.Cache = new ContentTypeCache<ILifetime<TContent>>();
 
         this.TypeHeader = typeHeader;
         this.Version = version;
     }
 
-    public IContentTypeCache<TContent> Cache { get; }
+    public IContentTypeCache<ILifetime<TContent>> Cache { get; }
     public Guid TypeHeader {get;}
     public int Version { get; }
 

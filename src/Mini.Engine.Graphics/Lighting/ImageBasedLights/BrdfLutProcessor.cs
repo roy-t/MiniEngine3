@@ -5,6 +5,7 @@ using Mini.Engine.Content.Textures;
 using Mini.Engine.Content.v2;
 using Mini.Engine.Content.v2.Serialization;
 using Mini.Engine.Content.v2.Textures;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using StbImageSharp;
@@ -15,7 +16,7 @@ using ImageInfo = Mini.Engine.DirectX.Resources.Surfaces.ImageInfo;
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 [Service]
-public sealed class BrdfLutProcessor : IContentProcessor<ITexture, TextureContent, TextureLoaderSettings>
+public sealed class BrdfLutProcessor : IUnmanagedContentProcessor<ITexture, TextureContent, TextureLoaderSettings>
 {
     private const int Resolution = 512;
 
@@ -28,14 +29,14 @@ public sealed class BrdfLutProcessor : IContentProcessor<ITexture, TextureConten
     public BrdfLutProcessor(Device device, BrdfLutCompute shader)
     {
         this.Device = device;
-        this.Cache = new ContentTypeCache<ITexture>();
+        this.Cache = new ContentTypeCache<ILifetime<ITexture>>();
 
         this.Shader = shader;
         this.User = this.Shader.CreateUserFor<BrdfLutProcessor>();
     }
 
     public int Version => 8;
-    public IContentTypeCache<ITexture> Cache { get; }
+    public IContentTypeCache<ILifetime<ITexture>> Cache { get; }
 
     public void Generate(ContentId id, TextureLoaderSettings _, ContentWriter contentWriter, TrackingVirtualFileSystem fileSystem)
     {
