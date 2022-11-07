@@ -1,0 +1,17 @@
+﻿using System.Numerics;
+
+namespace Mini.Engine.Content.v2.Models.Wavefront;
+
+/// <summary>
+/// Specifies a texture vertex and its coordinates. A 1D texture requires only u texture coordinates, a 2D texture requires both u and v texture coordinates, and a 3D texture requires all three coordinates.
+/// syntax: vt u v w
+/// </summary>
+internal sealed class VertexTextureParser : VertexParser
+{
+    public override string Key => "vt";
+
+    protected override void ParseVertex(ParseState state, Vector4 vertex)
+    {
+        state.Texcoords.Add(vertex);
+    }
+}
