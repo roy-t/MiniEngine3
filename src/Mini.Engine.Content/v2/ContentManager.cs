@@ -1,7 +1,9 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content.Materials;
+using Mini.Engine.Content.Models;
 using Mini.Engine.Content.Textures;
 using Mini.Engine.Content.v2.Materials;
+using Mini.Engine.Content.v2.Models;
 using Mini.Engine.Content.v2.Shaders;
 using Mini.Engine.Content.v2.Textures;
 using Mini.Engine.Core.Lifetime;
@@ -27,6 +29,7 @@ public sealed class ContentManager
     private readonly VertexShaderProcessor VertexShaderProcessor;
     private readonly PixelShaderProcessor PixelShaderProcessor;
     private readonly WavefrontMaterialProcessor MaterialProcessor;
+    private readonly WaveFrontModelProcessor ModelProcessor;
 
     public ContentManager(ILogger logger, Device device, LifetimeManager lifetimeManager, IVirtualFileSystem fileSystem)
     {
@@ -40,6 +43,7 @@ public sealed class ContentManager
         this.VertexShaderProcessor = new VertexShaderProcessor(device);
         this.PixelShaderProcessor = new PixelShaderProcessor(device);
         this.MaterialProcessor = new WavefrontMaterialProcessor(this);
+        this.ModelProcessor = new WaveFrontModelProcessor(device, this);
     }
 
     public ILifetime<ITexture> LoadTexture(string path, TextureLoaderSettings settings)
@@ -80,6 +84,11 @@ public sealed class ContentManager
         var id = new ContentId("default.mtl", "default");
 
         return this.Load(this.MaterialProcessor, id, settings);
+    }
+
+    public ILifetime<IModel> LoadModel(ContentId id, ModelLoaderSettings settings)
+    {
+        return this.Load(this.ModelProcessor, id, settings);
     }
 
     public ILifetime<IComputeShader> LoadComputeShader(ContentId id, int numThreadsX, int numThreadsY, int numThreadsZ)

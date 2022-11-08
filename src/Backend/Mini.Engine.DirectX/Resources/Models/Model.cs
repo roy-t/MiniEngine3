@@ -7,7 +7,7 @@ public sealed record Primitive(string Name, BoundingBox Bounds, int MaterialInde
 
 public sealed class Model : IModel
 {
-    public Model(Device device, BoundingBox bounds, ModelVertex[] vertices, int[] indices, Primitive[] primitives, IMaterial[] materials, string name)
+    public Model(Device device, BoundingBox bounds, ReadOnlySpan<ModelVertex> vertices, ReadOnlySpan<int> indices, IReadOnlyList<Primitive> primitives, IReadOnlyList<IMaterial> materials, string name)
     {
         this.Indices = new IndexBuffer<int>(device, name);
         this.Vertices = new VertexBuffer<ModelVertex>(device, name);
@@ -22,8 +22,8 @@ public sealed class Model : IModel
     public VertexBuffer<ModelVertex> Vertices { get; }
     public IndexBuffer<int> Indices { get; }
     public BoundingBox Bounds { get; }
-    public Primitive[] Primitives { get; }
-    public IMaterial[] Materials { get; }
+    public IReadOnlyList<Primitive> Primitives { get; }
+    public IReadOnlyList<IMaterial> Materials { get; }
 
     public void Dispose()
     {

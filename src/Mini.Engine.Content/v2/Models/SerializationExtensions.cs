@@ -57,7 +57,7 @@ internal static class SerializationExtensions
     {
         writer.Write(vertex.Position);
         writer.Write(vertex.Texcoord);
-        writer.Write(vertex.Normal);           
+        writer.Write(vertex.Normal);
     }
 
     public static ModelVertex ReadModelVertex(this ContentReader reader)
@@ -68,6 +68,26 @@ internal static class SerializationExtensions
             reader.ReadVector2(),
             reader.ReadVector3()
         );
+    }
+
+    public static void Write(this ContentWriter writer, ModelVertex[] vertices)
+    {
+        writer.Writer.Write(vertices.Length);
+        foreach (var vertex in vertices)
+        {
+            writer.Write(vertex);
+        }
+    }
+
+    public static ModelVertex[] ReadModelVertices(this ContentReader reader)
+    {
+        var vertices = new ModelVertex[reader.Reader.ReadInt32()];
+        for (var i = 0; i < vertices.Length; i++)
+        {
+            vertices[i] = ReadModelVertex(reader);
+        }
+
+        return vertices;
     }
 
     public static void Write(this ContentWriter writer, Primitive primitive)
@@ -89,5 +109,65 @@ internal static class SerializationExtensions
             reader.Reader.ReadInt32(),
             reader.Reader.ReadInt32()
         );
+    }
+
+    public static void Write(this ContentWriter writer, Primitive[] primitives)
+    {
+        writer.Writer.Write(primitives.Length);
+        foreach (var primitive in primitives)
+        {
+            writer.Write(primitive);
+        }
+    }
+
+    public static Primitive[] ReadPrimitives(this ContentReader reader)
+    {
+        var primitives = new Primitive[reader.Reader.ReadInt32()];
+        for (var i = 0; i < primitives.Length; i++)
+        {
+            primitives[i] = ReadPrimitive(reader);
+        }
+
+        return primitives;
+    }
+
+    public static void Write(this ContentWriter writer, int[] indices)
+    {
+        writer.Writer.Write(indices.Length);
+        foreach (var index in indices)
+        {
+            writer.Writer.Write(index);
+        }
+    }
+
+    public static int[] ReadIndices(this ContentReader reader)
+    {
+        var indices = new int[reader.Reader.ReadInt32()];
+        for (var i = 0; i < indices.Length; i++)
+        {
+            indices[i] = reader.Reader.ReadInt32();
+        }
+
+        return indices;
+    }
+
+    public static void Write(this ContentWriter writer, ContentId[] contentIds)
+    {
+        writer.Writer.Write(contentIds.Length);
+        foreach (var contentId in contentIds)
+        {
+            writer.Write(contentId);
+        }
+    }
+
+    public static ContentId[] ReadContentIds(this ContentReader reader)
+    {
+        var contentIds = new ContentId[reader.Reader.ReadInt32()];
+        for (var i = 0; i < contentIds.Length; i++)
+        {
+            contentIds[i] = reader.ReadContentId();
+        }
+
+        return contentIds;
     }
 }

@@ -72,7 +72,7 @@ public sealed class RenderService
             context.IA.SetVertexBuffer(model.Vertices);
             context.IA.SetIndexBuffer(model.Indices);
 
-            for (var i = 0; i < model.Primitives.Length; i++)
+            for (var i = 0; i < model.Primitives.Count; i++)
             {
                 var primitive = model.Primitives[i];
 

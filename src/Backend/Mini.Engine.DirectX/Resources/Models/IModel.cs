@@ -2,6 +2,6 @@
 
 public interface IModel : IMesh, IDisposable
 {
-    Primitive[] Primitives { get; }
-    IMaterial[] Materials { get; }
+    IReadOnlyList<Primitive> Primitives { get; }
+    IReadOnlyList<IMaterial> Materials { get; }
 }

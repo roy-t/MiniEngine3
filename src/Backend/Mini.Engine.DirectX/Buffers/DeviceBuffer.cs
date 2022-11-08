@@ -60,7 +60,7 @@ public abstract class DeviceBuffer<T> : IDisposable
         ctx.Unmap(this.Buffer);
     }
 
-    public void MapData(DeviceContext context, Span<T> primitives)
+    public void MapData(DeviceContext context, ReadOnlySpan<T> primitives)
     {
         this.EnsureCapacity(primitives.Length);
 

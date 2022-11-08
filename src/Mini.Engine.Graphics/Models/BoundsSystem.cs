@@ -99,7 +99,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
 
                 context.DrawIndexed(24, 0, 0);
 
-                for (var i = 0; i < model.Primitives.Length; i++)
+                for (var i = 0; i < model.Primitives.Count; i++)
                 {
                     var primitive = model.Primitives[i];
 
