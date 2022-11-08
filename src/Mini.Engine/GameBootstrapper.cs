@@ -8,15 +8,15 @@ using Mini.Engine.IO;
 using Mini.Engine.UI;
 using Mini.Engine.Windows;
 using Serilog;
-using Windows.Win32.UI.KeyboardAndMouseInput;
+using static Windows.Win32.UI.Input.KeyboardAndMouse.VIRTUAL_KEY;
 
 namespace Mini.Engine;
 
 // TODO: this class is getting quite long with a lot of mixed reponsibilities
 public sealed class GameBootstrapper
 {
-    private static readonly ushort Escape = InputService.GetScanCode(VIRTUAL_KEY.VK_ESCAPE);
-    private static readonly ushort F1 = InputService.GetScanCode(VIRTUAL_KEY.VK_F1);
+    private static readonly ushort Escape = InputService.GetScanCode(VK_ESCAPE);
+    private static readonly ushort F1 = InputService.GetScanCode(VK_F1);
 
     private readonly LifetimeManager LifetimeManager;
     private readonly Win32Window Window;

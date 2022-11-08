@@ -13,7 +13,10 @@ public sealed class OutputMergerContext : DeviceContextPart
 
     public void SetBlendState(BlendState state)
     {
-        this.ID3D11DeviceContext.OMSetBlendState(state.ID3D11BlendState);
+        unsafe
+        {
+            this.ID3D11DeviceContext.OMSetBlendState(state.ID3D11BlendState);
+        }
     }
 
     public void SetDepthStencilState(DepthStencilState state)
