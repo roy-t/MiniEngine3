@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using Mini.Engine.Windows.Events;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
-using static global::Windows.Win32.Constants;
 using static Windows.Win32.PInvoke;
 
 namespace Mini.Engine.Windows;

@@ -1,6 +1,6 @@
-﻿using System;
-using System.Numerics;
-using Windows.Win32.UI.KeyboardAndMouseInput;
+﻿using System.Numerics;
+using Windows.Win32.UI.Input;
+
 namespace Mini.Engine.Windows;
 
 public enum MouseButtons : ushort

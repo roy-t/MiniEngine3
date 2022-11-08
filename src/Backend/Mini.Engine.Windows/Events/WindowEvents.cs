@@ -1,5 +1,4 @@
-﻿using System;
-using static Windows.Win32.Constants;
+﻿using static Windows.Win32.PInvoke;
 
 namespace Mini.Engine.Windows.Events;
 

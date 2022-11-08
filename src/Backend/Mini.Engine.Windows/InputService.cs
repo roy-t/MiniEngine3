@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using Windows.Win32.Foundation;
-using Windows.Win32.UI.KeyboardAndMouseInput;
-using static Windows.Win32.Constants;
+using Windows.Win32.UI.Input;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 using static Windows.Win32.PInvoke;
 
 namespace Mini.Engine.Windows;
@@ -110,25 +108,25 @@ public sealed class InputService
         }
     }
 
-    private static RAWINPUTDEVICE CreateMouse(IntPtr hwnd)
+    private static RAWINPUTDEVICE CreateMouse(HWND hwnd)
     {
         return new RAWINPUTDEVICE
         {
             usUsagePage = HID_USAGE_PAGE_GENERIC,
             usUsage = HID_USAGE_GENERIC_MOUSE,
             dwFlags = RAWINPUTDEVICE_FLAGS.RIDEV_INPUTSINK,
-            hwndTarget = (HWND)hwnd
+            hwndTarget = hwnd
         };
     }
 
-    private static RAWINPUTDEVICE CreateKeyboard(IntPtr hwnd)
+    private static RAWINPUTDEVICE CreateKeyboard(HWND hwnd)
     {
         return new RAWINPUTDEVICE
         {
             usUsagePage = HID_USAGE_PAGE_GENERIC,
             usUsage = HID_USAGE_GENERIC_KEYBOARD,
             dwFlags = RAWINPUTDEVICE_FLAGS.RIDEV_INPUTSINK,
-            hwndTarget = (HWND)hwnd
+            hwndTarget = hwnd
         };
     }
 }

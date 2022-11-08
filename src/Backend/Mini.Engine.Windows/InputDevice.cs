@@ -1,5 +1,4 @@
-﻿using System;
-using Windows.Win32.UI.KeyboardAndMouseInput;
+﻿using Windows.Win32.UI.Input;
 
 namespace Mini.Engine.Windows;
 

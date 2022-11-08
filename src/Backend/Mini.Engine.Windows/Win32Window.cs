@@ -56,31 +56,31 @@ public sealed class Win32Window : IDisposable
         var show = SHOW_WINDOW_CMD.SW_NORMAL;
         if (TryDeserializeWindowPosition(out var pos))
         {
-            SetWindowPlacement((HWND)this.Handle, pos);
+            SetWindowPlacement(this.Handle, pos);
             show = pos.showCmd;
         }
 
-        ShowWindow((HWND)this.Handle, show);
+        ShowWindow(this.Handle, show);
     }
 
     public string Title { get; }
     public int Width { get; private set; }
     public int Height { get; private set; }
-    public IntPtr Handle { get; private set; }
+    public HWND Handle { get; private set; }
     public bool IsMinimized { get; private set; }
     public bool HasFocus { get; private set; }
 
     public void Dispose()
     {
-        DestroyWindow((HWND)this.Handle);
+        DestroyWindow(this.Handle);
     }
 
-    private static void TrySerializeWindowPosition(IntPtr handle)
+    private static void TrySerializeWindowPosition(HWND handle)
     {
         try
         {
             var placement = new WINDOWPLACEMENT() { length = (uint)Marshal.SizeOf<WINDOWPLACEMENT>() };
-            var success = GetWindowPlacement((global::Windows.Win32.Foundation.HWND)handle, ref placement);
+            var success = GetWindowPlacement(handle, ref placement);
             if (success)
             {
                 using var stream = File.Create(WindowSettingsFile);

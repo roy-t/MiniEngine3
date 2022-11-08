@@ -2,9 +2,8 @@
 using ImGuiNET;
 using Mini.Engine.Windows;
 using Windows.Win32.Foundation;
-using static Windows.Win32.Constants;
 using static Windows.Win32.PInvoke;
-using static Windows.Win32.UI.KeyboardAndMouseInput.VIRTUAL_KEY;
+using static Windows.Win32.UI.Input.KeyboardAndMouse.VIRTUAL_KEY;
 
 namespace Mini.Engine.UI;
 
@@ -12,10 +11,10 @@ internal sealed class ImGuiInputHandler
 {
     private const int WHEEL_DELTA = 120;
 
-    private readonly IntPtr HWND;
+    private readonly HWND HWND;
     private ImGuiMouseCursor lastCursor;
 
-    public ImGuiInputHandler(IntPtr hwnd)
+    public ImGuiInputHandler(HWND hwnd)
     {
         this.HWND = hwnd;
         InitKeyMap();
@@ -114,17 +113,17 @@ internal sealed class ImGuiInputHandler
 
         if (io.WantSetMousePos)
         {
-            var pos = new POINT() { x = (int)io.MousePos.X, y = (int)io.MousePos.Y };
-            ClientToScreen((HWND)this.HWND, ref pos);
-            SetCursorPos(pos.x, pos.y);
+            var pos = new System.Drawing.Point((int)io.MousePos.X, (int)io.MousePos.Y);
+            ClientToScreen(this.HWND, ref pos);
+            SetCursorPos(pos.X, pos.Y);
         }
 
         var foregroundWindow = GetForegroundWindow();
-        if (foregroundWindow == this.HWND || IsChild(foregroundWindow, (HWND)this.HWND))
+        if (foregroundWindow == this.HWND || IsChild(foregroundWindow, this.HWND))
         {
-            if (GetCursorPos(out var pos) && ScreenToClient((HWND)this.HWND, ref pos))
+            if (GetCursorPos(out var pos) && ScreenToClient(this.HWND, ref pos))
             {
-                io.MousePos = new System.Numerics.Vector2(pos.x, pos.y);
+                io.MousePos = new System.Numerics.Vector2(pos.X, pos.Y);
             }
         }
     }
@@ -156,7 +155,7 @@ internal sealed class ImGuiInputHandler
                     if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONDBLCLK) { button = (GET_XBUTTON_WPARAM(wParam) == 1) ? 3 : 4; }
                     if (!ImGui.IsAnyMouseDown() && GetCapture() == IntPtr.Zero)
                     {
-                        SetCapture((HWND)this.HWND);
+                        SetCapture(this.HWND);
                     }
 
                     io.MouseDown[button] = true;
