@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Net.Http;
+using System.Numerics;
 using Mini.Engine.Content.v2.Serialization;
 using Mini.Engine.DirectX.Resources.Models;
 using Vortice.Mathematics;
@@ -79,7 +80,7 @@ internal static class SerializationExtensions
         }
     }
 
-    public static ModelVertex[] ReadModelVertices(this ContentReader reader)
+    public static ReadOnlyMemory<ModelVertex> ReadModelVertices(this ContentReader reader)
     {
         var vertices = new ModelVertex[reader.Reader.ReadInt32()];
         for (var i = 0; i < vertices.Length; i++)
@@ -120,7 +121,7 @@ internal static class SerializationExtensions
         }
     }
 
-    public static Primitive[] ReadPrimitives(this ContentReader reader)
+    public static IReadOnlyList<Primitive> ReadPrimitives(this ContentReader reader)
     {
         var primitives = new Primitive[reader.Reader.ReadInt32()];
         for (var i = 0; i < primitives.Length; i++)
@@ -140,7 +141,7 @@ internal static class SerializationExtensions
         }
     }
 
-    public static int[] ReadIndices(this ContentReader reader)
+    public static ReadOnlyMemory<int> ReadIndices(this ContentReader reader)
     {
         var indices = new int[reader.Reader.ReadInt32()];
         for (var i = 0; i < indices.Length; i++)
@@ -157,10 +158,10 @@ internal static class SerializationExtensions
         foreach (var contentId in contentIds)
         {
             writer.Write(contentId);
-        }
-    }
+}
+}
 
-    public static ContentId[] ReadContentIds(this ContentReader reader)
+    public static IReadOnlyList<ContentId> ReadContentIds(this ContentReader reader)
     {
         var contentIds = new ContentId[reader.Reader.ReadInt32()];
         for (var i = 0; i < contentIds.Length; i++)
