@@ -29,6 +29,14 @@ public abstract class ContentProcessor<TContent, TWrapped, TSettings> : IContent
             this.WriteSettings(id, settings, bodyWriter);
             this.WriteBody(id, settings, bodyWriter, fileSystem);
 
+
+
+
+            foreach(var additionalDependency in this.GetAdditionalDependencies())
+            {
+                fileSystem.AddDependency(additionalDependency);
+            }
+                        
             writer.WriteHeader(this.Type, this.Version, fileSystem.GetDependencies());
             bodyStream.WriteTo(writer.Writer.BaseStream);
         }
@@ -41,10 +49,14 @@ public abstract class ContentProcessor<TContent, TWrapped, TSettings> : IContent
     protected abstract void WriteSettings(ContentId id, TSettings settings, ContentWriter writer);
     protected abstract void WriteBody(ContentId id, TSettings settings, ContentWriter writer, IReadOnlyVirtualFileSystem fileSystem);
 
+    protected virtual IEnumerable<string> GetAdditionalDependencies()
+    {
+        return Enumerable.Empty<string>();
+    }
 
     public TContent Load(ContentId id, ContentHeader header, ContentReader reader)
     {
-        ContentProcessorUtilities.ValidateHeader(this.Type, this.Version, header);
+        ContentProcessorValidation.ThrowOnInvalidHeader(this.Type, this.Version, header);
 
         var settings = this.ReadSettings(id, reader);
         return this.ReadBody(id, settings, reader);
@@ -94,34 +106,4 @@ public abstract class ManagedContentProcessor<TContent, TWrapped, TSettings>
     }
 
     public IContentTypeCache<TContent> Cache { get; }
-}
-
-public static class ContentProcessorUtilities
-{
-    public static void ValidateHeader(Guid expectedType, int expectedVersion, ContentHeader actual)
-    {
-        if (expectedType != actual.Type)
-        {
-            throw new NotSupportedException($"Unexpected type, expected: {expectedType}, actual: {actual.Type}");
-        }
-
-        if (expectedVersion != actual.Version)
-        {
-            throw new NotSupportedException($"Unexpected version, expected: {expectedVersion}, actual: {actual.Version}");
-        }
-    }
-
-    public static bool IsContentUpToDate(int expectedVersion, ContentHeader header, IVirtualFileSystem fileSystem)
-    {
-        if (header.Version != expectedVersion)
-        {
-            return false;
-        }
-
-        var lastWrite = header.Dependencies
-            .Select(d => fileSystem.GetLastWriteTime(d))
-            .Append(header.Timestamp).Max();
-
-        return lastWrite <= header.Timestamp;
-    }
 }

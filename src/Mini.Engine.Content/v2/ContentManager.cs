@@ -19,8 +19,6 @@ namespace Mini.Engine.Content.v2;
 [Service]
 public sealed class ContentManager
 {
-    private readonly LifetimeManager LifetimeManager;
-    private readonly IVirtualFileSystem FileSystem;
     private readonly ContentLoader Loader;
 
     private readonly SdrTextureProcessor SdrTextureProcessor;
@@ -33,8 +31,6 @@ public sealed class ContentManager
 
     public ContentManager(ILogger logger, Device device, LifetimeManager lifetimeManager, IVirtualFileSystem fileSystem)
     {
-        this.LifetimeManager = lifetimeManager;
-        this.FileSystem = fileSystem;
         this.Loader = new ContentLoader(logger, lifetimeManager, fileSystem);
 
         this.SdrTextureProcessor = new SdrTextureProcessor(device);
