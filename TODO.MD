@@ -1,5 +1,7 @@
 # TODO
 
+Use ReadOnlyMemory<> instead of naked arrays!
+
 Loading is relatively slow due to
 - Loading the Sponza Models
 - Shader Compilation

@@ -50,7 +50,7 @@ internal sealed class WaveFrontModelProcessor : UnmanagedContentProcessor<IModel
         var primitives = reader.ReadPrimitives();
         var materialIds = reader.ReadContentIds();
 
-        var materials = new IMaterial[materialIds.Length];
+        var materials = new IMaterial[materialIds.Count];
         for (var i = 0; i < materials.Length; i++)
         {
             materials[i] = this.Content.LoadMaterial(materialIds[i], settings.MaterialSettings);
