@@ -29,9 +29,6 @@ public abstract class ContentProcessor<TContent, TWrapped, TSettings> : IContent
             this.WriteSettings(id, settings, bodyWriter);
             this.WriteBody(id, settings, bodyWriter, fileSystem);
 
-
-
-
             foreach(var additionalDependency in this.GetAdditionalDependencies())
             {
                 fileSystem.AddDependency(additionalDependency);

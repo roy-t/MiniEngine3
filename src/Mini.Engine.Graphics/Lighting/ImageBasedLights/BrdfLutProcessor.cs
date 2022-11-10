@@ -35,6 +35,10 @@ public sealed class BrdfLutProcessor : UnmanagedContentProcessor<ITexture, Textu
         this.User = this.Shader.CreateUserFor<BrdfLutProcessor>();
     }
 
+    protected override IEnumerable<string> GetAdditionalDependencies()
+    {
+        return new[] { BrdfLutCompute.SourceFile };
+    }
 
     protected override void WriteSettings(ContentId id, TextureLoaderSettings _, ContentWriter writer)
     {
