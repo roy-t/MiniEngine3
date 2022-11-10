@@ -47,7 +47,7 @@ internal sealed class WaveFrontModelProcessor : IUnmanagedContentProcessor<IMode
 
     public IModel Load(ContentId id, ContentHeader header, ContentReader reader)
     {
-        ContentProcessor.ValidateHeader(HeaderModel, this.Version, header);
+        ContentProcessorUtilities.ValidateHeader(HeaderModel, this.Version, header);
 
         var settings = reader.ReadModelSettings();
         var bounds = reader.ReadBoundingBox();

@@ -49,7 +49,7 @@ internal abstract class ShaderProcessor<TContent, TWrapped, TSettings> : IUnmana
 
     public TContent Load(ContentId contentId, ContentHeader header, ContentReader reader)
     {
-        ContentProcessor.ValidateHeader(this.TypeHeader, this.Version, header);
+        ContentProcessorUtilities.ValidateHeader(this.TypeHeader, this.Version, header);
         var settings = this.LoadSetings(reader);        
         var byteCode = reader.ReadArray();
 

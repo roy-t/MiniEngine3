@@ -48,7 +48,7 @@ public sealed class BrdfLutProcessor : IUnmanagedContentProcessor<ITexture, Text
 
     public ITexture Load(ContentId id, ContentHeader header, ContentReader contentReader)
     {
-        ContentProcessor.ValidateHeader(HeaderBrdfLut, this.Version, header);
+        ContentProcessorUtilities.ValidateHeader(HeaderBrdfLut, this.Version, header);
         return HdrTextureReader.Read(this.Device, id, contentReader);        
     }
 

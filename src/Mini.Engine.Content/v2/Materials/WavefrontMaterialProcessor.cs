@@ -42,7 +42,7 @@ internal sealed class WavefrontMaterialProcessor : IManagedContentProcessor<IMat
 
     public IMaterial Load(ContentId id, ContentHeader header, ContentReader reader)
     {
-        ContentProcessor.ValidateHeader(HeaderMaterial, this.Version, header);
+        ContentProcessorUtilities.ValidateHeader(HeaderMaterial, this.Version, header);
 
         var settings = reader.ReadMaterialSettings();
         var name = reader.Reader.ReadString();

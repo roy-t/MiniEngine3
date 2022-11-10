@@ -38,7 +38,7 @@ internal sealed class SdrTextureProcessor : IUnmanagedContentProcessor<ITexture,
 
     public ITexture Load(ContentId id, ContentHeader header, ContentReader reader)
     {
-        ContentProcessor.ValidateHeader(HeaderSdr, this.Version, header);
+        ContentProcessorUtilities.ValidateHeader(HeaderSdr, this.Version, header);
         return SdrTextureReader.Read(this.Device, id, TranscodeFormats.BC7_RGBA, reader);        
     }
 

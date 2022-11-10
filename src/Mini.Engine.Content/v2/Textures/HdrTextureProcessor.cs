@@ -38,7 +38,7 @@ internal sealed class HdrTextureProcessor : IUnmanagedContentProcessor<ITexture,
 
     public ITexture Load(ContentId contentId, ContentHeader header, ContentReader reader)
     {
-        ContentProcessor.ValidateHeader(HeaderHdr, this.Version, header);
+        ContentProcessorUtilities.ValidateHeader(HeaderHdr, this.Version, header);
         return HdrTextureReader.Read(this.Device, contentId, reader);
     }
 

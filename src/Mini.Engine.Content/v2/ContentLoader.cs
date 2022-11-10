@@ -32,7 +32,7 @@ internal class ContentLoader
             using var rStream = this.FileSystem.OpenRead(path);
             using var reader = new ContentReader(rStream);
             var header = reader.ReadHeader();
-            if (ContentProcessor.IsContentUpToDate(processor.Version, header, this.FileSystem))
+            if (ContentProcessorUtilities.IsContentUpToDate(processor.Version, header, this.FileSystem))
             {
                 var content = processor.Load(id, header, reader);
 #if DEBUG
@@ -73,7 +73,7 @@ internal class ContentLoader
             using var rStream = this.FileSystem.OpenRead(path);
             using var reader = new ContentReader(rStream);
             var header = reader.ReadHeader();
-            if (ContentProcessor.IsContentUpToDate(processor.Version, header, this.FileSystem))
+            if (ContentProcessorUtilities.IsContentUpToDate(processor.Version, header, this.FileSystem))
             {
                 var content = processor.Load(id, header, reader);
 #if DEBUG
