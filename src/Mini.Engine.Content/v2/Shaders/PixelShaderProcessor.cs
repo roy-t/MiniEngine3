@@ -13,7 +13,7 @@ internal sealed class PixelShaderProcessor : ShaderProcessor<IPixelShader, Pixel
 
     public override string Profile => "ps_5_0";
 
-    protected override void WriteSettings(ContentWriter writer, PixelShaderSettings settings)
+    protected override void WriteSettings(ContentId id, PixelShaderSettings settings, ContentWriter writer)
     {
         // Do nothing
     }
@@ -24,7 +24,7 @@ internal sealed class PixelShaderProcessor : ShaderProcessor<IPixelShader, Pixel
         return new PixelShader(this.Device, name, byteCode);
     }
 
-    protected override PixelShaderSettings LoadSetings(ContentReader reader)
+    protected override PixelShaderSettings ReadSettings(ContentId id, ContentReader reader)
     {
         return PixelShaderSettings.Empty;
     }

@@ -9,9 +9,8 @@ public static class SdrTextureReader
 {
     private const int MinBlockSize = 4;
 
-    public static ITexture Read(Device device, ContentId id, TranscodeFormats preferredFormat, ContentReader reader)
-    {
-        var settings = reader.ReadTextureSettings();
+    public static ITexture Read(Device device, ContentId id, ContentReader reader, TextureLoaderSettings settings, TranscodeFormats preferredFormat)
+    {        
         var imageWidth = reader.Reader.ReadInt32();
         var imageHeigth = reader.Reader.ReadInt32();
         var image = reader.ReadArray();

@@ -13,7 +13,7 @@ internal sealed class VertexShaderProcessor : ShaderProcessor<IVertexShader, Ver
 
     public override string Profile => "vs_5_0";
 
-    protected override void WriteSettings(ContentWriter writer, VertexShaderSettings settings)
+    protected override void WriteSettings(ContentId id, VertexShaderSettings settings, ContentWriter writer)
     {
         // Do nothing
     }
@@ -24,7 +24,7 @@ internal sealed class VertexShaderProcessor : ShaderProcessor<IVertexShader, Ver
         return new VertexShader(this.Device, name, byteCode);
     }
 
-    protected override VertexShaderSettings LoadSetings(ContentReader reader)
+    protected override VertexShaderSettings ReadSettings(ContentId id, ContentReader reader)
     {
         return VertexShaderSettings.Empty;
     }

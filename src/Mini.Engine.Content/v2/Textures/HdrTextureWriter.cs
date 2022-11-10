@@ -5,16 +5,14 @@ using StbImageSharp;
 namespace Mini.Engine.Content.v2.Textures;
 public static class HdrTextureWriter
 {
-    public static void Write(ContentWriter contentWriter, Guid header, int version, TextureLoaderSettings settings, ISet<string> dependencies, ImageResultFloat image)
+    public static void Write(ContentWriter contentWriter, TextureLoaderSettings settings, ImageResultFloat image)
     {
         var floats = image.Data;
         unsafe
         {
             fixed (float* ptr = floats)
             {
-                var data = new ReadOnlySpan<byte>(ptr, image.Data.Length * 4);
-                contentWriter.WriteHeader(header, version, dependencies);
-                contentWriter.Write(settings);
+                var data = new ReadOnlySpan<byte>(ptr, image.Data.Length * 4);                
                 contentWriter.Writer.Write(CountComponents(image.Comp));
                 contentWriter.Writer.Write(image.Width);
                 contentWriter.Writer.Write(image.Height);

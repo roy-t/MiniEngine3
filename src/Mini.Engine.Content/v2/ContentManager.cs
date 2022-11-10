@@ -53,11 +53,11 @@ public sealed class ContentManager
 
     public ILifetime<ITexture> LoadTexture(ContentId id, TextureLoaderSettings settings)
     {
-        if (this.SdrTextureProcessor.HasSupportedSdrExtension(id.Path))
+        if (this.SdrTextureProcessor.HasSupportedExtension(id.Path))
         {
             return this.Load(this.SdrTextureProcessor, id, settings);
         }
-        else if (this.HdrTextureProcessor.HasSupportedHdrExtension(id.Path))
+        else if (this.HdrTextureProcessor.HasSupportedExtension(id.Path))
         {
             return this.Load(this.HdrTextureProcessor, id, settings);
         }

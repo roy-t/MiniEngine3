@@ -1,12 +1,12 @@
 ﻿using Mini.Engine.Content.v2.Serialization;
-using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Shaders;
+using Mini.Engine.IO;
 using Vortice.D3DCompiler;
 using Vortice.Direct3D;
 
 namespace Mini.Engine.Content.v2.Shaders;
-internal abstract class ShaderProcessor<TContent, TWrapped, TSettings> : IUnmanagedContentProcessor<TContent, TWrapped, TSettings>
+internal abstract class ShaderProcessor<TContent, TWrapped, TSettings> : UnmanagedContentProcessor<TContent, TWrapped, TSettings>
     where TContent : class, IShader, IDisposable
     where TWrapped : IContent<TContent, TSettings>, TContent
 {
@@ -15,55 +15,32 @@ internal abstract class ShaderProcessor<TContent, TWrapped, TSettings> : IUnmana
     protected readonly Device Device;
 
     public ShaderProcessor(Device device, Guid typeHeader, int version)
+        : base(version, typeHeader, ".hlsl")
     {
-        this.Device = device;
-        this.Cache = new ContentTypeCache<ILifetime<TContent>>();
-
-        this.TypeHeader = typeHeader;
-        this.Version = version;
-    }
-
-    public IContentTypeCache<ILifetime<TContent>> Cache { get; }
-    public Guid TypeHeader {get;}
-    public int Version { get; }
+        this.Device = device;      
+    }    
 
     public abstract string Profile { get; }
 
-    public void Generate(ContentId id, TSettings settings, ContentWriter writer, TrackingVirtualFileSystem fileSystem)
+    protected override void WriteBody(ContentId id, TSettings settings, ContentWriter writer, IReadOnlyVirtualFileSystem fileSystem)
     {
         var sourceText = fileSystem.ReadAllText(id.Path);
         using var include = new ShaderFileInclude(fileSystem, Path.GetDirectoryName(id.Path));
 
         Compiler.Compile(sourceText, Defines, include, id.Key, id.Path, this.Profile, out var shaderBlob, out var errorBlob);
         ShaderCompilationErrorFilter.ThrowOnWarningOrError(errorBlob, "X3568" /*Undefined Pragma */);
-
-        writer.WriteHeader(this.TypeHeader, this.Version, fileSystem.GetDependencies());
-        this.WriteSettings(writer, settings);        
+      
         writer.WriteArray(shaderBlob.AsSpan());
 
         shaderBlob?.Dispose();
         errorBlob?.Dispose();
     }
 
-    protected abstract void WriteSettings(ContentWriter writer, TSettings settings);
-
-    public TContent Load(ContentId contentId, ContentHeader header, ContentReader reader)
+    protected override TContent ReadBody(ContentId id, TSettings settings, ContentReader reader)
     {
-        ContentProcessorUtilities.ValidateHeader(this.TypeHeader, this.Version, header);
-        var settings = this.LoadSetings(reader);        
         var byteCode = reader.ReadArray();
-
-        return this.Load(contentId, settings, byteCode);        
-    }
-
-    protected abstract TSettings LoadSetings(ContentReader reader);
-
-    protected abstract TContent Load(ContentId contentId, TSettings settings, byte[] byteCode);
-
-    public abstract TWrapped Wrap(ContentId id, TContent content, TSettings settings, ISet<string> dependencies);
-
-    public void Reload(IContent original, ContentWriterReader writerReader, TrackingVirtualFileSystem fileSystem)
-    {
-        ContentReloader.Reload(this, (TWrapped)original, fileSystem, writerReader);
+        return this.Load(id, settings, byteCode);
     }    
+
+    protected abstract TContent Load(ContentId contentId, TSettings settings, byte[] byteCode);        
 }

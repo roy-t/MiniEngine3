@@ -13,7 +13,7 @@ internal sealed class ComputeShaderProcessor : ShaderProcessor<IComputeShader, C
 
     public override string Profile => "cs_5_0";
 
-    protected override void WriteSettings(ContentWriter writer, ComputeShaderSettings settings)
+    protected override void WriteSettings(ContentId id, ComputeShaderSettings settings, ContentWriter writer)
     {
         writer.Writer.Write(settings.NumThreadsX);
         writer.Writer.Write(settings.NumThreadsY);
@@ -26,7 +26,7 @@ internal sealed class ComputeShaderProcessor : ShaderProcessor<IComputeShader, C
         return new ComputeShader(this.Device, name, byteCode, settings.NumThreadsX, settings.NumThreadsY, settings.NumThreadsZ);
     }
 
-    protected override ComputeShaderSettings LoadSetings(ContentReader reader)
+    protected override ComputeShaderSettings ReadSettings(ContentId id, ContentReader reader)
     {
         var numThreadsX = reader.Reader.ReadInt32();
         var numThreadsY = reader.Reader.ReadInt32();

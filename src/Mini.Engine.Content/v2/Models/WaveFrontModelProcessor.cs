@@ -1,55 +1,49 @@
 ﻿using Mini.Engine.Content.Models;
 using Mini.Engine.Content.v2.Serialization;
-using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Models;
+using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.v2.Models;
-internal sealed class WaveFrontModelProcessor : IUnmanagedContentProcessor<IModel, ModelContent, ModelLoaderSettings>
+internal sealed class WaveFrontModelProcessor : UnmanagedContentProcessor<IModel, ModelContent, ModelLoaderSettings>
 {
-    private static readonly Guid HeaderModel = new("{A855A352-8403-4B09-A87B-648F4901962E}");
+    private const int ProcessorVersion = 1;
+    private static readonly Guid ProcessorType = new("{A855A352-8403-4B09-A87B-648F4901962E}");
     private readonly WavefrontModelParser Parser;
     private readonly Device Device;
     private readonly ContentManager Content;
 
     public WaveFrontModelProcessor(Device device, ContentManager content)
+        : base(ProcessorVersion, ProcessorType, ".obj")
     {
         this.Device = device;
         this.Content = content;
-
-        this.Parser = new WavefrontModelParser();
-        this.Cache = new ContentTypeCache<ILifetime<IModel>>();
+        this.Parser = new WavefrontModelParser();        
     }
 
-    public int Version => 1;
-    public IContentTypeCache<ILifetime<IModel>> Cache { get; }
-
-    public void Generate(ContentId id, ModelLoaderSettings settings, ContentWriter writer, TrackingVirtualFileSystem fileSystem)
+    protected override void WriteSettings(ContentId id, ModelLoaderSettings settings, ContentWriter writer)
     {
-        if (this.HasSupportedExtension(id.Path))
-        {
-            var model = this.Parser.Parse(id, fileSystem);
-
-            writer.WriteHeader(HeaderModel, this.Version, fileSystem.GetDependencies());
-            writer.Write(settings);
-
-            writer.Write(model.Bounds);
-            writer.Write(model.Vertices);
-            writer.Write(model.Indices);
-            writer.Write(model.Primitives);
-            writer.Write(model.Materials);
-        }
-        else
-        {
-            throw new NotSupportedException($"Unsupported extension {id}");
-        }
+        writer.Write(settings);
     }
 
-    public IModel Load(ContentId id, ContentHeader header, ContentReader reader)
+    protected override void WriteBody(ContentId id, ModelLoaderSettings settings, ContentWriter writer, IReadOnlyVirtualFileSystem fileSystem)
     {
-        ContentProcessorUtilities.ValidateHeader(HeaderModel, this.Version, header);
+        var model = this.Parser.Parse(id, fileSystem);
 
-        var settings = reader.ReadModelSettings();
+        writer.Write(model.Bounds);
+        writer.Write(model.Vertices);
+        writer.Write(model.Indices);
+        writer.Write(model.Primitives);
+        writer.Write(model.Materials);
+    }
+
+    protected override ModelLoaderSettings ReadSettings(ContentId id, ContentReader reader)
+    {
+        return reader.ReadModelSettings();
+    }
+
+    protected override IModel ReadBody(ContentId id, ModelLoaderSettings settings, ContentReader reader)
+    {
         var bounds = reader.ReadBoundingBox();
         var vertices = reader.ReadModelVertices();
         var indices = reader.ReadIndices();
@@ -63,25 +57,10 @@ internal sealed class WaveFrontModelProcessor : IUnmanagedContentProcessor<IMode
         }
 
         return new Model(this.Device, bounds, vertices, indices, primitives, materials, id.ToString());
-    }
+    }  
 
-    public ModelContent Wrap(ContentId id, IModel content, ModelLoaderSettings settings, ISet<string> dependencies)
+    public override ModelContent Wrap(ContentId id, IModel content, ModelLoaderSettings settings, ISet<string> dependencies)
     {
         return new ModelContent(id, content, settings, dependencies);
-    }
-
-    public void Reload(IContent original, ContentWriterReader writerReader, TrackingVirtualFileSystem fileSystem)
-    {
-        ContentReloader.Reload(this, (ModelContent)original, fileSystem, writerReader);
-    }
-
-    public bool HasSupportedExtension(string path)
-    {
-        var extension = Path.GetExtension(path).ToLowerInvariant();
-        return extension switch
-        {
-            ".obj" => true,
-            _ => false
-        };
-    }
+    }    
 }

@@ -1,8 +1,8 @@
 ﻿using Mini.Engine.Content.v2.Serialization;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.v2;
-
 
 public abstract class ContentProcessor<TContent, TWrapped, TSettings> : IContentProcessor<TContent, TWrapped, TSettings>
     where TContent : class
@@ -14,7 +14,7 @@ public abstract class ContentProcessor<TContent, TWrapped, TSettings> : IContent
         this.Type = type;
         this.SupportedExtensions = new HashSet<string>(supportedExtensions);
     }
-    
+
     public int Version { get; }
     public Guid Type { get; }
     public IReadOnlySet<string> SupportedExtensions { get; }
@@ -22,15 +22,15 @@ public abstract class ContentProcessor<TContent, TWrapped, TSettings> : IContent
     public void Generate(ContentId id, TSettings settings, ContentWriter writer, TrackingVirtualFileSystem fileSystem)
     {
         if (this.HasSupportedExtension(id.Path))
-        {            
+        {
             using var bodyStream = new MemoryStream();
 
             var bodyWriter = new ContentWriter(bodyStream);
             this.WriteSettings(id, settings, bodyWriter);
             this.WriteBody(id, settings, bodyWriter, fileSystem);
 
-            writer.WriteHeader(this.Type, this.Version, fileSystem.GetDependencies());            
-            bodyStream.CopyTo(writer.Writer.BaseStream);
+            writer.WriteHeader(this.Type, this.Version, fileSystem.GetDependencies());
+            bodyStream.WriteTo(writer.Writer.BaseStream);
         }
         else
         {
@@ -40,11 +40,11 @@ public abstract class ContentProcessor<TContent, TWrapped, TSettings> : IContent
 
     protected abstract void WriteSettings(ContentId id, TSettings settings, ContentWriter writer);
     protected abstract void WriteBody(ContentId id, TSettings settings, ContentWriter writer, IReadOnlyVirtualFileSystem fileSystem);
-    
+
 
     public TContent Load(ContentId id, ContentHeader header, ContentReader reader)
     {
-        ContentProcessorUtilities.ValidateHeader(this.Type, this.Version, header);        
+        ContentProcessorUtilities.ValidateHeader(this.Type, this.Version, header);
 
         var settings = this.ReadSettings(id, reader);
         return this.ReadBody(id, settings, reader);
@@ -59,7 +59,7 @@ public abstract class ContentProcessor<TContent, TWrapped, TSettings> : IContent
     }
 
     public abstract TWrapped Wrap(ContentId id, TContent content, TSettings settings, ISet<string> dependencies);
-    
+
     public bool HasSupportedExtension(string path)
     {
         var extension = Path.GetExtension(path).ToLowerInvariant();
@@ -68,6 +68,33 @@ public abstract class ContentProcessor<TContent, TWrapped, TSettings> : IContent
 }
 
 
+public abstract class UnmanagedContentProcessor<TContent, TWrapped, TSettings>
+    : ContentProcessor<TContent, TWrapped, TSettings>, IUnmanagedContentProcessor<TContent, TWrapped, TSettings>
+    where TContent : class, IDisposable
+    where TWrapped : IContent<TContent, TSettings>, TContent
+{
+    public UnmanagedContentProcessor(int version, Guid type, params string[] supportedExtensions)
+        : base(version, type, supportedExtensions)
+    {
+        this.Cache = new ContentTypeCache<ILifetime<TContent>>();
+    }
+
+    public IContentTypeCache<ILifetime<TContent>> Cache { get; }
+}
+
+public abstract class ManagedContentProcessor<TContent, TWrapped, TSettings>
+    : ContentProcessor<TContent, TWrapped, TSettings>, IManagedContentProcessor<TContent, TWrapped, TSettings>
+    where TContent : class
+    where TWrapped : IContent<TContent, TSettings>, TContent
+{
+    public ManagedContentProcessor(int version, Guid type, params string[] supportedExtensions)
+        : base(version, type, supportedExtensions)
+    {
+        this.Cache = new ContentTypeCache<TContent>();
+    }
+
+    public IContentTypeCache<TContent> Cache { get; }
+}
 
 public static class ContentProcessorUtilities
 {

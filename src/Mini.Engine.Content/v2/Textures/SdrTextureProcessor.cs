@@ -1,66 +1,50 @@
 ﻿using Mini.Engine.Content.Textures;
 using Mini.Engine.Content.v2.Serialization;
-using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
+using Mini.Engine.IO;
 using SuperCompressed;
 
 namespace Mini.Engine.Content.v2.Textures;
 
-internal sealed class SdrTextureProcessor : IUnmanagedContentProcessor<ITexture, TextureContent, TextureLoaderSettings>
+internal sealed class SdrTextureProcessor : UnmanagedContentProcessor<ITexture, TextureContent, TextureLoaderSettings>
 {
-    private static readonly Guid HeaderSdr = new("{7AED564E-32B4-4F20-B14A-2D209F0BABBD}");
-
+    private const int ProcessorVersion = 6;
+    private static readonly Guid ProcessorType = new("{7AED564E-32B4-4F20-B14A-2D209F0BABBD}");
+    
     private readonly Device Device;
 
     public SdrTextureProcessor(Device device)
+        : base(ProcessorVersion, ProcessorType, ".jpg", ".jpeg", ".png", ".bmp", ".tga", ".psd", ".gif")
     {
-        this.Device = device;
-        this.Cache = new ContentTypeCache<ILifetime<ITexture>>();
+        this.Device = device;    
+    }    
+
+    protected override void WriteSettings(ContentId id, TextureLoaderSettings settings, ContentWriter writer)
+    {
+        writer.Write(settings);
     }
 
-    public int Version => 6;
-    public IContentTypeCache<ILifetime<ITexture>> Cache { get; }
-
-    public void Generate(ContentId id, TextureLoaderSettings settings, ContentWriter contentWriter, TrackingVirtualFileSystem fileSystem)
+    protected override void WriteBody(ContentId id, TextureLoaderSettings settings, ContentWriter writer, IReadOnlyVirtualFileSystem fileSystem)
     {
-        if (this.HasSupportedSdrExtension(id.Path))
-        {
-            var bytes = fileSystem.ReadAllBytes(id.Path);
-            var image = Image.FromMemory(bytes);
-            SdrTextureWriter.Write(contentWriter, HeaderSdr, this.Version, settings, fileSystem.GetDependencies(), image);
-        }
-        else
-        {
-            throw new NotSupportedException($"Unsupported extension {id}");
-        }
+        var bytes = fileSystem.ReadAllBytes(id.Path);
+        var image = Image.FromMemory(bytes);
+
+        SdrTextureWriter.Write(writer, image, settings);
     }
 
-    public ITexture Load(ContentId id, ContentHeader header, ContentReader reader)
+    protected override TextureLoaderSettings ReadSettings(ContentId id, ContentReader reader)
     {
-        ContentProcessorUtilities.ValidateHeader(HeaderSdr, this.Version, header);
-        return SdrTextureReader.Read(this.Device, id, TranscodeFormats.BC7_RGBA, reader);        
+        return reader.ReadTextureSettings();
     }
 
-    public TextureContent Wrap(ContentId id, ITexture content, TextureLoaderSettings settings, ISet<string> dependencies)
+    protected override ITexture ReadBody(ContentId id, TextureLoaderSettings settings, ContentReader reader)
+    {
+        return SdrTextureReader.Read(this.Device, id, reader, settings, TranscodeFormats.BC7_RGBA);
+    }    
+
+    public override TextureContent Wrap(ContentId id, ITexture content, TextureLoaderSettings settings, ISet<string> dependencies)
     {
         return new TextureContent(id, content, settings, dependencies);
-    }
-
-    public void Reload(IContent original, ContentWriterReader writerReader, TrackingVirtualFileSystem fileSystem)
-    {
-        ContentReloader.Reload(this, (TextureContent)original, fileSystem, writerReader);
-    }
-
-    public bool HasSupportedSdrExtension(string path)
-    {
-        var extension = Path.GetExtension(path).ToLowerInvariant();
-        return extension switch
-        {
-            ".jpg" or ".jpeg" or ".png" or ".bmp" or ".tga" or ".psd" or ".gif" => true,
-            _ => false
-        };
-    }
-
-
+    }   
 }
