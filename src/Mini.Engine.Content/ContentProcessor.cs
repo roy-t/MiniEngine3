@@ -6,15 +6,19 @@ using Mini.Engine.IO;
 namespace Mini.Engine.Content;
 
 public abstract class ContentProcessor<TContent, TWrapped, TSettings> : IContentProcessor<TContent, TWrapped, TSettings>
-    where TContent : class
+    where TContent : IDisposable
     where TWrapped : IContent<TContent, TSettings>, TContent
 {
-    protected ContentProcessor(int version, Guid type, params string[] supportedExtensions)
+    protected ContentProcessor(LifetimeManager lifetimeManager, int version, Guid type, params string[] supportedExtensions)
     {
         this.Version = version;
         this.Type = type;
         this.SupportedExtensions = new HashSet<string>(supportedExtensions);
+
+        this.Cache = new UnmanagedContentCache<TContent>(lifetimeManager);
     }
+
+    public IContentCache<ILifetime<TContent>> Cache { get; }
 
     public int Version { get; }
     public Guid Type { get; }
@@ -75,33 +79,4 @@ public abstract class ContentProcessor<TContent, TWrapped, TSettings> : IContent
         var extension = Path.GetExtension(path).ToLowerInvariant();
         return this.SupportedExtensions.Contains(extension);
     }
-}
-
-
-public abstract class UnmanagedContentProcessor<TContent, TWrapped, TSettings>
-    : ContentProcessor<TContent, TWrapped, TSettings>, IUnmanagedContentProcessor<TContent, TWrapped, TSettings>
-    where TContent : class, IDisposable
-    where TWrapped : IContent<TContent, TSettings>, TContent
-{
-    public UnmanagedContentProcessor(LifetimeManager lifetimeManager, int version, Guid type, params string[] supportedExtensions)
-        : base(version, type, supportedExtensions)
-    {
-        this.Cache = new UnmanagedContentCache<TContent>(lifetimeManager);
-    }
-
-    public IContentCache<ILifetime<TContent>> Cache { get; }
-}
-
-public abstract class ManagedContentProcessor<TContent, TWrapped, TSettings>
-    : ContentProcessor<TContent, TWrapped, TSettings>, IManagedContentProcessor<TContent, TWrapped, TSettings>
-    where TContent : class
-    where TWrapped : IContent<TContent, TSettings>, TContent
-{
-    public ManagedContentProcessor(int version, Guid type, params string[] supportedExtensions)
-        : base(version, type, supportedExtensions)
-    {
-        this.Cache = new ManagedContentCache<TContent>();
-    }
-
-    public IContentCache<TContent> Cache { get; }
 }

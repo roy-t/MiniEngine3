@@ -13,7 +13,7 @@ using ImageInfo = Mini.Engine.DirectX.Resources.Surfaces.ImageInfo;
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 [Service]
-public sealed class BrdfLutProcessor : UnmanagedContentProcessor<ITexture, TextureContent, TextureSettings>
+public sealed class BrdfLutProcessor : ContentProcessor<ITexture, TextureContent, TextureSettings>
 {
     private const int Resolution = 512;
 

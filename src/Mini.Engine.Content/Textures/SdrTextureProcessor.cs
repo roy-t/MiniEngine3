@@ -1,5 +1,4 @@
 ﻿using Mini.Engine.Content.Serialization;
-using Mini.Engine.Content;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.IO;
@@ -7,7 +6,7 @@ using SuperCompressed;
 
 namespace Mini.Engine.Content.Textures;
 
-internal sealed class SdrTextureProcessor : UnmanagedContentProcessor<ITexture, TextureContent, TextureSettings>
+internal sealed class SdrTextureProcessor : ContentProcessor<ITexture, TextureContent, TextureSettings>
 {
     private const int ProcessorVersion = 6;
     private static readonly Guid ProcessorType = new("{7AED564E-32B4-4F20-B14A-2D209F0BABBD}");

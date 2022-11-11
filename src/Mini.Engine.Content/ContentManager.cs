@@ -105,15 +105,8 @@ public sealed class ContentManager
         return this.Load(this.PixelShaderProcessor, id, PixelShaderSettings.Empty);
     }
 
-    public TContent Load<TContent, TWrapped, TSettings>(IManagedContentProcessor<TContent, TWrapped, TSettings> processor, ContentId id, TSettings settings)
-        where TContent : class
-        where TWrapped : IContent, TContent
-    {
-        return this.Loader.Load(processor, id, settings);
-    }
-
-    public ILifetime<TContent> Load<TContent, TWrapped, TSettings>(IUnmanagedContentProcessor<TContent, TWrapped, TSettings> processor, ContentId id, TSettings settings)
-        where TContent : class, IDisposable
+    public ILifetime<TContent> Load<TContent, TWrapped, TSettings>(IContentProcessor<TContent, TWrapped, TSettings> processor, ContentId id, TSettings settings)
+        where TContent : IDisposable
         where TWrapped : IContent, TContent
     {
         return this.Loader.Load(processor, id, settings);

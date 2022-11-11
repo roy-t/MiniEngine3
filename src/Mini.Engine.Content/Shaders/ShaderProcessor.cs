@@ -1,5 +1,4 @@
 ﻿using Mini.Engine.Content.Serialization;
-using Mini.Engine.Content;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Shaders;
 using Mini.Engine.IO;
@@ -7,8 +6,8 @@ using Vortice.D3DCompiler;
 using Vortice.Direct3D;
 
 namespace Mini.Engine.Content.Shaders;
-internal abstract class ShaderProcessor<TContent, TWrapped, TSettings> : UnmanagedContentProcessor<TContent, TWrapped, TSettings>
-    where TContent : class, IShader, IDisposable
+internal abstract class ShaderProcessor<TContent, TWrapped, TSettings> : ContentProcessor<TContent, TWrapped, TSettings>
+    where TContent : IShader, IDisposable
     where TWrapped : IContent<TContent, TSettings>, TContent
 {
     private static readonly ShaderMacro[] Defines = Array.Empty<ShaderMacro>();

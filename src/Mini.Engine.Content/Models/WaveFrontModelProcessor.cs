@@ -1,12 +1,11 @@
-﻿using LightInject;
-using Mini.Engine.Content.Serialization;
+﻿using Mini.Engine.Content.Serialization;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Models;
-internal sealed class WaveFrontModelProcessor : UnmanagedContentProcessor<IModel, ModelContent, ModelSettings>
+internal sealed class WaveFrontModelProcessor : ContentProcessor<IModel, ModelContent, ModelSettings>
 {
     private const int ProcessorVersion = 1;
     private static readonly Guid ProcessorType = new("{A855A352-8403-4B09-A87B-648F4901962E}");

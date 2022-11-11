@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Mini.Engine.Content.Serialization;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.IO;
@@ -17,31 +16,10 @@ internal class ContentLoader
         this.LifetimeManager = lifetimeManager;
         this.FileSystem = fileSystem;
         this.HotReloader = new HotReloader(logger, fileSystem);
-    }
+    }   
 
-    public TContent Load<TContent, TWrapped, TSettings>(IManagedContentProcessor<TContent, TWrapped, TSettings> processor, ContentId id, TSettings settings)
-        where TContent : class
-        where TWrapped : IContent, TContent
-    {
-        // TODO: this will return a resource that is not yet collected by the GC but was removed from the Lifetimemanager resource stack!
-        if (processor.Cache.TryGetValue(id, out var material))
-        {
-            return material;
-        }
-
-        if (this.TryLoadSerializedContent(processor, id, out var header, out var content))
-        {
-            content = this.WrapInDebug(processor, id, settings, header, content);
-            processor.Cache.Store(id, content);
-            return content;
-        }
-
-        this.GenerateSerializedContent(processor, id, settings);
-        return this.Load(processor, id, settings);
-    }
-
-    public ILifetime<TContent> Load<TContent, TWrapped, TSettings>(IUnmanagedContentProcessor<TContent, TWrapped, TSettings> processor, ContentId id, TSettings settings)
-        where TContent : class, IDisposable
+    public ILifetime<TContent> Load<TContent, TWrapped, TSettings>(IContentProcessor<TContent, TWrapped, TSettings> processor, ContentId id, TSettings settings)
+        where TContent : IDisposable
         where TWrapped : IContent, TContent
     {
         if (processor.Cache.TryGetValue(id, out var t))
@@ -62,7 +40,7 @@ internal class ContentLoader
     }
 
     private bool TryLoadSerializedContent<TContent, TWrapped, TSettings>(IContentProcessor<TContent, TWrapped, TSettings> processor, ContentId id, [NotNullWhen(true)] out ContentHeader? header, [NotNullWhen(true)] out TContent? content)
-        where TContent : class
+        where TContent : IDisposable
         where TWrapped : IContent, TContent
     {
         var path = PathGenerator.GetPath(id);
@@ -78,13 +56,13 @@ internal class ContentLoader
             }
         }
 
-        header = null;
-        content = null;
+        header = default;
+        content = default;
         return false;
     }
 
     private TContent WrapInDebug<TContent, TWrapped, TSettings>(IContentProcessor<TContent, TWrapped, TSettings> processor, ContentId id, TSettings settings, ContentHeader header, TContent content)
-        where TContent : class
+        where TContent : IDisposable
         where TWrapped : IContent, TContent
     {
 #if DEBUG
@@ -96,7 +74,7 @@ internal class ContentLoader
     }
 
     private void GenerateSerializedContent<TContent, TWrapped, TSettings>(IContentProcessor<TContent, TWrapped, TSettings> processor, ContentId id, TSettings settings)
-        where TContent : class
+        where TContent : IDisposable
         where TWrapped : IContent, TContent
     {
         var path = PathGenerator.GetPath(id);

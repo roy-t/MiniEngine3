@@ -3,7 +3,7 @@
 namespace Mini.Engine.Content.Caching;
 
 public sealed class UnmanagedContentCache<T> : IContentCache<ILifetime<T>>
-    where T : class, IDisposable
+    where T : IDisposable
 {
     private readonly LifetimeManager LifetimeManager;
     private readonly Dictionary<ContentId, WeakReference<ILifetime<T>>> Cache;

@@ -5,7 +5,7 @@ namespace Mini.Engine.Content;
 public static class ContentReloader
 {
     public static void Reload<TContent, TWrapped, TSettings>(IContentProcessor<TContent, TWrapped, TSettings> generator, TWrapped original, TrackingVirtualFileSystem fileSystem, ContentWriterReader writerReader)
-        where TContent : class
+        where TContent : IDisposable
         where TWrapped : IContent<TContent, TSettings>, TContent
     {
         generator.Generate(original.Id, original.Settings, writerReader.Writer, fileSystem);

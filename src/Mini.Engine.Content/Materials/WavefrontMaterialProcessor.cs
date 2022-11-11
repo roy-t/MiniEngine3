@@ -6,7 +6,7 @@ using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Materials;
-internal sealed class WavefrontMaterialProcessor : UnmanagedContentProcessor<IMaterial, MaterialContent, MaterialSettings>
+internal sealed class WavefrontMaterialProcessor : ContentProcessor<IMaterial, MaterialContent, MaterialSettings>
 {
     private const int ProcessorVersion = 1;
     private static readonly Guid ProcessorType = new("{0124D18A-D3E6-48C4-A733-BD3881171B76}");

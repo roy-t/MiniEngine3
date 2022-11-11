@@ -1,5 +1,4 @@
 ﻿using Mini.Engine.Content.Serialization;
-using Mini.Engine.Content;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.IO;
@@ -7,7 +6,7 @@ using ColorComponents = StbImageSharp.ColorComponents;
 using ImageResultFloat = StbImageSharp.ImageResultFloat;
 
 namespace Mini.Engine.Content.Textures;
-internal sealed class HdrTextureProcessor : UnmanagedContentProcessor<ITexture, TextureContent, TextureSettings>
+internal sealed class HdrTextureProcessor : ContentProcessor<ITexture, TextureContent, TextureSettings>
 {
     private const int ProcessorVersion = 1;
     private static readonly Guid ProcessorType = new("{650531A2-0DF5-4E36-85AB-F5525464F962}");
