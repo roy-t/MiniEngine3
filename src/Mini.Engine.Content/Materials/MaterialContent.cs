@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.DirectX.Resources.Surfaces;
 
@@ -29,11 +28,11 @@ public sealed class MaterialContent : IMaterial, IContent<IMaterial, MaterialSet
     public ISet<string> Dependencies { get; }
 
     public string Name => this.original.Name;
-    public ILifetime<ISurface> Albedo => this.original.Albedo;
-    public ILifetime<ISurface> Metalicness => this.original.Metalicness;
-    public ILifetime<ISurface> Normal => this.original.Normal;
-    public ILifetime<ISurface> Roughness => this.original.Roughness;
-    public ILifetime<ISurface> AmbientOcclusion => this.original.AmbientOcclusion;
+    public ISurface Albedo => this.original.Albedo;
+    public ISurface Metalicness => this.original.Metalicness;
+    public ISurface Normal => this.original.Normal;
+    public ISurface Roughness => this.original.Roughness;
+    public ISurface AmbientOcclusion => this.original.AmbientOcclusion;
 
     public void Dispose()
     {

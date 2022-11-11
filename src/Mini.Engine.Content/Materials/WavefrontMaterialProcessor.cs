@@ -1,7 +1,8 @@
 ﻿using Mini.Engine.Content.Serialization;
-using Mini.Engine.Core.Lifetime;
+using Mini.Engine.Content.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Models;
+using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Materials;
@@ -10,14 +11,17 @@ internal sealed class WavefrontMaterialProcessor : UnmanagedContentProcessor<IMa
     private const int ProcessorVersion = 1;
     private static readonly Guid ProcessorType = new("{0124D18A-D3E6-48C4-A733-BD3881171B76}");
 
-    private readonly WavefrontMaterialParser Parser;
+    private readonly Device Device;
     private readonly ContentManager Content;
+    private readonly WavefrontMaterialParser Parser;
 
     public WavefrontMaterialProcessor(Device device, ContentManager content)
         : base(device.Resources, ProcessorVersion, ProcessorType, ".mtl")
     {
-        this.Parser = new WavefrontMaterialParser();
+        this.Device = device;
         this.Content = content;
+
+        this.Parser = new WavefrontMaterialParser();
     }
 
     protected override void WriteSettings(ContentId id, MaterialSettings settings, ContentWriter writer)
@@ -45,11 +49,12 @@ internal sealed class WavefrontMaterialProcessor : UnmanagedContentProcessor<IMa
     protected override IMaterial ReadBody(ContentId id, MaterialSettings settings, ContentReader reader)
     {
         var name = reader.Reader.ReadString();
-        var albedo = this.Content.LoadTexture(reader.ReadContentId(), settings.AlbedoFormat);
-        var metalicness = this.Content.LoadTexture(reader.ReadContentId(), settings.MetalicnessFormat);
-        var normal = this.Content.LoadTexture(reader.ReadContentId(), settings.NormalFormat);
-        var roughness = this.Content.LoadTexture(reader.ReadContentId(), settings.RoughnessFormat);
-        var ambientOcclusion = this.Content.LoadTexture(reader.ReadContentId(), settings.AmbientOcclusionFormat);
+
+        var albedo = this.LoadTexture(reader.ReadContentId(), settings.AlbedoFormat);
+        var metalicness = this.LoadTexture(reader.ReadContentId(), settings.MetalicnessFormat);
+        var normal = this.LoadTexture(reader.ReadContentId(), settings.NormalFormat);
+        var roughness = this.LoadTexture(reader.ReadContentId(), settings.RoughnessFormat);
+        var ambientOcclusion = this.LoadTexture(reader.ReadContentId(), settings.AmbientOcclusionFormat);
 
         return new Material(name, albedo, metalicness, normal, roughness, ambientOcclusion);
     }
@@ -57,5 +62,11 @@ internal sealed class WavefrontMaterialProcessor : UnmanagedContentProcessor<IMa
     public override MaterialContent Wrap(ContentId id, IMaterial content, MaterialSettings settings, ISet<string> dependencies)
     {
         return new MaterialContent(id, content, settings, dependencies);
+    }
+
+    private ITexture LoadTexture(ContentId id, TextureSettings settings)
+    {
+        var reference = this.Content.LoadTexture(id, settings);
+        return this.Device.Resources.Get(reference);
     }
 }
