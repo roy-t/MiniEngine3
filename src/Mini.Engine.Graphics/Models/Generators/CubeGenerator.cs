@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Models;
 using Vortice.Mathematics;
@@ -41,7 +42,7 @@ public static class CubeGenerator
         return (indices.ToArray(), vertices.ToArray());
     }
 
-    public static IModel Generate(Device device, IMaterial material, string name)
+    public static IModel Generate(Device device, ILifetime<IMaterial> material, string name)
     {
         (var indices, var vertices) = Generate();
 
@@ -51,7 +52,7 @@ public static class CubeGenerator
             new Primitive("Cube", bounds, 0, 0, indices.Length)
         };
 
-        var materials = new IMaterial[] { material };
+        var materials = new ILifetime<IMaterial>[] { material };
         return new Model(device, bounds, vertices, indices, primitives, materials, name);
     }
 

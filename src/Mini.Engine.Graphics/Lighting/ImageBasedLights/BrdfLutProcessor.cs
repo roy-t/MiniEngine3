@@ -25,7 +25,7 @@ public sealed class BrdfLutProcessor : UnmanagedContentProcessor<ITexture, Textu
     private readonly BrdfLutCompute.User User;
 
     public BrdfLutProcessor(Device device, BrdfLutCompute shader)
-        : base(ProcessorVersion, ProcessorType, ".hdr")
+        : base(device.Resources, ProcessorVersion, ProcessorType, ".hdr")
     {
         this.Device = device;
       

@@ -23,6 +23,7 @@ internal class ContentLoader
         where TContent : class
         where TWrapped : IContent, TContent
     {
+        // TODO: this will return a resource that is not yet collected by the GC but was removed from the Lifetimemanager resource stack!
         if (processor.Cache.TryGetValue(id, out var material))
         {
             return material;

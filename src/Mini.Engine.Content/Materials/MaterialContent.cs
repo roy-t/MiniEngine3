@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Mini.Engine.Content;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.DirectX.Resources.Surfaces;

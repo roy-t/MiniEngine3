@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources.Models;
 using Vortice.Mathematics;
@@ -29,7 +30,7 @@ public sealed class ModelContent : IModel, IContent<IModel, ModelSettings>
     public ISet<string> Dependencies { get; }
 
     public IReadOnlyList<Primitive> Primitives => this.original.Primitives;
-    public IReadOnlyList<IMaterial> Materials => this.original.Materials;
+    public IReadOnlyList<ILifetime<IMaterial>> Materials => this.original.Materials;
     public VertexBuffer<ModelVertex> Vertices => this.original.Vertices;
     public IndexBuffer<int> Indices => this.original.Indices;
     public BoundingBox Bounds => this.original.Bounds;

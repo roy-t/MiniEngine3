@@ -16,7 +16,7 @@ internal abstract class ShaderProcessor<TContent, TWrapped, TSettings> : Unmanag
     protected readonly Device Device;
 
     public ShaderProcessor(Device device, Guid typeHeader, int version)
-        : base(version, typeHeader, ".hlsl")
+        : base(device.Resources, version, typeHeader, ".hlsl")
     {
         this.Device = device;
     }

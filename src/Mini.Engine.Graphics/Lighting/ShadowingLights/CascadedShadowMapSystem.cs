@@ -33,7 +33,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
     private readonly ShadowMap.User User;
     private readonly InputLayout InputLayout;
     private readonly LightFrustum Frustum;
-    private readonly IMaterial DefaultMaterial;
+    private readonly ILifetime<IMaterial> DefaultMaterial;
 
     public CascadedShadowMapSystem(Device device, FrameService frameService, RenderService renderService, ShadowMap shader, ContentManager content)
     {
@@ -105,6 +105,8 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
 
     private void RenderShadowMap(ILifetime<IDepthStencilBuffer> depthStencilBuffers, int resolution, int slice, Matrix4x4 viewProjection)
     {
+        var material = this.Device.Resources.Get(this.DefaultMaterial);
+
         this.Context.RS.SetViewPort(0, 0, resolution, resolution);
         this.Context.RS.SetScissorRect(0, 0, resolution, resolution);
         this.Context.OM.SetRenderTarget(depthStencilBuffers, slice);
@@ -113,7 +115,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
 
         this.RenderService.DrawAllModels(this, this.Context, viewProjection);
 
-        this.Context.PS.SetShaderResource(ShadowMap.Albedo, this.DefaultMaterial.Albedo);
+        this.Context.PS.SetShaderResource(ShadowMap.Albedo, material.Albedo);
         this.RenderService.DrawAllTerrain(this, this.Context, viewProjection);
     }
 

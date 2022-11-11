@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources.Models;
@@ -64,7 +65,7 @@ public sealed class RenderService
     {        
         var world = transform.GetMatrix();
         var bounds = model.Bounds.Transform(world);
-
+        
         if (viewVolume.ContainsOrIntersects(bounds))
         {
             callback.SetConstants(world * viewProjection, world);
@@ -75,12 +76,13 @@ public sealed class RenderService
             for (var i = 0; i < model.Primitives.Count; i++)
             {
                 var primitive = model.Primitives[i];
+                var material = context.Resources.Get(model.Materials[primitive.MaterialIndex]);
 
                 bounds = primitive.Bounds.Transform(world);
 
                 if (viewVolume.ContainsOrIntersects(bounds))
                 {
-                    callback.SetMaterial(model.Materials[primitive.MaterialIndex]);
+                    callback.SetMaterial(material);
                     context.DrawIndexed(primitive.IndexCount, primitive.IndexOffset, 0);
                 }
             }

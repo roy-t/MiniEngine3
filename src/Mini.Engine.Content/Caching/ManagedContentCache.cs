@@ -1,21 +1,19 @@
-﻿namespace Mini.Engine.Content;
+﻿namespace Mini.Engine.Content.Caching;
 
-public interface IContentCache<T>
-    where T : class
-{
-    public bool TryGetValue(ContentId id, out T value);
-    public void Store(ContentId id, T value);
-}
-
-public sealed class ContentCache<T> : IContentCache<T>
+public sealed class ManagedContentCache<T> : IContentCache<T>
     where T : class
 {
 
     private readonly Dictionary<ContentId, WeakReference<T>> Cache;
 
-    public ContentCache()
+    public ManagedContentCache()
     {
         this.Cache = new Dictionary<ContentId, WeakReference<T>>();
+    }
+
+    public void Store(ContentId id, T value)
+    {
+        this.Cache.Add(id, new WeakReference<T>(value));
     }
 
     public bool TryGetValue(ContentId id, out T value)
@@ -35,10 +33,5 @@ public sealed class ContentCache<T> : IContentCache<T>
 
         value = default!;
         return false;
-    }
-
-    public void Store(ContentId id, T value)
-    {
-        this.Cache.Add(id, new WeakReference<T>(value));
     }
 }

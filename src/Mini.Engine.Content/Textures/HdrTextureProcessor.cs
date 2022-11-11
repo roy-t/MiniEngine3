@@ -15,7 +15,7 @@ internal sealed class HdrTextureProcessor : UnmanagedContentProcessor<ITexture, 
     private readonly Device Device;
 
     public HdrTextureProcessor(Device device)
-        : base(ProcessorVersion, ProcessorType, ".hdr")
+        : base(device.Resources, ProcessorVersion, ProcessorType, ".hdr")
     {
         this.Device = device;
     }

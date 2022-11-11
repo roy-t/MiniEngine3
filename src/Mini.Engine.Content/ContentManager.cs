@@ -36,7 +36,7 @@ public sealed class ContentManager
         this.ComputeShaderProcessor = new ComputeShaderProcessor(device);
         this.VertexShaderProcessor = new VertexShaderProcessor(device);
         this.PixelShaderProcessor = new PixelShaderProcessor(device);
-        this.MaterialProcessor = new WavefrontMaterialProcessor(this);
+        this.MaterialProcessor = new WavefrontMaterialProcessor(device, this);
         this.ModelProcessor = new WaveFrontModelProcessor(device, this);
     }
 
@@ -59,12 +59,12 @@ public sealed class ContentManager
         throw new NotSupportedException($"No texture processor found that supports file {id.Path}");
     }
 
-    public IMaterial LoadMaterial(ContentId id, MaterialSettings settings)
+    public ILifetime<IMaterial> LoadMaterial(ContentId id, MaterialSettings settings)
     {
         return this.Load(this.MaterialProcessor, id, settings);
     }
 
-    public IMaterial LoadDefaultMaterial()
+    public ILifetime<IMaterial> LoadDefaultMaterial()
     {
         var settings = new MaterialSettings
         (

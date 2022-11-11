@@ -21,13 +21,17 @@ internal sealed class StackPool
     {
         get
         {
-            if (this.versions[resource.Id] != resource.Version)
+            if (this.IsValid(resource))
             {
-                throw new Exception($"The resource pointed to by {resource} no longer exists");
+                return this.pool[resource.Id]!;
             }
-
-            return this.pool[resource.Id]!;
+            throw new Exception($"The resource pointed to by {resource} no longer exists");
         }
+    }
+
+    public bool IsValid(ILifetime resource)
+    {
+        return this.versions[resource.Id] == resource.Version;
     }
 
     public ILifetime<T> Add<T>(T resource, int version)

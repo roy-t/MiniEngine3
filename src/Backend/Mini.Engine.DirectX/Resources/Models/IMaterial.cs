@@ -3,7 +3,7 @@ using Mini.Engine.DirectX.Resources.Surfaces;
 
 namespace Mini.Engine.DirectX.Resources.Models;
 
-public interface IMaterial : IDisposable // TODO: can we get rid of IDisposable somehow?
+public interface IMaterial : IDisposable
 {
     public string Name { get; }
     public ILifetime<ISurface> Albedo { get; }

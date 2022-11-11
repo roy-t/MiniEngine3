@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Content.Serialization;
+﻿using Mini.Engine.Content.Caching;
+using Mini.Engine.Content.Serialization;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.IO;
 
@@ -82,10 +83,10 @@ public abstract class UnmanagedContentProcessor<TContent, TWrapped, TSettings>
     where TContent : class, IDisposable
     where TWrapped : IContent<TContent, TSettings>, TContent
 {
-    public UnmanagedContentProcessor(int version, Guid type, params string[] supportedExtensions)
+    public UnmanagedContentProcessor(LifetimeManager lifetimeManager, int version, Guid type, params string[] supportedExtensions)
         : base(version, type, supportedExtensions)
     {
-        this.Cache = new ContentCache<ILifetime<TContent>>();
+        this.Cache = new UnmanagedContentCache<TContent>(lifetimeManager);
     }
 
     public IContentCache<ILifetime<TContent>> Cache { get; }
@@ -99,7 +100,7 @@ public abstract class ManagedContentProcessor<TContent, TWrapped, TSettings>
     public ManagedContentProcessor(int version, Guid type, params string[] supportedExtensions)
         : base(version, type, supportedExtensions)
     {
-        this.Cache = new ContentCache<TContent>();
+        this.Cache = new ManagedContentCache<TContent>();
     }
 
     public IContentCache<TContent> Cache { get; }

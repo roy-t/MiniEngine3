@@ -30,6 +30,12 @@ public sealed class LifetimeManager : IDisposable
         return this.Pool.Add(disposable, this.version);
     }
 
+    public bool IsValid<T>(ILifetime<T> target)
+        where T : IDisposable
+    {
+        return this.Pool.IsValid(target);
+    }
+
     public T Get<T>(ILifetime<T> lifetime)
         where T : IDisposable
     {

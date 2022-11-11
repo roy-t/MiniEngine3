@@ -1,7 +1,9 @@
-﻿namespace Mini.Engine.DirectX.Resources.Models;
+﻿using Mini.Engine.Core.Lifetime;
+
+namespace Mini.Engine.DirectX.Resources.Models;
 
 public interface IModel : IMesh, IDisposable
 {
     IReadOnlyList<Primitive> Primitives { get; }
-    IReadOnlyList<IMaterial> Materials { get; }
+    IReadOnlyList<ILifetime<IMaterial>> Materials { get; }
 }

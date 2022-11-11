@@ -1,9 +1,11 @@
 ﻿using Mini.Engine.Content.Serialization;
+using Mini.Engine.Core.Lifetime;
+using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.IO;
 
 namespace Mini.Engine.Content.Materials;
-internal sealed class WavefrontMaterialProcessor : ManagedContentProcessor<IMaterial, MaterialContent, MaterialSettings>
+internal sealed class WavefrontMaterialProcessor : UnmanagedContentProcessor<IMaterial, MaterialContent, MaterialSettings>
 {
     private const int ProcessorVersion = 1;
     private static readonly Guid ProcessorType = new("{0124D18A-D3E6-48C4-A733-BD3881171B76}");
@@ -11,8 +13,8 @@ internal sealed class WavefrontMaterialProcessor : ManagedContentProcessor<IMate
     private readonly WavefrontMaterialParser Parser;
     private readonly ContentManager Content;
 
-    public WavefrontMaterialProcessor(ContentManager content)
-        : base(ProcessorVersion, ProcessorType, ".mtl")
+    public WavefrontMaterialProcessor(Device device, ContentManager content)
+        : base(device.Resources, ProcessorVersion, ProcessorType, ".mtl")
     {
         this.Parser = new WavefrontMaterialParser();
         this.Content = content;

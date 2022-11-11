@@ -15,7 +15,7 @@ internal sealed class SdrTextureProcessor : UnmanagedContentProcessor<ITexture, 
     private readonly Device Device;
 
     public SdrTextureProcessor(Device device)
-        : base(ProcessorVersion, ProcessorType, ".jpg", ".jpeg", ".png", ".bmp", ".tga", ".psd", ".gif")
+        : base(device.Resources, ProcessorVersion, ProcessorType, ".jpg", ".jpeg", ".png", ".bmp", ".tga", ".psd", ".gif")
     {
         this.Device = device;
     }

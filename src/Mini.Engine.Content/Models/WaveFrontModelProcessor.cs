@@ -1,5 +1,6 @@
-﻿using Mini.Engine.Content.Serialization;
-using Mini.Engine.Content;
+﻿using LightInject;
+using Mini.Engine.Content.Serialization;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.IO;
@@ -14,7 +15,7 @@ internal sealed class WaveFrontModelProcessor : UnmanagedContentProcessor<IModel
     private readonly ContentManager Content;
 
     public WaveFrontModelProcessor(Device device, ContentManager content)
-        : base(ProcessorVersion, ProcessorType, ".obj")
+        : base(device.Resources, ProcessorVersion, ProcessorType, ".obj")
     {
         this.Device = device;
         this.Content = content;
@@ -50,7 +51,7 @@ internal sealed class WaveFrontModelProcessor : UnmanagedContentProcessor<IModel
         var primitives = reader.ReadPrimitives();
         var materialIds = reader.ReadContentIds();
 
-        var materials = new IMaterial[materialIds.Count];
+        var materials = new ILifetime<IMaterial>[materialIds.Count];
         for (var i = 0; i < materials.Length; i++)
         {
             materials[i] = this.Content.LoadMaterial(materialIds[i], settings.MaterialSettings);

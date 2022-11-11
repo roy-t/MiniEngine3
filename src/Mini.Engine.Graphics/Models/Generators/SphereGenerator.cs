@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+﻿using System.Numerics;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Models;
@@ -43,7 +41,7 @@ public static partial class SphereGenerator
         return (indices.ToArray(), vertices.ToArray());
     }
 
-    public static IModel Generate(Device device, int subdivisions, IMaterial material, string name)
+    public static IModel Generate(Device device, int subdivisions, ILifetime<IMaterial> material, string name)
     {
         (var indices, var vertices) = Generate(subdivisions);
 
@@ -53,7 +51,7 @@ public static partial class SphereGenerator
             new Primitive("Sphere", bounds, 0, 0, indices.Length)
         };
 
-        var materials = new IMaterial[] { material };
+        var materials = new ILifetime<IMaterial>[] { material };
         return new Model(device, bounds, vertices, indices, primitives, materials, name);
     }
 
