@@ -1,7 +1,4 @@
 ﻿using System.Text;
-using Mini.Engine.Content.Materials;
-using Mini.Engine.Content.Models;
-using Mini.Engine.Content.Textures;
 
 namespace Mini.Engine.Content.Serialization;
 public sealed class ContentWriter : IDisposable
@@ -22,36 +19,30 @@ public sealed class ContentWriter : IDisposable
         this.WriteDependencies(dependencies);
     }
 
-    public void Write(ContentId id)
+    public void Write(bool value)
     {
-        this.Writer.Write(id.Path);
-        this.Writer.Write(id.Key);
+        this.Writer.Write(value);
     }
 
-    public void WriteArray(ReadOnlySpan<byte> bytes)
+    public void Write(int value)
+    {
+        this.Writer.Write(value);
+    }
+
+    public void Write(float value)
+    {
+        this.Writer.Write(value);
+    }
+
+    public void Write(string value)
+    {
+        this.Writer.Write(value);
+    }
+
+    public void Write(ReadOnlySpan<byte> bytes)
     {
         this.Writer.Write(bytes.Length);
         this.Writer.Write(bytes);
-    }
-
-    public void Write(TextureSettings textureSettings)
-    {
-        this.Writer.Write((int)textureSettings.Mode);
-        this.Writer.Write(textureSettings.ShouldMipMap);
-    }
-
-    public void Write(MaterialSettings materialSettings)
-    {
-        this.Write(materialSettings.AlbedoFormat);
-        this.Write(materialSettings.MetalicnessFormat);
-        this.Write(materialSettings.NormalFormat);
-        this.Write(materialSettings.RoughnessFormat);
-        this.Write(materialSettings.AmbientOcclusionFormat);
-    }
-
-    public void Write(ModelSettings modelSettings)
-    {
-        this.Write(modelSettings.MaterialSettings);
     }
 
     public void Dispose()

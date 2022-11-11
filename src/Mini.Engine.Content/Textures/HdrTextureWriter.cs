@@ -12,10 +12,10 @@ public static class HdrTextureWriter
             fixed (float* ptr = floats)
             {
                 var data = new ReadOnlySpan<byte>(ptr, image.Data.Length * 4);
-                contentWriter.Writer.Write(CountComponents(image.Comp));
-                contentWriter.Writer.Write(image.Width);
-                contentWriter.Writer.Write(image.Height);
-                contentWriter.WriteArray(data);
+                contentWriter.Write(CountComponents(image.Comp));
+                contentWriter.Write(image.Width);
+                contentWriter.Write(image.Height);
+                contentWriter.Write(data);
             }
         }
     }

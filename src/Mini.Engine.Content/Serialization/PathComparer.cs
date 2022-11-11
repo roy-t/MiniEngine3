@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Mini.Engine.Content;
+namespace Mini.Engine.Content.Serialization;
 internal class PathComparer : IComparer<string?>, IEqualityComparer<string?>, IComparer, IEqualityComparer
 {
     public static readonly PathComparer Instance = new();
@@ -11,7 +11,7 @@ internal class PathComparer : IComparer<string?>, IEqualityComparer<string?>, IC
     public PathComparer()
     {
         this.Comparer = StringComparer.InvariantCultureIgnoreCase;
-    }    
+    }
 
     public int Compare(string? x, string? y)
     {
@@ -21,7 +21,7 @@ internal class PathComparer : IComparer<string?>, IEqualityComparer<string?>, IC
     public int Compare(object? x, object? y)
     {
         return this.Comparer.Compare(x as string, y as string);
-    }    
+    }
 
     public bool Equals(string? x, string? y)
     {
@@ -41,7 +41,7 @@ internal class PathComparer : IComparer<string?>, IEqualityComparer<string?>, IC
     public int GetHashCode(object obj)
     {
         return this.Comparer.GetHashCode(NormalizePath(obj as string));
-    }    
+    }
 
     private static string NormalizePath(string? path)
     {

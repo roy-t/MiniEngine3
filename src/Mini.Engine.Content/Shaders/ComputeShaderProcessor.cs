@@ -15,9 +15,7 @@ internal sealed class ComputeShaderProcessor : ShaderProcessor<IComputeShader, C
 
     protected override void WriteSettings(ContentId id, ComputeShaderSettings settings, ContentWriter writer)
     {
-        writer.Writer.Write(settings.NumThreadsX);
-        writer.Writer.Write(settings.NumThreadsY);
-        writer.Writer.Write(settings.NumThreadsZ);
+        writer.Write(settings);
     }
 
     protected override IComputeShader Load(ContentId contentId, ComputeShaderSettings settings, byte[] byteCode)
@@ -28,11 +26,7 @@ internal sealed class ComputeShaderProcessor : ShaderProcessor<IComputeShader, C
 
     protected override ComputeShaderSettings ReadSettings(ContentId id, ContentReader reader)
     {
-        var numThreadsX = reader.Reader.ReadInt32();
-        var numThreadsY = reader.Reader.ReadInt32();
-        var numThreadsZ = reader.Reader.ReadInt32();
-
-        return new ComputeShaderSettings(numThreadsX, numThreadsY, numThreadsZ);
+        return reader.ReadComputeShaderSettings();
     }
 
     public override ComputeShaderContent Wrap(ContentId id, IComputeShader content, ComputeShaderSettings settings, ISet<string> dependencies)

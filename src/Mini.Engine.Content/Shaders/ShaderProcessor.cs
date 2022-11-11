@@ -30,7 +30,7 @@ internal abstract class ShaderProcessor<TContent, TWrapped, TSettings> : Content
         Compiler.Compile(sourceText, Defines, include, id.Key, id.Path, this.Profile, out var shaderBlob, out var errorBlob);
         ShaderCompilationErrorFilter.ThrowOnWarningOrError(errorBlob, "X3568" /*Undefined Pragma */);
 
-        writer.WriteArray(shaderBlob.AsSpan());
+        writer.Write(shaderBlob.AsSpan());
 
         shaderBlob?.Dispose();
         errorBlob?.Dispose();
@@ -38,7 +38,7 @@ internal abstract class ShaderProcessor<TContent, TWrapped, TSettings> : Content
 
     protected override TContent ReadBody(ContentId id, TSettings settings, ContentReader reader)
     {
-        var byteCode = reader.ReadArray();
+        var byteCode = reader.ReadBytes();
         return this.Load(id, settings, byteCode);
     }
 

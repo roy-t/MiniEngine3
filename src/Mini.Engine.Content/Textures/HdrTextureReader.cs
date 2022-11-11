@@ -7,10 +7,10 @@ public static class HdrTextureReader
 {
     public static ITexture Read(Device device, ContentId id, ContentReader reader, TextureSettings settings)
     {
-        var components = reader.Reader.ReadInt32();
-        var width = reader.Reader.ReadInt32();
-        var heigth = reader.Reader.ReadInt32();
-        var data = reader.ReadArray();
+        var components = reader.ReadInt();
+        var width = reader.ReadInt();
+        var heigth = reader.ReadInt();
+        var data = reader.ReadBytes();
         unsafe
         {
             fixed (byte* ptr = data)

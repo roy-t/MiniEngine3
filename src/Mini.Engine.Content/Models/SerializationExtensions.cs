@@ -1,57 +1,19 @@
-﻿using System.Net.Http;
-using System.Numerics;
+﻿using Mini.Engine.Content.Materials;
 using Mini.Engine.Content.Serialization;
 using Mini.Engine.DirectX.Resources.Models;
-using Vortice.Mathematics;
 
 namespace Mini.Engine.Content.Models;
 internal static class SerializationExtensions
 {
-    public static void Write(this ContentWriter writer, Vector2 vector)
+    public static void Write(this ContentWriter writer, ModelSettings modelSettings)
     {
-        writer.Writer.Write(vector.X);
-        writer.Writer.Write(vector.Y);
+        writer.Write(modelSettings.MaterialSettings);
     }
 
-    public static Vector2 ReadVector2(this ContentReader reader)
+    public static ModelSettings ReadModelSettings(this ContentReader reader)
     {
-        return new Vector2
-        {
-            X = reader.Reader.ReadSingle(),
-            Y = reader.Reader.ReadSingle()
-        };
-    }
-
-    public static void Write(this ContentWriter writer, Vector3 vector)
-    {
-        writer.Writer.Write(vector.X);
-        writer.Writer.Write(vector.Y);
-        writer.Writer.Write(vector.Z);
-    }
-
-    public static Vector3 ReadVector3(this ContentReader reader)
-    {
-        return new Vector3
-        {
-            X = reader.Reader.ReadSingle(),
-            Y = reader.Reader.ReadSingle(),
-            Z = reader.Reader.ReadSingle()
-        };
-    }
-
-    public static void Write(this ContentWriter writer, BoundingBox boundingBox)
-    {
-        writer.Write(boundingBox.Min);
-        writer.Write(boundingBox.Max);
-    }
-
-    public static BoundingBox ReadBoundingBox(this ContentReader reader)
-    {
-        return new BoundingBox
-        {
-            Min = reader.ReadVector3(),
-            Max = reader.ReadVector3()
-        };
+        var material = reader.ReadMaterialSettings();
+        return new ModelSettings(material);
     }
 
     public static void Write(this ContentWriter writer, ModelVertex vertex)
@@ -150,25 +112,5 @@ internal static class SerializationExtensions
         }
 
         return indices;
-    }
-
-    public static void Write(this ContentWriter writer, ContentId[] contentIds)
-    {
-        writer.Writer.Write(contentIds.Length);
-        foreach (var contentId in contentIds)
-        {
-            writer.Write(contentId);
-        }
-    }
-
-    public static IReadOnlyList<ContentId> ReadContentIds(this ContentReader reader)
-    {
-        var contentIds = new ContentId[reader.Reader.ReadInt32()];
-        for (var i = 0; i < contentIds.Length; i++)
-        {
-            contentIds[i] = reader.ReadContentId();
-        }
-
-        return contentIds;
     }
 }

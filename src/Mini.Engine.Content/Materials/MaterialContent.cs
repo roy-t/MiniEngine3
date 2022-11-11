@@ -28,6 +28,7 @@ public sealed class MaterialContent : IMaterial, IContent<IMaterial, MaterialSet
     public ISet<string> Dependencies { get; }
 
     public string Name => this.original.Name;
+
     public ISurface Albedo => this.original.Albedo;
     public ISurface Metalicness => this.original.Metalicness;
     public ISurface Normal => this.original.Normal;

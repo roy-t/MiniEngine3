@@ -10,9 +10,9 @@ public static class SdrTextureReader
 
     public static ITexture Read(Device device, ContentId id, ContentReader reader, TextureSettings settings, TranscodeFormats preferredFormat)
     {
-        var imageWidth = reader.Reader.ReadInt32();
-        var imageHeigth = reader.Reader.ReadInt32();
-        var image = reader.ReadArray();
+        var imageWidth = reader.ReadInt();
+        var imageHeigth = reader.ReadInt();
+        var image = reader.ReadBytes();
 
         var imageCount = Transcoder.Instance.GetImageCount(image);
         if (imageCount != 1)

@@ -33,7 +33,7 @@ internal sealed class WavefrontMaterialProcessor : ContentProcessor<IMaterial, M
     {
         var material = this.Parser.Parse(id, fileSystem);
 
-        writer.Writer.Write(material.Name);
+        writer.Write(material.Name);
         writer.Write(material.Albedo);
         writer.Write(material.Metalicness);
         writer.Write(material.Normal);

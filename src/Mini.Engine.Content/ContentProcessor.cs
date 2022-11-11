@@ -15,7 +15,7 @@ public abstract class ContentProcessor<TContent, TWrapped, TSettings> : IContent
         this.Type = type;
         this.SupportedExtensions = new HashSet<string>(supportedExtensions);
 
-        this.Cache = new UnmanagedContentCache<TContent>(lifetimeManager);
+        this.Cache = new ContentCache<TContent>(lifetimeManager);
     }
 
     public IContentCache<ILifetime<TContent>> Cache { get; }

@@ -2,30 +2,30 @@
 
 namespace Mini.Engine.Content.Caching;
 
-public sealed class UnmanagedContentCache<T> : IContentCache<ILifetime<T>>
+public sealed class ContentCache<T> : IContentCache<ILifetime<T>>
     where T : IDisposable
 {
     private readonly LifetimeManager LifetimeManager;
-    private readonly Dictionary<ContentId, WeakReference<ILifetime<T>>> Cache;
+    private readonly Dictionary<ContentId, ILifetime<T>> Cache;
 
-    public UnmanagedContentCache(LifetimeManager lifetimeManager)
+    public ContentCache(LifetimeManager lifetimeManager)
     {
         this.LifetimeManager = lifetimeManager;
-        this.Cache = new Dictionary<ContentId, WeakReference<ILifetime<T>>>();
+        this.Cache = new Dictionary<ContentId, ILifetime<T>>();
     }
 
     public void Store(ContentId id, ILifetime<T> value)
     {
-        this.Cache.Add(id, new WeakReference<ILifetime<T>>(value));
+        this.Cache.Add(id, value);
     }
-
+    
     public bool TryGetValue(ContentId id, out ILifetime<T> value)
     {
-        if (this.Cache.TryGetValue(id, out var reference))
+        if (this.Cache.TryGetValue(id, out var lifetime))
         {
-            if (reference.TryGetTarget(out var target) && this.LifetimeManager.IsValid(target))
+            if (this.LifetimeManager.IsValid(lifetime))
             {
-                value = target;
+                value = lifetime;
                 return true;
             }
             else
