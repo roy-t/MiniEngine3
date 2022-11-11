@@ -53,10 +53,7 @@ public sealed class DebugGrassPlacer
 
         instanceBuffer.MapData(this.Device.ImmediateContext, data);
 
-        var resource = this.Device.Resources.Add(instanceBuffer);
-        this.Content.Link(resource, "Grass");
-
-        return resource;
+        return this.Device.Resources.Add(instanceBuffer);
     }
 
     private static GrassInstanceData[] GenerateSingleGrassLeaf()

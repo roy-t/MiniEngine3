@@ -1,7 +1,7 @@
 ﻿using System;
 using Mini.Engine.IO;
 
-namespace Mini.Engine.Content.Models.Wavefront.Objects;
+namespace Mini.Engine.Content.Models.Wavefront;
 
 /// <summary>
 /// Specifies the material library file for the material definitions set with the usemtl statement.You can specify multiple filenames with mtllib.If multiple filenames are specified, the first file listed is searched first for the material definition, the second file is searched next, and so on.

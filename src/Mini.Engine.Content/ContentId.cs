@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Mini.Engine.Content;
 
@@ -73,5 +74,20 @@ public sealed class ContentId : IEquatable<ContentId>
         return other != null &&
             string.Equals(other.Path, this.Path, StringComparison.InvariantCultureIgnoreCase) &&
             string.Equals(other.Key, this.Key, StringComparison.InvariantCultureIgnoreCase);
+    }
+
+    public static bool operator !=(ContentId? first, ContentId? second)
+    {
+        return !(first == second);
+    }
+
+    public static bool operator ==(ContentId? first, ContentId? second)
+    {
+        if (first is null || second is null)
+        {
+            return ReferenceEquals(first, second);
+        }
+
+        return first.Equals(second);
     }
 }

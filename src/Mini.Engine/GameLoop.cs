@@ -1,6 +1,7 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Controllers;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
@@ -14,6 +15,7 @@ namespace Mini.Engine;
 internal sealed class GameLoop : IGameLoop
 {
     private readonly Device Device;
+    private readonly LifetimeManager LifetimeManager;
 
     private readonly PresentationHelper Presenter;
     private readonly SceneManager SceneManager;
@@ -21,13 +23,14 @@ internal sealed class GameLoop : IGameLoop
     private readonly DebugFrameService DebugFrameService;
     private readonly CameraController CameraController;
     private readonly ContentManager Content;
-    private readonly Mini.Engine.Content.v2.ContentManager ContentV2;
-    private readonly GrassSystem GrassSystem; // TODO: move this to a smarter place?
+    private readonly GrassSystem GrassSystem; // TODO: move to update loop once we have it!
     private readonly ParallelPipeline RenderPipeline;
     private readonly ParallelPipeline DebugPipeline;
-    public GameLoop(Device device, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, CameraController cameraController, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, GrassSystem grassSystem, Content.v2.ContentManager contentV2)
+    public GameLoop(Device device, LifetimeManager lifetimeManager, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, CameraController cameraController, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, GrassSystem grassSystem)
     {
         this.Device = device;
+        this.LifetimeManager = lifetimeManager;
+
         this.Presenter = presenter;
         this.SceneManager = sceneManager;
         this.FrameService = frameService;
@@ -35,31 +38,28 @@ internal sealed class GameLoop : IGameLoop
         this.CameraController = cameraController;
         this.Content = content;
         this.GrassSystem = grassSystem;
-        content.Push("RenderPipeline");
+        this.LifetimeManager.PushFrame("RenderPipeline");
         this.RenderPipeline = renderBuilder.Build();
 
-        content.Push("DebugPipeline");
+        this.LifetimeManager.PushFrame("DebugPipeline");
         this.DebugPipeline = debugBuilder.Build();
 
-        content.Push("Game");
-        this.SceneManager.Set(0);
-        this.ContentV2 = contentV2;
+        this.LifetimeManager.PushFrame("Game");
+        this.SceneManager.Set(0);        
     }
 
     public void Update(float time, float elapsed)
     {
         this.SceneManager.CheckChangeScene();
-
-        // TODO while working on v2 hot reloading for v1 is broken!
-        //this.Content.ReloadChangedContent(); 
-        this.ContentV2.ReloadChangedContent();
+        
+        this.Content.ReloadChangedContent();         
 
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();        
 
         this.CameraController.Update(ref camera, ref cameraTransform, elapsed);
 
-        this.GrassSystem.UpdateWind(elapsed);
+        this.GrassSystem.UpdateWindScrollAccumulator(elapsed);
     }
 
     public void Draw(float alpha)

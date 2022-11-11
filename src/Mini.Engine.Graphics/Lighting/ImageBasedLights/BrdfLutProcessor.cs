@@ -1,10 +1,8 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content;
+using Mini.Engine.Content.Serialization;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.Content.Textures;
-using Mini.Engine.Content.v2;
-using Mini.Engine.Content.v2.Serialization;
-using Mini.Engine.Content.v2.Textures;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.IO;
@@ -15,7 +13,7 @@ using ImageInfo = Mini.Engine.DirectX.Resources.Surfaces.ImageInfo;
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 [Service]
-public sealed class BrdfLutProcessor : UnmanagedContentProcessor<ITexture, TextureContent, TextureLoaderSettings>
+public sealed class BrdfLutProcessor : UnmanagedContentProcessor<ITexture, TextureContent, TextureSettings>
 {
     private const int Resolution = 512;
 
@@ -40,29 +38,29 @@ public sealed class BrdfLutProcessor : UnmanagedContentProcessor<ITexture, Textu
         return new[] { BrdfLutCompute.SourceFile };
     }
 
-    protected override void WriteSettings(ContentId id, TextureLoaderSettings _, ContentWriter writer)
+    protected override void WriteSettings(ContentId id, TextureSettings _, ContentWriter writer)
     {
-        var settings = new TextureLoaderSettings(SuperCompressed.Mode.Linear, false);
+        var settings = new TextureSettings(SuperCompressed.Mode.Linear, false);
         writer.Write(settings);
     }
 
-    protected override void WriteBody(ContentId id, TextureLoaderSettings settings, ContentWriter writer, IReadOnlyVirtualFileSystem fileSystem)
+    protected override void WriteBody(ContentId id, TextureSettings settings, ContentWriter writer, IReadOnlyVirtualFileSystem fileSystem)
     {
         var image = this.ComputeImage();                
         HdrTextureWriter.Write(writer, settings, image);
     }
 
-    protected override TextureLoaderSettings ReadSettings(ContentId id, ContentReader reader)
+    protected override TextureSettings ReadSettings(ContentId id, ContentReader reader)
     {
         return reader.ReadTextureSettings();
     }
 
-    protected override ITexture ReadBody(ContentId id, TextureLoaderSettings settings, ContentReader reader)
+    protected override ITexture ReadBody(ContentId id, TextureSettings settings, ContentReader reader)
     {        
         return HdrTextureReader.Read(this.Device, id, reader, settings);
     }
    
-    public override TextureContent Wrap(ContentId id, ITexture content, TextureLoaderSettings settings, ISet<string> dependencies)
+    public override TextureContent Wrap(ContentId id, ITexture content, TextureSettings settings, ISet<string> dependencies)
     {
         return new TextureContent(id, content, settings, dependencies);
     }    

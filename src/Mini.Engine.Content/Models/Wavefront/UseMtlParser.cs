@@ -1,6 +1,6 @@
 ﻿using Mini.Engine.IO;
 
-namespace Mini.Engine.Content.Models.Wavefront.Objects;
+namespace Mini.Engine.Content.Models.Wavefront;
 
 /// <summary>
 /// Specifies the material name for the element following it. Once a material is assigned, it cannot be turned off; it can only be changed.

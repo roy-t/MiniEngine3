@@ -2,7 +2,7 @@
 using Mini.Engine.IO;
 using Vortice.Mathematics;
 
-namespace Mini.Engine.Content.Models.Wavefront.Objects;
+namespace Mini.Engine.Content.Models.Wavefront;
 
 /// <summary>
 /// Specifies a face element and its vertex reference number. You can optionally include the texture vertex and vertex normal reference numbers.

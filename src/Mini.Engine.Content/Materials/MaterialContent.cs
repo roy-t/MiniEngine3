@@ -1,52 +1,43 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Mini.Engine.Content;
 using Mini.Engine.Core.Lifetime;
-using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Resources;
 using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.DirectX.Resources.Surfaces;
 
 namespace Mini.Engine.Content.Materials;
-
-internal record class MaterialData(ContentId Id, ISurface Albedo, ISurface Metalicness, ISurface Normal, ISurface Roughness, ISurface AmbientOcclusion)
-    : IContentData;
-
-internal sealed class MaterialContent : IMaterial, IContent, IDisposable
+public sealed class MaterialContent : IMaterial, IContent<IMaterial, MaterialSettings>
 {
-    private readonly IContentDataLoader<MaterialData> Loader;
-    private readonly ILoaderSettings Settings;
-    private IMaterial material;
+    private IMaterial original;
 
-    public MaterialContent(ContentId id, Device device, IContentDataLoader<MaterialData> loader, ILoaderSettings settings)
+    public MaterialContent(ContentId id, IMaterial original, MaterialSettings settings, ISet<string> dependencies)
     {
         this.Id = id;
-        this.Loader = loader;
         this.Settings = settings;
-        this.Reload(device);
+        this.Dependencies = dependencies;
+
+        this.Reload(original);
+    }
+
+    [MemberNotNull(nameof(original))]
+    public void Reload(IMaterial original)
+    {
+        this.Dispose();
+        this.original = original;
     }
 
     public ContentId Id { get; }
+    public MaterialSettings Settings { get; }
+    public ISet<string> Dependencies { get; }
 
-    public string Name => this.material.Name;
-    public ILifetime<ISurface> Albedo => this.material.Albedo;
-    public ILifetime<ISurface> Metalicness => this.material.Metalicness;
-    public ILifetime<ISurface> Normal => this.material.Normal;
-    public ILifetime<ISurface> Roughness => this.material.Roughness;
-    public ILifetime<ISurface> AmbientOcclusion => this.material.AmbientOcclusion;    
-
-    [MemberNotNull(nameof(material))]
-    public void Reload(Device device)
-    {
-        var data = this.Loader.Load(device, this.Id, this.Settings);        
-        this.material = new Material(this.Id.ToString(), device.Resources.Add(data.Albedo), device.Resources.Add(data.Metalicness), device.Resources.Add(data.Normal), device.Resources.Add(data.Roughness), device.Resources.Add(data.AmbientOcclusion));
-    }
+    public string Name => this.original.Name;
+    public ILifetime<ISurface> Albedo => this.original.Albedo;
+    public ILifetime<ISurface> Metalicness => this.original.Metalicness;
+    public ILifetime<ISurface> Normal => this.original.Normal;
+    public ILifetime<ISurface> Roughness => this.original.Roughness;
+    public ILifetime<ISurface> AmbientOcclusion => this.original.AmbientOcclusion;
 
     public void Dispose()
     {
-        // Do not dispose anything as a material is not the only owner of a texture
-    }
-
-    public override string ToString()
-    {
-        return $"Material: {this.Id}";
+        // Do nothing
     }
 }

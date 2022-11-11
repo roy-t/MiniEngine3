@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Mini.Engine.Content.Models.Wavefront.Objects;
+namespace Mini.Engine.Content.Models.Wavefront;
 
 /// <summary>
 /// Specifies a normal vector with components i, j, and k.

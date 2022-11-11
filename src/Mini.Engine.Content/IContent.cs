@@ -1,9 +1,13 @@
-﻿using Mini.Engine.DirectX;
-
-namespace Mini.Engine.Content;
-
-public interface IContent
+﻿namespace Mini.Engine.Content;
+public interface IContent : IDisposable
 {
     ContentId Id { get; }
-    void Reload(Device device);
+    ISet<string> Dependencies { get; }
+}
+
+public interface IContent<TContent,TSettings>
+     : IContent
+{
+    TSettings Settings { get; }
+    void Reload(TContent content);
 }

@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content.v2;
+using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.Core;
 using Mini.Engine.Core.Lifetime;

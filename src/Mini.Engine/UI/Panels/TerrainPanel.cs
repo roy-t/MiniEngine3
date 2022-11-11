@@ -37,8 +37,8 @@ internal sealed class TerrainPanel : IPanel
         this.mapSettings = new HeightMapGeneratorSettings();
         this.erosionSettings = new HydraulicErosionBrushSettings();
 
-        this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HeightMap.hlsl", "NoiseMapKernel"), _ => this.Recreate(this.ApplyTerrain));
-        this.Content.OnReloadCallback(new ContentId(@"Shaders\World\HydraulicErosion.hlsl", "Kernel"), _ => { this.Recreate(this.ApplyTerrain); this.Recreate(this.ErodeTerrain); });
+        this.Content.AddReloadCallback(new ContentId(@"Shaders\World\HeightMap.hlsl", "NoiseMapKernel"), () => this.Recreate(this.ApplyTerrain));
+        this.Content.AddReloadCallback(new ContentId(@"Shaders\World\HydraulicErosion.hlsl", "Kernel"), () => { this.Recreate(this.ApplyTerrain); this.Recreate(this.ErodeTerrain); });
     }
 
     public string Title => "Terrain";

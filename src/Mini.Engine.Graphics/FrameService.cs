@@ -35,8 +35,6 @@ public sealed class FrameService : IDisposable
     /// </summary>
     public float Alpha { get; set; }
 
-    public float Elapsed { get; set; }
-
     public GeometryBuffer GBuffer { get; private set; }
     public LightBuffer LBuffer { get; private set; }
     public PostProcessingBuffer PBuffer { get; private set; }

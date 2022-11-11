@@ -1,7 +1,9 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
+using Mini.Engine.Content.Models;
 using Mini.Engine.Content.Textures;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
@@ -25,13 +27,15 @@ public sealed class SponzaScene : IScene
         1.0f
     };
 
+    private readonly LifetimeManager LifetimeManager;
     private readonly Device Device;
     private readonly ContentManager Content;
     private readonly ECSAdministrator Administrator;
     private readonly CubeMapGenerator CubeMapGenerator;
 
-    public SponzaScene(Device device, ContentManager content, ECSAdministrator administrator, CubeMapGenerator cubeMapGenerator)
+    public SponzaScene(LifetimeManager lifetimeManager, Device device, ContentManager content, ECSAdministrator administrator, CubeMapGenerator cubeMapGenerator)
     {
+        this.LifetimeManager = lifetimeManager;
         this.Device = device;
         this.Content = content;
         this.Administrator = administrator;
@@ -49,7 +53,7 @@ public sealed class SponzaScene : IScene
             new LoadAction("Models", () =>
             {
                 var world = this.Administrator.Entities.Create();
-                var sponza = this.Content.LoadSponza();
+                var sponza = this.Content.LoadModel(@"Scenes\sponza\sponza.obj", ModelSettings.Default);
 
                 ref var model = ref creator.Create<ModelComponent>(world);
                 model.Model = sponza;
@@ -80,8 +84,7 @@ public sealed class SponzaScene : IScene
 
                 var resolution = 2048;
                 var buffer = new DepthStencilBuffer(this.Device, "SunLight", DepthStencilFormat.D32_Float, resolution, resolution, 4);
-                var bufferResource = this.Device.Resources.Add(buffer);
-                this.Content.Link(bufferResource, buffer.Name);
+                var bufferResource = this.LifetimeManager.Add(buffer);                
 
                 shadowmap.Init(bufferResource, resolution, Cascades[0], Cascades[1], Cascades[2], Cascades[3]);
 
@@ -93,15 +96,10 @@ public sealed class SponzaScene : IScene
             new LoadAction("Skybox", () =>
             {
                 var sky = this.Administrator.Entities.Create();
-                var texture = this.Content.LoadTexture(@"Skyboxes\circus.hdr", string.Empty, TextureLoaderSettings.RenderData);
+                var texture = this.Content.LoadTexture(@"Skyboxes\circus.hdr", TextureSettings.RenderData);
                 var albedo = this.CubeMapGenerator.GenerateAlbedo(texture, sky.ToString());
                 var irradiance = this.CubeMapGenerator.GenerateIrradiance(texture, sky.ToString());
                 var environment = this.CubeMapGenerator.GenerateEnvironment(texture, sky.ToString());
-
-                // Make sure the items are disposed whenever this content frame is
-                this.Content.Link(albedo, nameof(albedo));
-                this.Content.Link(irradiance, nameof(irradiance));
-                this.Content.Link(environment, nameof(environment));
 
                 var levels = this.Device.Resources.Get(environment).MipMapLevels;
 

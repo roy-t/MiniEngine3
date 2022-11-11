@@ -41,10 +41,10 @@ internal static class FormatSelector
                 return Format.R32G32_Float;
             }
 
-            if (components == 3)
-            {
-                return Format.R32G32B32_Float;
-            }
+            //if (components == 3)
+            //{
+            //    return Format.R32G32B32_Float;
+            //}
 
             if (components == 4)
             {

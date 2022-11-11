@@ -1,7 +1,7 @@
 ﻿using System;
 using Mini.Engine.IO;
 
-namespace Mini.Engine.Content.Models.Wavefront.Objects;
+namespace Mini.Engine.Content.Models.Wavefront;
 
 /// <summary>
 /// Object name statements let you assign a name to an entire object in a single file.

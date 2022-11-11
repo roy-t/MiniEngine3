@@ -3,7 +3,7 @@ using System.Numerics;
 using Mini.Engine.Content.Parsers;
 using Mini.Engine.IO;
 
-namespace Mini.Engine.Content.Models.Wavefront.Objects;
+namespace Mini.Engine.Content.Models.Wavefront;
 
 internal abstract class VertexParser : ObjStatementParser
 {

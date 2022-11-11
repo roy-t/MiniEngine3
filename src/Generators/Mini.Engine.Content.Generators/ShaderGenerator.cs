@@ -44,7 +44,7 @@ public sealed class ShaderGenerator : IIncrementalGenerator
 
         var fields = @"private readonly Mini.Engine.DirectX.Device Device;";
 
-        var arguments = "Mini.Engine.DirectX.Device device, Mini.Engine.Content.v2.ContentManager content";
+        var arguments = "Mini.Engine.DirectX.Device device, Mini.Engine.Content.ContentManager content";
 
         var assignments = GenerateFieldAssignments() + Environment.NewLine + GenerateShaderPropertyAssignments(shader.FilePath, shader.Functions);
 

@@ -9,7 +9,6 @@ using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
-using ContentManager = Mini.Engine.Content.v2.ContentManager;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
@@ -34,7 +33,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.Shader = shader;
         this.User = shader.CreateUserFor<ImageBasedLightSystem>();
 
-        this.BrdfLut = contentManager.Load(generator, new ContentId("brdflut.hdr"), TextureLoaderSettings.RenderData);            
+        this.BrdfLut = contentManager.Load(generator, new ContentId("brdflut.hdr"), TextureSettings.RenderData);            
     }
 
     public void OnSet()

@@ -176,10 +176,7 @@ public sealed class GrassGenerator
         var instanceBuffer = new StructuredBuffer<GrassInstanceData>(this.Device, "Grass");
         instanceBuffer.MapData(this.Device.ImmediateContext, data);
 
-        var resource = this.Device.Resources.Add(instanceBuffer);
-        this.Content.Link(resource, "Grass");
-
-        return resource;
+        return this.Device.Resources.Add(instanceBuffer);        
     }
 
     // DEBUG stuff

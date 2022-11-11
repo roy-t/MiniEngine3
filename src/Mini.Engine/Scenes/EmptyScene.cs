@@ -2,6 +2,7 @@
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Textures;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
@@ -9,8 +10,6 @@ using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Transforms;
 using Vortice.Mathematics;
-
-
 
 namespace Mini.Engine.Scenes;
 
@@ -26,13 +25,15 @@ public sealed class EmptyScene : IScene
     };
 
     private readonly Device Device;
+    private readonly LifetimeManager LifetimeManager;
     private readonly ContentManager Content;
     private readonly ECSAdministrator Administrator;
     private readonly CubeMapGenerator CubeMapGenerator;
 
-    public EmptyScene(Device device, ContentManager content, ECSAdministrator administrator, CubeMapGenerator cubeMapGenerator)
+    public EmptyScene(Device device, LifetimeManager lifetimeManager, ContentManager content, ECSAdministrator administrator, CubeMapGenerator cubeMapGenerator)
     {
         this.Device = device;
+        this.LifetimeManager = lifetimeManager;
         this.Content = content;
         this.Administrator = administrator;
         this.CubeMapGenerator = cubeMapGenerator;
@@ -58,8 +59,7 @@ public sealed class EmptyScene : IScene
 
                 var resolution = 2048;
                 var buffer = new DepthStencilBuffer(this.Device, "SunLight", DepthStencilFormat.D32_Float, resolution, resolution, 4);
-                var bufferResource = this.Device.Resources.Add(buffer);
-                this.Content.Link(bufferResource, buffer.Name);
+                var bufferResource = this.LifetimeManager.Add(buffer);                
                 shadowMap.Init(bufferResource, resolution, Cascades[0], Cascades[1], Cascades[2], Cascades[3]);
 
                 ref var transform = ref creator.Create<TransformComponent>(sun);
@@ -70,16 +70,11 @@ public sealed class EmptyScene : IScene
             new LoadAction("Skybox", () =>
             {
                 var sky = this.Administrator.Entities.Create();
-                var texture = this.Content.LoadTexture(@"Skyboxes\hilly_terrain.hdr", string.Empty, TextureLoaderSettings.RenderData);
+                var texture = this.Content.LoadTexture(@"Skyboxes\hilly_terrain.hdr", TextureSettings.RenderData);
                 var albedo = this.CubeMapGenerator.GenerateAlbedo(texture, sky.ToString());
                 var irradiance = this.CubeMapGenerator.GenerateIrradiance(texture, sky.ToString());
                 var environment = this.CubeMapGenerator.GenerateEnvironment(texture, sky.ToString());
-
-                // Make sure the items are disposed whenever this content frame is
-                this.Content.Link(albedo, nameof(albedo));
-                this.Content.Link(irradiance, nameof(irradiance));
-                this.Content.Link(environment, nameof(environment));
-
+       
                 var levels = this.Device.Resources.Get(environment).MipMapLevels;
 
                 ref var skybox = ref creator.Create<SkyboxComponent>(sky);

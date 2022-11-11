@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.ECS;
 using Mini.Engine.Graphics;
 
@@ -10,6 +9,7 @@ namespace Mini.Engine.Scenes;
 [Service]
 public sealed class SceneManager
 {
+    private readonly LifetimeManager LifetimeManager;
     private readonly LoadingScreen LoadingScreen;
     private readonly ContentManager Content;
     private readonly ECSAdministrator Administrator;
@@ -17,8 +17,9 @@ public sealed class SceneManager
     private int activeScene;
     private int nextScene;
 
-    public SceneManager(LoadingScreen loadingScreen, ContentManager content, ECSAdministrator administrator, FrameService frameService, IEnumerable<IScene> scenes)
+    public SceneManager(LifetimeManager lifetimeManager, LoadingScreen loadingScreen, ContentManager content, ECSAdministrator administrator, FrameService frameService, IEnumerable<IScene> scenes)
     {
+        this.LifetimeManager = lifetimeManager;
         this.LoadingScreen = loadingScreen;
         this.Content = content;
         this.Administrator = administrator;
@@ -48,17 +49,17 @@ public sealed class SceneManager
     {
         if (this.activeScene >= 0)
         {
-            this.Content.Pop();
             this.Administrator.RemoveAll();
-        }
+            this.LifetimeManager.PopFrame();            
+        }        
 
         this.activeScene = index;
-        var actions = this.Scenes[this.activeScene].Load();
-
         var title = this.Scenes[this.activeScene].Title;
-        this.Content.Push($"Scene{title}");
+
+        this.LifetimeManager.PushFrame($"Scene: {title}");
+        var actions = this.Scenes[this.activeScene].Load();        
         this.LoadingScreen.Load(actions, title);
 
         this.FrameService.InitializePrimaryCamera();
-    }    
+    }
 }

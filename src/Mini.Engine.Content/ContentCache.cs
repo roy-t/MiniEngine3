@@ -1,48 +1,44 @@
-﻿using System.Collections.Generic;
-using Mini.Engine.DirectX;
+﻿namespace Mini.Engine.Content;
 
-namespace Mini.Engine.Content;
-
-internal sealed class ContentCache<T> : IContentLoader<T>
-    where T : IContent
+public interface IContentCache<T>
+    where T : class
 {
-    private sealed record Entry(T Item)
+    public bool TryGetValue(ContentId id, out T value);
+    public void Store(ContentId id, T value);
+}
+
+public sealed class ContentCache<T> : IContentCache<T>
+    where T : class
+{
+
+    private readonly Dictionary<ContentId, WeakReference<T>> Cache;
+
+    public ContentCache()
     {
-        public int ReferenceCount { get; set; }
+        this.Cache = new Dictionary<ContentId, WeakReference<T>>();
     }
 
-    private readonly Dictionary<ContentId, Entry> Cache;
-    private readonly IContentLoader<T> Loader;
-
-    public ContentCache(IContentLoader<T> loader)
+    public bool TryGetValue(ContentId id, out T value)
     {
-        this.Cache = new Dictionary<ContentId, Entry>();
-        this.Loader = loader;
-    }
-
-    public T Load(Device device, ContentId id, ILoaderSettings settings)
-    {
-        if (this.Cache.TryGetValue(id, out var entry))
+        if (this.Cache.TryGetValue(id, out var reference))
         {
-            entry.ReferenceCount++;
-            return entry.Item;
+            if (reference.TryGetTarget(out var target))
+            {
+                value = target;
+                return true;
+            }
+            else
+            {
+                this.Cache.Remove(id);
+            }
         }
 
-        var data = this.Loader.Load(device, id, settings);
-        this.Cache.Add(id, new Entry(data) { ReferenceCount = 1 });
-
-        return data;
+        value = default!;
+        return false;
     }
 
-    public void Unload(T content)
+    public void Store(ContentId id, T value)
     {
-        var entry = this.Cache[content.Id];
-
-        entry.ReferenceCount--;
-        if (entry.ReferenceCount < 1)
-        {
-            this.Loader.Unload(content);
-            this.Cache.Remove(content.Id);
-        }
+        this.Cache.Add(id, new WeakReference<T>(value));
     }
 }

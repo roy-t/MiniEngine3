@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.DXGI;
@@ -19,68 +20,66 @@ public sealed class Pixels
         this.Content = content;
     }
 
-    public ISurface WhitePixel => this.CreatePixel(Colors.White, "White");
+    public ILifetime<ITexture> WhitePixel => this.CreatePixel(Colors.White, "White");
 
-    public ISurface BlackPixel => this.CreatePixel(Colors.Black, "Black");
+    public ILifetime<ITexture> BlackPixel => this.CreatePixel(Colors.Black, "Black");
 
-    public ISurface RedPixel => this.CreatePixel(Colors.Red, "Red");
+    public ILifetime<ITexture> RedPixel => this.CreatePixel(Colors.Red, "Red");
 
-    public ISurface GreenPixel => this.CreatePixel(Colors.Green, "Green");
+    public ILifetime<ITexture> GreenPixel => this.CreatePixel(Colors.Green, "Green");
 
-    public ISurface BluePixel => this.CreatePixel(Colors.Blue, "Blue");
+    public ILifetime<ITexture> BluePixel => this.CreatePixel(Colors.Blue, "Blue");
 
-    public ISurface ConductivePixel => this.CreatePixel(Colors.White, "Metalicness");
+    public ILifetime<ITexture> ConductivePixel => this.CreatePixel(Colors.White, "Metalicness");
 
-    public ISurface DielectricPixel => this.CreatePixel(Colors.Black, "Metalicness");
+    public ILifetime<ITexture> DielectricPixel => this.CreatePixel(Colors.Black, "Metalicness");
 
-    public ISurface RoughPixel => this.RoughnessPixel(1.0f);
+    public ILifetime<ITexture> RoughPixel => this.RoughnessPixel(1.0f);
 
-    public ISurface SmoothPixel => this.RoughnessPixel(0.0f);
+    public ILifetime<ITexture> SmoothPixel => this.RoughnessPixel(0.0f);
 
-    public ISurface VisiblePixel => this.AmbientOcclussionPixel(1.0f);
+    public ILifetime<ITexture> VisiblePixel => this.AmbientOcclussionPixel(1.0f);
 
-    public ISurface OccludedPixel => this.AmbientOcclussionPixel(0.0f);
+    public ILifetime<ITexture> OccludedPixel => this.AmbientOcclussionPixel(0.0f);
 
-    public ISurface AlbedoPixel(Color4 color)
+    public ILifetime<ITexture> AlbedoPixel(Color4 color)
     {
         return this.CreatePixel(color, "Albedo");
     }
 
-    public ISurface NormalPixel()
+    public ILifetime<ITexture> NormalPixel()
     {
         return this.NormalPixel(Vector3.UnitZ);
     }
 
-    public ISurface NormalPixel(Vector3 direction)
+    public ILifetime<ITexture> NormalPixel(Vector3 direction)
     {
         return this.CreatePixel(new Color4(Pack(direction), 1.0f), "Normal");
     }
 
-    public ISurface MetalicnessPixel(float metalicness)
+    public ILifetime<ITexture> MetalicnessPixel(float metalicness)
     {
         return this.CreatePixel(new Color4(metalicness, metalicness, metalicness), "Metalicness");
     }
 
-    public ISurface RoughnessPixel(float roughness)
+    public ILifetime<ITexture> RoughnessPixel(float roughness)
     {
         return this.CreatePixel(new Color4(roughness, roughness, roughness), "Roughness");
     }
 
-    public ISurface AmbientOcclussionPixel(float ao)
+    public ILifetime<ITexture> AmbientOcclussionPixel(float ao)
     {
         return this.CreatePixel(new Color4(ao, ao, ao), "AmbientOcclusion");
     }
 
-    private ISurface CreatePixel(Color4 color, string meaning)
+    private ILifetime<ITexture> CreatePixel(Color4 color, string meaning)
     {
-        var image = new DirectX.Resources.Surfaces.ImageInfo(1, 1, Format.R16G16B16A16_Float, 1 * Format.R16G16B16A16_Float.BytesPerPixel());
-        var mipMap = DirectX.Resources.Surfaces.MipMapInfo.None();
+        var image = new ImageInfo(1, 1, Format.R16G16B16A16_Float, 1 * Format.R16G16B16A16_Float.BytesPerPixel());
+        var mipMap = MipMapInfo.None();
         var pixel = new Texture(this.Device, nameof(Pixels) + meaning, image, mipMap);
-        pixel.SetPixels(this.Device, new ReadOnlySpan<Color4>(new Color4[] { color }));        
+        pixel.SetPixels(this.Device, new ReadOnlySpan<Color4>(new Color4[] { color }));
 
-        this.Content.Link(pixel, $"pixels/{meaning}");
-
-        return pixel;
+        return this.Device.Resources.Add(pixel);        
     }
 
     private static Vector3 Pack(Vector3 direction)

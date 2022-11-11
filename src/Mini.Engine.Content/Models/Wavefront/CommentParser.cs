@@ -1,4 +1,4 @@
-﻿namespace Mini.Engine.Content.Models.Wavefront.Objects;
+﻿namespace Mini.Engine.Content.Models.Wavefront;
 
 /// <summary>
 /// Comment, ignored by the parser

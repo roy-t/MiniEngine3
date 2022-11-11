@@ -41,13 +41,13 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         this.windDirection = Vector2.Normalize(new Vector2(1.0f, 0.75f));
     }
 
-    public void UpdateWind(float elapsed)
+    public void UpdateWindScrollAccumulator(float elapsed)
     {
         this.windScrollAccumulator += elapsed;
     }
 
     public void OnSet()
-    {
+    {        
         this.Context.IA.ClearInputLayout();
         this.Context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleStrip);
 

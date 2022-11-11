@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.DirectX.Resources.Surfaces;
@@ -14,15 +14,15 @@ public sealed class TerrainGenerator
     private readonly Device Device;
     private readonly HeightMapGenerator HeightMapGenerator;
     private readonly HydraulicErosionBrush ErosionBrush;
-    private readonly ContentManager Content;
+    private readonly LifetimeManager LifetimeManager;
 
     private static readonly Color4 Umber = new(140.0f / 255.0f, 105.0f / 255.0f, 75.0f / 255.0f);
 
-    public TerrainGenerator(Device device, ContentManager content, HeightMapGenerator noiseGenerator, HydraulicErosionBrush erosionBrush)
+    public TerrainGenerator(Device device, LifetimeManager content, HeightMapGenerator noiseGenerator, HydraulicErosionBrush erosionBrush)
     {
         this.Device = device;
         this.HeightMapGenerator = noiseGenerator;
-        this.Content = content;
+        this.LifetimeManager = content;
         this.ErosionBrush = erosionBrush;
     }
 
@@ -35,10 +35,10 @@ public sealed class TerrainGenerator
         var bounds = ComputeBounds(settings);
         var mesh = this.GenerateMesh(height, settings.MeshDefinition, bounds, name);
 
-        this.Content.Link(height, $"{name}#{height.Name}");
-        this.Content.Link(normals, $"{name}#{normals.Name}");
-        this.Content.Link(tint, $"{name}#{tint.Name}");
-        this.Content.Link(mesh, $"{name}#{mesh}");
+        this.LifetimeManager.Add(height);
+        this.LifetimeManager.Add(normals);
+        this.LifetimeManager.Add(tint);
+        this.LifetimeManager.Add(mesh);
 
         return new GeneratedTerrain(height, normals, tint, mesh);
     }

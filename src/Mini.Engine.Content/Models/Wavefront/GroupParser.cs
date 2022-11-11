@@ -2,7 +2,7 @@
 using Mini.Engine.Content.Parsers;
 using Mini.Engine.IO;
 
-namespace Mini.Engine.Content.Models.Wavefront.Objects;
+namespace Mini.Engine.Content.Models.Wavefront;
 
 /// <summary>
 /// Group name statements are used to organize collections of elements and simplify data manipulation for operations in model.
