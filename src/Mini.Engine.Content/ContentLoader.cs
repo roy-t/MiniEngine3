@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime;
 using Mini.Engine.Content.Serialization;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.IO;
@@ -15,7 +17,7 @@ internal class ContentLoader
     {
         this.LifetimeManager = lifetimeManager;
         this.FileSystem = fileSystem;
-        this.HotReloader = new HotReloader(logger, fileSystem);
+        this.HotReloader = new HotReloader(lifetimeManager, logger, fileSystem);
     }   
 
     public ILifetime<TContent> Load<TContent, TWrapped, TSettings>(IContentProcessor<TContent, TWrapped, TSettings> processor, ContentId id, TSettings settings)
@@ -30,7 +32,7 @@ internal class ContentLoader
         if (this.TryLoadSerializedContent(processor, id, out var header, out var content))
         {
             content = this.WrapInDebug(processor, id, settings, header, content);
-            var resource = this.RegisterContentResource(content);
+            var resource = this.RegisterContentResource(content, processor);
             processor.Cache.Store(id, resource);
             return resource;
         }
@@ -66,8 +68,7 @@ internal class ContentLoader
         where TWrapped : IContent, TContent
     {
 #if DEBUG
-        var wrapped = processor.Wrap(id, content, settings, header.Dependencies);
-        this.HotReloader.Register(wrapped, processor);
+        var wrapped = processor.Wrap(id, content, settings, header.Dependencies);        
         content = wrapped;
 #endif
         return content;
@@ -83,10 +84,16 @@ internal class ContentLoader
         processor.Generate(id, settings, writer, new TrackingVirtualFileSystem(this.FileSystem));
     }
 
-    private ILifetime<T> RegisterContentResource<T>(T content)
-        where T : IDisposable
+    private ILifetime<TContent> RegisterContentResource<TContent, TWrapped, TSettings>(TContent content, IContentProcessor<TContent, TWrapped, TSettings> processor)
+        where TContent : IDisposable
+        where TWrapped : IContent, TContent
     {
-        return this.LifetimeManager.Add(content);
+
+        var lifetime = this.LifetimeManager.Add(content);
+#if DEBUG
+        this.HotReloader.Register((ILifetime<IDisposable>)lifetime, processor);
+#endif
+        return lifetime;
     }
 
     public void ReloadChangedContent()

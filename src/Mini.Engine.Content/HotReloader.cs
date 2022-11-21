@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Mini.Engine.Content.Serialization;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.IO;
 using Serilog;
 
@@ -7,28 +8,31 @@ namespace Mini.Engine.Content;
 
 internal sealed class HotReloader
 {
-    private record ReloadReference(WeakReference<IContent> Content, IContentProcessor Manager, IList<Action> Callbacks);
+    private record ReloadReference(ILifetime<IDisposable> Content, IContentProcessor Manager, IList<Action> Callbacks);
 
     private readonly ILogger Logger;
     private readonly IVirtualFileSystem FileSystem;
     private readonly List<ReloadReference> References;
+    private readonly LifetimeManager LifetimeManager;
 
-    public HotReloader(ILogger logger, IVirtualFileSystem fileSystem)
+    public HotReloader(LifetimeManager lifetimeManager, ILogger logger, IVirtualFileSystem fileSystem)
     {
+        this.LifetimeManager = lifetimeManager;
         this.Logger = logger.ForContext<HotReloader>();
         this.FileSystem = fileSystem;
         this.References = new List<ReloadReference>();
     }
 
     [Conditional("DEBUG")]
-    internal void Register(IContent content, IContentProcessor manager)
+    internal void Register(ILifetime<IDisposable> contentLifetime, IContentProcessor manager)        
     {
+        var content = (IContent)this.LifetimeManager.Get(contentLifetime);
         foreach (var dependency in content.Dependencies)
         {
             this.FileSystem.WatchFile(dependency);
         }
 
-        var reference = new ReloadReference(new WeakReference<IContent>(content), manager, new List<Action>(0));
+        var reference = new ReloadReference(contentLifetime, manager, new List<Action>(0));
         this.References.Add(reference);
     }
 
@@ -38,8 +42,9 @@ internal sealed class HotReloader
         for (var i = this.References.Count - 1; i >= 0; i--)
         {
             var reference = this.References[i];
-            if (reference.Content.TryGetTarget(out var content))
+            if (this.LifetimeManager.IsValid(reference.Content))
             {
+                var content = (IContent)this.LifetimeManager.Get(reference.Content);
                 if (content.Id == id)
                 {
                     reference.Callbacks.Add(callback);
@@ -63,8 +68,9 @@ internal sealed class HotReloader
             for (var i = this.References.Count - 1; i >= 0; i--)
             {
                 var reference = this.References[i];
-                if (reference.Content.TryGetTarget(out var content))
+                if (this.LifetimeManager.IsValid(reference.Content))
                 {
+                    var content = (IContent)this.LifetimeManager.Get(reference.Content);
                     if (content.Dependencies.Contains(file))
                     {
                         this.Logger.Information("Reloading {@type}:{@content} because of changes in {@file}", content.GetType().Name, content.Id.ToString(), file);
