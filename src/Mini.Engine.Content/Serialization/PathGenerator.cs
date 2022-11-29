@@ -8,14 +8,16 @@ internal static class PathGenerator
 
     public static string GetPath(ContentId id)
     {
-        var path = id.Path;
-        if (!string.IsNullOrEmpty(id.Key))
+        var folder = Path.GetDirectoryName(id.Path) ?? string.Empty;
+        var file = Path.GetFileName(id.Path);
+        if(!string.IsNullOrEmpty(id.Key))
         {
             var key = SanitizeKey(id.Key);
-            path += "#" + key;
+            file += "#" + key;
         }
 
-        return path + Extension;
+        file = "." + file + Extension;
+        return Path.Combine(folder, file);        
     }
 
     private static string SanitizeKey(string key)

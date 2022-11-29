@@ -27,7 +27,7 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
         this.Shader = shader;
     }
 
-    public AAType AntiAliasing { get; set; } = AAType.None;
+    public AAType AntiAliasing { get; set; } = AAType.TAA;
 
     public void OnSet()
     {

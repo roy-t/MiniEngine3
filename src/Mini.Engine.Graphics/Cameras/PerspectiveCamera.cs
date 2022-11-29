@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using Mini.Engine.DirectX;
 
 namespace Mini.Engine.Graphics.Cameras;
 

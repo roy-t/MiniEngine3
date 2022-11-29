@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
+    <None Remove="Assets\Shaders\Includes\FXAA.hlsl" />
+    <None Remove="Assets\Shaders\Includes\TAA.hlsl" />
     <None Remove="Assets\Shaders\Lighting\BrdfLutCompute.hlsl" />
   </ItemGroup> 
   <ItemGroup>
@@ -14,6 +16,8 @@
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
+    <AdditionalFiles Include="Assets\Shaders\Includes\TAA.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Includes\FXAA.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Easings.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Radians.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\AntiAliasShader.hlsl" />
@@ -51,6 +55,6 @@
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.12.0" />
     <PackageReference Include="StbImageSharp" Version="2.27.12" />
-    <PackageReference Include="SuperCompressed" Version="1.0.2" />
+    <PackageReference Include="SuperCompressed" Version="1.1.0" />
   </ItemGroup>
 </Project>
