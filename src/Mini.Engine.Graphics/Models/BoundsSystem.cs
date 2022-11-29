@@ -63,7 +63,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
             var context = this.Device.ImmediateContext;
 
             var camera = this.FrameService.GetPrimaryCamera().Camera;
-            var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
+            var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
             var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.Device.Width, this.Device.Height); // TODO: is this OK for bounds, or do we need the other one?
             
             this.User.MapConstants(context, viewProjection, Vector4.One);
@@ -84,10 +84,10 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
         if (this.DebugFrameService.ShowBounds)
         {
             var camera = this.FrameService.GetPrimaryCamera().Camera;
-            var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
+            var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
             var frustum = new Frustum(camera.GetBoundedReversedZViewProjection(in cameraTransform));
 
-            var world = transform.Transform.GetMatrix();
+            var world = transform.Current.GetMatrix();
             var model = this.Device.Resources.Get(component.Model);
             var bounds = model.Bounds.Transform(world);
             
@@ -121,10 +121,10 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
         if (this.DebugFrameService.ShowBounds)
         {
             var camera = this.FrameService.GetPrimaryCamera().Camera;
-            var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
+            var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
             var frustum = new Frustum(camera.GetBoundedReversedZViewProjection(in cameraTransform));
 
-            var world = transform.Transform.GetMatrix();
+            var world = transform.Current.GetMatrix();
             var mesh = this.Device.Resources.Get(component.Mesh);
             var bounds = mesh.Bounds.Transform(world);
             

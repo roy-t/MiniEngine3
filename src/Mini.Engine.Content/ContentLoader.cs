@@ -9,12 +9,16 @@ using Serilog;
 namespace Mini.Engine.Content;
 internal class ContentLoader
 {
+    private readonly ILogger Logger;
     private readonly LifetimeManager LifetimeManager;
     private readonly IVirtualFileSystem FileSystem;
     private readonly HotReloader HotReloader;
+    
 
     public ContentLoader(ILogger logger, LifetimeManager lifetimeManager, IVirtualFileSystem fileSystem)
     {
+        this.Logger = logger.ForContext<ContentLoader>();
+
         this.LifetimeManager = lifetimeManager;
         this.FileSystem = fileSystem;
         this.HotReloader = new HotReloader(lifetimeManager, logger, fileSystem);
@@ -48,13 +52,20 @@ internal class ContentLoader
         var path = PathGenerator.GetPath(id);
         if (this.FileSystem.Exists(path))
         {
-            using var rStream = this.FileSystem.OpenRead(path);
-            using var reader = new ContentReader(rStream);
-            header = reader.ReadHeader();
-            if (ContentProcessorValidation.IsContentUpToDate(processor.Version, header, this.FileSystem))
+            try
             {
-                content = processor.Load(id, header, reader);
-                return true;
+                using var rStream = this.FileSystem.OpenRead(path);
+                using var reader = new ContentReader(rStream);
+                header = reader.ReadHeader();
+                if (ContentProcessorValidation.IsContentUpToDate(processor.Version, header, this.FileSystem))
+                {
+                    content = processor.Load(id, header, reader);
+                    return true;
+                }
+            }
+            catch(Exception e)
+            {
+                this.Logger.Warning(e, "Clould not load file {@file}, rebuilding", path);
             }
         }
 

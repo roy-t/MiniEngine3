@@ -193,6 +193,6 @@ internal sealed class TerrainPanel : IPanel
         var desiredWidth = 100.0f;
         var scale = desiredWidth / width;
 
-        tra.Transform = tra.Transform.SetScale(scale);
+        tra.Current = tra.Current.SetScale(scale);
     }
 }

@@ -44,7 +44,7 @@ public sealed class RenderService
             ref var component = ref iterator.Current;
             var transform = this.Transforms[component.Entity];
             var model = context.Resources.Get(component.Model);
-            DrawModel(callback, context, viewVolume, viewProjection, model, transform.Transform);
+            DrawModel(callback, context, viewVolume, viewProjection, model, transform.Current);
         }
     }
 
@@ -57,7 +57,7 @@ public sealed class RenderService
             ref var terrain = ref iterator.Current;
             var transform = this.Transforms[terrain.Entity];
             var mesh = context.Resources.Get(terrain.Mesh);
-            DrawMesh(callback, context, viewVolume, viewProjection, mesh, transform.Transform);
+            DrawMesh(callback, context, viewVolume, viewProjection, mesh, transform.Current);
         }
     }
 

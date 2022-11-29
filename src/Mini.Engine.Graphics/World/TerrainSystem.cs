@@ -55,16 +55,16 @@ public sealed partial class TerrainSystem : IMeshRenderCallBack, ISystem, IDispo
         this.Context.PS.SetShaderResource(Terrain.Albedo, tint);
 
         var camera = this.FrameService.GetPrimaryCamera().Camera;
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
+        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
         var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.Device.Width, this.Device.Height);
         
         var frustum = new Frustum(viewProjection);
-        RenderService.DrawMesh(this, this.Context, frustum, viewProjection, mesh, transform.Transform);
+        RenderService.DrawMesh(this, this.Context, frustum, viewProjection, mesh, transform.Current);
     }
 
     public void SetConstants(Matrix4x4 worldViewProjection, Matrix4x4 world)
     {        
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;     
+        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;     
         this.User.MapConstants(this.Context, worldViewProjection, world, cameraTransform.GetPosition());
     }
    

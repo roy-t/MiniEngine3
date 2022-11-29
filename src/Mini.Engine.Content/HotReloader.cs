@@ -75,16 +75,24 @@ internal sealed class HotReloader
                     {
                         this.Logger.Information("Reloading {@type}:{@content} because of changes in {@file}", content.GetType().Name, content.Id.ToString(), file);
 
-                        var path = PathGenerator.GetPath(content.Id);
-                        using var rwStream = this.FileSystem.CreateWriteRead(path);
-                        using var writerReader = new ContentWriterReader(rwStream);
-
-                        var trackingFileSystem = new TrackingVirtualFileSystem(this.FileSystem);
-                        this.References[i].Manager.Reload(content, writerReader, trackingFileSystem);
-
-                        foreach (var callback in reference.Callbacks)
+                        try
                         {
-                            callback();
+
+                            var path = PathGenerator.GetPath(content.Id);
+                            using var rwStream = this.FileSystem.CreateWriteRead(path);
+                            using var writerReader = new ContentWriterReader(rwStream);
+
+                            var trackingFileSystem = new TrackingVirtualFileSystem(this.FileSystem);
+                            this.References[i].Manager.Reload(content, writerReader, trackingFileSystem);
+
+                            foreach (var callback in reference.Callbacks)
+                            {
+                                callback();
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            this.Logger.Error(ex, "Reloading failed");
                         }
                     }
                 }

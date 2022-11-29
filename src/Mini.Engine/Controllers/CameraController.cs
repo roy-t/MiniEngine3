@@ -51,7 +51,7 @@ public sealed class CameraController
 
         if (reset)
         {
-            transformComponent.Transform = Transform.Identity
+            transformComponent.Current = Transform.Identity
                 .SetTranslation(Vector3.UnitZ * 10)
                 .FaceTargetConstrained(Vector3.Zero, Vector3.UnitY);
         }
@@ -60,11 +60,11 @@ public sealed class CameraController
         {
             var step = elapsed * this.linearVelocity;
 
-            var forward = transformComponent.Transform.GetForward();
+            var forward = transformComponent.Current.GetForward();
             var backward = -forward;
-            var up = transformComponent.Transform.GetUp();
+            var up = transformComponent.Current.GetUp();
             var down = -up;
-            var left = transformComponent.Transform.GetLeft();
+            var left = transformComponent.Current.GetLeft();
             var right = -left;
 
             var translation = Vector3.Zero;
@@ -78,7 +78,7 @@ public sealed class CameraController
 
             translation *= step;
 
-            transformComponent.Transform = transformComponent.Transform.AddTranslation(translation);
+            transformComponent.Current = transformComponent.Current.AddTranslation(translation);
         }
 
         var movement = Vector2.Zero;
@@ -98,11 +98,11 @@ public sealed class CameraController
         {
             movement *= this.AngularVelocity;
             var rotation = Quaternion.Identity;
-            rotation *= Quaternion.CreateFromAxisAngle(transformComponent.Transform.GetUp(), movement.X);
-            rotation *= Quaternion.CreateFromAxisAngle(-transformComponent.Transform.GetLeft(), movement.Y);
+            rotation *= Quaternion.CreateFromAxisAngle(transformComponent.Current.GetUp(), movement.X);
+            rotation *= Quaternion.CreateFromAxisAngle(-transformComponent.Current.GetLeft(), movement.Y);
 
-            var lookAt = transformComponent.Transform.GetPosition() + Vector3.Transform(transformComponent.Transform.GetForward(), rotation);
-            transformComponent.Transform = transformComponent.Transform.FaceTargetConstrained(lookAt, Vector3.UnitY);
+            var lookAt = transformComponent.Current.GetPosition() + Vector3.Transform(transformComponent.Current.GetForward(), rotation);
+            transformComponent.Current = transformComponent.Current.FaceTargetConstrained(lookAt, Vector3.UnitY);
         }
 
         if (scrolledUp)

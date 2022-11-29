@@ -63,7 +63,7 @@ public sealed class EmptyScene : IScene
                 shadowMap.Init(bufferResource, resolution, Cascades[0], Cascades[1], Cascades[2], Cascades[3]);
 
                 ref var transform = ref creator.Create<TransformComponent>(sun);
-                transform.Transform = transform.Transform
+                transform.Current = transform.Current
                     .SetTranslation(Vector3.UnitY)
                     .FaceTargetConstrained((-Vector3.UnitX * 0.75f) + (Vector3.UnitZ * 0.1f), Vector3.UnitY);
             }),

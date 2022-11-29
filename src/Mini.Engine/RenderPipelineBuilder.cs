@@ -7,6 +7,7 @@ using Mini.Engine.Graphics.Lighting.PointLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.PostProcessing;
+using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.Vegetation;
 using Mini.Engine.Graphics.World;
 
@@ -25,37 +26,33 @@ internal sealed class RenderPipelineBuilder
     public ParallelPipeline Build()
     {
         var pipeline = this.Builder.Builder();
-        return pipeline
-            .System<ComponentLifeCycleSystem>()
-                .Parallel()
-                .Produces("Initialization", "Containers")
-                .Build()
+
+        // TODO: having dependencies is nice, but its still unclear what happens first
+        // maybe just manually define stages and set for each stage if it runs in parallel or not?
+
+        return pipeline        
             .System<ClearBuffersSystem>()
                 .InSequence()
                 .Produces("Initialization", "GBuffer")
                 .Build()
             .System<ModelSystem>()
                 .InSequence()
-                .Requires("Initialization", "Containers")
                 .Requires("Initialization", "GBuffer")
                 .Produces("Renderer", "Models")
                 .Build()
             .System<TerrainSystem>()
-                .InSequence()
-                .Requires("Initialization", "Containers")
+                .InSequence()                
                 .Requires("Initialization", "GBuffer")
                 .Produces("Renderer", "Terrain")
                 .Build()
             .System<GrassSystem>()
-                .InSequence()
-                .Requires("Initialization", "Containers")
+                .InSequence()                
                 .Requires("Initialization", "GBuffer")
                 .Requires("Renderer", "Terrain")
                 .Produces("Renderer", "Grass")
                 .Build()
             .System<CascadedShadowMapSystem>()
-                .InSequence()
-                .Requires("Initialization", "Containers")
+                .InSequence()                
                 .Produces("Shadows", "CascadedShadowMap")
                 .Build()
             .System<PointLightSystem>()

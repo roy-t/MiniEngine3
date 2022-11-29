@@ -12,6 +12,13 @@ struct PS_INPUT
 sampler TextureSampler : register(s0);
 Texture2D Texture : register(t0);    
 Texture2D PreviousTexture : register(t1);
+Texture2D Depth : register(t2);
+
+cbuffer Constants : register(b0)
+{
+    float4x4 InverseViewProjection;
+    float4x4 PreviousViewProjection;
+};
 
 #pragma PixelShader
 float4 FxaaPS(PS_INPUT input) : SV_Target
@@ -30,6 +37,6 @@ float4 NonePS(PS_INPUT input) : SV_Target
 #pragma PixelShader
 float4 TaaPS(PS_INPUT input) : SV_Target
 {    
-    float3 color = Resolve(PreviousTexture, Texture, TextureSampler, input.tex);
+    float3 color = Resolve(Depth, PreviousTexture, Texture, TextureSampler, InverseViewProjection, PreviousViewProjection, input.tex);
     return float4(color, 1.0f);
 }

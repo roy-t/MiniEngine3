@@ -152,7 +152,7 @@ public sealed class GrassGenerator
                 var pz = y / (float)heightResource.DimY - 0.5f;
 
                 var position = new Vector3(px, h, pz);
-                position = Vector3.Transform(position, terrainTransform.Transform.GetMatrix());
+                position = Vector3.Transform(position, terrainTransform.Current.GetMatrix());
 
                 var scale = s;
                 var rotation = r;

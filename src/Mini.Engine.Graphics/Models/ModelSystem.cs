@@ -50,17 +50,17 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
     public void DrawModel(ref ModelComponent component, ref TransformComponent transform)
     {
         var camera = this.FrameService.GetPrimaryCamera().Camera;
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
+        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
         var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.Device.Width, this.Device.Height);
 
         var viewVolume = new Frustum(viewProjection);
         var model = this.Device.Resources.Get(component.Model);
-        RenderService.DrawModel(this, this.Context, viewVolume, viewProjection, model, transform.Transform);
+        RenderService.DrawModel(this, this.Context, viewVolume, viewProjection, model, transform.Current);
     }
 
     public void SetConstants(Matrix4x4 worldViewProjection, Matrix4x4 world)
     {
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
+        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
 
         this.User.MapConstants(this.Context, worldViewProjection, world, cameraTransform.GetPosition());
     }

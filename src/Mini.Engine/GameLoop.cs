@@ -24,9 +24,10 @@ internal sealed class GameLoop : IGameLoop
     private readonly CameraController CameraController;
     private readonly ContentManager Content;
     private readonly GrassSystem GrassSystem; // TODO: move to update loop once we have it!
+    private readonly ParallelPipeline UpdatePipeline;
     private readonly ParallelPipeline RenderPipeline;
     private readonly ParallelPipeline DebugPipeline;
-    public GameLoop(Device device, LifetimeManager lifetimeManager, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, CameraController cameraController, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, GrassSystem grassSystem)
+    public GameLoop(Device device, LifetimeManager lifetimeManager, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, CameraController cameraController, UpdatePipelineBuilder updatePipelineBuilder, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, GrassSystem grassSystem)
     {
         this.Device = device;
         this.LifetimeManager = lifetimeManager;
@@ -38,10 +39,10 @@ internal sealed class GameLoop : IGameLoop
         this.CameraController = cameraController;
         this.Content = content;
         this.GrassSystem = grassSystem;
-        this.LifetimeManager.PushFrame("RenderPipeline");
-        this.RenderPipeline = renderBuilder.Build();
 
-        this.LifetimeManager.PushFrame("DebugPipeline");
+        this.LifetimeManager.PushFrame("Pipelines");
+        this.UpdatePipeline = updatePipelineBuilder.Build();        
+        this.RenderPipeline = renderBuilder.Build();        
         this.DebugPipeline = debugBuilder.Build();
 
         this.LifetimeManager.PushFrame("Game");
@@ -55,10 +56,12 @@ internal sealed class GameLoop : IGameLoop
         this.Content.ReloadChangedContent();         
 
         ref var camera = ref this.FrameService.GetPrimaryCamera();
-        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();        
+        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
+        this.UpdatePipeline.Frame();
+
+        // TODO: move both to systems and into update pipeline!
         this.CameraController.Update(ref camera, ref cameraTransform, elapsed);
-
         this.GrassSystem.UpdateWindScrollAccumulator(elapsed);
     }
 

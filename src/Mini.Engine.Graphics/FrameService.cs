@@ -56,7 +56,7 @@ public sealed class FrameService : IDisposable
         camera.Camera = new PerspectiveCamera(0.1f, 250.0f, MathF.PI / 2.0f, this.GBuffer.AspectRatio);
 
         ref var transform = ref this.Transforms.Create(this.cameraEntity);
-        transform.Transform = Transform.Identity
+        transform.Current = Transform.Identity
             .SetTranslation(new Vector3(0, 0, 10))
             .FaceTargetConstrained(Vector3.Zero, Vector3.UnitY);
     }

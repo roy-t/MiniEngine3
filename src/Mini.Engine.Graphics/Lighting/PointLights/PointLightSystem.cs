@@ -51,7 +51,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(PointLight.Material, this.FrameService.GBuffer.Material);
 
         var camera = this.FrameService.GetPrimaryCamera().Camera;
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
+        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
         
         var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.Device.Width, this.Device.Height);
         Matrix4x4.Invert(viewProjection, out var inverseViewProjection);
@@ -66,7 +66,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
     public void DrawPointLight(ref PointLightComponent component, ref TransformComponent transform)
     {
         var camera = this.FrameService.GetPrimaryCamera().Camera;
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Transform;
+        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
 
         var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.Device.Width, this.Device.Height);
 
@@ -82,9 +82,9 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
             this.Context.RS.SetRasterizerState(this.Device.RasterizerStates.CullCounterClockwiseNoDepthClip);
         }
 
-        var world = Matrix4x4.CreateScale(radiusOfInfluence) * transform.Transform.GetMatrix();
+        var world = Matrix4x4.CreateScale(radiusOfInfluence) * transform.Current.GetMatrix();
 
-        this.User.MapPerLightConstants(this.Context, world * viewProjection, transform.Transform.GetPosition(), component.Strength, component.Color);
+        this.User.MapPerLightConstants(this.Context, world * viewProjection, transform.Current.GetPosition(), component.Strength, component.Color);
 
 
         this.Context.IA.SetVertexBuffer(this.Sphere.Vertices);

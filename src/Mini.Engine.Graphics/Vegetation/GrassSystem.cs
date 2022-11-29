@@ -75,8 +75,8 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
-        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Transform, this.Device.Width, this.Device.Height);
-        var cameraPosition = cameraTransform.Transform.GetPosition();
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.Device.Width, this.Device.Height);
+        var cameraPosition = cameraTransform.Current.GetPosition();
         var grassToSun = this.GetGrassToSunVector();
 
         this.User.MapConstants(this.Context, viewProjection, cameraPosition, grassToSun, this.windDirection, this.windScrollAccumulator);
@@ -91,7 +91,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
     {
         ref var sun = ref this.SunLights.First(ComponentContainer<SunLightComponent>.AcceptAll);
         ref var transform = ref this.Transforms[sun.Entity];
-        return -transform.Transform.GetForward();
+        return -transform.Current.GetForward();
     }
 
     public void OnUnSet()

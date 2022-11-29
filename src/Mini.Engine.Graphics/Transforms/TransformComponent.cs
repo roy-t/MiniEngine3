@@ -5,7 +5,8 @@ namespace Mini.Engine.Graphics.Transforms;
 
 public struct TransformComponent : IComponent
 {    
-    public Transform Transform;
+    public Transform Current;
+    public Transform Previous;
 
     public Entity Entity { get; set; }
     public LifeCycle LifeCycle { get; set; }
