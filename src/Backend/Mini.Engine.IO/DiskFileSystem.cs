@@ -27,19 +27,18 @@ public sealed class DiskFileSystem : IVirtualFileSystem
 
     public void Create(string path, ReadOnlySpan<byte> contents)
     {
-        using var output = File.Create(this.ToAbsolute(path));
-        using var writer = new BinaryWriter(output);
-        writer.Write(contents);
+        using var stream = new FileStream(this.ToAbsolute(path), FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.SequentialScan);
+        stream.Write(contents);        
     }
 
     public Stream OpenRead(string path)
     {
-        return File.Open(this.ToAbsolute(path), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        return new FileStream(this.ToAbsolute(path), FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan);        
     }
 
     public Stream CreateWriteRead(string path)
     {
-        return File.Open(this.ToAbsolute(path), FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+        return new FileStream(this.ToAbsolute(path), FileMode.Create, FileAccess.ReadWrite, FileShare.None, 4096, FileOptions.None);        
     }
 
     public bool Exists(string path)
@@ -65,7 +64,11 @@ public sealed class DiskFileSystem : IVirtualFileSystem
 
     public byte[] ReadAllBytes(string path)
     {
-        return File.ReadAllBytes(this.ToAbsolute(path));
+        using var stream = this.OpenRead(path);
+        var bytes = new byte[stream.Length];
+        stream.Read(bytes);
+
+        return bytes;        
     }
 
     public void WatchFile(string path)

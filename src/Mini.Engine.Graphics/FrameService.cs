@@ -35,6 +35,11 @@ public sealed class FrameService : IDisposable
     /// </summary>
     public float Alpha { get; set; }
 
+    /// <summary>
+    /// How much time has passed since the last frame
+    /// </summary>
+    public float Elapsed { get; set; }
+
     public Vector2 CameraJitter => this.PBuffer.Jitter;
 
     public GeometryBuffer GBuffer { get; private set; }

@@ -1,15 +1,14 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Graphics;
-using Mini.Engine.Graphics.Cameras;
-using Mini.Engine.Graphics.Transforms;
+using Mini.Engine.ECS.Generators.Shared;
+using Mini.Engine.ECS.Systems;
 using Mini.Engine.Windows;
 using static Windows.Win32.UI.Input.KeyboardAndMouse.VIRTUAL_KEY;
 
-namespace Mini.Engine.Controllers;
+namespace Mini.Engine.Graphics.Cameras;
 
 [Service]
-public sealed class CameraController
+public sealed partial class CameraSystem : ISystem
 {
     private static readonly ushort CodeLeft = InputService.GetScanCode(VK_A);
     private static readonly ushort CodeRight = InputService.GetScanCode(VK_D);
@@ -26,19 +25,28 @@ public sealed class CameraController
 
     private float linearVelocity = 5.0f;
 
+    private readonly FrameService FrameService;
+
     private readonly Mouse Mouse;
     private readonly Keyboard Keyboard;
     private readonly InputService InputController;
 
-    public CameraController(InputService inputController)
+    public CameraSystem(InputService inputController, FrameService frameService)
     {
         this.Mouse = new Mouse();
         this.Keyboard = new Keyboard();
         this.InputController = inputController;
+        this.FrameService = frameService;
     }
 
-    public void Update(ref CameraComponent cameraComponent, ref TransformComponent transformComponent, float elapsed)
+    public void OnSet() { }
+
+    [Process]
+    public void Update()
     {
+        var elapsed = this.FrameService.Elapsed;
+        ref var transformComponent = ref this.FrameService.GetPrimaryCameraTransform();        
+
         var horizontal = Vector4.Zero;
         var vertical = Vector2.Zero;
         var reset = false;
@@ -115,4 +123,6 @@ public sealed class CameraController
             this.linearVelocity = Math.Min(this.linearVelocity + 1, MaxLinearVelocity);
         }
     }
+
+    public void OnUnSet() { }
 }

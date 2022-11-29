@@ -3,6 +3,7 @@ using Mini.Engine.Content;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.ECS;
 using Mini.Engine.Graphics;
+using Mini.Engine.UI;
 
 namespace Mini.Engine.Scenes;
 
@@ -10,18 +11,16 @@ namespace Mini.Engine.Scenes;
 public sealed class SceneManager
 {
     private readonly LifetimeManager LifetimeManager;
-    private readonly LoadingScreen LoadingScreen;
-    private readonly ContentManager Content;
+    private readonly LoadingScreen LoadingScreen;    
     private readonly ECSAdministrator Administrator;
     private readonly FrameService FrameService;
     private int activeScene;
     private int nextScene;
 
-    public SceneManager(LifetimeManager lifetimeManager, LoadingScreen loadingScreen, ContentManager content, ECSAdministrator administrator, FrameService frameService, IEnumerable<IScene> scenes)
+    public SceneManager(LifetimeManager lifetimeManager, LoadingScreen loadingScreen, ECSAdministrator administrator, FrameService frameService, IEnumerable<IScene> scenes)
     {
         this.LifetimeManager = lifetimeManager;
-        this.LoadingScreen = loadingScreen;
-        this.Content = content;
+        this.LoadingScreen = loadingScreen;        
         this.Administrator = administrator;
         this.FrameService = frameService;
         this.Scenes = scenes.ToList();
@@ -31,6 +30,8 @@ public sealed class SceneManager
     }
 
     public IReadOnlyList<IScene> Scenes { get; }
+
+    public int ActiveScene => this.activeScene;
 
     public void CheckChangeScene()
     {

@@ -1,13 +1,12 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content;
-using Mini.Engine.Controllers;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.PostProcessing;
-using Mini.Engine.Graphics.Vegetation;
 using Mini.Engine.Scenes;
+using Mini.Engine.UI;
 
 namespace Mini.Engine;
 
@@ -16,29 +15,25 @@ internal sealed class GameLoop : IGameLoop
 {
     private readonly Device Device;
     private readonly LifetimeManager LifetimeManager;
-
+    private readonly EditorState EditorState;
     private readonly PresentationHelper Presenter;
     private readonly SceneManager SceneManager;
     private readonly FrameService FrameService;
     private readonly DebugFrameService DebugFrameService;
-    private readonly CameraController CameraController;
     private readonly ContentManager Content;
-    private readonly GrassSystem GrassSystem; // TODO: move to update loop once we have it!
     private readonly ParallelPipeline UpdatePipeline;
     private readonly ParallelPipeline RenderPipeline;
     private readonly ParallelPipeline DebugPipeline;
-    public GameLoop(Device device, LifetimeManager lifetimeManager, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, CameraController cameraController, UpdatePipelineBuilder updatePipelineBuilder, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, GrassSystem grassSystem)
+    public GameLoop(Device device, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, UpdatePipelineBuilder updatePipelineBuilder, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content)
     {
         this.Device = device;
         this.LifetimeManager = lifetimeManager;
-
+        this.EditorState = editorState;
         this.Presenter = presenter;
         this.SceneManager = sceneManager;
         this.FrameService = frameService;
         this.DebugFrameService = debugFrameService;
-        this.CameraController = cameraController;
         this.Content = content;
-        this.GrassSystem = grassSystem;
 
         this.LifetimeManager.PushFrame("Pipelines");
         this.UpdatePipeline = updatePipelineBuilder.Build();        
@@ -46,23 +41,19 @@ internal sealed class GameLoop : IGameLoop
         this.DebugPipeline = debugBuilder.Build();
 
         this.LifetimeManager.PushFrame("Game");
-        this.SceneManager.Set(0);        
+
+        this.EditorState.Restore();
+        this.SceneManager.Set(this.EditorState.PreferredScene);
     }
 
     public void Update(float time, float elapsed)
     {
+        this.FrameService.Elapsed = elapsed;
         this.SceneManager.CheckChangeScene();
-        
-        this.Content.ReloadChangedContent();         
-
-        ref var camera = ref this.FrameService.GetPrimaryCamera();
-        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
-
-        this.UpdatePipeline.Frame();
-
-        // TODO: move both to systems and into update pipeline!
-        this.CameraController.Update(ref camera, ref cameraTransform, elapsed);
-        this.GrassSystem.UpdateWindScrollAccumulator(elapsed);
+        this.Content.ReloadChangedContent();
+        this.EditorState.Update();        
+                        
+        this.UpdatePipeline.Frame();      
     }
 
     public void Draw(float alpha)
@@ -91,6 +82,7 @@ internal sealed class GameLoop : IGameLoop
 
     public void Dispose()
     {
+        this.EditorState.Save();
         this.RenderPipeline.Dispose();
     }
 }

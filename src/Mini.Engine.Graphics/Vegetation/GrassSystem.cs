@@ -19,31 +19,23 @@ public sealed partial class GrassSystem : ISystem, IDisposable
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
+    private readonly WindSystem WindSystem;
     private readonly IComponentContainer<SunLightComponent> SunLights;
     private readonly IComponentContainer<TransformComponent> Transforms;
     private readonly Grass Shader;
     private readonly Grass.User User;
+    
 
-    private float windScrollAccumulator;
-    private Vector2 windDirection;
-
-    public GrassSystem(Device device, FrameService frameService, ContainerStore store, Shaders.Grass shader)
+    public GrassSystem(Device device, FrameService frameService, WindSystem windSystem, ContainerStore store, Shaders.Grass shader)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<GrassSystem>();
         this.FrameService = frameService;
+        this.WindSystem = windSystem;
         this.SunLights = store.GetContainer<SunLightComponent>();
         this.Transforms = store.GetContainer<TransformComponent>();
         this.Shader = shader;
         this.User = shader.CreateUserFor<GrassSystem>();
-
-        this.windScrollAccumulator = 0.0f;
-        this.windDirection = Vector2.Normalize(new Vector2(1.0f, 0.75f));
-    }
-
-    public void UpdateWindScrollAccumulator(float elapsed)
-    {
-        this.windScrollAccumulator += elapsed;
     }
 
     public void OnSet()
@@ -79,7 +71,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         var cameraPosition = cameraTransform.Current.GetPosition();
         var grassToSun = this.GetGrassToSunVector();
 
-        this.User.MapConstants(this.Context, viewProjection, cameraPosition, grassToSun, this.windDirection, this.windScrollAccumulator);
+        this.User.MapConstants(this.Context, viewProjection, cameraPosition, grassToSun, this.WindSystem.Direction, this.WindSystem.Accumulator);
 
         this.Context.PS.SetShaderResource(Grass.Albedo, grassComponent.Texture);
         this.Context.VS.SetInstanceBuffer(Grass.Instances, grassComponent.InstanceBuffer);
