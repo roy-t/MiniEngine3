@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.InteropServices;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
@@ -7,8 +8,6 @@ using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 
 namespace Mini.Engine.Graphics.PostProcessing;
-
-public enum AAType { None, FXAA, TAA };
 
 [Service]
 public sealed partial class PostProcessingSystem : ISystem, IDisposable
@@ -30,8 +29,6 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
         this.User = shader.CreateUserFor<AntiAliasShader>();
     }
 
-    public AAType AntiAliasing { get; set; } = AAType.TAA;
-
     public void OnSet()
     {
         this.FrameService.PBuffer.Swap();
@@ -39,7 +36,7 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;
 
-        var shader = this.AntiAliasing switch
+        var shader = this.FrameService.PBuffer.AntiAliasing switch
         {
             AAType.None => this.Shader.NonePs,
             AAType.FXAA => this.Shader.FxaaPs,
@@ -51,20 +48,22 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
 
         this.Context.PS.SetSampler(AntiAliasShader.TextureSampler, this.Device.SamplerStates.LinearClamp);
         this.Context.PS.SetShaderResource(AntiAliasShader.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
-        this.Context.PS.SetShaderResource(AntiAliasShader.PreviousTexture, this.FrameService.PBuffer.Previous);
-        this.Context.PS.SetShaderResource(AntiAliasShader.Texture, this.FrameService.LBuffer.Light);
-
+        this.Context.PS.SetShaderResource(AntiAliasShader.Color, this.FrameService.LBuffer.Light);
+        this.Context.PS.SetShaderResource(AntiAliasShader.PreviousColor, this.FrameService.PBuffer.PreviousColor);        
+        this.Context.PS.SetShaderResource(AntiAliasShader.Velocity, this.FrameService.GBuffer.Velocity);
+        this.Context.PS.SetShaderResource(AntiAliasShader.PreviousVelocity, this.FrameService.PBuffer.PreviousVelocity);
+        
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
-        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.Device.Width, this.Device.Height);
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
         Matrix4x4.Invert(viewProjection, out var inverseViewProjection);
-        var previousViewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.Device.Width, this.Device.Height);        
+        var previousViewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.FrameService.CameraJitter);        
 
         this.User.MapConstants(this.Context, inverseViewProjection, previousViewProjection);
         this.Context.PS.SetConstantBuffer(AntiAliasShader.ConstantsSlot, this.User.ConstantsBuffer);
 
-        this.Context.OM.SetRenderTarget(this.FrameService.PBuffer.Current);
+        this.Context.OM.SetRenderTargets(null, this.FrameService.PBuffer.CurrentColor, this.FrameService.PBuffer.CurrentVelocity);        
     }
 
     [Process(Query = ProcessQuery.None)]

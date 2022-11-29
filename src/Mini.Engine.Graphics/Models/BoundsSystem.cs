@@ -64,7 +64,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
 
             var camera = this.FrameService.GetPrimaryCamera().Camera;
             var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
-            var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.Device.Width, this.Device.Height); // TODO: is this OK for bounds, or do we need the other one?
+            var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.FrameService.CameraJitter); // TODO: is this OK for bounds, or do we need the other one?
             
             this.User.MapConstants(context, viewProjection, Vector4.One);
 

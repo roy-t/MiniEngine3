@@ -70,7 +70,7 @@ internal sealed class GameLoop : IGameLoop
         this.FrameService.Alpha = alpha;
         this.RenderPipeline.Frame();
 
-        this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.Current);        
+        this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.CurrentColor);        
 
         if (this.DebugFrameService.EnableDebugOverlay)
         {

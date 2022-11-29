@@ -17,6 +17,9 @@ public sealed class GeometryBuffer : IDisposable
         imageInfo = new ImageInfo(device.Width, device.Height, Format.R16G16B16A16_Float);
         this.Normal = new RenderTarget(device, nameof(GeometryBuffer) + "Normal", imageInfo, MipMapInfo.None());
 
+        imageInfo = new ImageInfo(device.Width, device.Height, Format.R16G16_Float);
+        this.Velocity = new RenderTarget(device, nameof(Velocity), imageInfo, MipMapInfo.None());
+
         this.DepthStencilBuffer = new DepthStencilBuffer(device, nameof(GeometryBuffer) + "Depth", DepthStencilFormat.D32_Float, device.Width, device.Height, 1);
 
         this.Width = device.Width;
@@ -31,6 +34,7 @@ public sealed class GeometryBuffer : IDisposable
     public IRenderTarget Albedo { get; }
     public IRenderTarget Material { get; }
     public IRenderTarget Normal { get; }
+    public IRenderTarget Velocity { get; }
 
     public DepthStencilBuffer DepthStencilBuffer { get; }
 
@@ -39,6 +43,7 @@ public sealed class GeometryBuffer : IDisposable
         this.Albedo.Dispose();
         this.Material.Dispose();
         this.Normal.Dispose();
+        this.Velocity.Dispose();
 
         this.DepthStencilBuffer.Dispose();
     }

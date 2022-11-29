@@ -4,10 +4,7 @@ using Mini.Engine.Core;
 namespace Mini.Engine.Graphics.Cameras;
 
 public static class ProjectionMatrix
-{
-    private static readonly QuasiRandomSequence Sequence = new QuasiRandomSequence(6);
-    public static bool EnableJitter = false; // HACK
-
+{        
     // See https://thxforthefish.com/posts/reverse_z/
 
     public static Matrix4x4 InfiniteReversedZ(in PerspectiveCamera camera)
@@ -44,16 +41,9 @@ public static class ProjectionMatrix
             M43 = farPlane * nearPlane / (farPlane - nearPlane)
         };
     }
-
-    // See: https://www.elopezr.com/temporal-aa-and-the-quest-for-the-holy-trail/
-
-    public static Matrix4x4 Jitter(in Matrix4x4 projectionMatrix, float backBufferWidth, float backBufferHeigth)
-    {
-        var w = 2.0f * backBufferWidth;
-        var h = 2.0f * backBufferHeigth;
-        var factor = EnableJitter ? 1.0f : 0.0f;
-        var jitter = Sequence.Next2D(-1.0f / w, 1.0f / w, -1.0f / h, 1.0f / h) * factor;
-
+    
+    public static Matrix4x4 Jitter(in Matrix4x4 projectionMatrix, Vector2 jitter)
+    {        
         var offset = new Matrix4x4
         {
             M11 = 1,

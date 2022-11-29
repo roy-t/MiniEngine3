@@ -35,6 +35,8 @@ public sealed class FrameService : IDisposable
     /// </summary>
     public float Alpha { get; set; }
 
+    public Vector2 CameraJitter => this.PBuffer.Jitter;
+
     public GeometryBuffer GBuffer { get; private set; }
     public LightBuffer LBuffer { get; private set; }
     public PostProcessingBuffer PBuffer { get; private set; }

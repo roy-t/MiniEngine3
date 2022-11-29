@@ -29,8 +29,8 @@ internal sealed class ShaderResourcePanel : IPanel
             this.Selector.Select(nameof(this.FrameService.GBuffer.Material), this.FrameService.GBuffer.Material);
             this.Selector.Select(nameof(this.FrameService.GBuffer.Normal), this.FrameService.GBuffer.Normal);
             this.Selector.Select(nameof(this.FrameService.LBuffer.Light), this.FrameService.LBuffer.Light);
-            this.Selector.Select(nameof(this.FrameService.PBuffer.Previous), this.FrameService.PBuffer.Previous);
-            this.Selector.Select(nameof(this.FrameService.PBuffer.Current), this.FrameService.PBuffer.Current);            
+            this.Selector.Select(nameof(this.FrameService.PBuffer.PreviousColor), this.FrameService.PBuffer.PreviousColor);
+            this.Selector.Select(nameof(this.FrameService.PBuffer.CurrentColor), this.FrameService.PBuffer.CurrentColor);            
             this.Selector.Select(nameof(this.FrameService.GBuffer.DepthStencilBuffer), this.FrameService.GBuffer.DepthStencilBuffer);
             this.Selector.Select(nameof(this.DebugFrameService.DebugOverlay), this.DebugFrameService.DebugOverlay);
 
@@ -43,8 +43,8 @@ internal sealed class ShaderResourcePanel : IPanel
             this.FrameService.GBuffer.Material,
             this.FrameService.GBuffer.Normal,
             this.FrameService.LBuffer.Light,
-            this.FrameService.PBuffer.Previous,
-            this.FrameService.PBuffer.Current,
+            this.FrameService.PBuffer.PreviousColor,
+            this.FrameService.PBuffer.CurrentColor,
             this.FrameService.GBuffer.DepthStencilBuffer,
             this.DebugFrameService.DebugOverlay
         );

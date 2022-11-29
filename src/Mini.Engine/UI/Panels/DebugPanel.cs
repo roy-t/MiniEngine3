@@ -13,7 +13,8 @@ namespace Mini.Engine.UI.Panels;
 internal sealed class DebugPanel : IPanel
 {
     private readonly Device Device;
-    private readonly DebugFrameService FrameService;
+    private readonly FrameService FrameService;
+    private readonly DebugFrameService DebugFrameService;
     private readonly PerformanceCounters Counters;
 
     private readonly RenderDoc? RenderDoc;
@@ -24,10 +25,11 @@ internal sealed class DebugPanel : IPanel
 
     private uint nextCaptureToOpen;
 
-    public DebugPanel(Device device, DebugFrameService frameService, PerformanceCounters counters, Services services)
+    public DebugPanel(Device device, FrameService frameService, DebugFrameService debugFrameService, PerformanceCounters counters, Services services)
     {
         this.Device = device;
         this.FrameService = frameService;
+        this.DebugFrameService = debugFrameService;
         this.Counters = counters;
         this.RasterizerStates = new RasterizerState[]
         {
@@ -76,16 +78,16 @@ internal sealed class DebugPanel : IPanel
 
     private void ShowDebugOverlaySettings()
     {
-        var enableDebugOverlay = this.FrameService.EnableDebugOverlay;
+        var enableDebugOverlay = this.DebugFrameService.EnableDebugOverlay;
         if (ImGui.Checkbox("Enable Debug Overlay", ref enableDebugOverlay))
         {
-            this.FrameService.EnableDebugOverlay = enableDebugOverlay;
+            this.DebugFrameService.EnableDebugOverlay = enableDebugOverlay;
         }
 
-        var showBounds = this.FrameService.ShowBounds;
+        var showBounds = this.DebugFrameService.ShowBounds;
         if (ImGui.Checkbox("Show Bounds", ref showBounds))
         {
-            this.FrameService.ShowBounds = showBounds;
+            this.DebugFrameService.ShowBounds = showBounds;
         }
     }
 
@@ -139,10 +141,17 @@ internal sealed class DebugPanel : IPanel
     private int AAIndex;
     private void ShowAA()
     {
-        if(ImGui.Combo("Anti Aliasing", ref this.AAIndex, AANames, AANames.Length))
+        this.AAIndex = this.FrameService.PBuffer.AntiAliasing switch
         {
-            this.PostProcessingSystem.AntiAliasing = AATypes[this.AAIndex];
-            ProjectionMatrix.EnableJitter = this.PostProcessingSystem.AntiAliasing == AAType.TAA; // HACK
-        }        
+            AAType.None => 0,
+            AAType.FXAA => 1,
+            AAType.TAA => 2,
+            _ => throw new Exception("Unsupported AA type in UI"),
+        };
+
+        if (ImGui.Combo("Anti Aliasing", ref this.AAIndex, AANames, AANames.Length))
+        {
+            this.FrameService.PBuffer.AntiAliasing = AATypes[this.AAIndex];            
+        }
     }
 }

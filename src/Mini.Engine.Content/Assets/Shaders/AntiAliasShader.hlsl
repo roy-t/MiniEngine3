@@ -10,9 +10,13 @@ struct PS_INPUT
 };
 
 sampler TextureSampler : register(s0);
-Texture2D Texture : register(t0);    
-Texture2D PreviousTexture : register(t1);
-Texture2D Depth : register(t2);
+Texture2D Color : register(t0);    
+Texture2D PreviousColor: register(t1);
+Texture2D Velocity : register(t2);
+Texture2D PreviousVelocity : register(t3);
+    
+    
+Texture2D Depth : register(t4);
 
 cbuffer Constants : register(b0)
 {
@@ -23,20 +27,20 @@ cbuffer Constants : register(b0)
 #pragma PixelShader
 float4 FxaaPS(PS_INPUT input) : SV_Target
 {
-    float3 color = FXAA(Texture, TextureSampler, input.tex);
+    float3 color = FXAA(Color, TextureSampler, input.tex);
     return float4(color, 1.0f);
 }
 
 #pragma PixelShader
 float4 NonePS(PS_INPUT input) : SV_Target
 {
-    float3 color = Texture.Sample(TextureSampler, input.tex).rgb;    
+    float3 color = Color.Sample(TextureSampler, input.tex).rgb;
     return float4(color, 1.0f);
 }
     
 #pragma PixelShader
-float4 TaaPS(PS_INPUT input) : SV_Target
+TaaOutput TaaPS(PS_INPUT input)
 {    
-    float3 color = Resolve(Depth, PreviousTexture, Texture, TextureSampler, InverseViewProjection, PreviousViewProjection, input.tex);
-    return float4(color, 1.0f);
+    TaaOutput output = TAA(Depth, PreviousColor, Color, TextureSampler, InverseViewProjection, PreviousViewProjection, input.tex);
+    return output;
 }
