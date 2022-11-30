@@ -14,6 +14,13 @@ struct TaaOutput
 // - https://ziyadbarakat.wordpress.com/2020/07/28/temporal-anti-aliasing-step-by-step/
 // - https://bartwronski.com/2014/03/15/temporal-supersampling-and-antialiasing/
 
+// Store weight in w component
+float4 AdjustHDRColor(float3 color)
+{
+    float luminance = dot(color, float3(0.299, 0.587, 0.114));
+    float luminanceWeight = 1.0 / (1.0 + luminance);
+    return float4(color, 1.0) * luminanceWeight;
+}
 
 float3 BoxClamp(Texture2D current, sampler textureSampler, float3 currentColor, float3 previousColor,  float velocityDisocclusion, float2 uv)
 {
@@ -32,11 +39,13 @@ float3 BoxClamp(Texture2D current, sampler textureSampler, float3 currentColor, 
     {
         for (int y = -1; y <= 1; ++y)
         {
-            float3 color = current.Sample(textureSampler, uv + float2(x, y) / textureSize).xyz; // Sample neighbor
+            //float3 color = current.Sample(textureSampler, uv + float2(x, y) / textureSize).xyz; // Sample neighbor
+            float3 samp = current.Sample(textureSampler, uv + float2(x, y) / textureSize).xyz;
+            float3 color = AdjustHDRColor(samp).xyz;
             minColor = min(minColor, color); // Take min and max
             maxColor = max(maxColor, color);
             
-            blur += color;
+            blur += color; // or samp?
         }
     }
     
@@ -45,9 +54,17 @@ float3 BoxClamp(Texture2D current, sampler textureSampler, float3 currentColor, 
     // Clamp previous color to min/max bounding box
     //float3 previousColorClamped = previousColor;// clamp(previousColor, minColor, maxColor);
     float3 previousColorClamped = clamp(previousColor, minColor, maxColor);
- 
+
+    float4 pc = AdjustHDRColor(previousColor);
+    float4 cc = AdjustHDRColor(currentColor);
+
+    float previousWeight = 0.9 * pc.a;
+    float currentWeight = 0.1 * cc.a;
+     
     // Blend
-    float3 accumulation = currentColor * 0.1 + previousColorClamped * 0.9;
+    float3 accumulation = currentColor * currentWeight + previousColorClamped * previousWeight;
+    accumulation /= (previousWeight + currentWeight);
+    
     return lerp(accumulation, blur, velocityDisocclusion);
 }
 
