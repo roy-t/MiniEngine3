@@ -53,13 +53,7 @@ float3 BoxClamp(Texture2D current, sampler textureSampler, float3 currentColor, 
 float2 GetCameraVelocity(Texture2D depth, sampler textureSampler, float4x4 inverseViewProjection, float4x4 previousViewProjection, float2 jitter, float2 uv)
 {
     float3 position = ReadPosition(depth, textureSampler, uv, inverseViewProjection);
-    if (length(isinf(position)) > 0.0f)
-    {
-        // TODO: there's a bug when reprojecting the skybox (infinite distance)
-        // figure out a way to deal with that
-        return float2(0.0f, 0.0f);
-    }
-    
+
     float4 previousProjection = mul(previousViewProjection, float4(position, 1.0f));
     previousProjection /= previousProjection.w;
     
@@ -68,22 +62,6 @@ float2 GetCameraVelocity(Texture2D depth, sampler textureSampler, float4x4 inver
     // TODO, technically we need to substract jitter from velocity but that makes the image blurry?
     
     return velocity;
-}
-
-float2 Reproject(Texture2D depth, sampler textureSampler, float4x4 inverseViewProjection, float4x4 previousViewProjection, float2 uv)
-{
-    float3 position = ReadPosition(depth, textureSampler, uv, inverseViewProjection);
-    if (length(isinf(position)) > 0.0f)
-    {
-    // TODO: there's a bug when reprojecting the skybox (infinite distance)
-    // figure out a way to deal with that
-        return uv;
-    }
-    
-    float4 previousProjection = mul(previousViewProjection, float4(position, 1.0f));
-    previousProjection /= previousProjection.w;
-    
-    return ScreenToTexture(previousProjection.xy);
 }
 
 float GetVelocityDisocclusion(float2 previousVelocity, float2 currentVelocity)
