@@ -28,6 +28,7 @@ public sealed class SamplerStates : IDisposable
     internal SamplerStates(ID3D11Device device)
     {
         this.PointWrap = Create(device, SamplerDescription.PointWrap, nameof(this.PointWrap));
+        this.PointClamp = Create(device, SamplerDescription.PointClamp, nameof(this.PointClamp));
         this.LinearWrap = Create(device, SamplerDescription.LinearWrap, nameof(this.LinearWrap));
         this.LinearClamp = Create(device, SamplerDescription.LinearClamp, nameof(this.LinearClamp));
         this.AnisotropicWrap = Create(device, SamplerDescription.AnisotropicWrap, nameof(this.AnisotropicWrap));
@@ -36,6 +37,7 @@ public sealed class SamplerStates : IDisposable
     }
 
     public SamplerState PointWrap { get; }
+    public SamplerState PointClamp { get; }
     public SamplerState LinearWrap { get; }
     public SamplerState LinearClamp { get; }
     public SamplerState AnisotropicWrap { get; }

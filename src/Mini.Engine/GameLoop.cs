@@ -24,6 +24,7 @@ internal sealed class GameLoop : IGameLoop
     private readonly ParallelPipeline UpdatePipeline;
     private readonly ParallelPipeline RenderPipeline;
     private readonly ParallelPipeline DebugPipeline;
+
     public GameLoop(Device device, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, UpdatePipelineBuilder updatePipelineBuilder, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content)
     {
         this.Device = device;

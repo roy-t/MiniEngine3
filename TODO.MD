@@ -1,5 +1,11 @@
 # TODO
 
+Continue on https://www.elopezr.com/temporal-aa-and-the-quest-for-the-holy-trail/,
+- Move camera to velocity
+- Implement Velocity Rejection
+- Make something move
+- Add velocity vectors for models
+
 Use ReadOnlyMemory<> instead of naked arrays!
 
 Loading is relatively slow due to

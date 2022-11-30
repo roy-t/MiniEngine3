@@ -15,62 +15,101 @@ struct TaaOutput
 // - https://bartwronski.com/2014/03/15/temporal-supersampling-and-antialiasing/
 
 
-    float3 BoxClamp(Texture2D current, sampler textureSampler, float3 currentColor, float3 previousColor, float2 uv)
-    {
-        float width;
-        float heigth;
-        current.GetDimensions(width, heigth);
-        float2 textureSize = float2(width, heigth);
-    
-    // Arbitrary out of range numbers
-        float3 minColor = 9999.0, maxColor = -9999.0;
+float3 BoxClamp(Texture2D current, sampler textureSampler, float3 currentColor, float3 previousColor,  float velocityDisocclusion, float2 uv)
+{
+    float width;
+    float heigth;
+    current.GetDimensions(width, heigth);
+    float2 textureSize = float2(width, heigth);
+        
+    float3 minColor = float3(9999.0f, 9999.0f, 9999.0f);
+    float3 maxColor = float3(-9999.0f, -9999.0f, -9999.0f);
  
+    
+    float3 blur = float3(0.0f, 0.0f, 0.0f);
     // Sample a 3x3 neighborhood to create a box in color space
-        for (int x = -1; x <= 1; ++x)
+    for (int x = -1; x <= 1; ++x)
+    {
+        for (int y = -1; y <= 1; ++y)
         {
-            for (int y = -1; y <= 1; ++y)
-            {
-                float3 color = current.Sample(textureSampler, uv + float2(x, y) / textureSize).xyz; // Sample neighbor
-                minColor = min(minColor, color); // Take min and max
-                maxColor = max(maxColor, color);
-            }
+            float3 color = current.Sample(textureSampler, uv + float2(x, y) / textureSize).xyz; // Sample neighbor
+            minColor = min(minColor, color); // Take min and max
+            maxColor = max(maxColor, color);
+            
+            blur += color;
         }
+    }
+    
+    blur /= 9.0f;
  
     // Clamp previous color to min/max bounding box
-        float3 previousColorClamped = clamp(previousColor, minColor, maxColor);
+    float3 previousColorClamped = clamp(previousColor, minColor, maxColor);
  
     // Blend
-        return currentColor * 0.1 + previousColorClamped * 0.9;
-    }
+    float3 accumulation = currentColor * 0.1 + previousColorClamped * 0.9;
+    return lerp(accumulation, blur, velocityDisocclusion);
+}
 
-    float2 Reproject(Texture2D depth, sampler textureSampler, float4x4 inverseViewProjection, float4x4 previousViewProjection, float2 uv)
+float2 GetCameraVelocity(Texture2D depth, sampler textureSampler, float4x4 inverseViewProjection, float4x4 previousViewProjection, float2 jitter, float2 uv)
+{
+    float3 position = ReadPosition(depth, textureSampler, uv, inverseViewProjection);
+    if (length(isinf(position)) > 0.0f)
     {
-        float3 position = ReadPosition(depth, textureSampler, uv, inverseViewProjection);
-        if (length(isinf(position)) > 0.0f)
-        {
         // TODO: there's a bug when reprojecting the skybox (infinite distance)
         // figure out a way to deal with that
-            return uv;
-        }
-    
-        float4 previousProjection = mul(previousViewProjection, float4(position, 1.0f));
-        previousProjection /= previousProjection.w;
-    
-        return ScreenToTexture(previousProjection.xy);
+        return float2(0.0f, 0.0f);
     }
     
-    TaaOutput TAA(Texture2D depth, Texture2D previous, Texture2D current, sampler textureSampler, float4x4 inverseViewProjection, float4x4 previousViewProjection, float2 uv)
+    float4 previousProjection = mul(previousViewProjection, float4(position, 1.0f));
+    previousProjection /= previousProjection.w;
+    
+    float2 prevUv = ScreenToTexture(previousProjection.xy);
+    float2 velocity = (uv - prevUv);
+    // TODO, technically we need to substract jitter from velocity but that makes the image blurry?
+    
+    return velocity;
+}
+
+float2 Reproject(Texture2D depth, sampler textureSampler, float4x4 inverseViewProjection, float4x4 previousViewProjection, float2 uv)
+{
+    float3 position = ReadPosition(depth, textureSampler, uv, inverseViewProjection);
+    if (length(isinf(position)) > 0.0f)
     {
-        float3 currentColor = current.Sample(textureSampler, uv).rgb;
+    // TODO: there's a bug when reprojecting the skybox (infinite distance)
+    // figure out a way to deal with that
+        return uv;
+    }
     
-        float2 previousUv = Reproject(depth, textureSampler, inverseViewProjection, previousViewProjection, uv);
-        float3 previousColor = previous.Sample(textureSampler, previousUv).rgb;
+    float4 previousProjection = mul(previousViewProjection, float4(position, 1.0f));
+    previousProjection /= previousProjection.w;
     
-        TaaOutput output;
-        output.Color = float4(BoxClamp(current, textureSampler, currentColor, previousColor, uv), 1.0f);
-        output.Velocity = float2(0, 0);
+    return ScreenToTexture(previousProjection.xy);
+}
+
+float GetVelocityDisocclusion(float2 previousVelocity, float2 currentVelocity)
+{
+    float velocityLength = length(previousVelocity - currentVelocity);
+    return saturate((velocityLength - 0.001f) * 10.0f);
+}
     
-        return output;                
+TaaOutput TAA(Texture2D depth, Texture2D colorHistory, Texture2D colorCurrent, Texture2D velocityHistory, Texture2D velocityCurrent, sampler textureSampler, float4x4 inverseViewProjection, float4x4 previousViewProjection, float2 jitter, float2 uv)
+{
+    float3 currentColor = colorCurrent.Sample(textureSampler, uv).rgb;
+        
+    float2 velocity = GetCameraVelocity(depth, textureSampler, inverseViewProjection, previousViewProjection, jitter, uv);     
+    float2 previousUv = uv - velocity;
+    
+    
+    float2 previousVelocity = velocityHistory.Sample(textureSampler, previousUv).xy;            
+    float3 previousColor = colorHistory.Sample(textureSampler, previousUv).rgb;
+    
+    float velocityDisocclusion = GetVelocityDisocclusion(previousVelocity, velocity);
+    
+    TaaOutput output;
+    output.Color = float4(BoxClamp(colorCurrent, textureSampler, currentColor, previousColor, velocityDisocclusion, uv), 1.0f);
+    output.Velocity = float2(0, 0);
+    
+    return output;                
 }
 
 #endif
