@@ -43,6 +43,7 @@ float3 BoxClamp(Texture2D current, sampler textureSampler, float3 currentColor, 
     blur /= 9.0f;
  
     // Clamp previous color to min/max bounding box
+    //float3 previousColorClamped = previousColor;// clamp(previousColor, minColor, maxColor);
     float3 previousColorClamped = clamp(previousColor, minColor, maxColor);
  
     // Blend
@@ -53,6 +54,12 @@ float3 BoxClamp(Texture2D current, sampler textureSampler, float3 currentColor, 
 float2 GetCameraVelocity(Texture2D depth, sampler textureSampler, float4x4 inverseViewProjection, float4x4 previousViewProjection, float2 jitter, float2 uv)
 {
     float3 position = ReadPosition(depth, textureSampler, uv, inverseViewProjection);
+
+    // TODO: the skybox at infinite distance? Technically true, but how should we handle that?
+    if (length(isinf(position)) > 0)
+    {
+        return float2(0.0f, 0.0f);
+    }
 
     float4 previousProjection = mul(previousViewProjection, float4(position, 1.0f));
     previousProjection /= previousProjection.w;
@@ -74,9 +81,10 @@ TaaOutput TAA(Texture2D depth, Texture2D colorHistory, Texture2D colorCurrent, T
 {
     float3 currentColor = colorCurrent.Sample(textureSampler, uv).rgb;
         
-    float2 velocity = GetCameraVelocity(depth, textureSampler, inverseViewProjection, previousViewProjection, jitter, uv);     
+    float2 cameraVelocity = GetCameraVelocity(depth, textureSampler, inverseViewProjection, previousViewProjection, jitter, uv);     
+    float2 colorVelocity = velocityCurrent.Sample(textureSampler, uv).xy;
+    float2 velocity = cameraVelocity + colorVelocity;
     float2 previousUv = uv - velocity;
-    
     
     float2 previousVelocity = velocityHistory.Sample(textureSampler, previousUv).xy;            
     float3 previousColor = colorHistory.Sample(textureSampler, previousUv).rgb;

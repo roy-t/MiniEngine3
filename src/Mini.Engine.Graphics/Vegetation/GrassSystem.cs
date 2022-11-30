@@ -58,7 +58,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         this.Context.OM.SetDepthStencilState(this.Device.DepthStencilStates.ReverseZ);
 
         var gBuffer = this.FrameService.GBuffer;
-        this.Context.OM.SetRenderTargets(gBuffer.DepthStencilBuffer, gBuffer.Albedo, gBuffer.Material, gBuffer.Normal);
+        this.Context.OM.SetRenderTargets(gBuffer.DepthStencilBuffer, gBuffer.Albedo, gBuffer.Material, gBuffer.Normal, gBuffer.Velocity);
     }
 
     [Process(Query = ProcessQuery.All)]
@@ -67,7 +67,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
-        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CurrentCameraJitter);
         var cameraPosition = cameraTransform.Current.GetPosition();
         var grassToSun = this.GetGrassToSunVector();
 

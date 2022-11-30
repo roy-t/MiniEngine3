@@ -1,4 +1,5 @@
 #include "Includes/Normals.hlsl"
+#include "Includes/Coordinates.hlsl"
 
 struct VS_INPUT
 {
@@ -10,6 +11,8 @@ struct VS_INPUT
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
+    float4 previousPosition : POSITION0;
+    float4 currentPosition : POSITION1;
     float3 world :  WORLD;
     float2 texcoord : TEXCOORD;
     float3 normal : NORMAL;
@@ -20,12 +23,15 @@ struct OUTPUT
     float4 albedo : SV_Target0;
     float4 material : SV_Target1;
     float4 normal : SV_Target2;
+    float2 velocity : SV_Target3;
 };
 
 cbuffer Constants : register(b0)
 {
+    float4x4 PreviousWorldViewProjection;
     float4x4 WorldViewProjection;
     float4x4 World;
+    float2 CombinedJitter;
     float3 CameraPosition;
 };
 
@@ -45,6 +51,9 @@ PS_INPUT VS(VS_INPUT input)
     float4 position = float4(input.position, 1.0f);
 
     output.position = mul(WorldViewProjection, position);
+    output.previousPosition = mul(PreviousWorldViewProjection, position);
+    output.currentPosition = mul(WorldViewProjection, position);
+    
     output.world = mul(World, position).xyz;
     output.normal = normalize(mul(rotation, input.normal));
     output.texcoord = input.texcoord;
@@ -65,10 +74,18 @@ OUTPUT PS(PS_INPUT input)
     float roughness = Roughness.Sample(TextureSampler, input.texcoord).r;
     float ambientOcclusion = AmbientOcclusion.Sample(TextureSampler, input.texcoord).r;
 
+    input.previousPosition /= input.previousPosition.w;
+    input.currentPosition /= input.currentPosition.w;
+        
+    float2 velocity = (ScreenToTexture(input.currentPosition.xy) - ScreenToTexture(input.previousPosition.xy)).xy;    
+    // TODO, technically we need to substract jitter from velocity but that makes the image blurry?
+    //velocity -= ScreenToTexture(CombinedJitter);
+
     OUTPUT output;
     output.albedo = albedo;
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
     output.normal = float4(PackNormal(normal), 1.0f);
+    output.velocity = velocity;
 
     return output;
 }

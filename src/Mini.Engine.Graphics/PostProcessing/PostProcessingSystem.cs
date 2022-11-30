@@ -56,11 +56,11 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
-        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CurrentCameraJitter);
         Matrix4x4.Invert(viewProjection, out var inverseViewProjection);
-        var previousViewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.FrameService.CameraJitter);        
+        var previousViewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.FrameService.CurrentCameraJitter);        
 
-        this.User.MapConstants(this.Context, inverseViewProjection, previousViewProjection, this.FrameService.CameraJitter);
+        this.User.MapConstants(this.Context, inverseViewProjection, previousViewProjection, this.FrameService.CurrentCameraJitter);
         this.Context.PS.SetConstantBuffer(AntiAliasShader.ConstantsSlot, this.User.ConstantsBuffer);
 
         this.Context.OM.SetRenderTargets(null, this.FrameService.PBuffer.CurrentColor, this.FrameService.PBuffer.CurrentVelocity);        

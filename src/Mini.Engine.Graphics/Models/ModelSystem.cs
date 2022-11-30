@@ -43,7 +43,7 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
         this.Context.VS.SetConstantBuffer(Geometry.ConstantsSlot, this.User.ConstantsBuffer);
         this.Context.PS.SetConstantBuffer(Geometry.ConstantsSlot, this.User.ConstantsBuffer);
         this.Context.PS.SetSampler(Geometry.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);
-        this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal);
+        this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal, this.FrameService.GBuffer.Velocity);
     }
 
     [Process(Query = ProcessQuery.All)]
@@ -51,18 +51,23 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
     {
         var camera = this.FrameService.GetPrimaryCamera().Camera;
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
-        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.FrameService.CameraJitter);
+        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.FrameService.CurrentCameraJitter);
 
         var viewVolume = new Frustum(viewProjection);
         var model = this.Device.Resources.Get(component.Model);
-        RenderService.DrawModel(this, this.Context, viewVolume, viewProjection, model, transform.Current);
+        RenderService.DrawModel(this, this.Context, viewVolume, viewProjection, model, transform.Previous, transform.Current);
     }
 
-    public void SetConstants(Matrix4x4 worldViewProjection, Matrix4x4 world)
+    public void SetConstants(Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world)
     {
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
 
-        this.User.MapConstants(this.Context, worldViewProjection, world, cameraTransform.GetPosition());
+        var jitter = this.FrameService.CurrentCameraJitter + this.FrameService.PreviousCameraJitter;
+
+        var previousWorldViewProjection = previousWorld * viewProjection;
+        var worldViewProjection = world * viewProjection;
+
+        this.User.MapConstants(this.Context, previousWorldViewProjection, worldViewProjection, world, jitter, cameraTransform.GetPosition());
     }
 
     public void SetMaterial(IMaterial material)

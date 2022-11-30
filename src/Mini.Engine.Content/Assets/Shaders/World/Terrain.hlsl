@@ -20,6 +20,7 @@ struct OUTPUT
     float4 albedo : SV_Target0;
     float4 material : SV_Target1;
     float4 normal : SV_Target2;
+    float2 velocity : SV_Target3;
 };
 
 cbuffer Constants : register(b0)
@@ -69,21 +70,8 @@ OUTPUT PS(PS_INPUT input)
     float ambientOcclusion = 1.0f;
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
 
-
-    //float4 albedo = Albedo.Sample(TextureSampler, input.texcoord);
-    //clip(albedo.a - 0.5f);
-
-    //float3 V = normalize(CameraPosition - input.world);
-    //float3 normal = PerturbNormal(Normal, TextureSampler, input.normal, V, input.texcoord);
- 
-    //float metalicness = Metalicness.Sample(TextureSampler, input.texcoord).r;
-    //float roughness = Roughness.Sample(TextureSampler, input.texcoord).r;
-    //float ambientOcclusion = AmbientOcclusion.Sample(TextureSampler, input.texcoord).r;
-
-    
-    //output.albedo = float4(1, 0, 0, 1);
-    //output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
-    //output.normal = float4(PackNormal(normal), 1.0f);
+    // Terrain generally doesn't move
+    output.velocity = float2(0.0f, 0.0f);
 
     return output;
 }

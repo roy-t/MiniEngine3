@@ -40,7 +40,8 @@ public sealed class FrameService : IDisposable
     /// </summary>
     public float Elapsed { get; set; }
 
-    public Vector2 CameraJitter => this.PBuffer.Jitter;
+    public Vector2 CurrentCameraJitter => this.PBuffer.CurrentJitter;
+    public Vector2 PreviousCameraJitter => this.PBuffer.PreviousJitter;
 
     public GeometryBuffer GBuffer { get; private set; }
     public LightBuffer LBuffer { get; private set; }

@@ -40,8 +40,9 @@ public sealed partial class TerrainSystem : IMeshRenderCallBack, ISystem, IDispo
 
         this.Context.VS.SetConstantBuffer(Terrain.ConstantsSlot, this.User.ConstantsBuffer);
         this.Context.PS.SetConstantBuffer(Terrain.ConstantsSlot, this.User.ConstantsBuffer);
-        this.Context.PS.SetSampler(Terrain.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);        
-        this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal);
+        this.Context.PS.SetSampler(Terrain.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);
+        
+        this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal, this.FrameService.GBuffer.Velocity);
     }
 
     [Process(Query = ProcessQuery.All)]
@@ -56,18 +57,18 @@ public sealed partial class TerrainSystem : IMeshRenderCallBack, ISystem, IDispo
 
         var camera = this.FrameService.GetPrimaryCamera().Camera;
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
-        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.FrameService.CameraJitter);
+        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.FrameService.CurrentCameraJitter);
         
         var frustum = new Frustum(viewProjection);
-        RenderService.DrawMesh(this, this.Context, frustum, viewProjection, mesh, transform.Current);
+        RenderService.DrawMesh(this, this.Context, frustum, viewProjection, mesh, transform.Previous, transform.Current);
     }
 
-    public void SetConstants(Matrix4x4 worldViewProjection, Matrix4x4 world)
-    {        
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;     
-        this.User.MapConstants(this.Context, worldViewProjection, world, cameraTransform.GetPosition());
+    public void SetConstants(Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world)
+    {
+        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
+        this.User.MapConstants(this.Context, world * viewProjection, world, cameraTransform.GetPosition());
     }
-   
+
     public void OnUnSet()
     {
         // TODO: is it really useful to do this asynchronously?

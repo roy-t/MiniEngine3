@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-using System.Numerics;
-using System.Runtime.CompilerServices;
+﻿using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources.Models;
@@ -12,7 +10,7 @@ namespace Mini.Engine.Graphics.Models;
 
 public interface IMeshRenderCallBack
 {
-    void SetConstants(Matrix4x4 worldViewProjection, Matrix4x4 world);
+    void SetConstants(Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world);
 }
 
 public interface IModelRenderCallBack : IMeshRenderCallBack
@@ -44,7 +42,7 @@ public sealed class RenderService
             ref var component = ref iterator.Current;
             var transform = this.Transforms[component.Entity];
             var model = context.Resources.Get(component.Model);
-            DrawModel(callback, context, viewVolume, viewProjection, model, transform.Current);
+            DrawModel(callback, context, viewVolume, viewProjection, model, transform.Previous, transform.Current);
         }
     }
 
@@ -57,18 +55,20 @@ public sealed class RenderService
             ref var terrain = ref iterator.Current;
             var transform = this.Transforms[terrain.Entity];
             var mesh = context.Resources.Get(terrain.Mesh);
-            DrawMesh(callback, context, viewVolume, viewProjection, mesh, transform.Current);
+            DrawMesh(callback, context, viewVolume, viewProjection, mesh, transform.Previous, transform.Current);
         }
     }
 
-    public static void DrawModel(IModelRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IModel model, Transform transform)
-    {        
+    public static void DrawModel(IModelRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IModel model, Transform previousTransform, Transform transform)
+    {
+        var previousWorld = previousTransform.GetMatrix();
         var world = transform.GetMatrix();
         var bounds = model.Bounds.Transform(world);
         
         if (viewVolume.ContainsOrIntersects(bounds))
         {
-            callback.SetConstants(world * viewProjection, world);
+            callback.SetConstants(viewProjection, previousWorld, world);
+            
 
             context.IA.SetVertexBuffer(model.Vertices);
             context.IA.SetIndexBuffer(model.Indices);
@@ -89,14 +89,15 @@ public sealed class RenderService
         }
     }
 
-    public static void DrawMesh(IMeshRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IMesh mesh, Transform transform)
+    public static void DrawMesh(IMeshRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IMesh mesh, Transform previousTransform, Transform transform)
     {
+        var previousWorld = previousTransform.GetMatrix();
         var world = transform.GetMatrix();
         var bounds = mesh.Bounds.Transform(world);
 
         if (viewVolume.ContainsOrIntersects(bounds))
         {
-            callback.SetConstants(world * viewProjection, world);
+            callback.SetConstants(viewProjection, previousWorld, world);
 
             context.IA.SetVertexBuffer(mesh.Vertices);
             context.IA.SetIndexBuffer(mesh.Indices);

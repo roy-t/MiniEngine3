@@ -36,6 +36,7 @@ struct OUTPUT
     float4 albedo : SV_Target0;
     float4 material : SV_Target1;
     float4 normal : SV_Target2;
+    float2 velocity : SV_Target3;
 };
 
 cbuffer Constants : register(b0)
@@ -223,6 +224,9 @@ OUTPUT PS(PS_INPUT input)
     output.albedo = Albedo.Sample(TextureSampler, input.texcoord) * tint;
     output.material = float4(0.0f, 0.525f, input.ambientOcclusion, 1.0f);
     output.normal = float4(PackNormal(input.normal), 1.0f);
-
+    
+    // Purposefully set zero velocity so that vegetation gets a slight blur    
+    output.velocity = float2(0.0f, 0.0f);
+    
     return output;
 }

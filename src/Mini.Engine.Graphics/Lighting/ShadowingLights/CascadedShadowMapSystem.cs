@@ -119,9 +119,9 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         this.RenderService.DrawAllTerrain(this, this.Context, viewProjection);
     }
 
-    public void SetConstants(Matrix4x4 worldViewProjection, Matrix4x4 world)
+    public void SetConstants(Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world)
     {
-        this.User.MapConstants(this.Context, worldViewProjection);
+        this.User.MapConstants(this.Context, world * viewProjection);        
     }
 
     public void SetMaterial(IMaterial material)
