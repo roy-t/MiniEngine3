@@ -51,7 +51,7 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
     {
         var camera = this.FrameService.GetPrimaryCamera().Camera;
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
-        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.FrameService.CurrentCameraJitter);
+        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.FrameService.CameraJitter);
 
         var viewVolume = new Frustum(viewProjection);
         var model = this.Device.Resources.Get(component.Model);
@@ -60,14 +60,12 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
 
     public void SetConstants(Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world)
     {
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
-
-        var jitter = this.FrameService.CurrentCameraJitter + this.FrameService.PreviousCameraJitter;
+        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;        
 
         var previousWorldViewProjection = previousWorld * viewProjection;
         var worldViewProjection = world * viewProjection;
 
-        this.User.MapConstants(this.Context, previousWorldViewProjection, worldViewProjection, world, jitter, cameraTransform.GetPosition());
+        this.User.MapConstants(this.Context, previousWorldViewProjection, worldViewProjection, world,  cameraTransform.GetPosition());
     }
 
     public void SetMaterial(IMaterial material)

@@ -22,7 +22,6 @@ cbuffer Constants : register(b0)
 {
     float4x4 InverseViewProjection;
     float4x4 PreviousViewProjection;
-    float2 Jitter;
 };
 
 #pragma PixelShader
@@ -42,6 +41,6 @@ float4 NonePS(PS_INPUT input) : SV_Target
 #pragma PixelShader
 TaaOutput TaaPS(PS_INPUT input)
 {    
-    TaaOutput output = TAA(Depth, PreviousColor, Color, PreviousVelocity, Velocity, TextureSampler, InverseViewProjection, PreviousViewProjection, Jitter, input.tex);
+    TaaOutput output = TAA(Depth, PreviousColor, Color, PreviousVelocity, Velocity, TextureSampler, InverseViewProjection, PreviousViewProjection, input.tex);
     return output;
 }

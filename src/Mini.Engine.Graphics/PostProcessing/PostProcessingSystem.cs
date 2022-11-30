@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using System.Runtime.InteropServices;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
@@ -56,11 +55,14 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
-        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CurrentCameraJitter);
+        // Do not introduce jitter in the camera velocity/reprojection calculations
+        // as the jitter is only used to get better samples and doesn't mean real camera movement
+        var jitter = Vector2.Zero;
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, jitter);        
+        var previousViewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, jitter);
         Matrix4x4.Invert(viewProjection, out var inverseViewProjection);
-        var previousViewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.FrameService.CurrentCameraJitter);        
 
-        this.User.MapConstants(this.Context, inverseViewProjection, previousViewProjection, this.FrameService.CurrentCameraJitter);
+        this.User.MapConstants(this.Context, inverseViewProjection, previousViewProjection);
         this.Context.PS.SetConstantBuffer(AntiAliasShader.ConstantsSlot, this.User.ConstantsBuffer);
 
         this.Context.OM.SetRenderTargets(null, this.FrameService.PBuffer.CurrentColor, this.FrameService.PBuffer.CurrentVelocity);        

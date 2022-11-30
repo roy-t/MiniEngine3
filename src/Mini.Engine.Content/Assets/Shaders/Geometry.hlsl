@@ -30,8 +30,7 @@ cbuffer Constants : register(b0)
 {
     float4x4 PreviousWorldViewProjection;
     float4x4 WorldViewProjection;
-    float4x4 World;
-    float2 CombinedJitter;
+    float4x4 World;    
     float3 CameraPosition;
 };
 
@@ -77,9 +76,7 @@ OUTPUT PS(PS_INPUT input)
     input.previousPosition /= input.previousPosition.w;
     input.currentPosition /= input.currentPosition.w;
         
-    float2 velocity = (ScreenToTexture(input.currentPosition.xy) - ScreenToTexture(input.previousPosition.xy)).xy;    
-    // TODO, technically we need to substract jitter from velocity but that makes the image blurry?
-    //velocity -= ScreenToTexture(CombinedJitter);
+    float2 velocity = (ScreenToTexture(input.currentPosition.xy) - ScreenToTexture(input.previousPosition.xy)).xy;
 
     OUTPUT output;
     output.albedo = albedo;

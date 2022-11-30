@@ -68,7 +68,7 @@ float3 BoxClamp(Texture2D current, sampler textureSampler, float3 currentColor, 
     return lerp(accumulation, blur, velocityDisocclusion);
 }
 
-float2 GetCameraVelocity(Texture2D depth, sampler textureSampler, float4x4 inverseViewProjection, float4x4 previousViewProjection, float2 jitter, float2 uv)
+float2 GetCameraVelocity(Texture2D depth, sampler textureSampler, float4x4 inverseViewProjection, float4x4 previousViewProjection, float2 uv)
 {
     float3 position = ReadPosition(depth, textureSampler, uv, inverseViewProjection);
 
@@ -94,11 +94,11 @@ float GetVelocityDisocclusion(float2 previousVelocity, float2 currentVelocity)
     return saturate((velocityLength - 0.001f) * 10.0f);
 }
     
-TaaOutput TAA(Texture2D depth, Texture2D colorHistory, Texture2D colorCurrent, Texture2D velocityHistory, Texture2D velocityCurrent, sampler textureSampler, float4x4 inverseViewProjection, float4x4 previousViewProjection, float2 jitter, float2 uv)
+TaaOutput TAA(Texture2D depth, Texture2D colorHistory, Texture2D colorCurrent, Texture2D velocityHistory, Texture2D velocityCurrent, sampler textureSampler, float4x4 inverseViewProjection, float4x4 previousViewProjection, float2 uv)
 {
     float3 currentColor = colorCurrent.Sample(textureSampler, uv).rgb;
         
-    float2 cameraVelocity = GetCameraVelocity(depth, textureSampler, inverseViewProjection, previousViewProjection, jitter, uv);     
+    float2 cameraVelocity = GetCameraVelocity(depth, textureSampler, inverseViewProjection, previousViewProjection, uv);     
     float2 colorVelocity = velocityCurrent.Sample(textureSampler, uv).xy;
     float2 velocity = cameraVelocity + colorVelocity;
     float2 previousUv = uv - velocity;

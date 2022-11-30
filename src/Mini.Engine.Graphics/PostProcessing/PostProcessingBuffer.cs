@@ -33,8 +33,7 @@ public sealed class PostProcessingBuffer : IDisposable
     public IRenderTarget CurrentVelocity { get; private set; }
     
 
-    public Vector2 PreviousJitter { get; private set; }
-    public Vector2 CurrentJitter { get; private set; }
+    public Vector2 Jitter { get; private set; }
     
     public AAType AntiAliasing { get; set; }
 
@@ -47,12 +46,11 @@ public sealed class PostProcessingBuffer : IDisposable
         {
             var w = 2.0f * this.CurrentColor.DimX;
             var h = 2.0f * this.CurrentColor.DimY;
-            this.PreviousJitter = this.CurrentJitter;
-            this.CurrentJitter = this.Sequence.Next2D(-1.0f / w, 1.0f / w, -1.0f / h, 1.0f / h);
+            this.Jitter = this.Sequence.Next2D(-1.0f / w, 1.0f / w, -1.0f / h, 1.0f / h);
         }
         else
         {
-            this.PreviousJitter = this.CurrentJitter = Vector2.Zero;
+            this.Jitter = Vector2.Zero;
         }
     }
 
