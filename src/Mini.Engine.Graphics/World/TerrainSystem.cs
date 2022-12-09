@@ -56,17 +56,21 @@ public sealed partial class TerrainSystem : IMeshRenderCallBack, ISystem, IDispo
         this.Context.PS.SetShaderResource(Terrain.Albedo, tint);
 
         var camera = this.FrameService.GetPrimaryCamera().Camera;
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
-        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.FrameService.CameraJitter);
+        var cameraTransform = this.FrameService.GetPrimaryCameraTransform();
+        var previousViewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.FrameService.PreviousCameraJitter);
+        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
         
         var frustum = new Frustum(viewProjection);
-        RenderService.DrawMesh(this, this.Context, frustum, viewProjection, mesh, transform.Previous, transform.Current);
+        RenderService.DrawMesh(this, this.Context, frustum, previousViewProjection, viewProjection, mesh, transform.Previous, transform.Current);
     }
 
-    public void SetConstants(Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world)
+    public void SetConstants(Matrix4x4 previousViewProjection, Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world)
     {
+        var previousWorldViewProjection = previousWorld * previousViewProjection;
+        var worldViewProjection = world * viewProjection;
+
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
-        this.User.MapConstants(this.Context, world * viewProjection, world, cameraTransform.GetPosition());
+        this.User.MapConstants(this.Context, previousWorldViewProjection, worldViewProjection, world, cameraTransform.GetPosition(), this.FrameService.PreviousCameraJitter, this.FrameService.CameraJitter);
     }
 
     public void OnUnSet()

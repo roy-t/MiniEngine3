@@ -95,7 +95,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         var viewProjection = ComputeViewProjectionMatrixForSlice(surfaceToLight, this.Frustum, shadowMap.Resolution);
         var shadowMatrix = CreateSliceShadowMatrix(viewProjection);
         
-        this.RenderShadowMap(shadowMap.DepthBuffers, shadowMap.Resolution, slice, viewProjection);
+        this.RenderShadowMap(shadowMap.DepthBuffers, shadowMap.Resolution, slice, viewProjection, viewProjection);
 
         var nearCorner = TransformCorner(Vector3.Zero, shadowMatrix, shadowMap.GlobalShadowMatrix);
         var farCorner = TransformCorner(Vector3.One, shadowMatrix, shadowMap.GlobalShadowMatrix);
@@ -103,7 +103,7 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         return (view.NearPlane + (farZ * clipDistance), new Vector4(-nearCorner, 0.0f), new Vector4(Vector3.One / (farCorner - nearCorner), 1.0f));        
     }
 
-    private void RenderShadowMap(ILifetime<IDepthStencilBuffer> depthStencilBuffers, int resolution, int slice, Matrix4x4 viewProjection)
+    private void RenderShadowMap(ILifetime<IDepthStencilBuffer> depthStencilBuffers, int resolution, int slice,  Matrix4x4 previousViewProjection, Matrix4x4 viewProjection)
     {
         var material = this.Device.Resources.Get(this.DefaultMaterial);
 
@@ -113,13 +113,14 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
 
         this.Context.Clear(depthStencilBuffers, slice, DepthStencilClearFlags.Depth, 1.0f, 0);
 
-        this.RenderService.DrawAllModels(this, this.Context, viewProjection);
+        // TODO: we need an overload for DrawAllModels that doesn't care about velocity so doesn't need previousViewProjection!
+        this.RenderService.DrawAllModels(this, this.Context, previousViewProjection, viewProjection);
 
         this.Context.PS.SetShaderResource(ShadowMap.Albedo, material.Albedo);
-        this.RenderService.DrawAllTerrain(this, this.Context, viewProjection);
+        this.RenderService.DrawAllTerrain(this, this.Context, previousViewProjection, viewProjection);
     }
 
-    public void SetConstants(Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world)
+    public void SetConstants(Matrix4x4 previousViewProjection, Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world)
     {
         this.User.MapConstants(this.Context, world * viewProjection);        
     }

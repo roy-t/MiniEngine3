@@ -50,22 +50,24 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
     public void DrawModel(ref ModelComponent component, ref TransformComponent transform)
     {
         var camera = this.FrameService.GetPrimaryCamera().Camera;
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
-        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.FrameService.CameraJitter);
+        var cameraTransform = this.FrameService.GetPrimaryCameraTransform();
+
+        var previesViewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.FrameService.PreviousCameraJitter);
+        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
 
         var viewVolume = new Frustum(viewProjection);
         var model = this.Device.Resources.Get(component.Model);
-        RenderService.DrawModel(this, this.Context, viewVolume, viewProjection, model, transform.Previous, transform.Current);
+        RenderService.DrawModel(this, this.Context, viewVolume, previesViewProjection, viewProjection, model, transform.Previous, transform.Current);
     }
 
-    public void SetConstants(Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world)
+    public void SetConstants(Matrix4x4 previousViewProjection, Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world)
     {
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;        
 
-        var previousWorldViewProjection = previousWorld * viewProjection;
+        var previousWorldViewProjection = previousWorld * previousViewProjection;
         var worldViewProjection = world * viewProjection;
 
-        this.User.MapConstants(this.Context, previousWorldViewProjection, worldViewProjection, world,  cameraTransform.GetPosition());
+        this.User.MapConstants(this.Context, previousWorldViewProjection, worldViewProjection, world, cameraTransform.GetPosition(), this.FrameService.PreviousCameraJitter, this.FrameService.CameraJitter);
     }
 
     public void SetMaterial(IMaterial material)

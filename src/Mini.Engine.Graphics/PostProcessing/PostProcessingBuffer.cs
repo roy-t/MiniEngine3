@@ -17,24 +17,23 @@ public sealed class PostProcessingBuffer : IDisposable
         var colorImageInfo = new ImageInfo(device.Width, device.Height, Format.R16G16B16A16_Float);
         this.PreviousColor = new RenderTarget(device, "ColorBufferB", colorImageInfo, MipMapInfo.None());
         this.CurrentColor = new RenderTarget(device, "ColorBufferA", colorImageInfo, MipMapInfo.None());
-        
+
         var velocityImageInfo = new ImageInfo(device.Width, device.Height, Format.R16G16_Float);
         this.PreviousVelocity = new RenderTarget(device, "VelocityBufferB", velocityImageInfo, MipMapInfo.None());
         this.CurrentVelocity = new RenderTarget(device, "VelocityBufferA", velocityImageInfo, MipMapInfo.None());
-        
+
         this.AntiAliasing = AAType.TAA;
     }
 
     public IRenderTarget PreviousColor { get; private set; }
     public IRenderTarget CurrentColor { get; private set; }
-    
 
     public IRenderTarget PreviousVelocity { get; private set; }
     public IRenderTarget CurrentVelocity { get; private set; }
-    
 
     public Vector2 Jitter { get; private set; }
-    
+    public Vector2 PreviousJitter { get; private set; }
+
     public AAType AntiAliasing { get; set; }
 
     public void Swap()
@@ -44,12 +43,16 @@ public sealed class PostProcessingBuffer : IDisposable
 
         if (this.AntiAliasing == AAType.TAA)
         {
+            this.PreviousJitter = this.Jitter;
+
             var w = 2.0f * this.CurrentColor.DimX;
             var h = 2.0f * this.CurrentColor.DimY;
+
             this.Jitter = this.Sequence.Next2D(-1.0f / w, 1.0f / w, -1.0f / h, 1.0f / h);
         }
         else
         {
+            this.PreviousJitter = Vector2.Zero;
             this.Jitter = Vector2.Zero;
         }
     }

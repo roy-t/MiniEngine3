@@ -10,7 +10,7 @@ namespace Mini.Engine.Graphics.Models;
 
 public interface IMeshRenderCallBack
 {
-    void SetConstants(Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world);
+    void SetConstants(Matrix4x4 previousViewProjection, Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world);
 }
 
 public interface IModelRenderCallBack : IMeshRenderCallBack
@@ -32,7 +32,7 @@ public sealed class RenderService
         this.Terrain = terrain;
     }
 
-    public void DrawAllModels(IModelRenderCallBack callback, DeviceContext context, Matrix4x4 viewProjection)
+    public void DrawAllModels(IModelRenderCallBack callback, DeviceContext context, Matrix4x4 previousViewProjection, Matrix4x4 viewProjection)
     {
         var viewVolume = new Frustum(viewProjection);
 
@@ -42,11 +42,11 @@ public sealed class RenderService
             ref var component = ref iterator.Current;
             var transform = this.Transforms[component.Entity];
             var model = context.Resources.Get(component.Model);
-            DrawModel(callback, context, viewVolume, viewProjection, model, transform.Previous, transform.Current);
+            DrawModel(callback, context, viewVolume, previousViewProjection, viewProjection, model, transform.Previous, transform.Current);
         }
     }
 
-    public void DrawAllTerrain(IMeshRenderCallBack callback, DeviceContext context, Matrix4x4 viewProjection)
+    public void DrawAllTerrain(IMeshRenderCallBack callback, DeviceContext context, Matrix4x4 previousViewProjection, Matrix4x4 viewProjection)
     {
         var iterator = this.Terrain.IterateAll();
         var viewVolume = new Frustum(viewProjection);
@@ -55,11 +55,11 @@ public sealed class RenderService
             ref var terrain = ref iterator.Current;
             var transform = this.Transforms[terrain.Entity];
             var mesh = context.Resources.Get(terrain.Mesh);
-            DrawMesh(callback, context, viewVolume, viewProjection, mesh, transform.Previous, transform.Current);
+            DrawMesh(callback, context, viewVolume, previousViewProjection, viewProjection, mesh, transform.Previous, transform.Current);
         }
     }
 
-    public static void DrawModel(IModelRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IModel model, Transform previousTransform, Transform transform)
+    public static void DrawModel(IModelRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 previousViewProjection, Matrix4x4 viewProjection, IModel model, Transform previousTransform, Transform transform)
     {
         var previousWorld = previousTransform.GetMatrix();
         var world = transform.GetMatrix();
@@ -67,7 +67,7 @@ public sealed class RenderService
         
         if (viewVolume.ContainsOrIntersects(bounds))
         {
-            callback.SetConstants(viewProjection, previousWorld, world);
+            callback.SetConstants(previousViewProjection, viewProjection, previousWorld, world);
             
 
             context.IA.SetVertexBuffer(model.Vertices);
@@ -89,7 +89,7 @@ public sealed class RenderService
         }
     }
 
-    public static void DrawMesh(IMeshRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 viewProjection, IMesh mesh, Transform previousTransform, Transform transform)
+    public static void DrawMesh(IMeshRenderCallBack callback, DeviceContext context, Frustum viewVolume, Matrix4x4 previousViewProjection, Matrix4x4 viewProjection, IMesh mesh, Transform previousTransform, Transform transform)
     {
         var previousWorld = previousTransform.GetMatrix();
         var world = transform.GetMatrix();
@@ -97,7 +97,7 @@ public sealed class RenderService
 
         if (viewVolume.ContainsOrIntersects(bounds))
         {
-            callback.SetConstants(viewProjection, previousWorld, world);
+            callback.SetConstants(previousViewProjection, viewProjection, previousWorld, world);
 
             context.IA.SetVertexBuffer(mesh.Vertices);
             context.IA.SetIndexBuffer(mesh.Indices);

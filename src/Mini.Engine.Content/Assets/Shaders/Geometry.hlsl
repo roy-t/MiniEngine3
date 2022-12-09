@@ -30,8 +30,10 @@ cbuffer Constants : register(b0)
 {
     float4x4 PreviousWorldViewProjection;
     float4x4 WorldViewProjection;
-    float4x4 World;    
+    float4x4 World;
     float3 CameraPosition;
+    float2 PreviousJitter;
+    float2 Jitter;
 };
 
 sampler TextureSampler : register(s0);
@@ -51,7 +53,7 @@ PS_INPUT VS(VS_INPUT input)
 
     output.position = mul(WorldViewProjection, position);
     output.previousPosition = mul(PreviousWorldViewProjection, position);
-    output.currentPosition = mul(WorldViewProjection, position);
+    output.currentPosition = output.position;
     
     output.world = mul(World, position).xyz;
     output.normal = normalize(mul(rotation, input.normal));
@@ -75,14 +77,15 @@ OUTPUT PS(PS_INPUT input)
 
     input.previousPosition /= input.previousPosition.w;
     input.currentPosition /= input.currentPosition.w;
-        
-    float2 velocity = (ScreenToTexture(input.currentPosition.xy) - ScreenToTexture(input.previousPosition.xy)).xy;
-
+    float2 previousUv = ScreenToTexture(input.previousPosition.xy - PreviousJitter);
+    float2 currentUv = ScreenToTexture(input.currentPosition.xy - Jitter);
+    
     OUTPUT output;
     output.albedo = albedo;
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
     output.normal = float4(PackNormal(normal), 1.0f);
-    output.velocity = velocity;
+
+    output.velocity =  previousUv - currentUv;
 
     return output;
 }

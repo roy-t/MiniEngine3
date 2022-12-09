@@ -1,5 +1,7 @@
 # TODO
 
+ check source of https://www.elopezr.com/temporal-aa-and-the-quest-for-the-holy-trail/, I think color box clamp hdr adjust stuff is still incorrect
+
 Continue on https://www.elopezr.com/temporal-aa-and-the-quest-for-the-holy-trail/,
 - Move camera to velocity
 - Implement Velocity Rejection

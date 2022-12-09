@@ -41,7 +41,7 @@ float3 BoxClamp(Texture2D current, sampler textureSampler, float3 currentColor, 
         {
             //float3 color = current.Sample(textureSampler, uv + float2(x, y) / textureSize).xyz; // Sample neighbor
             float3 samp = current.Sample(textureSampler, uv + float2(x, y) / textureSize).xyz;
-            float3 color = AdjustHDRColor(samp).xyz;
+            float3 color = samp;// or AdjustHDRColor(samp).xyz;? 'read neighborhood is not very clear'
             minColor = min(minColor, color); // Take min and max
             maxColor = max(maxColor, color);
             
@@ -52,7 +52,6 @@ float3 BoxClamp(Texture2D current, sampler textureSampler, float3 currentColor, 
     blur /= 9.0f;
  
     // Clamp previous color to min/max bounding box
-    //float3 previousColorClamped = previousColor;// clamp(previousColor, minColor, maxColor);
     float3 previousColorClamped = clamp(previousColor, minColor, maxColor);
 
     float4 pc = AdjustHDRColor(previousColor);
@@ -72,7 +71,7 @@ float2 GetCameraVelocity(Texture2D depth, sampler textureSampler, float4x4 inver
 {
     float3 position = ReadPosition(depth, textureSampler, uv, inverseViewProjection);
 
-    // TODO: the skybox at infinite distance? Technically true, but how should we handle that?
+    // objects at infinite distance don't care about camera movement
     if (length(isinf(position)) > 0)
     {
         return float2(0.0f, 0.0f);
@@ -82,10 +81,7 @@ float2 GetCameraVelocity(Texture2D depth, sampler textureSampler, float4x4 inver
     previousProjection /= previousProjection.w;
     
     float2 prevUv = ScreenToTexture(previousProjection.xy);
-    float2 velocity = (uv - prevUv);
-    // TODO, technically we need to substract jitter from velocity but that makes the image blurry?
-    
-    return velocity;
+    return (prevUv - uv);
 }
 
 float GetVelocityDisocclusion(float2 previousVelocity, float2 currentVelocity)
@@ -101,9 +97,9 @@ TaaOutput TAA(Texture2D depth, Texture2D colorHistory, Texture2D colorCurrent, T
     float2 cameraVelocity = GetCameraVelocity(depth, textureSampler, inverseViewProjection, previousViewProjection, uv);     
     float2 colorVelocity = velocityCurrent.Sample(textureSampler, uv).xy;
     float2 velocity = cameraVelocity + colorVelocity;
-    float2 previousUv = uv - velocity;
+    float2 previousUv = uv + velocity;
     
-    float2 previousVelocity = velocityHistory.Sample(textureSampler, previousUv).xy;            
+    float2 previousVelocity = velocityHistory.Sample(textureSampler, previousUv).xy;
     float3 previousColor = colorHistory.Sample(textureSampler, previousUv).rgb;
     
     float velocityDisocclusion = GetVelocityDisocclusion(previousVelocity, velocity);
@@ -112,7 +108,7 @@ TaaOutput TAA(Texture2D depth, Texture2D colorHistory, Texture2D colorCurrent, T
     output.Color = float4(BoxClamp(colorCurrent, textureSampler, currentColor, previousColor, velocityDisocclusion, uv), 1.0f);
     output.Velocity = float2(0, 0);
     
-    return output;                
+    return output;
 }
 
 #endif
