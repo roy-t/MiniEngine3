@@ -10,19 +10,10 @@ struct PS_INPUT
 };
 
 sampler TextureSampler : register(s0);
-Texture2D Color : register(t0);    
+Texture2D Color : register(t0);
 Texture2D PreviousColor: register(t1);
 Texture2D Velocity : register(t2);
 Texture2D PreviousVelocity : register(t3);
-    
-    
-Texture2D Depth : register(t4);
-
-cbuffer Constants : register(b0)
-{
-    float4x4 InverseViewProjection;
-    float4x4 PreviousViewProjection;
-};
 
 #pragma PixelShader
 float4 FxaaPS(PS_INPUT input) : SV_Target
@@ -41,6 +32,6 @@ float4 NonePS(PS_INPUT input) : SV_Target
 #pragma PixelShader
 TaaOutput TaaPS(PS_INPUT input)
 {    
-    TaaOutput output = TAA(Depth, PreviousColor, Color, PreviousVelocity, Velocity, TextureSampler, InverseViewProjection, PreviousViewProjection, input.tex);
+    TaaOutput output = TAA(PreviousColor, Color, PreviousVelocity, Velocity, TextureSampler, input.tex);
     return output;
 }

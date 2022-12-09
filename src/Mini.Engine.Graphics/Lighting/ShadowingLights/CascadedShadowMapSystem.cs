@@ -14,40 +14,42 @@ using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Transforms;
+using Mini.Engine.Graphics.World;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 
 namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 
 [Service]
-public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISystem, IDisposable
+public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
 {
-    // TODO: this system still uses default, instead of reverse-z. Fix?
-
-
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
-    private readonly RenderService RenderService;
+    private readonly ModelRenderService ModelRenderService;
+    private readonly TerrainRenderService TerrainRenderService;
     private readonly ShadowMap Shader;
     private readonly ShadowMap.User User;
     private readonly InputLayout InputLayout;
     private readonly LightFrustum Frustum;
     private readonly ILifetime<IMaterial> DefaultMaterial;
+    private readonly InternalRenderServiceCallBack CallBack;
 
-    public CascadedShadowMapSystem(Device device, FrameService frameService, RenderService renderService, ShadowMap shader, ContentManager content)
+    public CascadedShadowMapSystem(Device device, FrameService frameService, ModelRenderService modelRenderService, TerrainRenderService terrainRenderService, ShadowMap shader, ContentManager content)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<CascadedShadowMapSystem>();
         this.FrameService = frameService;
-        this.RenderService = renderService;
+        this.ModelRenderService = modelRenderService;
+        this.TerrainRenderService = terrainRenderService;
         this.Shader = shader;
         this.User = shader.CreateUserFor<CascadedShadowMapSystem>();
 
         this.InputLayout = this.Shader.CreateInputLayoutForVs(ModelVertex.Elements);
         this.Frustum = new LightFrustum();
-        
+
         this.DefaultMaterial = content.LoadDefaultMaterial();
+        this.CallBack = new InternalRenderServiceCallBack(this.Context, this.User);
     }
 
     public void OnSet()
@@ -94,16 +96,16 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
 
         var viewProjection = ComputeViewProjectionMatrixForSlice(surfaceToLight, this.Frustum, shadowMap.Resolution);
         var shadowMatrix = CreateSliceShadowMatrix(viewProjection);
-        
+
         this.RenderShadowMap(shadowMap.DepthBuffers, shadowMap.Resolution, slice, viewProjection, viewProjection);
 
         var nearCorner = TransformCorner(Vector3.Zero, shadowMatrix, shadowMap.GlobalShadowMatrix);
         var farCorner = TransformCorner(Vector3.One, shadowMatrix, shadowMap.GlobalShadowMatrix);
 
-        return (view.NearPlane + (farZ * clipDistance), new Vector4(-nearCorner, 0.0f), new Vector4(Vector3.One / (farCorner - nearCorner), 1.0f));        
+        return (view.NearPlane + (farZ * clipDistance), new Vector4(-nearCorner, 0.0f), new Vector4(Vector3.One / (farCorner - nearCorner), 1.0f));
     }
 
-    private void RenderShadowMap(ILifetime<IDepthStencilBuffer> depthStencilBuffers, int resolution, int slice,  Matrix4x4 previousViewProjection, Matrix4x4 viewProjection)
+    private void RenderShadowMap(ILifetime<IDepthStencilBuffer> depthStencilBuffers, int resolution, int slice, Matrix4x4 previousViewProjection, Matrix4x4 viewProjection)
     {
         var material = this.Device.Resources.Get(this.DefaultMaterial);
 
@@ -113,21 +115,12 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
 
         this.Context.Clear(depthStencilBuffers, slice, DepthStencilClearFlags.Depth, 1.0f, 0);
 
-        // TODO: we need an overload for DrawAllModels that doesn't care about velocity so doesn't need previousViewProjection!
-        this.RenderService.DrawAllModels(this, this.Context, previousViewProjection, viewProjection);
+        var viewVolume = new Frustum(viewProjection);
+        this.CallBack.ViewProjection = viewProjection;        
+        this.ModelRenderService.RenderAllModels(this.Context, viewVolume, this.CallBack);
 
         this.Context.PS.SetShaderResource(ShadowMap.Albedo, material.Albedo);
-        this.RenderService.DrawAllTerrain(this, this.Context, previousViewProjection, viewProjection);
-    }
-
-    public void SetConstants(Matrix4x4 previousViewProjection, Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world)
-    {
-        this.User.MapConstants(this.Context, world * viewProjection);        
-    }
-
-    public void SetMaterial(IMaterial material)
-    {
-        this.Context.PS.SetShaderResource(ShadowMap.Albedo, material.Albedo);
+        this.TerrainRenderService.RenderAllTerrain(this.Context, viewVolume, this.CallBack);
     }
 
     private static readonly Matrix4x4 TexScaleTransform = Matrix4x4.CreateScale(0.5f, -0.5f, 1.0f) * Matrix4x4.CreateTranslation(0.5f, 0.5f, 0.0f);
@@ -203,5 +196,38 @@ public sealed partial class CascadedShadowMapSystem : IModelRenderCallBack, ISys
         this.InputLayout.Dispose();
         this.Context.Dispose();
         this.User.Dispose();
+    }
+
+    private sealed class InternalRenderServiceCallBack : IModelRenderServiceCallBack, IMeshRenderServiceCallBack
+    {
+        private readonly DeviceContext Context;
+        private readonly ShadowMap.User User;        
+
+        public InternalRenderServiceCallBack(DeviceContext context, ShadowMap.User user)
+        {
+            this.Context = context;
+            this.User = user;
+            this.ViewProjection = Matrix4x4.Identity;
+        }
+
+        public Matrix4x4 ViewProjection { get; set; }
+
+        public void RenderMesh(in TransformComponent transform)
+        {
+            var world = transform.Current.GetMatrix();
+            this.User.MapConstants(this.Context, world * this.ViewProjection);
+        }
+
+        public void RenderModelCallback(in TransformComponent transform)
+        {
+            var world = transform.Current.GetMatrix();
+            this.User.MapConstants(this.Context, world * this.ViewProjection);
+        }
+
+        public void RenderPrimitiveCallback(IModel model, Primitive primitive)
+        {
+            var material = this.Context.Resources.Get(model.Materials[primitive.MaterialIndex]);
+            this.Context.PS.SetShaderResource(ShadowMap.Albedo, material.Albedo);
+        }
     }
 }

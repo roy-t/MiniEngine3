@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Numerics;
+﻿using System.Diagnostics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
@@ -14,22 +12,20 @@ using Mini.Engine.Graphics.Transforms;
 namespace Mini.Engine.Graphics.Models;
 
 [Service]
-public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDisposable
+public sealed partial class ModelSystem : IModelRenderServiceCallBack, ISystem, IDisposable
 {
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
-    private readonly FrameService FrameService;
-    private readonly RenderService RenderService;
+    private readonly FrameService FrameService;    
     private readonly Geometry Shader;
     private readonly Geometry.User User;
     private readonly InputLayout InputLayout;
 
-    public ModelSystem(Device device, FrameService frameService, RenderService renderService, Geometry shader)
+    public ModelSystem(Device device, FrameService frameService, Geometry shader)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<ModelSystem>();
-        this.FrameService = frameService;
-        this.RenderService = renderService;
+        this.FrameService = frameService;        
         this.Shader = shader;
         this.User = shader.CreateUserFor<ModelSystem>();
 
@@ -50,34 +46,40 @@ public sealed partial class ModelSystem : IModelRenderCallBack, ISystem, IDispos
     public void DrawModel(ref ModelComponent component, ref TransformComponent transform)
     {
         var camera = this.FrameService.GetPrimaryCamera().Camera;
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform();
-
-        var previesViewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.FrameService.PreviousCameraJitter);
+        var cameraTransform = this.FrameService.GetPrimaryCameraTransform();        
         var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
 
-        var viewVolume = new Frustum(viewProjection);
-        var model = this.Device.Resources.Get(component.Model);
-        RenderService.DrawModel(this, this.Context, viewVolume, previesViewProjection, viewProjection, model, transform.Previous, transform.Current);
+        var viewVolume = new Frustum(viewProjection);        
+        ModelRenderService.RenderModel(this.Context, in component, in transform, in viewVolume, this);
     }
 
-    public void SetConstants(Matrix4x4 previousViewProjection, Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world)
+    public void RenderModelCallback(in TransformComponent transform)
     {
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;        
+        var camera = this.FrameService.GetPrimaryCamera().Camera;
+        var cameraTransform = this.FrameService.GetPrimaryCameraTransform();
+
+        var previousViewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.FrameService.PreviousCameraJitter);
+        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
+
+        var previousWorld = transform.Previous.GetMatrix();
+        var world = transform.Current.GetMatrix();
 
         var previousWorldViewProjection = previousWorld * previousViewProjection;
         var worldViewProjection = world * viewProjection;
-
-        this.User.MapConstants(this.Context, previousWorldViewProjection, worldViewProjection, world, cameraTransform.GetPosition(), this.FrameService.PreviousCameraJitter, this.FrameService.CameraJitter);
+        
+        this.User.MapConstants(this.Context, previousWorldViewProjection, worldViewProjection, world, cameraTransform.Current.GetPosition(), this.FrameService.PreviousCameraJitter, this.FrameService.CameraJitter);
     }
 
-    public void SetMaterial(IMaterial material)
+    public void RenderPrimitiveCallback(IModel model, Primitive primitive)
     {
+        var material = this.Context.Resources.Get(model.Materials[primitive.MaterialIndex]);
+        
         this.Context.PS.SetShaderResource(Geometry.Albedo, material.Albedo);
         this.Context.PS.SetShaderResource(Geometry.Normal, material.Normal);
         this.Context.PS.SetShaderResource(Geometry.Metalicness, material.Metalicness);
         this.Context.PS.SetShaderResource(Geometry.Roughness, material.Roughness);
         this.Context.PS.SetShaderResource(Geometry.AmbientOcclusion, material.AmbientOcclusion);
-    }
+    }   
 
     public void OnUnSet()
     {

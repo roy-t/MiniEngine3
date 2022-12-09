@@ -29,7 +29,7 @@ public sealed partial class TransformSystem : ISystem
     {
         var diff = this.FrameService.Elapsed * MathHelper.TwoPi * 0.055f;
         var rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, diff);
-        transform.Current = transform.Current.AddRotation(rotation);
+        //transform.Current = transform.Current.AddRotation(rotation);
     }
 
     public void OnUnSet() { }

@@ -1,8 +1,6 @@
 ﻿#ifndef __TAA
 #define __TAA
 
-#include "GBuffer.hlsl"
-
 struct TaaOutput
 {
     float4 Color : SV_Target0;
@@ -67,36 +65,17 @@ float3 BoxClamp(Texture2D current, sampler textureSampler, float3 currentColor, 
     return lerp(accumulation, blur, velocityDisocclusion);
 }
 
-float2 GetCameraVelocity(Texture2D depth, sampler textureSampler, float4x4 inverseViewProjection, float4x4 previousViewProjection, float2 uv)
-{
-    float3 position = ReadPosition(depth, textureSampler, uv, inverseViewProjection);
-
-    // objects at infinite distance don't care about camera movement
-    if (length(isinf(position)) > 0)
-    {
-        return float2(0.0f, 0.0f);
-    }
-
-    float4 previousProjection = mul(previousViewProjection, float4(position, 1.0f));
-    previousProjection /= previousProjection.w;
-    
-    float2 prevUv = ScreenToTexture(previousProjection.xy);
-    return (prevUv - uv);
-}
-
 float GetVelocityDisocclusion(float2 previousVelocity, float2 currentVelocity)
 {
     float velocityLength = length(previousVelocity - currentVelocity);
     return saturate((velocityLength - 0.001f) * 10.0f);
 }
     
-TaaOutput TAA(Texture2D depth, Texture2D colorHistory, Texture2D colorCurrent, Texture2D velocityHistory, Texture2D velocityCurrent, sampler textureSampler, float4x4 inverseViewProjection, float4x4 previousViewProjection, float2 uv)
+TaaOutput TAA(Texture2D colorHistory, Texture2D colorCurrent, Texture2D velocityHistory, Texture2D velocityCurrent, sampler textureSampler, float2 uv)
 {
     float3 currentColor = colorCurrent.Sample(textureSampler, uv).rgb;
-        
-    float2 cameraVelocity = GetCameraVelocity(depth, textureSampler, inverseViewProjection, previousViewProjection, uv);     
-    float2 colorVelocity = velocityCurrent.Sample(textureSampler, uv).xy;
-    float2 velocity = cameraVelocity + colorVelocity;
+
+    float2 velocity = velocityCurrent.Sample(textureSampler, uv).xy;
     float2 previousUv = uv + velocity;
     
     float2 previousVelocity = velocityHistory.Sample(textureSampler, previousUv).xy;

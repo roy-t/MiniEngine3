@@ -14,7 +14,7 @@ using Mini.Engine.Graphics.Transforms;
 namespace Mini.Engine.Graphics.World;
 
 [Service]
-public sealed partial class TerrainSystem : IMeshRenderCallBack, ISystem, IDisposable
+public sealed partial class TerrainSystem : IMeshRenderServiceCallBack, ISystem, IDisposable
 {
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
@@ -49,28 +49,33 @@ public sealed partial class TerrainSystem : IMeshRenderCallBack, ISystem, IDispo
     public void DrawModel(ref TerrainComponent component, ref TransformComponent transform)
     {
         var normals = this.Device.Resources.Get(component.Normals);
-        var tint = this.Device.Resources.Get(component.Tint);
-        var mesh = this.Device.Resources.Get(component.Mesh);
+        var tint = this.Device.Resources.Get(component.Tint);        
 
         this.Context.PS.SetShaderResource(Terrain.Normal, normals);
         this.Context.PS.SetShaderResource(Terrain.Albedo, tint);
 
         var camera = this.FrameService.GetPrimaryCamera().Camera;
+        var cameraTransform = this.FrameService.GetPrimaryCameraTransform();        
+        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
+        
+        var viewVolume = new Frustum(viewProjection);
+        TerrainRenderService.RenderTerrain(this.Context, in component, in transform, in viewVolume, this);        
+    }
+
+    public void RenderMesh(in TransformComponent transform)
+    {
+        var camera = this.FrameService.GetPrimaryCamera().Camera;
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform();
         var previousViewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.FrameService.PreviousCameraJitter);
         var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
-        
-        var frustum = new Frustum(viewProjection);
-        RenderService.DrawMesh(this, this.Context, frustum, previousViewProjection, viewProjection, mesh, transform.Previous, transform.Current);
-    }
 
-    public void SetConstants(Matrix4x4 previousViewProjection, Matrix4x4 viewProjection, Matrix4x4 previousWorld, Matrix4x4 world)
-    {
+        var previousWorld = transform.Previous.GetMatrix();
+        var world = transform.Current.GetMatrix();
+
         var previousWorldViewProjection = previousWorld * previousViewProjection;
         var worldViewProjection = world * viewProjection;
 
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
-        this.User.MapConstants(this.Context, previousWorldViewProjection, worldViewProjection, world, cameraTransform.GetPosition(), this.FrameService.PreviousCameraJitter, this.FrameService.CameraJitter);
+        this.User.MapConstants(this.Context, previousWorldViewProjection, worldViewProjection, world, cameraTransform.Current.GetPosition(), this.FrameService.PreviousCameraJitter, this.FrameService.CameraJitter);
     }
 
     public void OnUnSet()

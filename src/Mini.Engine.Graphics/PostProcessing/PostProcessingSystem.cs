@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
@@ -16,7 +15,6 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
     private readonly FrameService FrameService;
     private readonly FullScreenTriangle FullScreenTriangleShader;
     private readonly AntiAliasShader Shader;
-    private readonly AntiAliasShader.User User;
 
     public PostProcessingSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangleShader, AntiAliasShader shader)
     {
@@ -25,7 +23,6 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
         this.FrameService = frameService;
         this.FullScreenTriangleShader = fullScreenTriangleShader;
         this.Shader = shader;
-        this.User = shader.CreateUserFor<AntiAliasShader>();
     }
 
     public void OnSet()
@@ -46,26 +43,12 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
         this.Context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, shader, blend, depth);
 
         this.Context.PS.SetSampler(AntiAliasShader.TextureSampler, this.Device.SamplerStates.LinearClamp);
-        this.Context.PS.SetShaderResource(AntiAliasShader.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
         this.Context.PS.SetShaderResource(AntiAliasShader.Color, this.FrameService.LBuffer.Light);
-        this.Context.PS.SetShaderResource(AntiAliasShader.PreviousColor, this.FrameService.PBuffer.PreviousColor);        
+        this.Context.PS.SetShaderResource(AntiAliasShader.PreviousColor, this.FrameService.PBuffer.PreviousColor);
         this.Context.PS.SetShaderResource(AntiAliasShader.Velocity, this.FrameService.GBuffer.Velocity);
         this.Context.PS.SetShaderResource(AntiAliasShader.PreviousVelocity, this.FrameService.PBuffer.PreviousVelocity);
-        
-        ref var camera = ref this.FrameService.GetPrimaryCamera();
-        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
-        // Do not introduce jitter in the camera velocity/reprojection calculations
-        // as the jitter is only used to get better samples and doesn't mean real camera movement
-        var jitter = Vector2.Zero;
-        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, jitter);        
-        var previousViewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, jitter);
-        Matrix4x4.Invert(viewProjection, out var inverseViewProjection);
-
-        this.User.MapConstants(this.Context, inverseViewProjection, previousViewProjection);
-        this.Context.PS.SetConstantBuffer(AntiAliasShader.ConstantsSlot, this.User.ConstantsBuffer);
-
-        this.Context.OM.SetRenderTargets(null, this.FrameService.PBuffer.CurrentColor, this.FrameService.PBuffer.CurrentVelocity);        
+        this.Context.OM.SetRenderTargets(null, this.FrameService.PBuffer.CurrentColor, this.FrameService.PBuffer.CurrentVelocity);
     }
 
     [Process(Query = ProcessQuery.None)]
