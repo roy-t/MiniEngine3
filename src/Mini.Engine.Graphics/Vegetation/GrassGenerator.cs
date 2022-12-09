@@ -7,9 +7,10 @@ using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.Graphics.Transforms;
+using Mini.Engine.Graphics.World;
 using GrassInstanceData = Mini.Engine.Content.Shaders.Generated.Grass.InstanceData;
 
-namespace Mini.Engine.Graphics.World.Vegetation;
+namespace Mini.Engine.Graphics.Vegetation;
 
 [Service]
 public sealed class GrassGenerator
@@ -176,10 +177,10 @@ public sealed class GrassGenerator
         var instanceBuffer = new StructuredBuffer<GrassInstanceData>(this.Device, "Grass");
         instanceBuffer.MapData(this.Device.ImmediateContext, data);
 
-        return this.Device.Resources.Add(instanceBuffer);        
+        return this.Device.Resources.Add(instanceBuffer);
     }
 
     // DEBUG stuff
 
-    
+
 }

@@ -8,7 +8,6 @@ using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.Vegetation;
 using Mini.Engine.Graphics.World;
-using Mini.Engine.Graphics.World.Vegetation;
 
 namespace Mini.Engine.UI.Panels;
 

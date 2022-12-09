@@ -55,8 +55,8 @@ float3 BoxClamp(Texture2D current, sampler textureSampler, float3 currentColor, 
     float4 pc = AdjustHDRColor(previousColor);
     float4 cc = AdjustHDRColor(currentColor);
 
-    float previousWeight = 0.9 * pc.a;
-    float currentWeight = 0.1 * cc.a;
+    float previousWeight = 0.87f * pc.a;
+    float currentWeight = 0.13f * cc.a;
      
     // Blend
     float3 accumulation = currentColor * currentWeight + previousColorClamped * previousWeight;

@@ -2,7 +2,7 @@
 using Mini.Engine.Core;
 using GrassInstanceData = Mini.Engine.Content.Shaders.Generated.Grass.InstanceData;
 
-namespace Mini.Engine.Graphics.World.Vegetation;
+namespace Mini.Engine.Graphics.Vegetation;
 public interface IGrassPlacer
 {
     public GrassInstanceData[] Place(int count, BoundingRectangle bounds);

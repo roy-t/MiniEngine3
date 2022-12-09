@@ -64,14 +64,15 @@ public sealed partial class GrassSystem : ISystem, IDisposable
     [Process(Query = ProcessQuery.All)]
     public void DrawGrass(ref GrassComponent grassComponent)
     {
-        ref var camera = ref this.FrameService.GetPrimaryCamera();
+        ref var camera = ref this.FrameService.GetPrimaryCamera().Camera;
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
-        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
+        var previousViewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.FrameService.PreviousCameraJitter);
+        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
         var cameraPosition = cameraTransform.Current.GetPosition();
         var grassToSun = this.GetGrassToSunVector();
 
-        this.User.MapConstants(this.Context, viewProjection, cameraPosition, grassToSun, this.WindSystem.Direction, this.WindSystem.Accumulator);
+        this.User.MapConstants(this.Context, previousViewProjection, viewProjection, cameraPosition, grassToSun, this.WindSystem.Direction, this.WindSystem.Accumulator, this.FrameService.PreviousCameraJitter, this.FrameService.CameraJitter);
 
         this.Context.PS.SetShaderResource(Grass.Albedo, grassComponent.Texture);
         this.Context.VS.SetInstanceBuffer(Grass.Instances, grassComponent.InstanceBuffer);

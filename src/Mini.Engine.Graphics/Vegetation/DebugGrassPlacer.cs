@@ -8,7 +8,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Core;
 using Mini.Engine.Core.Lifetime;
 
-namespace Mini.Engine.Graphics.World.Vegetation;
+namespace Mini.Engine.Graphics.Vegetation;
 
 [Service]
 public sealed class DebugGrassPlacer

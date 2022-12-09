@@ -5,6 +5,7 @@
 #include "../Includes/Normals.hlsl"
 #include "../Includes/Gamma.hlsl"
 #include "../Includes/Radians.hlsl"
+#include "../Includes/Coordinates.hlsl"
 #include "Includes/Wind.hlsl"
 
 struct InstanceData
@@ -25,6 +26,8 @@ struct VS_INPUT
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
+    float4 previousPosition : POSITION0;
+    float4 currentPosition : POSITION1;
     float2 texcoord : TEXCOORD;
     float3 normal : NORMAL;
     float3 tint : COLOR0;
@@ -41,11 +44,14 @@ struct OUTPUT
 
 cbuffer Constants : register(b0)
 {
+    float4x4 PreviousViewProjection;
     float4x4 ViewProjection;
     float3 CameraPosition;
     float3 GrassToSunVector;
     float2 WindDirection;
     float WindScroll;
+    float2 PreviousJitter;
+    float2 Jitter;
 };
 
 static const uint NumVertices = 7;
@@ -85,7 +91,7 @@ uint GetSegmentIndex(uint vertexId)
     return (vertexId / 2u);
 }
 
-void GetSpineVertex(uint segmentIndex, float2 pos, float length, float targetAngle, out float3 position, out float segmentAngle)
+void GetSpineVertex(float windScroll, uint segmentIndex, float2 pos, float length, float targetAngle, out float3 position, out float segmentAngle)
 {
     static const float stiffness = 3.0f;
 
@@ -98,7 +104,7 @@ void GetSpineVertex(uint segmentIndex, float2 pos, float length, float targetAng
     angles[3] = targetAngle / 1.0f;
 
     float f = 1.25f * (1.0f + snoise(pos * 107) * 0.25f);
-    float t = (WindScroll * f) + (snoise(pos * 109) * 10);
+    float t = (windScroll * f) + (snoise(pos * 109) * 10);
     float a = 0.05f;
 
     angles[1] += sin(t) * a;
@@ -195,17 +201,25 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 
     float3 position;
     float angle;
-    GetSpineVertex(segmentIndex, data.position.xz, data.scale, tilt, position, angle);
-
+    GetSpineVertex(WindScroll, segmentIndex, data.position.xz, data.scale, tilt, position, angle);
+        
     float4x4 world = CreateMatrix(data.rotation, data.position);
-    float4x4 worldViewProjection = mul(ViewProjection, world);
+        
+    float4x4 previousWorldViewProjection = mul(PreviousViewProjection, world);
+    float4x4 worldViewProjection = mul(ViewProjection, world);    
 
-    float3 borderDirection = GetBorderOffset(vertexId);
+    float3 borderDirection = GetBorderOffset(vertexId);    
     position = GetBorderPosition(position, borderDirection);
-
+    
     float3 normal = GetBorderNormal(vertexId, borderDirection, angle);
-
+    
     output.position = mul(worldViewProjection, float4(position, 1.0f));
+
+    // Technically not completely correct since the grass could've moved
+    // but calculating this twice is too expensive
+    output.previousPosition = mul(previousWorldViewProjection, float4(position, 1.0f));
+    output.currentPosition = output.position;
+    
     output.texcoord = GetTextureCoordinates(vertexId);
     output.normal = GetWorldNormal(world, normal);
     output.tint = data.tint;
@@ -224,9 +238,13 @@ OUTPUT PS(PS_INPUT input)
     output.albedo = Albedo.Sample(TextureSampler, input.texcoord) * tint;
     output.material = float4(0.0f, 0.525f, input.ambientOcclusion, 1.0f);
     output.normal = float4(PackNormal(input.normal), 1.0f);
+        
+    input.previousPosition /= input.previousPosition.w;
+    input.currentPosition /= input.currentPosition.w;
+    float2 previousUv = ScreenToTexture(input.previousPosition.xy - PreviousJitter);
+    float2 currentUv = ScreenToTexture(input.currentPosition.xy - Jitter);
     
-    // Purposefully set zero velocity so that vegetation gets a slight blur    
-    output.velocity = float2(0.0f, 0.0f);
+    output.velocity = previousUv - currentUv;
     
     return output;
 }

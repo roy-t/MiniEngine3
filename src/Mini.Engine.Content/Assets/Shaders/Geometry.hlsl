@@ -85,7 +85,7 @@ OUTPUT PS(PS_INPUT input)
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
     output.normal = float4(PackNormal(normal), 1.0f);
 
-    output.velocity =  previousUv - currentUv;
+    output.velocity = previousUv - currentUv;
 
     return output;
 }
