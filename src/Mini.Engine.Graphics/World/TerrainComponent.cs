@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Core.Lifetime;
+﻿using System.Numerics;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
@@ -10,9 +11,12 @@ public struct TerrainComponent : IComponent
 {
     public ILifetime<ISurface> Height;
     public ILifetime<ISurface> Normals;
-    public ILifetime<ISurface> Tint;
+    public ILifetime<ISurface> Erosion;
     public ILifetime<IMesh> Mesh;
+    public Vector3 ErosionColor;
+    public Vector3 DepositionColor;
+    public float ErosionColorMultiplier;
 
     public Entity Entity { get; set; }
-    public LifeCycle LifeCycle { get; set; }
+    public LifeCycle LifeCycle { get; set; }    
 }

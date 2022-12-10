@@ -63,13 +63,16 @@ internal sealed class TerrainPanel : IPanel
             var terrainChanged =
                 ImGui.DragFloat2("Offset", ref this.mapSettings.Offset, 0.1f) ||
                 ImGui.SliderInt("Octaves", ref this.mapSettings.Octaves, 1, 20) ||
-                ImGui.SliderFloat("Amplitude", ref this.mapSettings.Amplitude, 0.01f, 2.0f) ||
-                ImGui.SliderFloat("Persistance", ref this.mapSettings.Persistance, 0.1f, 1.0f) ||
-                ImGui.SliderFloat("Frequency", ref this.mapSettings.Frequency, 0.1f, 10.0f) ||
-                ImGui.SliderFloat("Lacunarity", ref this.mapSettings.Lacunarity, 0.1f, 10.0f) ||
+                ImGui.SliderFloat("Amplitude", ref this.mapSettings.Amplitude, 0.0f, 0.2f) ||
+                ImGui.SliderFloat("Persistance", ref this.mapSettings.Persistance, 0.25f, 0.75f) ||
+                ImGui.SliderFloat("Frequency", ref this.mapSettings.Frequency, 1.0f, 2.0f) ||
+                ImGui.SliderFloat("Lacunarity", ref this.mapSettings.Lacunarity, 0.75f, 1.25f) ||
                 ImGui.SliderFloat("CliffStart", ref this.mapSettings.CliffStart, 0.0f, 1.0f) ||
                 ImGui.SliderFloat("CliffEnd", ref this.mapSettings.CliffEnd, 0.0f, 1.0f) ||
-                ImGui.SliderFloat("CliffStrength", ref this.mapSettings.CliffStrength, 0.0f, 1.0f);
+                ImGui.SliderFloat("CliffStrength", ref this.mapSettings.CliffStrength, 0.0f, 1.0f) ||
+                ImGui.ColorEdit3("DepositionColor", ref this.mapSettings.DepositionColor) ||
+                ImGui.ColorEdit3("ErosionColor", ref this.mapSettings.ErosionColor) ||
+                ImGui.SliderFloat("ErosionColorMultiplier", ref this.mapSettings.ErosionColorMultiplier, 1.0f, 1000.0f);
 
             if (ImGui.Button("Reset Height Map Generator Settings"))
             {
@@ -87,16 +90,13 @@ internal sealed class TerrainPanel : IPanel
 
             var erosionChanged =
                 ImGui.SliderInt("Seed", ref this.erosionSettings.Seed, 0, int.MaxValue) ||
-                ImGui.SliderInt("Droplets", ref this.erosionSettings.Droplets, 1, 1_000_000) ||
+                ImGui.SliderInt("Droplets", ref this.erosionSettings.Droplets, 1, 10_000_000) ||
                 ImGui.SliderInt("DropletStride", ref this.erosionSettings.DropletStride, 1, 15) ||
                 ImGui.SliderFloat("SedimentFactor", ref this.erosionSettings.SedimentFactor, 0.01f, 5.0f) ||
                 ImGui.SliderFloat("MinSedimentCapacity", ref this.erosionSettings.MinSedimentCapacity, 0.0f, 0.001f) ||
                 ImGui.SliderFloat("DepositSpeed", ref this.erosionSettings.DepositSpeed, 0.005f, 0.05f) ||
                 ImGui.SliderFloat("Inertia", ref this.erosionSettings.Inertia, 0.0f, 0.99f) ||
-                ImGui.SliderFloat("Gravity", ref this.erosionSettings.Gravity, 1.0f, 4.0f) ||
-                ImGui.SliderFloat("ErosionTintFactor", ref this.erosionSettings.ErosionTintFactor, -50.0f, 50.0f) ||
-                ImGui.SliderFloat("BuildUpTintFactor", ref this.erosionSettings.BuildUpTintFactor, -50.0f, 50.0f);
-
+                ImGui.SliderFloat("Gravity", ref this.erosionSettings.Gravity, 1.0f, 4.0f);
 
             if (ImGui.Button("Randomize Seed"))
             {
@@ -120,7 +120,7 @@ internal sealed class TerrainPanel : IPanel
             ref var terrain = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);
             var height = this.Device.Resources.Get(terrain.Height);
             var normals = this.Device.Resources.Get(terrain.Normals);
-            var tint = this.Device.Resources.Get(terrain.Tint);
+            var tint = this.Device.Resources.Get(terrain.Erosion);
             if (this.Selector.Begin("Terrain Resources", "heightmap"))
             {
                 this.Selector.Select("Height", height);
@@ -168,20 +168,26 @@ internal sealed class TerrainPanel : IPanel
             terrain.Height = this.Device.Resources.Add(generated.Height);
             terrain.Mesh = this.Device.Resources.Add(generated.Mesh);
             terrain.Normals = this.Device.Resources.Add(generated.Normals);
-            terrain.Tint = this.Device.Resources.Add(generated.Tint);
+            terrain.Erosion = this.Device.Resources.Add(generated.Erosion);
+            terrain.ErosionColor = this.mapSettings.ErosionColor;
+            terrain.DepositionColor = this.mapSettings.DepositionColor;
+            terrain.ErosionColorMultiplier = this.mapSettings.ErosionColorMultiplier;
 
             ref var transform = ref creator.Create<TransformComponent>(this.world);
         }
         else
         {
             ref var terrain = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);
+            terrain.ErosionColor = this.mapSettings.ErosionColor;
+            terrain.DepositionColor = this.mapSettings.DepositionColor;
+            terrain.ErosionColorMultiplier = this.mapSettings.ErosionColorMultiplier;
 
             var model = (Mesh)this.Device.Resources.Get(terrain.Mesh);
             var height = (IRWTexture)this.Device.Resources.Get(terrain.Height);
             var normals = (IRWTexture)this.Device.Resources.Get(terrain.Normals);
-            var tint = (IRWTexture)this.Device.Resources.Get(terrain.Tint);
+            var erosion = (IRWTexture)this.Device.Resources.Get(terrain.Erosion);
 
-            application(new GeneratedTerrain(height, normals, tint, model));
+            application(new GeneratedTerrain(height, normals, erosion, model));
         }
 
         ref var ter = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);

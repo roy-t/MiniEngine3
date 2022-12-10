@@ -15,9 +15,7 @@ public sealed class TerrainGenerator
     private readonly HeightMapGenerator HeightMapGenerator;
     private readonly HydraulicErosionBrush ErosionBrush;
     private readonly LifetimeManager LifetimeManager;
-
-    private static readonly Color4 Umber = new(140.0f / 255.0f, 105.0f / 255.0f, 75.0f / 255.0f);
-
+   
     public TerrainGenerator(Device device, LifetimeManager content, HeightMapGenerator noiseGenerator, HydraulicErosionBrush erosionBrush)
     {
         this.Device = device;
@@ -30,7 +28,7 @@ public sealed class TerrainGenerator
     {
         var height = this.HeightMapGenerator.GenerateHeights(settings);
         var normals = this.HeightMapGenerator.GenerateNormals(height);
-        var tint = this.HeightMapGenerator.GenerateTint(settings.Dimensions, Umber);
+        var tint = this.HeightMapGenerator.GenerateTint(settings.Dimensions);
 
         var bounds = ComputeBounds(settings);
         var mesh = this.GenerateMesh(height, settings.MeshDefinition, bounds, name);
@@ -47,7 +45,7 @@ public sealed class TerrainGenerator
     {
         this.HeightMapGenerator.UpdateHeights(input.Height, settings);
         this.HeightMapGenerator.UpdateNormals(input.Height, input.Normals);
-        this.HeightMapGenerator.UpdateTint(input.Tint, Umber);
+        this.HeightMapGenerator.UpdateTint(input.Erosion);
 
         var bounds = ComputeBounds(settings);
         this.UpdateMesh(input.Mesh, settings.MeshDefinition, input.Height, bounds);
@@ -55,7 +53,7 @@ public sealed class TerrainGenerator
 
     public void Erode(GeneratedTerrain terrain, HeightMapGeneratorSettings heigthMapSettings, HydraulicErosionBrushSettings erosionSettings, string name)
     {
-        this.ErosionBrush.Apply(terrain.Height, terrain.Tint, erosionSettings);
+        this.ErosionBrush.Apply(terrain.Height, terrain.Erosion, erosionSettings);
         this.HeightMapGenerator.UpdateNormals(terrain.Height, terrain.Normals);
         this.UpdateMesh(terrain.Mesh, heigthMapSettings.MeshDefinition,  terrain.Height, terrain.Mesh.Bounds);
     }

@@ -63,7 +63,11 @@ public sealed class HeightMapGeneratorSettings
     /// </summary>
     public float MeshDefinition;
 
-    public HeightMapGeneratorSettings(int dimensions = 512, Vector2 offset = default, float amplitude = 0.15f, float frequency = 1.5f, int octaves = 10, float lacunarity = 1.0f, float persistance = 0.55f, float cliffStart = 0.5f, float cliffEnd = 1.0f, float cliffStrength = 0.55f, float meshDefinition = 0.5f)
+    public Vector3 DepositionColor;
+    public Vector3 ErosionColor;
+    public float ErosionColorMultiplier;
+
+    public HeightMapGeneratorSettings(int dimensions = 1024, Vector2 offset = default, float amplitude = 0.036f, float frequency = 1.653f, int octaves = 20, float lacunarity = 0.909f, float persistance = 0.600f, float cliffStart = 0.131f, float cliffEnd = 0.340f, float cliffStrength = 0.431f, float meshDefinition = 0.5f)
     {
         this.Dimensions = dimensions;
         this.Offset = offset;
@@ -76,5 +80,9 @@ public sealed class HeightMapGeneratorSettings
         this.CliffEnd = cliffEnd;
         this.CliffStrength = cliffStrength;
         this.MeshDefinition = meshDefinition;
+
+        this.DepositionColor = new Vector3(88.0f, 102.0f, 37.0f) / 255.0f;
+        this.ErosionColor = new Vector3(178.0f, 160.0f, 112.0f) / 255.0f;
+        this.ErosionColorMultiplier = 250.0f;
     }
 }

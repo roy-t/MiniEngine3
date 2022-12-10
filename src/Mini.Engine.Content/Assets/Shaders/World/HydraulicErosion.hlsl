@@ -15,14 +15,10 @@ cbuffer Constants : register(b0)
     float Gravity;
     float SedimentFactor;
     float DepositSpeed;
-    
-    // TODO: if we make this float4 colours than we can try to play with substracting only certain wavelengths
-    float ErosionTintFactor;
-    float BuildUpTintFactor; 
 }
 
 RWTexture2D<float> MapHeight : register(u0);
-RWTexture2D<float4> MapTint : register(u1);
+RWTexture2D<float> MapTint : register(u1);
 StructuredBuffer<float2> Positions : register(t0);
 StructuredBuffer<float> DropletMask : register(t1);
 
@@ -72,7 +68,7 @@ void Kernel(in uint3 dispatchId : SV_DispatchThreadID)
             break;
         }
         
-        direction = normalize(direction);        
+        direction = normalize(direction);
         position += direction;
         
         float newHeight = ComputeHeightAndGradient(MapHeight, position, Stride).z;
@@ -100,12 +96,11 @@ void Kernel(in uint3 dispatchId : SV_DispatchThreadID)
             MapHeight[index + uint2(1, 0)] += tr;
             MapHeight[index + uint2(0, 1)] += bl;
             MapHeight[index + uint2(1, 1)] += br;
-                
-            // TODO: clamp tinting?
-            MapTint[index] += tl * BuildUpTintFactor;
-            MapTint[index + uint2(1, 0)] += tr * BuildUpTintFactor;
-            MapTint[index + uint2(0, 1)] += bl * BuildUpTintFactor;
-            MapTint[index + uint2(1, 1)] += br * BuildUpTintFactor;
+
+            MapTint[index] += tl;
+            MapTint[index + uint2(1, 0)] += tr;
+            MapTint[index + uint2(0, 1)] += bl;
+            MapTint[index + uint2(1, 1)] += br;
     
             sediment -= deposit;
         }
@@ -118,10 +113,7 @@ void Kernel(in uint3 dispatchId : SV_DispatchThreadID)
             {
                 int2 erodeIndex = ToTwoDimensional(i, DropletStride) + offset + index;
                 MapHeight[erodeIndex] -= erosion * DropletMask[i];
-        
-                // TODO: clamp tinting?
-                MapTint[erodeIndex] -= ErosionTintFactor * erosion * DropletMask[i];
-
+                 MapTint[erodeIndex] -= erosion * DropletMask[i];                
             }                        
             sediment += erosion;
         }

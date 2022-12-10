@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content;
 using Mini.Engine.Core;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
@@ -16,13 +15,11 @@ namespace Mini.Engine.Graphics.Vegetation;
 public sealed class GrassGenerator
 {
     private static readonly Palette GrassPalette = Palette.GrassWater;
-    private readonly Device Device;
-    private readonly ContentManager Content;
+    private readonly Device Device;    
 
-    public GrassGenerator(Device device, ContentManager content)
+    public GrassGenerator(Device device)
     {
-        this.Device = device;
-        this.Content = content;
+        this.Device = device;        
     }
 
     //public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(ref TerrainComponent terrainComponent, ref TransformComponent terrainTransform, out int instances)

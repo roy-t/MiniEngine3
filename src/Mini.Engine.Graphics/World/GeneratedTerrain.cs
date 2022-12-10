@@ -5,16 +5,16 @@ namespace Mini.Engine.Graphics.World;
 
 public sealed class GeneratedTerrain
 {
-    public GeneratedTerrain(IRWTexture height, IRWTexture normals, IRWTexture tint, Mesh mesh)
+    public GeneratedTerrain(IRWTexture height, IRWTexture normals, IRWTexture erosion, Mesh mesh)
     {
         this.Height = height;
         this.Normals = normals;
-        this.Tint = tint;
+        this.Erosion = erosion;
         this.Mesh = mesh;
     }
 
     public IRWTexture Height { get; }
     public IRWTexture Normals { get; }
-    public IRWTexture Tint { get; }
+    public IRWTexture Erosion { get; }
     public Mesh Mesh { get; }
 }

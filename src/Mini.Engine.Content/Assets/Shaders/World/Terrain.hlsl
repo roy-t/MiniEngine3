@@ -34,14 +34,14 @@ cbuffer Constants : register(b0)
     float3 CameraPosition;
     float2 PreviousJitter;
     float2 Jitter;
+    float3 DepositionColor;
+    float3 ErosionColor;
+    float ErosionMultiplier;
 };
 
 sampler TextureSampler : register(s0);
-Texture2D Albedo : register(t0);
+Texture2D Erosion : register(t0);
 Texture2D Normal : register(t1);
-//Texture2D Metalicness : register(t2);
-//Texture2D Roughness : register(t3);
-//Texture2D AmbientOcclusion : register(t4);
 
 #pragma VertexShader
 PS_INPUT VS(VS_INPUT input)
@@ -60,17 +60,18 @@ PS_INPUT VS(VS_INPUT input)
     return output;
 }
 
+// static const float4 DepositionColor = float4(88.0f, 102.0f, 37.0f, 255.0f) / 255.0f;
+// static const float4 ErosionColor = float4(178.0f, 160.0f, 112.0f, 255.0f) / 255.0f;
+
 #pragma PixelShader
 OUTPUT PS(PS_INPUT input)
 {
-    OUTPUT output;        
-        
-    // TODO: let directx do this by itself or make clear it needs to be manually done
-    float4 albedo = ToLinear(Albedo.Sample(TextureSampler, input.texcoord)); 
-    
+    OUTPUT output;
+
+    float erosion = (Erosion.Sample(TextureSampler, input.texcoord).r * ErosionMultiplier) + 0.65f;
+    output.albedo = ToLinear(float4(lerp(ErosionColor, DepositionColor, erosion), 1.0f));
+
     float3 normal = Normal.Sample(TextureSampler, input.texcoord).xyz;
-    
-    output.albedo = albedo;
     output.normal = float4(PackNormal(normal), 1.0f);
     
     float metalicness = 0.0f;

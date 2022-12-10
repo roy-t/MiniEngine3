@@ -85,17 +85,17 @@ public sealed class HeightMapGenerator : IDisposable
         context.CS.Dispatch(x, y, z);
     }
 
-    public IRWTexture GenerateTint(int dimensions, Color4 tint)
+    public IRWTexture GenerateTint(int dimensions)
     {
-        var texture = new RWTexture(this.Device, nameof(HeightMapGenerator) + "Tint", new ImageInfo(dimensions, dimensions, Format.R32G32B32A32_Float), MipMapInfo.None());
-        this.UpdateTint(texture, tint);
+        var texture = new RWTexture(this.Device, nameof(HeightMapGenerator) + "Tint", new ImageInfo(dimensions, dimensions, Format.R16_Float), MipMapInfo.None());
+        this.UpdateTint(texture);
 
         return texture;
     }
 
-    public void UpdateTint(IRWTexture texture, Color4 tint)
+    public void UpdateTint(IRWTexture texture)
     {
-        this.Device.ImmediateContext.Clear(texture, tint);
+        this.Device.ImmediateContext.Clear(texture, Colors.Transparent);
     }
 
     public ModelVertex[] GenerateVertices(IRWTexture heightMap, int width, int height)
