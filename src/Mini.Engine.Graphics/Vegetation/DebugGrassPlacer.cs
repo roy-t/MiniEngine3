@@ -96,7 +96,7 @@ public sealed class DebugGrassPlacer
     public static GrassInstanceData[] GenerateRandomGrass(Palette palette, int count, float min = -50, float max = 50)
     {
         var random = new Random(1234);
-        var mins = 0.5f;
+        var mins = 0.25f;
         var maxs = 1.0f;
         var data = new GrassInstanceData[count];
 

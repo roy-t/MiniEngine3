@@ -1,5 +1,8 @@
 # TODO
 
+- Grass needs to be tinted based on terrain erosion
+- Grass needs to be placed more on flat and less on sloped surfaces
+- Terrain needs a tiling texture, see below
 - Camera movement is stuttery, even at fixed FPS, is this because the alpha value is not used?
 - Without vsync TAA looks really crazy
 
@@ -40,3 +43,4 @@ See: https://docs.microsoft.com/en-us/windows/win32/direct3ddxgi/variable-refres
 
 Ideas for terain rendering without repeats (stochastic texturing), blog contains other tips about terrains
 https://medium.com/@jasonbooth_86226/stochastic-texturing-3c2e58d76a14
+or: https://polycount.com/discussion/116254/terrain-tiling-reduction-multi-uv-mixing

@@ -15,15 +15,15 @@ namespace Mini.Engine.Graphics.Vegetation;
 public sealed class GrassGenerator
 {
     private static readonly Palette GrassPalette = Palette.GrassWater;
-    private readonly Device Device;    
+    private readonly Device Device;
 
     public GrassGenerator(Device device)
     {
-        this.Device = device;        
+        this.Device = device;
     }
 
     //public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(ref TerrainComponent terrainComponent, ref TransformComponent terrainTransform, out int instances)
-    public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(out int instances)
+    public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(ref TerrainComponent terrainComponent, ref TransformComponent terrainTransform, out int instances)
     {
         var random = new Random(12345);
 
@@ -69,11 +69,14 @@ public sealed class GrassGenerator
         var data = DebugGrassPlacer.GenerateRandomGrass(GrassPalette, bladesPerSide * bladesPerSide, min, max);
         instances = data.Length;
 
+        var heightResource = (RWTexture)this.Device.Resources.Get(terrainComponent.Height);
+        var height = new float[heightResource.ImageInfo.Pixels];
+        this.Device.ImmediateContext.CopySurfaceDataToTexture<float>(heightResource, height);
+
         for (var i = 0; i < data.Length; i++)
         {
             var blade = data[i];
             var position = new Vector2(blade.Position.X, blade.Position.Z);
-            var height = blade.Position.Y;
 
             var bestClumpDistance = float.MaxValue;
             var bestClump = GrassClump.Default(position, blade.Tint, blade.Rotation, 1.0f);
@@ -92,6 +95,12 @@ public sealed class GrassGenerator
 
             bestClump.Apply(ref blade);
 
+            var range = max - min;
+            var x = (int)(((blade.Position.X - min) / range) * heightResource.DimX);
+            var y = (int)(((blade.Position.Z - min) / range) * heightResource.DimY);
+
+            blade.Position.Y = height[Indexes.ToOneDimensional(x, y, heightResource.DimY)];
+
             //var newPosition = Vector2.Lerp(position, bestClump!.Position, 0.0f);
             //var newTint = bestClump.Tint;
 
@@ -103,10 +112,10 @@ public sealed class GrassGenerator
             //    blade.Tint = new Vector3(1, 1, 0);
             //}
 
-            var transform = Transform.Identity.SetScale(100.0f);
+
             //blade.Position = Vector3.Transform(blade.Position, terrainTransform.Transform.GetMatrix());
             // TODO: set height here from heightmap!
-            blade.Position = Vector3.Transform(blade.Position, transform.GetMatrix());
+            blade.Position = Vector3.Transform(blade.Position, terrainTransform.Current.GetMatrix());
             data[i] = blade;
         }
 
