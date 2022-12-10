@@ -1,20 +1,9 @@
 # TODO
 
- check source of https://www.elopezr.com/temporal-aa-and-the-quest-for-the-holy-trail/, I think color box clamp hdr adjust stuff is still incorrect
-
-Continue on https://www.elopezr.com/temporal-aa-and-the-quest-for-the-holy-trail/,
-- Move camera to velocity
-- Implement Velocity Rejection
-- Make something move
-- Add velocity vectors for models
+- Camera movement is stuttery, even at fixed FPS, is this because the alpha value is not used?
+- Without vsync TAA looks really crazy
 
 Use ReadOnlyMemory<> instead of naked arrays!
-
-Loading is relatively slow due to
-- Loading the Sponza Models
-- Shader Compilation
-- Skybox generation
-- Could this be parallelized or fixed in a different way?
 
 ---
 

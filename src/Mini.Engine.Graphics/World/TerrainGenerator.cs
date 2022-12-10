@@ -50,14 +50,14 @@ public sealed class TerrainGenerator
         this.HeightMapGenerator.UpdateTint(input.Tint, Umber);
 
         var bounds = ComputeBounds(settings);
-        this.UpdateMesh(input.Mesh, input.Height, bounds);
+        this.UpdateMesh(input.Mesh, settings.MeshDefinition, input.Height, bounds);
     }
 
-    public void Erode(GeneratedTerrain terrain, HydraulicErosionBrushSettings settings, string name)
+    public void Erode(GeneratedTerrain terrain, HeightMapGeneratorSettings heigthMapSettings, HydraulicErosionBrushSettings erosionSettings, string name)
     {
-        this.ErosionBrush.Apply(terrain.Height, terrain.Tint, settings);
+        this.ErosionBrush.Apply(terrain.Height, terrain.Tint, erosionSettings);
         this.HeightMapGenerator.UpdateNormals(terrain.Height, terrain.Normals);
-        this.UpdateMesh(terrain.Mesh, terrain.Height, terrain.Mesh.Bounds);
+        this.UpdateMesh(terrain.Mesh, heigthMapSettings.MeshDefinition,  terrain.Height, terrain.Mesh.Bounds);
     }
 
     private Mesh GenerateMesh(IRWTexture height, float definition, BoundingBox bounds, string name)
@@ -68,14 +68,12 @@ public sealed class TerrainGenerator
         return mesh;
     }
 
-    private void UpdateMesh(Mesh input, IRWTexture height, BoundingBox bounds)
-    {
-        var factor = 2;
-
-        var vertices = this.HeightMapGenerator.GenerateVertices(height, height.DimX / factor, height.DimY / factor);
+    private void UpdateMesh(Mesh input, float definition, IRWTexture height, BoundingBox bounds)
+    {        
+        var vertices = this.HeightMapGenerator.GenerateVertices(height, (int)(height.DimX * definition), (int)(height.DimY * definition));
         input.Vertices.MapData(this.Device.ImmediateContext, vertices);
 
-        var indices = this.HeightMapGenerator.GenerateIndices(height.DimX / factor, height.DimY / factor);
+        var indices = this.HeightMapGenerator.GenerateIndices((int)(height.DimX * definition), (int)(height.DimY * definition));
         input.Indices.MapData(this.Device.ImmediateContext, indices);
 
         input.Bounds = bounds;

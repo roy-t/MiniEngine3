@@ -146,7 +146,7 @@ internal sealed class TerrainPanel : IPanel
     {
         if (input is not null)
         {
-            this.Generator.Erode(input, this.erosionSettings, "terrain");
+            this.Generator.Erode(input, this.mapSettings, this.erosionSettings, "terrain");
             return input;
         }
 

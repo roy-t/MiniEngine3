@@ -10,8 +10,6 @@ namespace Mini.Engine.Graphics.Vegetation;
 
 public struct GrassComponent : IComponent
 {
-    // TODO: maybe create an IVertexBuffer interface that inherits from IDeviceResource
-    // and remove IDeviceResource from DeviceBuffer
     public ILifetime<StructuredBuffer<GrassInstanceData>> InstanceBuffer;
     public ILifetime<ITexture> Texture;
     public int Instances;
