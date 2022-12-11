@@ -7,7 +7,6 @@ namespace Mini.Engine.Tests;
 public class ScratchPad
 {
 
-
     [Fact]
     public void Foo()
     {

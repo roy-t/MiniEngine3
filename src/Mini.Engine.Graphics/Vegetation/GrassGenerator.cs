@@ -21,9 +21,8 @@ public sealed class GrassGenerator
     {
         this.Device = device;
     }
-
-    //public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(ref TerrainComponent terrainComponent, ref TransformComponent terrainTransform, out int instances)
-    public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(ref TerrainComponent terrainComponent, ref TransformComponent terrainTransform, out int instances)
+    
+    public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(in TerrainComponent terrainComponent, in TransformComponent terrainTransform, out int instances)
     {
         var random = new Random(12345);
 
@@ -99,82 +98,11 @@ public sealed class GrassGenerator
             var x = (int)(((blade.Position.X - min) / range) * heightResource.DimX);
             var y = (int)(((blade.Position.Z - min) / range) * heightResource.DimY);
 
-            blade.Position.Y = height[Indexes.ToOneDimensional(x, y, heightResource.DimY)];
-
-            //var newPosition = Vector2.Lerp(position, bestClump!.Position, 0.0f);
-            //var newTint = bestClump.Tint;
-
-            //blade.Position = new Vector3(position.X, blade.Position.Y, position.Y);
-            //blade.Tint = newTint;
-
-            //if(bestClumpDistance < 0.00003f)
-            //{
-            //    blade.Tint = new Vector3(1, 1, 0);
-            //}
-
-
-            //blade.Position = Vector3.Transform(blade.Position, terrainTransform.Transform.GetMatrix());
-            // TODO: set height here from heightmap!
+            blade.Position.Y = height[Indexes.ToOneDimensional(x, y, heightResource.DimY)];       
             blade.Position = Vector3.Transform(blade.Position, terrainTransform.Current.GetMatrix());
             data[i] = blade;
         }
 
-        return this.ArrayToResource(data);
-    }
-
-
-    public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateInstanceData(ref TerrainComponent terrainComponent, ref TransformComponent terrainTransform, out int instances)
-    {
-        var random = new Random(1234);
-
-        var heightResource = (RWTexture)this.Device.Resources.Get(terrainComponent.Height);
-        var normalsResource = (RWTexture)this.Device.Resources.Get(terrainComponent.Height);
-
-        var height = new float[heightResource.ImageInfo.Pixels];
-        var normals = new Vector4[normalsResource.ImageInfo.Pixels];
-
-        this.Device.ImmediateContext.CopySurfaceDataToTexture<float>(heightResource, height);
-        this.Device.ImmediateContext.CopySurfaceDataToTexture<Vector4>(normalsResource, normals);
-
-        var data = new GrassInstanceData[heightResource.ImageInfo.Pixels];
-
-        var mins = 0.5f;
-        var maxs = 1.0f;
-        var minColor = new Vector3(100 / 255.0f, 120 / 255.0f, 25.0f / 255.0f);
-        var maxColor = new Vector3(140 / 255.0f, 170 / 255.0f, 50.0f / 255.0f);
-
-        for (var y = 0; y < heightResource.DimY; y++)
-        {
-            for (var x = 0; x < heightResource.DimX; x++)
-            {
-                var index = Indexes.ToOneDimensional(x, y, heightResource.DimY);
-
-                var s = mins + random.NextSingle() * (maxs - mins);
-                var r = random.NextSingle() * MathF.PI * 2;
-                var l = random.NextSingle();
-
-                var h = height[index];
-
-                var px = x / (float)heightResource.DimX - 0.5f;
-                var pz = y / (float)heightResource.DimY - 0.5f;
-
-                var position = new Vector3(px, h, pz);
-                position = Vector3.Transform(position, terrainTransform.Current.GetMatrix());
-
-                var scale = s;
-                var rotation = r;
-
-                data[index] = new GrassInstanceData()
-                {
-                    Position = position,
-                    Rotation = rotation,
-                    Scale = scale,
-                    Tint = Vector3.Lerp(minColor, maxColor, l)
-                };
-            }
-        }
-
-        instances = data.Length;
         return this.ArrayToResource(data);
     }
 
@@ -185,8 +113,4 @@ public sealed class GrassGenerator
 
         return this.Device.Resources.Add(instanceBuffer);
     }
-
-    // DEBUG stuff
-
-
 }
