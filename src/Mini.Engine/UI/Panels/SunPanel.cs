@@ -35,17 +35,18 @@ internal sealed class SunPanel : IPanel
             ref var sun = ref this.ComponentSelector.Get();
             ref var transform = ref this.TransformContainer[sun.Entity];
 
-            var yawPitchRoll = transform.Current.GetRotation().ToEuler();
-            var yaw = yawPitchRoll.X;
-            var pitch = yawPitchRoll.Y;            
+            var heigth = transform.Current.GetPosition().Y;
+            var lightToSurface = transform.Current.GetForward();
+            var target = MathF.Atan2(-lightToSurface.Z, lightToSurface.X);
+            
+            var changed = ImGui.SliderFloat("Heigth", ref heigth, 0.0f, 1.0f)
+             || ImGui.SliderFloat("Target", ref target, -MathF.PI, MathF.PI - 0.001f);
 
-            var changed = ImGui.SliderFloat("Yaw", ref yaw, -MathF.PI, 0.0f) ||
-                ImGui.SliderFloat("Pitch", ref pitch, -MathF.PI * 0.499f, MathF.PI * 0.499f);
-
-            if (changed)
-            {                
-                var rotation = NumericsExtensions.FromEuler(new Vector3(yaw, pitch, 0.0f));
-                transform.Current = new Transform(Vector3.Zero, rotation, Vector3.Zero, 1.0f);
+            if(changed)
+            {
+                var foo = new Vector3(MathF.Cos(target), 0, -MathF.Sin(target));
+                transform.Current = new Transform().SetTranslation(Vector3.UnitY * heigth)
+                    .FaceTargetConstrained(foo, Vector3.UnitY);
             }
         }
     }

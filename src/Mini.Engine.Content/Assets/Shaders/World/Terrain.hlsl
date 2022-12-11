@@ -60,9 +60,6 @@ PS_INPUT VS(VS_INPUT input)
     return output;
 }
 
-// static const float4 DepositionColor = float4(88.0f, 102.0f, 37.0f, 255.0f) / 255.0f;
-// static const float4 ErosionColor = float4(178.0f, 160.0f, 112.0f, 255.0f) / 255.0f;
-
 #pragma PixelShader
 OUTPUT PS(PS_INPUT input)
 {
