@@ -2,7 +2,6 @@
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Textures;
-using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Transforms;
@@ -14,7 +13,6 @@ namespace Mini.Engine.UI.Panels;
 [Service]
 internal sealed class GrassPanel : IPanel
 {
-    private readonly Device Device;
     private readonly GrassGenerator GrassPlacer;
     private readonly ContentManager Content;    
     private readonly ECSAdministrator Administrator;
@@ -23,9 +21,8 @@ internal sealed class GrassPanel : IPanel
     private readonly ComponentSelector<TerrainComponent> TerrainComponentSelector;
     private readonly IComponentContainer<TransformComponent> Transforms;
 
-    public GrassPanel(Device device, GrassGenerator grassPlacer, ContentManager content, ECSAdministrator administrator, ContainerStore containerStore)
+    public GrassPanel(GrassGenerator grassPlacer, ContentManager content, ECSAdministrator administrator, ContainerStore containerStore)
     {
-        this.Device = device;
         this.GrassPlacer = grassPlacer;
         this.Content = content;
         this.Administrator = administrator;

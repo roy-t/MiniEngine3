@@ -38,7 +38,17 @@ public abstract class DeviceContext : IDisposable
 
     internal ID3D11DeviceContext ID3D11DeviceContext { get; }
 
-    public void CopySurfaceDataToTexture<T>(ISurface source, Span<T> output, int mipSlice = 0, int arraySlice = 0)
+
+    public T[] GetSurfaceData<T>(RWTexture source, int mipSlice = 0, int arraySlice = 0)
+        where T : unmanaged
+    {        
+        var data = new T[source.ImageInfo.Pixels];
+        this.CopySurfaceDataToSpan<T>(source, data, mipSlice, arraySlice);
+
+        return data;
+    }
+
+    public void CopySurfaceDataToSpan<T>(ISurface source, Span<T> output, int mipSlice = 0, int arraySlice = 0)
         where T : unmanaged
     {
         var ctx = this.ID3D11DeviceContext;

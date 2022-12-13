@@ -54,8 +54,7 @@ public sealed class GrassGenerator
             var xOffset = (random.NextSingle() - 0.49f) * cellSize.X;
             var yOffset = (random.NextSingle() - 0.49f) * cellSize.Y;
 
-            var position = new Vector2(x + xOffset, y + yOffset);
-            var tint = c % 2 == 0 ? new Vector3(1, 0, 0) : new Vector3(0, 1, 0);
+            var position = new Vector2(x + xOffset, y + yOffset);            
             var rotation = random.NextSingle() * MathF.PI * 2;
             var clump = GrassClump.Default(position, GrassPalette.Pick(), rotation, random.InRange(0.75f, 1.75f));
             clump.ApplyTint = (c, b, d) => ColorMath.Interpolate(c, b, d / maxCellDistance);
@@ -65,13 +64,24 @@ public sealed class GrassGenerator
             return clump;
         });
 
-        var data = DebugGrassPlacer.GenerateRandomGrass(GrassPalette, bladesPerSide * bladesPerSide, min, max);
-        instances = data.Length;
+        // TODO: now that we can place items based on weights/textures, what to do with it?
 
         var heightResource = (RWTexture)this.Device.Resources.Get(terrainComponent.Height);
-        var height = new float[heightResource.ImageInfo.Pixels];
-        this.Device.ImmediateContext.CopySurfaceDataToTexture<float>(heightResource, height);
+        var height = this.Device.ImmediateContext.GetSurfaceData<float>(heightResource);
 
+        var erosionResource = (RWTexture)this.Device.Resources.Get(terrainComponent.Erosion);
+        var erosion = this.Device.ImmediateContext.GetSurfaceData<float>(erosionResource);
+
+        //var data = DebugGrassPlacer.GenerateRandomGrass(GrassPalette, bladesPerSide * bladesPerSide, min, max);
+        var distributor = new ObjectDistributor(new Vector2(min, min), new Vector2(max, max), 300, height, heightResource.DimX);
+        
+        var data = distributor.Distribute(1_000_000, v => {
+            var data = DebugGrassPlacer.Single(GrassPalette, Random.Shared);
+            data.Position = new Vector3(v.X, 0.0f, v.Y);
+            return data;            
+        });
+        instances = data.Length;
+        
         for (var i = 0; i < data.Length; i++)
         {
             var blade = data[i];
@@ -97,6 +107,7 @@ public sealed class GrassGenerator
             var range = max - min;
             var x = (int)(((blade.Position.X - min) / range) * heightResource.DimX);
             var y = (int)(((blade.Position.Z - min) / range) * heightResource.DimY);
+
 
             blade.Position.Y = height[Indexes.ToOneDimensional(x, y, heightResource.DimY)];       
             blade.Position = Vector3.Transform(blade.Position, terrainTransform.Current.GetMatrix());

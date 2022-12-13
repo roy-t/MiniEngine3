@@ -39,14 +39,20 @@ internal sealed class SunPanel : IPanel
             var lightToSurface = transform.Current.GetForward();
             var target = MathF.Atan2(-lightToSurface.Z, lightToSurface.X);
             
-            var changed = ImGui.SliderFloat("Heigth", ref heigth, 0.0f, 1.0f)
+            var directionChanged = ImGui.SliderFloat("Heigth", ref heigth, 0.0f, 1.0f)
              || ImGui.SliderFloat("Target", ref target, -MathF.PI, MathF.PI - 0.001f);
 
-            if(changed)
+            if(directionChanged)
             {
                 var foo = new Vector3(MathF.Cos(target), 0, -MathF.Sin(target));
                 transform.Current = new Transform().SetTranslation(Vector3.UnitY * heigth)
                     .FaceTargetConstrained(foo, Vector3.UnitY);
+            }
+
+            var color = sun.Color.ToVector4();
+            if(ImGui.ColorEdit4("Color", ref color))
+            {
+                sun.Color = new Color4(color);
             }
         }
     }

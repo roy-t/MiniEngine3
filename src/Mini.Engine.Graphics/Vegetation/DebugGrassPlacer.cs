@@ -96,30 +96,37 @@ public sealed class DebugGrassPlacer
     public static GrassInstanceData[] GenerateRandomGrass(Palette palette, int count, float min = -50, float max = 50)
     {
         var random = new Random(1234);
-        var mins = 0.25f;
-        var maxs = 1.0f;
+
         var data = new GrassInstanceData[count];
 
         for (var i = 0; i < data.Length; i++)
         {
-            var x = min + random.NextSingle() * (max - min);
-            var y = min + random.NextSingle() * (max - min);
-            var s = mins + random.NextSingle() * (maxs - mins);
-            var r = random.NextSingle() * MathF.PI * 2;
-
-            var position = new Vector3(x, 0, y);
-            var scale = s;
-            var rotation = r;
-
-            data[i] = new GrassInstanceData()
-            {
-                Position = position,
-                Rotation = rotation,
-                Scale = scale,
-                Tint = palette.Pick()
-            };
+             data[i] = Single(palette, random, min, max);
         }
 
         return data;
+    }
+
+    public static GrassInstanceData Single(Palette palette, Random random, float min = -50, float max = 50)
+    {
+        var mins = 0.25f;
+        var maxs = 1.0f;
+
+        var x = min + random.NextSingle() * (max - min);
+        var y = min + random.NextSingle() * (max - min);
+        var s = mins + random.NextSingle() * (maxs - mins);
+        var r = random.NextSingle() * MathF.PI * 2;
+
+        var position = new Vector3(x, 0, y);
+        var scale = s;
+        var rotation = r;
+
+        return new GrassInstanceData()
+        {
+            Position = position,
+            Rotation = rotation,
+            Scale = scale,
+            Tint = palette.Pick()
+        };
     }
 }

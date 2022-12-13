@@ -81,7 +81,7 @@ public sealed class BrdfLutProcessor : ContentProcessor<ITexture, TextureContent
         context.CS.ClearUnorderedAccessView(BrdfLutCompute.Lut);
 
         var buffer = new float[imageInfo.Pixels * 2];
-        context.CopySurfaceDataToTexture<float>(texture, buffer);
+        context.CopySurfaceDataToSpan<float>(texture, buffer);
 
         var image = new ImageResultFloat()
         {
