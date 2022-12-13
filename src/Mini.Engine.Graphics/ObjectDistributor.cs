@@ -21,10 +21,10 @@ public sealed class ObjectDistributor
         for (var i = 0; i < weights.Length; i++)
         {
             positiveWeights[i] = Ranges.Map(weights[i], (minWeight, maxWeight), (0.0f, 1.0f));
-            if (positiveWeights[i] > 0.5f)
-            {
-                positiveWeights[i] = 0.00f;
-            }
+            //if (positiveWeights[i] > 0.5f)
+            //{
+            //    positiveWeights[i] = 0.00f;
+            //}
         }
 
         this.Random = new VoseWeightedRandom(new Random(seed), positiveWeights);
