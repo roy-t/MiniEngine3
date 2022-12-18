@@ -1,4 +1,7 @@
 # TODO
+- Terrain Generation is still a bit ugly
+    - Can't go back and forth in the panels after creating something
+    - we can probably iteratively add erosion, with the building blocks we have, should provide an interesting visual effect
 
 - Grass needs to be tinted based on terrain erosion
 - Grass needs to be placed more on flat and less on sloped surfaces

@@ -24,6 +24,11 @@ public sealed class HeightMapGenerator : IDisposable
         this.User = this.Shader.CreateUserFor<HeightMapGenerator>();
     }
 
+    public IRWTexture GenerateEmtpyHeights(int dimensions)
+    {
+        return new RWTexture(this.Device, nameof(HeightMapGenerator) + "HeightMap", new ImageInfo(dimensions, dimensions, Format.R32_Float), MipMapInfo.None());
+    }
+
     /// <summary>
     /// Generates 2-dimensional height map and its corresponding normal map using simplex noise
     /// </summary>
@@ -36,7 +41,7 @@ public sealed class HeightMapGenerator : IDisposable
     /// <returns></returns>
     public IRWTexture GenerateHeights(HeightMapGeneratorSettings settings)
     {
-        var height = new RWTexture(this.Device, nameof(HeightMapGenerator) + "HeightMap", new ImageInfo(settings.Dimensions, settings.Dimensions, Format.R32_Float), MipMapInfo.None());
+        var height = this.GenerateEmtpyHeights(settings.Dimensions);
         this.UpdateHeights(height, settings);
 
         return height;
@@ -59,11 +64,17 @@ public sealed class HeightMapGenerator : IDisposable
         context.CS.ClearUnorderedAccessView(HeightMap.MapHeight);
     }
 
+    internal IRWTexture GenerateEmptyNormals(int dimensions)
+    {
+        var normals = new RWTexture(this.Device, nameof(HeightMapGenerator) + "NormalMap", new ImageInfo(dimensions, dimensions, Format.R32G32B32A32_Float), MipMapInfo.None());
+        this.Device.ImmediateContext.Clear(normals, new Color4(0, 1, 0, 0));
+
+        return normals;
+    }
+
     public IRWTexture GenerateNormals(IRWTexture heightMap)
     {
-        var dimensions = heightMap.DimX;
-        var normals = new RWTexture(this.Device, nameof(HeightMapGenerator) + "NormalMap", new ImageInfo(dimensions, dimensions, Format.R32G32B32A32_Float), MipMapInfo.None());
-
+        var normals = this.GenerateEmptyNormals(heightMap.DimX);
         this.UpdateNormals(heightMap, normals);
 
         return normals;

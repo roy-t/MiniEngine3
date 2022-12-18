@@ -6,6 +6,8 @@ namespace Mini.Engine.ECS.Components;
 [Service]
 public sealed class ComponentAdministrator
 {
+    // TODO: class assumes single threaded component creation
+
     private readonly ContainerStore ContainerStore;
 
     public ComponentAdministrator(ContainerStore containerStore)

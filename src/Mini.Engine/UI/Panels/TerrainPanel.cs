@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.DirectX.Resources.Surfaces;
@@ -165,10 +166,10 @@ internal sealed class TerrainPanel : IPanel
 
             ref var terrain = ref creator.Create<TerrainComponent>(this.world);
 
-            terrain.Height = this.Device.Resources.Add(generated.Height);
-            terrain.Mesh = this.Device.Resources.Add(generated.Mesh);
-            terrain.Normals = this.Device.Resources.Add(generated.Normals);
-            terrain.Erosion = this.Device.Resources.Add(generated.Erosion);
+            terrain.Height = generated.Height;
+            terrain.Mesh = generated.Mesh;
+            terrain.Normals = generated.Normals;
+            terrain.Erosion = generated.Erosion;
             terrain.ErosionColor = this.mapSettings.ErosionColor;
             terrain.DepositionColor = this.mapSettings.DepositionColor;
             terrain.ErosionColorMultiplier = this.mapSettings.ErosionColorMultiplier;
@@ -182,12 +183,8 @@ internal sealed class TerrainPanel : IPanel
             terrain.DepositionColor = this.mapSettings.DepositionColor;
             terrain.ErosionColorMultiplier = this.mapSettings.ErosionColorMultiplier;
 
-            var model = (Mesh)this.Device.Resources.Get(terrain.Mesh);
-            var height = (IRWTexture)this.Device.Resources.Get(terrain.Height);
-            var normals = (IRWTexture)this.Device.Resources.Get(terrain.Normals);
-            var erosion = (IRWTexture)this.Device.Resources.Get(terrain.Erosion);
-
-            application(new GeneratedTerrain(height, normals, erosion, model));
+            var foo = new GeneratedTerrain((ILifetime<IRWTexture>)terrain.Height, (ILifetime<IRWTexture>)terrain.Normals, (ILifetime<IRWTexture>)terrain.Erosion, terrain.Mesh);
+            application(foo);
         }
 
         ref var ter = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);

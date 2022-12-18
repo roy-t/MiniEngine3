@@ -22,7 +22,7 @@ public sealed class Model : IModel
 
     public VertexBuffer<ModelVertex> Vertices { get; }
     public IndexBuffer<int> Indices { get; }
-    public BoundingBox Bounds { get; }
+    public BoundingBox Bounds { get; set; } 
     public IReadOnlyList<Primitive> Primitives { get; }
     public IReadOnlyList<ILifetime<IMaterial>> Materials { get; }
 

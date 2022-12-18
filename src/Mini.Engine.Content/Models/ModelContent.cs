@@ -33,7 +33,11 @@ public sealed class ModelContent : IModel, IContent<IModel, ModelSettings>
     public IReadOnlyList<ILifetime<IMaterial>> Materials => this.original.Materials;
     public VertexBuffer<ModelVertex> Vertices => this.original.Vertices;
     public IndexBuffer<int> Indices => this.original.Indices;
-    public BoundingBox Bounds => this.original.Bounds;
+    public BoundingBox Bounds
+    {
+        get => this.original.Bounds;
+        set => this.original.Bounds = value;
+    }
 
     public void Dispose()
     {

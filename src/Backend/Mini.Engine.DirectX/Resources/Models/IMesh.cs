@@ -7,5 +7,5 @@ public interface IMesh : IDisposable
 {
     VertexBuffer<ModelVertex> Vertices { get; }
     IndexBuffer<int> Indices { get; }
-    BoundingBox Bounds { get; }
+    BoundingBox Bounds { get; set; }
 }

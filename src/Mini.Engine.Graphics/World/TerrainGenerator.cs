@@ -15,13 +15,34 @@ public sealed class TerrainGenerator
     private readonly HeightMapGenerator HeightMapGenerator;
     private readonly HydraulicErosionBrush ErosionBrush;
     private readonly LifetimeManager LifetimeManager;
-   
+
     public TerrainGenerator(Device device, LifetimeManager content, HeightMapGenerator noiseGenerator, HydraulicErosionBrush erosionBrush)
     {
         this.Device = device;
         this.HeightMapGenerator = noiseGenerator;
         this.LifetimeManager = content;
         this.ErosionBrush = erosionBrush;
+    }
+
+    public GeneratedTerrain GenerateEmpty(int dimensions, float meshDefinition)
+    {
+        var height = this.HeightMapGenerator.GenerateEmtpyHeights(dimensions);
+        var normals = this.HeightMapGenerator.GenerateEmptyNormals(dimensions);
+        var tint = this.HeightMapGenerator.GenerateTint(dimensions);
+
+        var min = new Vector3(-0.5f, -0.01f, -0.5f);
+        var max = new Vector3(0.5f, 0.01f, 0.5f);
+        var bounds = new BoundingBox(min, max);
+
+        var mesh = this.GenerateMesh(height, meshDefinition, bounds, "terrain");
+
+        return new GeneratedTerrain
+        (
+            this.LifetimeManager.Add(height),
+            this.LifetimeManager.Add(normals),
+            this.LifetimeManager.Add(tint),
+            this.LifetimeManager.Add(mesh)
+        );
     }
 
     public GeneratedTerrain Generate(HeightMapGeneratorSettings settings, string name)
@@ -33,29 +54,42 @@ public sealed class TerrainGenerator
         var bounds = ComputeBounds(settings);
         var mesh = this.GenerateMesh(height, settings.MeshDefinition, bounds, name);
 
-        this.LifetimeManager.Add(height);
-        this.LifetimeManager.Add(normals);
-        this.LifetimeManager.Add(tint);
-        this.LifetimeManager.Add(mesh);
-
-        return new GeneratedTerrain(height, normals, tint, mesh);
+        return new GeneratedTerrain
+        (
+            this.LifetimeManager.Add(height),
+            this.LifetimeManager.Add(normals),
+            this.LifetimeManager.Add(tint),
+            this.LifetimeManager.Add(mesh)
+        );
     }
 
     public void Update(GeneratedTerrain input, HeightMapGeneratorSettings settings, string name)
     {
-        this.HeightMapGenerator.UpdateHeights(input.Height, settings);
-        this.HeightMapGenerator.UpdateNormals(input.Height, input.Normals);
-        this.HeightMapGenerator.UpdateTint(input.Erosion);
+        var res = this.Device.Resources;
+        var height = res.Get(input.Height);
+        var normals = res.Get(input.Normals);
+        var tint = res.Get(input.Erosion);
+        var mesh = res.Get(input.Mesh);
+
+        this.HeightMapGenerator.UpdateHeights(height, settings);
+        this.HeightMapGenerator.UpdateNormals(height, normals);
+        this.HeightMapGenerator.UpdateTint(tint);
 
         var bounds = ComputeBounds(settings);
-        this.UpdateMesh(input.Mesh, settings.MeshDefinition, input.Height, bounds);
+        this.UpdateMesh(mesh, settings.MeshDefinition, height, bounds);
     }
 
-    public void Erode(GeneratedTerrain terrain, HeightMapGeneratorSettings heigthMapSettings, HydraulicErosionBrushSettings erosionSettings, string name)
+    public void Erode(GeneratedTerrain input, HeightMapGeneratorSettings heigthMapSettings, HydraulicErosionBrushSettings erosionSettings, string name)
     {
-        this.ErosionBrush.Apply(terrain.Height, terrain.Erosion, erosionSettings);
-        this.HeightMapGenerator.UpdateNormals(terrain.Height, terrain.Normals);
-        this.UpdateMesh(terrain.Mesh, heigthMapSettings.MeshDefinition,  terrain.Height, terrain.Mesh.Bounds);
+        var res = this.Device.Resources;
+        var height = res.Get(input.Height);
+        var normals = res.Get(input.Normals);
+        var tint = res.Get(input.Erosion);
+        var mesh = res.Get(input.Mesh);
+
+        this.ErosionBrush.Apply(height, tint, erosionSettings);
+        this.HeightMapGenerator.UpdateNormals(height, normals);
+        this.UpdateMesh(mesh, heigthMapSettings.MeshDefinition, height, mesh.Bounds);
     }
 
     private Mesh GenerateMesh(IRWTexture height, float definition, BoundingBox bounds, string name)
@@ -66,8 +100,8 @@ public sealed class TerrainGenerator
         return mesh;
     }
 
-    private void UpdateMesh(Mesh input, float definition, IRWTexture height, BoundingBox bounds)
-    {        
+    private void UpdateMesh(IMesh input, float definition, IRWTexture height, BoundingBox bounds)
+    {
         var vertices = this.HeightMapGenerator.GenerateVertices(height, (int)(height.DimX * definition), (int)(height.DimY * definition));
         input.Vertices.MapData(this.Device.ImmediateContext, vertices);
 
@@ -108,5 +142,4 @@ public sealed class TerrainGenerator
         var x = Math.Clamp((weight - from) / (to - from), 0.0f, 1.0f);
         return x * x * (3.0f - (2.0f * x));
     }
-
 }
