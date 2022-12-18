@@ -20,20 +20,24 @@ public sealed class EditorUserInterface
 
     private sealed class PanelRegistration
     {
-        public PanelRegistration(string title, IPanel panel, bool isVisible)
+        public PanelRegistration(string id, string title, IPanel panel, bool isVisible)
         {
+            this.Id = id;
             this.Title = title;
             this.Panel = panel;
             this.IsVisible = isVisible;
         }
 
+        public string Id { get; }
         public string Title { get; }
         public IPanel Panel { get; }
         public bool IsVisible { get; set; }
 
         public void Update(float elapsed)
         {
+            ImGui.PushID(this.Id);
             this.Panel.Update(elapsed);
+            ImGui.PopID();
         }
     }
 
@@ -46,7 +50,7 @@ public sealed class EditorUserInterface
     {
         this.Core = core;
         this.MicroBenchmark = new MicroBenchmark("Perf");
-        this.Panels = panels.Select(p => new PanelRegistration(p.Title, p, true)).ToList();
+        this.Panels = panels.Select(p => new PanelRegistration(p.Title, p.Title, p, true)).ToList();
         this.Menus = menus.Select(m => new MenuRegistration(m.Title, m)).ToList();
     }
 

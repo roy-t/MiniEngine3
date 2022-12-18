@@ -66,4 +66,9 @@ public sealed class HydraulicErosionBrushSettings
         this.Inertia = inertia;
         this.Gravity = gravity;
     }
+
+    public HydraulicErosionBrushSettings Copy()
+    {
+        return new HydraulicErosionBrushSettings(this.Seed, this.Droplets, this.DropletStride, this.SedimentFactor, this.MinSedimentCapacity, this.DepositSpeed, this.Inertia, this.Gravity);
+    }
 }

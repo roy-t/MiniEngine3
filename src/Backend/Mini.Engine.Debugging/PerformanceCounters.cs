@@ -48,7 +48,7 @@ public sealed class PerformanceCounters
 
                         var instanceName = names
                             .Where(n => n.Contains(processName) || n.Contains(processId))
-                            .SingleOrDefault();
+                            .FirstOrDefault();
 
                         if (instanceName != null)
                         {

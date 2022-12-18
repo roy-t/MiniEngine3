@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.ComponentModel;
+using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
@@ -24,25 +25,50 @@ public sealed class TerrainGenerator
         this.ErosionBrush = erosionBrush;
     }
 
-    public GeneratedTerrain GenerateEmpty(int dimensions, float meshDefinition)
+    public void GenerateEmpty(ref TerrainComponent component, int dimensions, float meshDefinition)
     {
-        var height = this.HeightMapGenerator.GenerateEmtpyHeights(dimensions);
-        var normals = this.HeightMapGenerator.GenerateEmptyNormals(dimensions);
-        var tint = this.HeightMapGenerator.GenerateTint(dimensions);
-
         var min = new Vector3(-0.5f, -0.01f, -0.5f);
         var max = new Vector3(0.5f, 0.01f, 0.5f);
         var bounds = new BoundingBox(min, max);
 
+        var height = this.HeightMapGenerator.GenerateEmtpyHeights(dimensions);
         var mesh = this.GenerateMesh(height, meshDefinition, bounds, "terrain");
+        var normals = this.HeightMapGenerator.GenerateEmptyNormals(dimensions);
+        var erosion = this.HeightMapGenerator.GenerateTint(dimensions);
 
-        return new GeneratedTerrain
-        (
-            this.LifetimeManager.Add(height),
-            this.LifetimeManager.Add(normals),
-            this.LifetimeManager.Add(tint),
-            this.LifetimeManager.Add(mesh)
-        );
+        component.Height = this.LifetimeManager.Add(height);
+        component.Mesh = this.LifetimeManager.Add(mesh);
+        component.Normals = this.LifetimeManager.Add(normals);
+        component.Erosion = this.LifetimeManager.Add(erosion);
+    }
+
+    public void UpdateElevation(ref TerrainComponent component, HeightMapGeneratorSettings settings)
+    {
+        var res = this.Device.Resources;
+        var height = (IRWTexture)res.Get(component.Height);
+        var normals = (IRWTexture)res.Get(component.Normals);
+        var tint = (IRWTexture)res.Get(component.Erosion);
+        var mesh = res.Get(component.Mesh);
+
+        this.HeightMapGenerator.UpdateHeights(height, settings);
+        this.HeightMapGenerator.UpdateNormals(height, normals);
+        this.HeightMapGenerator.UpdateTint(tint);
+
+        var bounds = ComputeBounds(settings);
+        this.UpdateMesh(mesh, settings.MeshDefinition, height, bounds);
+    }
+
+    public void UpdateErosion(ref TerrainComponent component, float meshDefinition, HydraulicErosionBrushSettings settings)
+    {
+        var res = this.Device.Resources;
+        var height = (IRWTexture)res.Get(component.Height);
+        var normals = (IRWTexture)res.Get(component.Normals);
+        var tint = (IRWTexture)res.Get(component.Erosion);
+        var mesh = res.Get(component.Mesh);
+
+        this.ErosionBrush.Apply(height, tint, settings);
+        this.HeightMapGenerator.UpdateNormals(height, normals);
+        this.UpdateMesh(mesh, meshDefinition, height, mesh.Bounds);
     }
 
     public GeneratedTerrain Generate(HeightMapGeneratorSettings settings, string name)
@@ -102,6 +128,8 @@ public sealed class TerrainGenerator
 
     private void UpdateMesh(IMesh input, float definition, IRWTexture height, BoundingBox bounds)
     {
+        // TODO: can we directly write the vertex/index data to the buffers withoiut first copying to CPU?
+
         var vertices = this.HeightMapGenerator.GenerateVertices(height, (int)(height.DimX * definition), (int)(height.DimY * definition));
         input.Vertices.MapData(this.Device.ImmediateContext, vertices);
 

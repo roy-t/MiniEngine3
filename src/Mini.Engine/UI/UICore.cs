@@ -16,7 +16,8 @@ public sealed class UICore : IDisposable
 
     public UICore(Win32Window window, Device device, UITextureRegistry textureRegistry, UserInterface shader)
     {
-        ImGui.CreateContext();
+        ImGui.CreateContext();        
+
         this.IO = ImGui.GetIO();
         this.Renderer = new ImGuiRenderer(device, textureRegistry, shader);
         this.Input = new ImGuiInputHandler(window.Handle);
