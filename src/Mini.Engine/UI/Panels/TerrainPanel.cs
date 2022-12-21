@@ -18,12 +18,13 @@ internal class TerrainPanel : IPanel
     private HeightMapGeneratorSettings settings;
     private HydraulicErosionBrushSettings erosionSettings;
 
+    private bool instantUpdate = true;
     private bool heightMapChanged;
     private bool erosionChanged;
 
     private bool isErodingRealTime = false;
-    private TimeSpan elapsedRealTime = TimeSpan.Zero;    
-    private TimeSpan expectedRealTime = TimeSpan.FromSeconds(5);
+    private TimeSpan elapsedRealTime = TimeSpan.Zero;
+    private readonly TimeSpan expectedRealTime = TimeSpan.FromSeconds(5);
 
     public TerrainPanel(ContentManager content, ECSAdministrator administrator, IComponentContainer<TerrainComponent> container, TerrainGenerator generator)
     {
@@ -38,7 +39,7 @@ internal class TerrainPanel : IPanel
         content.AddReloadCallback(new ContentId(@"Shaders\World\HydraulicErosion.hlsl", "Kernel"), () => this.erosionChanged = true);
     }
 
-    public string Title => "Terrain V2";
+    public string Title => "Terrain";
 
     public void Update(float elapsed)
     {
@@ -87,7 +88,11 @@ internal class TerrainPanel : IPanel
                 ImGui.SameLine();
                 if (ImGui.Button("Reset Heightmap"))
                 {
-                    this.settings = new HeightMapGeneratorSettings();
+                    this.settings = new HeightMapGeneratorSettings()
+                    {
+                        Dimensions = this.settings.Dimensions,
+                        MeshDefinition = this.settings.MeshDefinition
+                    };
                     this.heightMapChanged = true;
                 }
             }
@@ -97,9 +102,11 @@ internal class TerrainPanel : IPanel
         {
             if (this.ComponentSelector.HasComponent())
             {
+                ImGui.Checkbox("Instant Update", ref this.instantUpdate);
+
                 this.erosionChanged |= this.ShowErosionSettings();
 
-                if (this.erosionChanged || ImGui.Button("Set Erosion"))
+                if ((this.erosionChanged && this.instantUpdate) || ImGui.Button("Set Erosion"))
                 {
                     ref var component = ref this.ComponentSelector.Get();
                     this.SetErosion(ref component);
@@ -163,7 +170,7 @@ internal class TerrainPanel : IPanel
         this.Generator.UpdateErosion(ref terrain, this.settings.MeshDefinition, this.erosionSettings);
     }
 
-    private void IterateErosion(ref TerrainComponent terrain, HydraulicErosionBrushSettings iterationSettings )
+    private void IterateErosion(ref TerrainComponent terrain, HydraulicErosionBrushSettings iterationSettings)
     {
         this.Generator.UpdateErosion(ref terrain, this.settings.MeshDefinition, iterationSettings);
     }
@@ -210,7 +217,7 @@ internal class TerrainPanel : IPanel
 
         changed |=
 
-               ImGui.SliderInt("Droplets", ref this.erosionSettings.Droplets, 1, 10_000_000) ||
+               ImGui.SliderInt("Droplets", ref this.erosionSettings.Droplets, 1, 2_500_000) ||
                ImGui.SliderInt("DropletStride", ref this.erosionSettings.DropletStride, 1, 15) ||
                ImGui.SliderFloat("SedimentFactor", ref this.erosionSettings.SedimentFactor, 0.01f, 5.0f) ||
                ImGui.SliderFloat("MinSedimentCapacity", ref this.erosionSettings.MinSedimentCapacity, 0.0f, 0.001f) ||

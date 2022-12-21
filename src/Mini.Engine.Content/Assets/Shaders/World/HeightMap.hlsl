@@ -106,10 +106,10 @@ void NormalMapKernel(in uint3 dispatchId : SV_DispatchThreadID)
     MapNormal[dispatchId.xy] = float4(normal, 1.0f);
 }
 
-// Run 8x8x1=64 threads per thread group, which means one full warp for AMD
-// or two warps for NVIDIA. Leaving no threads idle.
+// Run 16x16x1=256 threads per thread group, which means one fours warps for AMD
+// or eight warps for NVIDIA. Leaving no threads idle.
 #pragma ComputeShader
-[numthreads(8, 8, 1)]
+[numthreads(16, 16, 1)]
 void TriangulateKernel (in uint3 dispatchId : SV_DispatchThreadID)
 {
     // When not using a power of two input we might be out-of-bounds
@@ -140,7 +140,7 @@ void TriangulateKernel (in uint3 dispatchId : SV_DispatchThreadID)
 }
 
 #pragma ComputeShader
-[numthreads(64, 1, 1)]
+[numthreads(256, 1, 1)]
 void IndicesKernel (in uint3 dispatchId : SV_DispatchThreadID)
 {
     // When not using a power of two input we might be out-of-bounds
