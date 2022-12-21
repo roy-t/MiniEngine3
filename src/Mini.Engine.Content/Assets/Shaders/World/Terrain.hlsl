@@ -119,10 +119,11 @@ OUTPUT PS(PS_INPUT input)
 
     float3 heightMapNormal = HeigthMapNormal.Sample(TextureSampler, input.texcoord).xyz;
 
-    float2 layerOneTexcoord = input.texcoord * 101.0f;
+    float2 layerOneTexcoord = input.texcoord * 83.0f;
     MultiUv layerOne = SampleTextures(input.world, layerOneTexcoord, erosion, heightMapNormal);
 
-    float2 layerTwoTexcoord = input.texcoord * 53.0f;
+    float2 r2 = float2(sin(0.33f), cos(0.33f));
+    float2 layerTwoTexcoord = (r2 *input.texcoord) * 53.0f;
     MultiUv layerTwo = SampleTextures(input.world, layerTwoTexcoord, erosion, heightMapNormal);
     
 

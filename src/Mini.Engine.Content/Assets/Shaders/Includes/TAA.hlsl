@@ -85,7 +85,7 @@ TaaOutput TAA(Texture2D colorHistory, Texture2D colorCurrent, Texture2D velocity
     
     TaaOutput output;
     output.Color = float4(BoxClamp(colorCurrent, textureSampler, currentColor, previousColor, velocityDisocclusion, uv), 1.0f);
-    output.Velocity = float2(0, 0);
+    output.Velocity = velocity;
     
     return output;
 }
