@@ -1,201 +1,223 @@
 ﻿using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
-using Mini.Engine.Core.Lifetime;
-using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Resources.Models;
-using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
+using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.World;
-using Mini.Engine.UI.Components;
 
 namespace Mini.Engine.UI.Panels;
-
 [Service]
-internal sealed class TerrainPanel : IPanel
+internal class TerrainPanel : IPanel
 {
-    private readonly Device Device;
-    private readonly TerrainGenerator Generator;
-    private readonly TextureSelector Selector;
-    private readonly ContentManager Content;
+    private readonly ComponentSelector<TerrainComponent> ComponentSelector;
     private readonly ECSAdministrator Administrator;
 
+    private readonly TerrainGenerator Generator;
 
-    private HeightMapGeneratorSettings mapSettings;
+    private HeightMapGeneratorSettings settings;
     private HydraulicErosionBrushSettings erosionSettings;
 
-    private Entity world;
+    private bool heightMapChanged;
+    private bool erosionChanged;
 
-    public TerrainPanel(Device device, TerrainGenerator generator, UITextureRegistry registry, ContentManager content, ECSAdministrator administrator)
+    private bool isErodingRealTime = false;
+    private TimeSpan elapsedRealTime = TimeSpan.Zero;    
+    private TimeSpan expectedRealTime = TimeSpan.FromSeconds(5);
+
+    public TerrainPanel(ContentManager content, ECSAdministrator administrator, IComponentContainer<TerrainComponent> container, TerrainGenerator generator)
     {
-        this.Device = device;
-        this.Generator = generator;
-        this.Selector = new TextureSelector(registry);
-        this.Content = content;
+        this.ComponentSelector = new ComponentSelector<TerrainComponent>("Terrain", container);
         this.Administrator = administrator;
+        this.Generator = generator;
 
-        this.mapSettings = new HeightMapGeneratorSettings();
+        this.settings = new HeightMapGeneratorSettings();
         this.erosionSettings = new HydraulicErosionBrushSettings();
 
-        this.Content.AddReloadCallback(new ContentId(@"Shaders\World\HeightMap.hlsl", "NoiseMapKernel"), () => this.Recreate(this.ApplyTerrain));
-        this.Content.AddReloadCallback(new ContentId(@"Shaders\World\HydraulicErosion.hlsl", "Kernel"), () => { this.Recreate(this.ApplyTerrain); this.Recreate(this.ErodeTerrain); });
+        content.AddReloadCallback(new ContentId(@"Shaders\World\HeightMap.hlsl", "NoiseMapKernel"), () => this.heightMapChanged = true);
+        content.AddReloadCallback(new ContentId(@"Shaders\World\HydraulicErosion.hlsl", "Kernel"), () => this.erosionChanged = true);
     }
 
-    public string Title => "Terrain";
+    public string Title => "Terrain V2";
 
     public void Update(float elapsed)
     {
-        var created = this.Administrator.Entities.Entities.Contains(this.world);
-
-        if (created == false)
+        if (this.isErodingRealTime)
         {
-            ImGui.SliderInt("Dimensions", ref this.mapSettings.Dimensions, 4, 4096);
-            ImGui.SliderFloat("MeshDefinition", ref this.mapSettings.MeshDefinition, 0.1f, 1.0f);
-            if (ImGui.Button("Generate"))
+            this.UpdateRealtimeErosion(elapsed);
+            return;
+        }
+
+        if (ImGui.CollapsingHeader("Manage", ImGuiTreeNodeFlags.DefaultOpen))
+        {
+            ImGui.SliderInt("Dimensions", ref this.settings.Dimensions, 4, 4096);
+            ImGui.SliderFloat("Definition", ref this.settings.MeshDefinition, 0.1f, 1.0f);
+
+            this.ComponentSelector.Update();
+
+            if (ImGui.Button("Add"))
             {
-                this.Recreate(this.ApplyTerrain);
+                this.CreateTerrain();
+            }
+
+            if (this.ComponentSelector.HasComponent())
+            {
+                ImGui.SameLine();
+                if (ImGui.Button("Remove"))
+                {
+                    ref var component = ref this.ComponentSelector.Get();
+                    this.Administrator.Components.MarkForRemoval(component.Entity);
+                }
             }
         }
-        else
+
+        if (ImGui.CollapsingHeader("Heigth Map", ImGuiTreeNodeFlags.DefaultOpen))
         {
-            ImGui.Text("Terrain generator settings");
-
-            var terrainChanged =
-                ImGui.DragFloat2("Offset", ref this.mapSettings.Offset, 0.1f) ||
-                ImGui.SliderInt("Octaves", ref this.mapSettings.Octaves, 1, 20) ||
-                ImGui.SliderFloat("Amplitude", ref this.mapSettings.Amplitude, 0.0f, 0.2f) ||
-                ImGui.SliderFloat("Persistance", ref this.mapSettings.Persistance, 0.25f, 0.75f) ||
-                ImGui.SliderFloat("Frequency", ref this.mapSettings.Frequency, 1.0f, 2.0f) ||
-                ImGui.SliderFloat("Lacunarity", ref this.mapSettings.Lacunarity, 0.75f, 1.25f) ||
-                ImGui.SliderFloat("CliffStart", ref this.mapSettings.CliffStart, 0.0f, 1.0f) ||
-                ImGui.SliderFloat("CliffEnd", ref this.mapSettings.CliffEnd, 0.0f, 1.0f) ||
-                ImGui.SliderFloat("CliffStrength", ref this.mapSettings.CliffStrength, 0.0f, 1.0f) ||
-                ImGui.ColorEdit3("DepositionColor", ref this.mapSettings.DepositionColor) ||
-                ImGui.ColorEdit3("ErosionColor", ref this.mapSettings.ErosionColor) ||
-                ImGui.SliderFloat("ErosionColorMultiplier", ref this.mapSettings.ErosionColorMultiplier, 1.0f, 1000.0f);
-
-            if (ImGui.Button("Reset Height Map Generator Settings"))
+            if (this.ComponentSelector.HasComponent())
             {
-                this.mapSettings = new HeightMapGeneratorSettings();
-                terrainChanged = true;
+                this.heightMapChanged |= this.ShowHeightMapSettings();
 
+                if (this.heightMapChanged || ImGui.Button("Update Heigth Map"))
+                {
+                    ref var component = ref this.ComponentSelector.Get();
+                    this.SetElevation(ref component);
+                    this.heightMapChanged = false;
+                }
+
+                ImGui.SameLine();
+                if (ImGui.Button("Reset Heightmap"))
+                {
+                    this.settings = new HeightMapGeneratorSettings();
+                    this.heightMapChanged = true;
+                }
             }
+        }
 
-            if (terrainChanged)
+        if (ImGui.CollapsingHeader("Erosion", ImGuiTreeNodeFlags.DefaultOpen))
+        {
+            if (this.ComponentSelector.HasComponent())
             {
-                this.Recreate(this.ApplyTerrain);
+                this.erosionChanged |= this.ShowErosionSettings();
+
+                if (this.erosionChanged || ImGui.Button("Set Erosion"))
+                {
+                    ref var component = ref this.ComponentSelector.Get();
+                    this.SetErosion(ref component);
+                    this.erosionChanged = false;
+                }
+
+                ImGui.SameLine();
+                if (ImGui.Button("Realtime Erosion"))
+                {
+                    ref var component = ref this.ComponentSelector.Get();
+                    this.isErodingRealTime = true;
+                    this.elapsedRealTime = TimeSpan.Zero;
+                }
+
+                ImGui.SameLine();
+                if (ImGui.Button("Iterate Erosion"))
+                {
+                    ref var component = ref this.ComponentSelector.Get();
+                    this.IterateErosion(ref component, this.erosionSettings);
+                }
+
+                ImGui.SameLine();
+                if (ImGui.Button("Reset Erosion"))
+                {
+                    this.erosionSettings = new HydraulicErosionBrushSettings();
+                    this.erosionChanged = true;
+                }
             }
-
-            ImGui.Text("Erosion brush settings");
-
-            var erosionChanged =
-                ImGui.SliderInt("Seed", ref this.erosionSettings.Seed, 0, int.MaxValue) ||
-                ImGui.SliderInt("Droplets", ref this.erosionSettings.Droplets, 1, 10_000_000) ||
-                ImGui.SliderInt("DropletStride", ref this.erosionSettings.DropletStride, 1, 15) ||
-                ImGui.SliderFloat("SedimentFactor", ref this.erosionSettings.SedimentFactor, 0.01f, 5.0f) ||
-                ImGui.SliderFloat("MinSedimentCapacity", ref this.erosionSettings.MinSedimentCapacity, 0.0f, 0.001f) ||
-                ImGui.SliderFloat("DepositSpeed", ref this.erosionSettings.DepositSpeed, 0.005f, 0.05f) ||
-                ImGui.SliderFloat("Inertia", ref this.erosionSettings.Inertia, 0.0f, 0.99f) ||
-                ImGui.SliderFloat("Gravity", ref this.erosionSettings.Gravity, 1.0f, 4.0f);
-
-            if (ImGui.Button("Randomize Seed"))
-            {
-                this.erosionSettings.Seed = Random.Shared.Next();
-                erosionChanged = true;
-            }
-
-            if (ImGui.Button("Reset Hydraulic Erosion Brush Settings"))
-            {
-                this.erosionSettings = new HydraulicErosionBrushSettings();
-                erosionChanged = true;
-
-            }
-
-            if (erosionChanged)
-            {
-                this.Recreate(this.ApplyTerrain);
-                this.Recreate(this.ErodeTerrain);
-            }
-
-            ref var terrain = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);
-            var height = this.Device.Resources.Get(terrain.Height);
-            var normals = this.Device.Resources.Get(terrain.Normals);
-            var tint = this.Device.Resources.Get(terrain.Erosion);
-            if (this.Selector.Begin("Terrain Resources", "heightmap"))
-            {
-                this.Selector.Select("Height", height);
-                this.Selector.Select("Normals", normals);
-                this.Selector.Select("Tint", tint);
-                this.Selector.End();
-            }
-            this.Selector.ShowSelected(height, normals, tint);
         }
     }
 
-    private GeneratedTerrain ApplyTerrain(GeneratedTerrain? input)
+    private void UpdateRealtimeErosion(float elapsed)
     {
-        if (input is not null)
+        ref var terrain = ref this.ComponentSelector.Get();
+
+        this.elapsedRealTime += TimeSpan.FromSeconds(elapsed);
+        var perSecond = this.erosionSettings.Droplets / this.expectedRealTime.TotalSeconds;
+        var step = elapsed * perSecond;
+        var droplets = Math.Max(1, (int)step);
+
+        var iterationSettings = this.erosionSettings.Copy();
+        iterationSettings.Droplets = droplets;
+        iterationSettings.Seed = Random.Shared.Next();
+
+        this.IterateErosion(ref terrain, iterationSettings);
+
+        if (this.elapsedRealTime >= this.expectedRealTime)
         {
-            this.Generator.Update(input, this.mapSettings, "terrain");
-            return input;
+            this.isErodingRealTime = false;
         }
-        return this.Generator.Generate(this.mapSettings, "terrain");
     }
 
-    private GeneratedTerrain ErodeTerrain(GeneratedTerrain? input)
+    private void SetElevation(ref TerrainComponent terrain)
     {
-        if (input is not null)
-        {
-            this.Generator.Erode(input, this.mapSettings, this.erosionSettings, "terrain");
-            return input;
-        }
-
-        throw new NotSupportedException("Cannot erode null terrain");
+        this.Generator.UpdateElevation(ref terrain, this.settings);
     }
 
-    private void Recreate(Func<GeneratedTerrain?, GeneratedTerrain> application)
+    private void SetErosion(ref TerrainComponent terrain)
     {
-        var created = this.Administrator.Entities.Entities.Contains(this.world);
-        if (created == false)
+        this.Generator.UpdateElevation(ref terrain, this.settings);
+        this.Generator.UpdateErosion(ref terrain, this.settings.MeshDefinition, this.erosionSettings);
+    }
+
+    private void IterateErosion(ref TerrainComponent terrain, HydraulicErosionBrushSettings iterationSettings )
+    {
+        this.Generator.UpdateErosion(ref terrain, this.settings.MeshDefinition, iterationSettings);
+    }
+
+    private void CreateTerrain()
+    {
+        var entity = this.Administrator.Entities.Create();
+        ref var transform = ref this.Administrator.Components.Create<TransformComponent>(entity);
+        transform.Current = transform.Current.SetScale(100.0f);
+
+        ref var terrain = ref this.Administrator.Components.Create<TerrainComponent>(entity);
+        terrain.ErosionColor = this.settings.ErosionColor;
+        terrain.DepositionColor = this.settings.DepositionColor;
+        terrain.ErosionColorMultiplier = this.settings.ErosionColorMultiplier;
+
+        this.Generator.GenerateEmpty(ref terrain, this.settings.Dimensions, this.settings.MeshDefinition);
+    }
+
+    private bool ShowHeightMapSettings()
+    {
+        return ImGui.DragFloat2("Offset", ref this.settings.Offset, 0.1f) ||
+               ImGui.SliderInt("Octaves", ref this.settings.Octaves, 1, 20) ||
+               ImGui.SliderFloat("Amplitude", ref this.settings.Amplitude, 0.0f, 0.2f) ||
+               ImGui.SliderFloat("Persistance", ref this.settings.Persistance, 0.25f, 0.75f) ||
+               ImGui.SliderFloat("Frequency", ref this.settings.Frequency, 1.0f, 2.0f) ||
+               ImGui.SliderFloat("Lacunarity", ref this.settings.Lacunarity, 0.75f, 1.25f) ||
+               ImGui.SliderFloat("CliffStart", ref this.settings.CliffStart, 0.0f, 1.0f) ||
+               ImGui.SliderFloat("CliffEnd", ref this.settings.CliffEnd, 0.0f, 1.0f) ||
+               ImGui.SliderFloat("CliffStrength", ref this.settings.CliffStrength, 0.0f, 1.0f) ||
+               ImGui.ColorEdit3("DepositionColor", ref this.settings.DepositionColor) ||
+               ImGui.ColorEdit3("ErosionColor", ref this.settings.ErosionColor) ||
+               ImGui.SliderFloat("ErosionColorMultiplier", ref this.settings.ErosionColorMultiplier, 1.0f, 1000.0f);
+    }
+
+    private bool ShowErosionSettings()
+    {
+        var changed = ImGui.SliderInt("Seed", ref this.erosionSettings.Seed, 0, int.MaxValue);
+        ImGui.SameLine();
+        if (ImGui.Button("randomize"))
         {
-            var generated = application(null);
-            this.world = this.Administrator.Entities.Create();
-
-            var creator = this.Administrator.Components;
-
-            ref var terrain = ref creator.Create<TerrainComponent>(this.world);
-
-            terrain.Height = generated.Height;
-            terrain.Mesh = generated.Mesh;
-            terrain.Normals = generated.Normals;
-            terrain.Erosion = generated.Erosion;
-            terrain.ErosionColor = this.mapSettings.ErosionColor;
-            terrain.DepositionColor = this.mapSettings.DepositionColor;
-            terrain.ErosionColorMultiplier = this.mapSettings.ErosionColorMultiplier;
-
-            ref var transform = ref creator.Create<TransformComponent>(this.world);
-        }
-        else
-        {
-            ref var terrain = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);
-            terrain.ErosionColor = this.mapSettings.ErosionColor;
-            terrain.DepositionColor = this.mapSettings.DepositionColor;
-            terrain.ErosionColorMultiplier = this.mapSettings.ErosionColorMultiplier;
-
-            var foo = new GeneratedTerrain((ILifetime<IRWTexture>)terrain.Height, (ILifetime<IRWTexture>)terrain.Normals, (ILifetime<IRWTexture>)terrain.Erosion, terrain.Mesh);
-            application(foo);
+            this.erosionSettings.Seed = Random.Shared.Next();
+            changed = true;
         }
 
-        ref var ter = ref this.Administrator.Components.GetComponent<TerrainComponent>(this.world);
-        ref var tra = ref this.Administrator.Components.GetComponent<TransformComponent>(this.world);
+        changed |=
 
-        var mesh = this.Device.Resources.Get(ter.Mesh);
+               ImGui.SliderInt("Droplets", ref this.erosionSettings.Droplets, 1, 10_000_000) ||
+               ImGui.SliderInt("DropletStride", ref this.erosionSettings.DropletStride, 1, 15) ||
+               ImGui.SliderFloat("SedimentFactor", ref this.erosionSettings.SedimentFactor, 0.01f, 5.0f) ||
+               ImGui.SliderFloat("MinSedimentCapacity", ref this.erosionSettings.MinSedimentCapacity, 0.0f, 0.001f) ||
+               ImGui.SliderFloat("DepositSpeed", ref this.erosionSettings.DepositSpeed, 0.005f, 0.05f) ||
+               ImGui.SliderFloat("Inertia", ref this.erosionSettings.Inertia, 0.0f, 0.99f) ||
+               ImGui.SliderFloat("Gravity", ref this.erosionSettings.Gravity, 1.0f, 4.0f);
 
-        var width = mesh.Bounds.Max.X - mesh.Bounds.Min.X;
-        var desiredWidth = 100.0f;
-        var scale = desiredWidth / width;
-
-        tra.Current = tra.Current.SetScale(scale);
+        return changed;
     }
 }

@@ -29,24 +29,6 @@ public sealed class HeightMapGenerator : IDisposable
         return new RWTexture(this.Device, nameof(HeightMapGenerator) + "HeightMap", new ImageInfo(dimensions, dimensions, Format.R32_Float), MipMapInfo.None());
     }
 
-    /// <summary>
-    /// Generates 2-dimensional height map and its corresponding normal map using simplex noise
-    /// </summary>
-    /// <param name="dimensions">Length of each dimension</param>
-    /// <param name="amplitude">Amplitude of first octave</param>
-    /// <param name="frequency">Frequency of first octave</param>
-    /// <param name="octaves">Number of layers of noise</param>
-    /// <param name="lacunarity">(1..) Increase in frequency for each consecutive octave, l * f ^ 0, l * f ^1, ...</param>
-    /// <param name="persistance">[0..1), Decrease of amplitude for each consecutive octage, p * f ^ 0, p * f ^ 1, ...</param>
-    /// <returns></returns>
-    public IRWTexture GenerateHeights(HeightMapGeneratorSettings settings)
-    {
-        var height = this.GenerateEmtpyHeights(settings.Dimensions);
-        this.UpdateHeights(height, settings);
-
-        return height;
-    }
-
     public void UpdateHeights(IRWTexture height, HeightMapGeneratorSettings settings)
     {
         var context = this.Device.ImmediateContext;
@@ -64,18 +46,10 @@ public sealed class HeightMapGenerator : IDisposable
         context.CS.ClearUnorderedAccessView(HeightMap.MapHeight);
     }
 
-    internal IRWTexture GenerateEmptyNormals(int dimensions)
+    public IRWTexture GenerateEmptyNormals(int dimensions)
     {
         var normals = new RWTexture(this.Device, nameof(HeightMapGenerator) + "NormalMap", new ImageInfo(dimensions, dimensions, Format.R32G32B32A32_Float), MipMapInfo.None());
         this.Device.ImmediateContext.Clear(normals, new Color4(0, 1, 0, 0));
-
-        return normals;
-    }
-
-    public IRWTexture GenerateNormals(IRWTexture heightMap)
-    {
-        var normals = this.GenerateEmptyNormals(heightMap.DimX);
-        this.UpdateNormals(heightMap, normals);
 
         return normals;
     }

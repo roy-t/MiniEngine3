@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Numerics;
+﻿using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
@@ -69,53 +68,6 @@ public sealed class TerrainGenerator
         this.ErosionBrush.Apply(height, tint, settings);
         this.HeightMapGenerator.UpdateNormals(height, normals);
         this.UpdateMesh(mesh, meshDefinition, height, mesh.Bounds);
-    }
-
-    public GeneratedTerrain Generate(HeightMapGeneratorSettings settings, string name)
-    {
-        var height = this.HeightMapGenerator.GenerateHeights(settings);
-        var normals = this.HeightMapGenerator.GenerateNormals(height);
-        var tint = this.HeightMapGenerator.GenerateTint(settings.Dimensions);
-
-        var bounds = ComputeBounds(settings);
-        var mesh = this.GenerateMesh(height, settings.MeshDefinition, bounds, name);
-
-        return new GeneratedTerrain
-        (
-            this.LifetimeManager.Add(height),
-            this.LifetimeManager.Add(normals),
-            this.LifetimeManager.Add(tint),
-            this.LifetimeManager.Add(mesh)
-        );
-    }
-
-    public void Update(GeneratedTerrain input, HeightMapGeneratorSettings settings, string name)
-    {
-        var res = this.Device.Resources;
-        var height = res.Get(input.Height);
-        var normals = res.Get(input.Normals);
-        var tint = res.Get(input.Erosion);
-        var mesh = res.Get(input.Mesh);
-
-        this.HeightMapGenerator.UpdateHeights(height, settings);
-        this.HeightMapGenerator.UpdateNormals(height, normals);
-        this.HeightMapGenerator.UpdateTint(tint);
-
-        var bounds = ComputeBounds(settings);
-        this.UpdateMesh(mesh, settings.MeshDefinition, height, bounds);
-    }
-
-    public void Erode(GeneratedTerrain input, HeightMapGeneratorSettings heigthMapSettings, HydraulicErosionBrushSettings erosionSettings, string name)
-    {
-        var res = this.Device.Resources;
-        var height = res.Get(input.Height);
-        var normals = res.Get(input.Normals);
-        var tint = res.Get(input.Erosion);
-        var mesh = res.Get(input.Mesh);
-
-        this.ErosionBrush.Apply(height, tint, erosionSettings);
-        this.HeightMapGenerator.UpdateNormals(height, normals);
-        this.UpdateMesh(mesh, heigthMapSettings.MeshDefinition, height, mesh.Bounds);
     }
 
     private Mesh GenerateMesh(IRWTexture height, float definition, BoundingBox bounds, string name)
