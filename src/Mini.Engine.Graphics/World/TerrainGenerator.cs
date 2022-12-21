@@ -1,5 +1,7 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
+using Mini.Engine.Content;
+using Mini.Engine.Content.Materials;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Models;
@@ -14,13 +16,16 @@ public sealed class TerrainGenerator
     private readonly Device Device;
     private readonly HeightMapGenerator HeightMapGenerator;
     private readonly HydraulicErosionBrush ErosionBrush;
+    private readonly ContentManager Content;
     private readonly LifetimeManager LifetimeManager;
 
-    public TerrainGenerator(Device device, LifetimeManager content, HeightMapGenerator noiseGenerator, HydraulicErosionBrush erosionBrush)
+    public TerrainGenerator(Device device, ContentManager content, LifetimeManager lifetimeManager, HeightMapGenerator noiseGenerator, HydraulicErosionBrush erosionBrush)
     {
         this.Device = device;
+        this.Content = content;
+        this.LifetimeManager = lifetimeManager;
+
         this.HeightMapGenerator = noiseGenerator;
-        this.LifetimeManager = content;
         this.ErosionBrush = erosionBrush;
     }
 
@@ -39,6 +44,8 @@ public sealed class TerrainGenerator
         component.Mesh = this.LifetimeManager.Add(mesh);
         component.Normals = this.LifetimeManager.Add(normals);
         component.Erosion = this.LifetimeManager.Add(erosion);
+
+        component.Material = this.Content.LoadMaterial(new ContentId(@"Textures\Grass01_MR_2K\grass.mtl", "grass"), MaterialSettings.Default);
     }
 
     public void UpdateElevation(ref TerrainComponent component, HeightMapGeneratorSettings settings)

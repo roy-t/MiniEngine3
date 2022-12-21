@@ -17,6 +17,8 @@ public struct TerrainComponent : IComponent
     public Vector3 DepositionColor;
     public float ErosionColorMultiplier;
 
+    public ILifetime<IMaterial> Material;
+
     public Entity Entity { get; set; }
     public LifeCycle LifeCycle { get; set; }    
 }

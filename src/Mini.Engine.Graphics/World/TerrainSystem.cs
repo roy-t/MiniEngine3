@@ -54,8 +54,15 @@ public sealed partial class TerrainSystem : ISystem, IDisposable
         var normals = this.Device.Resources.Get(component.Normals);
         var erosion = this.Device.Resources.Get(component.Erosion);        
 
-        this.Context.PS.SetShaderResource(Terrain.Normal, normals);
+        this.Context.PS.SetShaderResource(Terrain.HeigthMapNormal, normals);
         this.Context.PS.SetShaderResource(Terrain.Erosion, erosion);
+
+        var material = this.Device.Resources.Get(component.Material);
+        this.Context.PS.SetShaderResource(Terrain.Albedo, material.Albedo);
+        this.Context.PS.SetShaderResource(Terrain.Normal, material.Normal);
+        this.Context.PS.SetShaderResource(Terrain.Metalicness, material.Metalicness);
+        this.Context.PS.SetShaderResource(Terrain.Roughness, material.Roughness);
+        this.Context.PS.SetShaderResource(Terrain.AmbientOcclusion, material.AmbientOcclusion);
 
         var camera = this.FrameService.GetPrimaryCamera().Camera;
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform();        

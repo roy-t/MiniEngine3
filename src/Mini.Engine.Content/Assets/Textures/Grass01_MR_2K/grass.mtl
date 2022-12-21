@@ -1,0 +1,5 @@
+newmtl grass
+	map_Kd Grass01_2K_BaseColor.png
+	map_bump Grass01_2K_Normal.png
+	map_Ns Grass01_2K_Roughness.png
+	map_Ke Grass01_2K_AO.png

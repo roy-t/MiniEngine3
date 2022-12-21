@@ -40,8 +40,14 @@ cbuffer Constants : register(b0)
 };
 
 sampler TextureSampler : register(s0);
-Texture2D Erosion : register(t0);
+Texture2D Albedo : register(t0);
 Texture2D Normal : register(t1);
+Texture2D Metalicness : register(t2);
+Texture2D Roughness : register(t3);
+Texture2D AmbientOcclusion : register(t4);
+
+Texture2D HeigthMapNormal : register(t5);
+Texture2D Erosion : register(t6);
 
 #pragma VertexShader
 PS_INPUT VS(VS_INPUT input)
@@ -60,20 +66,77 @@ PS_INPUT VS(VS_INPUT input)
     return output;
 }
 
+struct MultiUv
+{
+    float4 albedo;
+    float metalicness;
+    float roughness;
+    float ambientOcclusion;
+    float3 normal;
+};
+
+
+MultiUv SampleTextures(float3 world, float2 texCoord, float erosion, float3 heightMapNormal)
+{
+    float4 albedo = Albedo.Sample(TextureSampler, texCoord);
+    float metalicness = Metalicness.Sample(TextureSampler, texCoord).r;
+    float roughness = Roughness.Sample(TextureSampler, texCoord).r;
+    float ambientOcclusion = AmbientOcclusion.Sample(TextureSampler, texCoord).r;
+
+    float4 tint = ToLinear(float4(lerp(ErosionColor, DepositionColor, erosion), 1.0f));
+
+    float3 V = normalize(CameraPosition - world);
+    float3 normal = PerturbNormal(Normal, TextureSampler, heightMapNormal, V, texCoord);
+
+    MultiUv output;
+    output.albedo = lerp(albedo, tint, 0.75f);
+    output.metalicness = metalicness;
+    output.roughness = roughness;
+    output.ambientOcclusion = ambientOcclusion;
+    output.normal = normal;
+
+    return output;
+}
+
+MultiUv MixMultiUv(MultiUv one, MultiUv two)
+{
+    MultiUv output;
+    output.albedo = one.albedo + two.albedo;
+    output.metalicness = one.metalicness + two.metalicness;
+    output.roughness = one.roughness + two.roughness;
+    output.ambientOcclusion = one.ambientOcclusion + two.ambientOcclusion;
+    output.normal = one.normal + two.normal;
+
+    return output;
+}
+
 #pragma PixelShader
 OUTPUT PS(PS_INPUT input)
 {
     OUTPUT output;
 
     float erosion = (Erosion.Sample(TextureSampler, input.texcoord).r * ErosionMultiplier) + 0.65f;
-    output.albedo = ToLinear(float4(lerp(ErosionColor, DepositionColor, erosion), 1.0f));
+    float3 heightMapNormal = HeigthMapNormal.Sample(TextureSampler, input.texcoord).xyz;
 
-    float3 normal = Normal.Sample(TextureSampler, input.texcoord).xyz;
-    output.normal = float4(PackNormal(normal), 1.0f);
+    float2 layerOneTexcoord = input.texcoord * 53.0f;
+    MultiUv layerOne = SampleTextures(input.world, layerOneTexcoord, erosion, heightMapNormal);
+
+    float2 layerTwoTexcoord = input.texcoord * 19.0f;
+    MultiUv layerTwo = SampleTextures(input.world, layerTwoTexcoord, erosion, heightMapNormal);
     
-    float metalicness = 0.0f;
-    float roughness = 1.0f;
-    float ambientOcclusion = 1.0f;
+
+    MultiUv sums = MixMultiUv(layerOne, layerTwo);
+
+    float count = 2;
+
+    float4 albedo = sums.albedo / count;
+    float metalicness = sums.metalicness / count;
+    float roughness = sums.roughness / count;
+    float ambientOcclusion = sums.ambientOcclusion / count;
+    float3 normal = normalize(sums.normal / count);
+    
+    output.albedo = albedo;
+    output.normal = float4(PackNormal(normal), 1.0f);
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
 
     input.previousPosition /= input.previousPosition.w;
