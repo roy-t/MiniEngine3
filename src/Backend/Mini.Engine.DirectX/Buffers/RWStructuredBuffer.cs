@@ -34,6 +34,24 @@ public sealed class RWStructuredBuffer<T> : StructuredBuffer<T>
         ctx.Unmap(this.Buffer);
     }
 
+    public void CopyToBuffer(DeviceContext context, DeviceBuffer<T> deviceBuffer)
+    {
+        var ctx = context.ID3D11DeviceContext;
+
+        var source = ctx.Map(this.Buffer, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);        
+        var target = ctx.Map(deviceBuffer.Buffer, 0, MapMode.WriteDiscard, Vortice.Direct3D11.MapFlags.None);
+
+        ctx.Flush();
+
+        var sourceSpan = source.AsSpan<T>(this.Buffer);
+        var targetSpan = target.AsSpan<T>(deviceBuffer.Buffer);
+
+        sourceSpan.CopyTo(targetSpan);
+
+        ctx.Unmap(this.Buffer);
+        ctx.Unmap(deviceBuffer.Buffer);
+    }
+
     internal ID3D11UnorderedAccessView GetUnorderedAccessView()
     {
         return this.GetUnorderedAccessView(0, this.Length);

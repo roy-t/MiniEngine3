@@ -74,20 +74,12 @@ public sealed class TerrainGenerator
     {
         var vertices = this.HeightMapGenerator.GenerateVertices(height, (int)(height.DimX * definition), (int)(height.DimY * definition));
         var indices = this.HeightMapGenerator.GenerateIndices((int)(height.DimX * definition), (int)(height.DimY * definition));
-        var mesh = new Mesh(this.Device, bounds, vertices, indices, name, "mesh");
-        return mesh;
+        return new Mesh(this.Device, bounds, vertices, indices, name, "mesh");
     }
 
     private void UpdateMesh(IMesh input, float definition, IRWTexture height, BoundingBox bounds)
     {
-        // TODO: can we directly write the vertex/index data to the buffers withoiut first copying to CPU?
-
-        var vertices = this.HeightMapGenerator.GenerateVertices(height, (int)(height.DimX * definition), (int)(height.DimY * definition));
-        input.Vertices.MapData(this.Device.ImmediateContext, vertices);
-
-        var indices = this.HeightMapGenerator.GenerateIndices((int)(height.DimX * definition), (int)(height.DimY * definition));
-        input.Indices.MapData(this.Device.ImmediateContext, indices);
-
+        this.HeightMapGenerator.UpdateVertices(height, (int)(height.DimX * definition), (int)(height.DimY * definition), input.Vertices);
         input.Bounds = bounds;
     }
 

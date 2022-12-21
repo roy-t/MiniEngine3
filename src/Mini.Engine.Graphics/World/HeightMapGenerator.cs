@@ -83,57 +83,72 @@ public sealed class HeightMapGenerator : IDisposable
         this.Device.ImmediateContext.Clear(texture, Colors.Transparent);
     }
 
+    public void UpdateVertices(IRWTexture heightMap, int width, int height, VertexBuffer<ModelVertex> vertexBuffer)
+    {
+        using var output = this.ComputeVertices(heightMap, width, height, out var _);
+        output.CopyToBuffer(this.Device.ImmediateContext, vertexBuffer);
+    }
+
     public ModelVertex[] GenerateVertices(IRWTexture heightMap, int width, int height)
+    {
+        using var output = this.ComputeVertices(heightMap, width, height, out var length);
+
+        var data = new ModelVertex[length];
+        output.ReadData(this.Device.ImmediateContext, data);
+
+        return data;
+    }
+
+    private RWStructuredBuffer<ModelVertex> ComputeVertices(IRWTexture heightMap, int width, int height, out int length)
     {
         var context = this.Device.ImmediateContext;
 
         this.User.MapTriangulateConstants(context, (uint)width, (uint)height, (uint)heightMap.DimX, (uint)heightMap.DimY, 0, 0);
         context.CS.SetConstantBuffer(HeightMap.TriangulateConstantsSlot, this.User.TriangulateConstantsBuffer);
-        var length = width * height;
-        using var output = new RWStructuredBuffer<ModelVertex>(this.Device, nameof(HeightMapGenerator), length);
 
+        length = width * height;
+
+        var output = new RWStructuredBuffer<ModelVertex>(this.Device, nameof(HeightMapGenerator), length);
         context.CS.SetShader(this.Shader.TriangulateKernel);
         context.CS.SetUnorderedAccessView(HeightMap.MapHeight, heightMap);
         context.CS.SetUnorderedAccessView(HeightMap.Vertices, output);
+
         var (x, y, z) = this.Shader.GetDispatchSizeForTriangulateKernel(width, height, 1);
         context.CS.Dispatch(x, y, z);
 
-        var data = new ModelVertex[length];
-        output.ReadData(context, data);
+        return output;
+    }
 
-        var minX = data.Min(foo => foo.Position.X);
-        var maxX = data.Max(foo => foo.Position.X);
-        var minY = data.Min(foo => foo.Position.Y);
-        var maxY = data.Max(foo => foo.Position.Y);
-        var minZ = data.Min(foo => foo.Position.Z);
-        var maxZ = data.Max(foo => foo.Position.Z);
+    public int[] GenerateIndices(int width, int height)
+    {
+        using var output = this.ComputeIndices(width, height, out var indices);
+
+        var data = new int[indices];
+        output.ReadData(this.Device.ImmediateContext, data);
 
         return data;
     }
 
-    public int[] GenerateIndices(int width, int height)
+    private RWStructuredBuffer<int> ComputeIndices(int width, int height, out int indices)
     {
         var context = this.Device.ImmediateContext;
 
         var intervals = width - 1;
         var quads = intervals * intervals;
         var triangles = quads * 2;
-        var indices = triangles * 3;
+        indices = triangles * 3;
 
         this.User.MapTriangulateConstants(context, (uint)width, (uint)height, 0, 0, (uint)indices, (uint)intervals);
         context.CS.SetConstantBuffer(HeightMap.TriangulateConstantsSlot, this.User.TriangulateConstantsBuffer);
 
-        using var output = new RWStructuredBuffer<int>(this.Device, nameof(HeightMapGenerator), indices);
+        var output = new RWStructuredBuffer<int>(this.Device, nameof(HeightMapGenerator), indices);
 
         context.CS.SetShader(this.Shader.IndicesKernel);
         context.CS.SetUnorderedAccessView(HeightMap.Indices, output);
         var (x, y, z) = this.Shader.GetDispatchSizeForIndicesKernel(indices, 1, 1);
         context.CS.Dispatch(x, y, z);
 
-        var data = new int[indices];
-        output.ReadData(context, data);
-
-        return data;
+        return output;
     }
 
     public void Dispose()
