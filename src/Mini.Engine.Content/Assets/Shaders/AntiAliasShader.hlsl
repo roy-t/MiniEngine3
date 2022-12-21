@@ -30,8 +30,7 @@ float4 NonePS(PS_INPUT input) : SV_Target
 }
     
 #pragma PixelShader
-TaaOutput TaaPS(PS_INPUT input)
+float4 TaaPS(PS_INPUT input) : SV_Target
 {    
-    TaaOutput output = TAA(PreviousColor, Color, PreviousVelocity, Velocity, TextureSampler, input.tex);
-    return output;
+    return TAA(PreviousColor, Color, PreviousVelocity, Velocity, TextureSampler, input.tex);    
 }

@@ -1,13 +1,12 @@
 ﻿using ShaderTools.CodeAnalysis.Hlsl.Syntax;
-using ShaderTools.CodeAnalysis.Syntax;
 
 namespace Mini.Engine.Content.Generators.HLSL.Parsers;
 
 public static class FunctionAttribute
 {
-    public static IReadOnlyDictionary<string, IReadOnlyList<string>> FindAll(SyntaxNodeBase startingNode)
+    public static IReadOnlyDictionary<string, IReadOnlyList<string>> FindAll(FunctionDefinitionSyntax startingNode)
     {
-        return startingNode.DescendantNodesAndSelf()
+        return startingNode.Attributes
             .Where(node => node.IsKind(SyntaxKind.AttributeDeclaration))
             .Cast<AttributeDeclarationSyntax>()
             .ToDictionary(a => FindName(a), a => FindArguments(a));

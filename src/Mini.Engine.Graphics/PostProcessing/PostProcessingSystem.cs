@@ -48,7 +48,7 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(AntiAliasShader.Velocity, this.FrameService.GBuffer.Velocity);
         this.Context.PS.SetShaderResource(AntiAliasShader.PreviousVelocity, this.FrameService.PBuffer.PreviousVelocity);
 
-        this.Context.OM.SetRenderTargets(null, this.FrameService.PBuffer.CurrentColor, this.FrameService.PBuffer.CurrentVelocity);
+        this.Context.OM.SetRenderTarget(this.FrameService.PBuffer.CurrentColor);
     }
 
     [Process(Query = ProcessQuery.None)]

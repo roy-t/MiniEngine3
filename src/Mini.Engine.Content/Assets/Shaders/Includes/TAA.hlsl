@@ -1,11 +1,6 @@
 ﻿#ifndef __TAA
 #define __TAA
 
-struct TaaOutput
-{
-    float4 Color : SV_Target0;
-    float2 Velocity : SV_Target1;
-};
 
 // Inspired by: 
 // - https://www.elopezr.com/temporal-aa-and-the-quest-for-the-holy-trail/
@@ -33,8 +28,11 @@ float3 BoxClamp(Texture2D current, sampler textureSampler, float3 currentColor, 
     
     float3 blur = float3(0.0f, 0.0f, 0.0f);
     // Sample a 3x3 neighborhood to create a box in color space
+    
+    [unroll]
     for (int x = -1; x <= 1; ++x)
     {
+        [unroll]
         for (int y = -1; y <= 1; ++y)
         {
             //float3 color = current.Sample(textureSampler, uv + float2(x, y) / textureSize).xyz; // Sample neighbor
@@ -71,23 +69,24 @@ float GetVelocityDisocclusion(float2 previousVelocity, float2 currentVelocity)
     return saturate((velocityLength - 0.001f) * 10.0f);
 }
     
-TaaOutput TAA(Texture2D colorHistory, Texture2D colorCurrent, Texture2D velocityHistory, Texture2D velocityCurrent, sampler textureSampler, float2 uv)
+float4 TAA(Texture2D colorHistory, Texture2D colorCurrent, Texture2D velocityHistory, Texture2D velocityCurrent, sampler textureSampler, float2 uv)
 {
     float3 currentColor = colorCurrent.Sample(textureSampler, uv).rgb;
 
     float2 velocity = velocityCurrent.Sample(textureSampler, uv).xy;
     float2 previousUv = uv + velocity;
+    if (previousUv.x >= 0.0f && previousUv.x <= 1.0f && previousUv.y >= 0.0f && previousUv.y <= 1.0f)
+    {
+        float2 previousVelocity = velocityHistory.Sample(textureSampler, previousUv).xy;
+        float3 previousColor = colorHistory.Sample(textureSampler, previousUv).rgb;
     
-    float2 previousVelocity = velocityHistory.Sample(textureSampler, previousUv).xy;
-    float3 previousColor = colorHistory.Sample(textureSampler, previousUv).rgb;
-    
-    float velocityDisocclusion = GetVelocityDisocclusion(previousVelocity, velocity);
-    
-    TaaOutput output;
-    output.Color = float4(BoxClamp(colorCurrent, textureSampler, currentColor, previousColor, velocityDisocclusion, uv), 1.0f);
-    output.Velocity = velocity;
-    
-    return output;
+        float velocityDisocclusion = GetVelocityDisocclusion(previousVelocity, velocity);
+        return float4(BoxClamp(colorCurrent, textureSampler, currentColor, previousColor, velocityDisocclusion, uv), 1.0f);
+    }
+    else
+    {
+        return float4(currentColor, 1.0f);
+    }
 }
 
 #endif
