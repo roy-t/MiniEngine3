@@ -121,4 +121,9 @@ public sealed class ContentManager
     {
         this.Loader.AddReloadCallback(id, callback);
     }
+
+    public void AddReloadReporter(Action<ContentId, Exception?> callback)
+    {
+        this.Loader.AddReloadReporter(callback);
+    }
 }

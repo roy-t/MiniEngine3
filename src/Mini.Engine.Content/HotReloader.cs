@@ -13,6 +13,7 @@ internal sealed class HotReloader
     private readonly ILogger Logger;
     private readonly IVirtualFileSystem FileSystem;
     private readonly List<ReloadReference> References;
+    private readonly List<Action<ContentId, Exception?>> Reporters;
     private readonly LifetimeManager LifetimeManager;
 
     public HotReloader(LifetimeManager lifetimeManager, ILogger logger, IVirtualFileSystem fileSystem)
@@ -20,11 +21,12 @@ internal sealed class HotReloader
         this.LifetimeManager = lifetimeManager;
         this.Logger = logger.ForContext<HotReloader>();
         this.FileSystem = fileSystem;
-        this.References = new List<ReloadReference>();
+        this.References = new List<ReloadReference>(0);
+        this.Reporters = new List<Action<ContentId, Exception?>>(0);
     }
 
     [Conditional("DEBUG")]
-    internal void Register(ILifetime<IDisposable> contentLifetime, IContentProcessor manager)        
+    internal void Register(ILifetime<IDisposable> contentLifetime, IContentProcessor manager)
     {
         var content = (IContent)this.LifetimeManager.Get(contentLifetime);
         foreach (var dependency in content.Dependencies)
@@ -61,6 +63,12 @@ internal sealed class HotReloader
     }
 
     [Conditional("DEBUG")]
+    public void AddReloadReporter(Action<ContentId, Exception?> callback)
+    {
+        this.Reporters.Add(callback);
+    }
+
+    [Conditional("DEBUG")]
     public void ReloadChangedContent()
     {
         foreach (var file in this.FileSystem.GetChangedFiles())
@@ -89,10 +97,20 @@ internal sealed class HotReloader
                             {
                                 callback();
                             }
+
+                            foreach (var callback in this.Reporters)
+                            {
+                                callback(content.Id, null);
+                            }
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             this.Logger.Error(ex, "Reloading failed");
+
+                            foreach (var callback in this.Reporters)
+                            {
+                                callback(content.Id, ex);
+                            }
                         }
                     }
                 }

@@ -116,4 +116,9 @@ internal class ContentLoader
     {
         this.HotReloader.AddReloadCallback(id, callback);
     }
+
+    public void AddReloadReporter(Action<ContentId, Exception?> callback)
+    {
+        this.HotReloader.AddReloadReporter(callback);
+    }
 }

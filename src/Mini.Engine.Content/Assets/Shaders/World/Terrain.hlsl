@@ -61,7 +61,7 @@ PS_INPUT VS(VS_INPUT input)
     output.previousPosition = mul(PreviousWorldViewProjection, position);
     output.currentPosition = output.position;
     output.world = mul(World, position).xyz;
-    output.texcoord = input.texcoord;
+    output.texcoord = input.texcoord; 
 
     return output;
 }
