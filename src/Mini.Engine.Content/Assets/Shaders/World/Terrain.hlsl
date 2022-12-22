@@ -75,7 +75,6 @@ struct MultiUv
     float3 normal;
 };
 
-
 MultiUv SampleTextures(float3 world, float2 texCoord, float erosion, float3 heightMapNormal)
 {
     float4 albedo = Albedo.Sample(TextureSampler, texCoord);
@@ -98,45 +97,44 @@ MultiUv SampleTextures(float3 world, float2 texCoord, float erosion, float3 heig
     return output;
 }
 
-MultiUv MixMultiUv(MultiUv one, MultiUv two)
-{
-    MultiUv output;
-    output.albedo = one.albedo + two.albedo;
-    output.metalicness = one.metalicness + two.metalicness;
-    output.roughness = one.roughness + two.roughness;
-    output.ambientOcclusion = one.ambientOcclusion + two.ambientOcclusion;
-    output.normal = one.normal + two.normal;
-
-    return output;
-}
-
 #pragma PixelShader
 OUTPUT PS(PS_INPUT input)
 {
     OUTPUT output;
 
     float erosion = (Erosion.Sample(TextureSampler, input.texcoord).r * ErosionMultiplier) + 0.65f;
-
     float3 heightMapNormal = HeigthMapNormal.Sample(TextureSampler, input.texcoord).xyz;
 
-    float2 layerOneTexcoord = input.texcoord * 83.0f;
-    MultiUv layerOne = SampleTextures(input.world, layerOneTexcoord, erosion, heightMapNormal);
+    float4 albedo = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    float metalicness = 0.0f;
+    float roughness = 0.0f;
+    float ambientOcclusion = 0.0f;
+    float3 normal = float3(0.0f, 0.0f, 0.0f);
 
-    float2 r2 = float2(sin(0.33f), cos(0.33f));
-    float2 layerTwoTexcoord = (r2 *input.texcoord) * 53.0f;
-    MultiUv layerTwo = SampleTextures(input.world, layerTwoTexcoord, erosion, heightMapNormal);
-    
+    const uint steps = 2;
+    float2 texcoords[steps] =
+    {
+        input.texcoord * 83.0f,
+        float2(sin(0.33f) * input.texcoord.x, cos(0.33f) * input.texcoord.y) * 53.0f
+    };
 
-    MultiUv sums = MixMultiUv(layerOne, layerTwo);
+    [unroll]
+    for(uint i = 0; i < steps; i++)
+    {
+        MultiUv layer = SampleTextures(input.world, texcoords[i], erosion, heightMapNormal);
+        albedo += layer.albedo;
+        metalicness += layer.metalicness;
+        roughness += layer.roughness;
+        ambientOcclusion += layer.ambientOcclusion;
+        normal += layer.normal;
+    }
 
-    float count = 2;
+    albedo /= steps;
+    metalicness /= steps;
+    roughness /= steps;
+    ambientOcclusion /= steps;
+    normal = normalize(normal / steps);
 
-    float4 albedo = sums.albedo / count;
-    float metalicness = sums.metalicness / count;
-    float roughness = sums.roughness / count;
-    float ambientOcclusion = sums.ambientOcclusion / count;
-    float3 normal = normalize(sums.normal / count);
-    
     output.albedo = albedo;
     output.normal = float4(PackNormal(normal), 1.0f);
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
