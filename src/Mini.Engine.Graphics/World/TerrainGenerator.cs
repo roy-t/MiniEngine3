@@ -2,6 +2,7 @@
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Materials;
+using Mini.Engine.Content.Textures;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Models;
@@ -17,12 +18,14 @@ public sealed class TerrainGenerator
     private readonly HeightMapGenerator HeightMapGenerator;
     private readonly HydraulicErosionBrush ErosionBrush;
     private readonly ContentManager Content;
+    private readonly Pixels Pixels;
     private readonly LifetimeManager LifetimeManager;
 
-    public TerrainGenerator(Device device, ContentManager content, LifetimeManager lifetimeManager, HeightMapGenerator noiseGenerator, HydraulicErosionBrush erosionBrush)
+    public TerrainGenerator(Device device, ContentManager content, Pixels pixels, LifetimeManager lifetimeManager, HeightMapGenerator noiseGenerator, HydraulicErosionBrush erosionBrush)
     {
         this.Device = device;
         this.Content = content;
+        this.Pixels = pixels;
         this.LifetimeManager = lifetimeManager;
 
         this.HeightMapGenerator = noiseGenerator;
@@ -44,6 +47,8 @@ public sealed class TerrainGenerator
         component.Mesh = this.LifetimeManager.Add(mesh);
         component.Normals = this.LifetimeManager.Add(normals);
         component.Erosion = this.LifetimeManager.Add(erosion);
+
+        component.Foilage = this.Pixels.CreatePixel(new Color4(0.0f, 0, 0, 1.0f), "Foilage");
 
         component.Material = this.Content.LoadMaterial(new ContentId(@"Materials\Grass01_MR_2K\grass.mtl", "grass"), MaterialSettings.Default);
     }

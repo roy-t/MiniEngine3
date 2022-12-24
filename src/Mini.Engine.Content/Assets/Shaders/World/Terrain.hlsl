@@ -49,6 +49,8 @@ Texture2D AmbientOcclusion : register(t4);
 Texture2D HeigthMapNormal : register(t5);
 Texture2D Erosion : register(t6);
 
+Texture2D Foilage : register(t7);
+
 #pragma VertexShader
 PS_INPUT VS(VS_INPUT input)
 {
@@ -141,6 +143,11 @@ OUTPUT PS(PS_INPUT input)
     roughness /= sumWeigth;
     ambientOcclusion /= sumWeigth;
     normal = normalize(normal / sumWeigth);
+
+    float4 foilage = ToLinear(Foilage.Sample(TextureSampler, input.texcoord));
+    albedo = float4(lerp(albedo.rgb, foilage.rgb, foilage.a), foilage.w);
+
+    ambientOcclusion = min(ambientOcclusion, (1.0f - foilage.w  * 0.45f));
 
     output.albedo = albedo;
     output.normal = float4(PackNormal(normal), 1.0f);

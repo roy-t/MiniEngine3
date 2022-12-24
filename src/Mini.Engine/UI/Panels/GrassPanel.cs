@@ -48,7 +48,7 @@ internal sealed class GrassPanel : IPanel
             {
                 ref var transform = ref this.Transforms[terrainComponent.Entity];
 
-                this.CreateClumpedGrass(in terrainComponent, in transform);
+                this.CreateClumpedGrass(ref terrainComponent, in transform);
             }
         }
 
@@ -85,13 +85,13 @@ internal sealed class GrassPanel : IPanel
         }
     }   
 
-    private void CreateClumpedGrass(in TerrainComponent terrainComponent, in TransformComponent terrainTransform)
+    private void CreateClumpedGrass(ref TerrainComponent terrainComponent, in TransformComponent terrainTransform)
     {
         var entity = this.Administrator.Entities.Create();
         ref var component = ref this.Administrator.Components.Create<GrassComponent>(entity);
 
         component.Texture = this.Content.LoadTexture(@"Shaders/World/GrassTexture.png", TextureSettings.Default);
-        component.InstanceBuffer = this.GrassPlacer.GenerateClumpedInstanceData(in terrainComponent, in terrainTransform, out var instances);
+        component.InstanceBuffer = this.GrassPlacer.GenerateClumpedInstanceData(ref terrainComponent, in terrainTransform, out var instances);
         component.Instances = instances;
     }
 }

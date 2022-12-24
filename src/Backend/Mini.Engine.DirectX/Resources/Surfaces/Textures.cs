@@ -8,8 +8,13 @@ public enum MipMapFlags { None, Provided, Generated };
 public enum BindInfo { ShaderResource, RenderTarget, UnorderedAccessView, DepthStencil, Staging };
 public enum ResourceInfo { Texture, Cube };
 
-public readonly record struct ImageInfo(int DimX, int DimY, Format Format, int Pitch = 0, int DimZ = 1)
+// TODO: is PitchOverride really used?
+public readonly record struct ImageInfo(int DimX, int DimY, Format Format, int PitchOverride = 0, int DimZ = 1)
 {
+    public int Pitch => this.PitchOverride > 0
+        ? this.PitchOverride
+        : this.Format.BytesPerPixel() * this.DimX;
+
     public int Pixels => this.DimX * this.DimY * this.DimZ;
 
 }

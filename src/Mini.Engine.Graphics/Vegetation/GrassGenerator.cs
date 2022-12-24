@@ -7,6 +7,7 @@ using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.World;
+using Vortice.DXGI;
 using GrassInstanceData = Mini.Engine.Content.Shaders.Generated.Grass.InstanceData;
 
 namespace Mini.Engine.Graphics.Vegetation;
@@ -22,7 +23,7 @@ public sealed class GrassGenerator
         this.Device = device;
     }
 
-    public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(in TerrainComponent terrainComponent, in TransformComponent terrainTransform, out int instances)
+    public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(ref TerrainComponent terrainComponent, in TransformComponent terrainTransform, out int instances)
     {
         var random = new Random(12345);
 
@@ -88,6 +89,8 @@ public sealed class GrassGenerator
         });
         instances = data.Length;
 
+        var foilage = new Vector4[height.Length];
+
         for (var i = 0; i < data.Length; i++)
         {
             var blade = data[i];
@@ -114,13 +117,35 @@ public sealed class GrassGenerator
             var x = (int)(((blade.Position.X - min) / range) * heightResource.DimX);
             var y = (int)(((blade.Position.Z - min) / range) * heightResource.DimY);
 
+            var textureIndex = Indexes.ToOneDimensional(x, y, heightResource.DimY);
 
-            blade.Position.Y = height[Indexes.ToOneDimensional(x, y, heightResource.DimY)];
+            foilage[textureIndex] += new Vector4(blade.Tint, 1.0f);
+
+            blade.Position.Y = height[textureIndex];
             blade.Position = Vector3.Transform(blade.Position, terrainTransform.Current.GetMatrix());
             data[i] = blade;
         }
 
+        for (var i = 0; i < foilage.Length; i++)
+        {
+            foilage[i] /= Math.Max(foilage[i].W, 1.0f);
+        }
+
+        // This looks like a good start, but definitely needs some blurring, or something like that?
+        this.CreateFoilageMap(foilage, heightResource.DimX, heightResource.DimY, ref terrainComponent);
+
         return this.ArrayToResource(data);
+    }
+
+    private void CreateFoilageMap(Vector4[] foilage, int dimX, int dimY, ref TerrainComponent component)
+    {
+        var format = Format.R32G32B32A32_Float;
+        var image = new ImageInfo(dimX, dimY, format, dimX * format.BytesPerPixel());
+        var texture = new Texture(this.Device, "Foilage", image, MipMapInfo.None());
+
+        texture.SetPixels<Vector4>(this.Device, foilage);
+
+        component.Foilage = this.Device.Resources.Add(texture);
     }
 
     private ILifetime<StructuredBuffer<GrassInstanceData>> ArrayToResource(GrassInstanceData[] data)

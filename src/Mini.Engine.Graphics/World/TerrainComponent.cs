@@ -16,6 +16,7 @@ public struct TerrainComponent : IComponent
     public Vector3 ErosionColor;
     public Vector3 DepositionColor;
     public float ErosionColorMultiplier;
+    public ILifetime<ISurface> Foilage;
 
     public ILifetime<IMaterial> Material;
 

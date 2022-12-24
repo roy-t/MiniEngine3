@@ -72,9 +72,9 @@ public sealed class Pixels
         return this.CreatePixel(new Color4(ao, ao, ao), "AmbientOcclusion");
     }
 
-    private ILifetime<ITexture> CreatePixel(Color4 color, string meaning)
+    public ILifetime<ITexture> CreatePixel(Color4 color, string meaning)
     {
-        var image = new ImageInfo(1, 1, Format.R16G16B16A16_Float, 1 * Format.R16G16B16A16_Float.BytesPerPixel());
+        var image = new ImageInfo(1, 1, Format.R32G32B32A32_Float, 1 * Format.R32G32B32A32_Float.BytesPerPixel());
         var mipMap = MipMapInfo.None();
         var pixel = new Texture(this.Device, nameof(Pixels) + meaning, image, mipMap);
         pixel.SetPixels(this.Device, new ReadOnlySpan<Color4>(new Color4[] { color }));

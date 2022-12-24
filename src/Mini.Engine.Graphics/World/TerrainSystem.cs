@@ -64,6 +64,8 @@ public sealed partial class TerrainSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(Terrain.Roughness, material.Roughness);
         this.Context.PS.SetShaderResource(Terrain.AmbientOcclusion, material.AmbientOcclusion);
 
+        this.Context.PS.SetShaderResource(Terrain.Foilage, component.Foilage);
+
         var camera = this.FrameService.GetPrimaryCamera().Camera;
         var cameraTransform = this.FrameService.GetPrimaryCameraTransform();        
         var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
