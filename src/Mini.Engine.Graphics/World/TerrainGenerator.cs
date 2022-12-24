@@ -45,7 +45,7 @@ public sealed class TerrainGenerator
         component.Normals = this.LifetimeManager.Add(normals);
         component.Erosion = this.LifetimeManager.Add(erosion);
 
-        component.Material = this.Content.LoadMaterial(new ContentId(@"Textures\Grass01_MR_2K\grass.mtl", "grass"), MaterialSettings.Default);
+        component.Material = this.Content.LoadMaterial(new ContentId(@"Materials\Grass01_MR_2K\grass.mtl", "grass"), MaterialSettings.Default);
     }
 
     public void UpdateElevation(ref TerrainComponent component, HeightMapGeneratorSettings settings)

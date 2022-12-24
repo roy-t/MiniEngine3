@@ -83,6 +83,6 @@ public sealed class HeightMapGeneratorSettings
 
         this.DepositionColor = new Vector3(88.0f, 102.0f, 37.0f) / 255.0f;
         this.ErosionColor = new Vector3(178.0f, 160.0f, 112.0f) / 255.0f;
-        this.ErosionColorMultiplier = 250.0f;
+        this.ErosionColorMultiplier = 450.0f;
     }
 }

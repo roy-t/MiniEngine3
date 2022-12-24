@@ -24,7 +24,7 @@ internal class TerrainPanel : IPanel
 
     private bool isErodingRealTime = false;
     private TimeSpan elapsedRealTime = TimeSpan.Zero;
-    private readonly TimeSpan expectedRealTime = TimeSpan.FromSeconds(5);
+    private readonly TimeSpan ExpectedRealTime = TimeSpan.FromSeconds(5);
 
     public TerrainPanel(ContentManager content, ECSAdministrator administrator, IComponentContainer<TerrainComponent> container, TerrainGenerator generator)
     {
@@ -78,6 +78,12 @@ internal class TerrainPanel : IPanel
             {
                 this.heightMapChanged |= this.ShowHeightMapSettings();
 
+                if (this.ShowHeightMapColorSettings())
+                {
+                    ref var component = ref this.ComponentSelector.Get();
+                    this.UpdateColors(ref component);
+                }
+
                 if (this.heightMapChanged || ImGui.Button("Update Heigth Map"))
                 {
                     ref var component = ref this.ComponentSelector.Get();
@@ -94,6 +100,17 @@ internal class TerrainPanel : IPanel
                         MeshDefinition = this.settings.MeshDefinition
                     };
                     this.heightMapChanged = true;
+                }
+
+                ImGui.SameLine();
+                if (ImGui.Button("Reset Colors"))
+                {
+                    ref var component = ref this.ComponentSelector.Get();
+                    var settings = new HeightMapGeneratorSettings();
+                    this.settings.ErosionColor = settings.ErosionColor;
+                    this.settings.DepositionColor = settings.DepositionColor;                    
+                    this.settings.ErosionColorMultiplier = settings.ErosionColorMultiplier;
+                    this.UpdateColors(ref component);
                 }
             }
         }
@@ -138,12 +155,19 @@ internal class TerrainPanel : IPanel
         }
     }
 
+    private void UpdateColors(ref TerrainComponent component)
+    {
+        component.ErosionColor = this.settings.ErosionColor;
+        component.DepositionColor = this.settings.DepositionColor;
+        component.ErosionColorMultiplier = this.settings.ErosionColorMultiplier;
+    }
+
     private void UpdateRealtimeErosion(float elapsed)
     {
         ref var terrain = ref this.ComponentSelector.Get();
 
         this.elapsedRealTime += TimeSpan.FromSeconds(elapsed);
-        var perSecond = this.erosionSettings.Droplets / this.expectedRealTime.TotalSeconds;
+        var perSecond = this.erosionSettings.Droplets / this.ExpectedRealTime.TotalSeconds;
         var step = elapsed * perSecond;
         var droplets = Math.Max(1, (int)step);
 
@@ -153,7 +177,7 @@ internal class TerrainPanel : IPanel
 
         this.IterateErosion(ref terrain, iterationSettings);
 
-        if (this.elapsedRealTime >= this.expectedRealTime)
+        if (this.elapsedRealTime >= this.ExpectedRealTime)
         {
             this.isErodingRealTime = false;
         }
@@ -182,10 +206,8 @@ internal class TerrainPanel : IPanel
         transform.Current = transform.Current.SetScale(100.0f);
 
         ref var terrain = ref this.Administrator.Components.Create<TerrainComponent>(entity);
-        terrain.ErosionColor = this.settings.ErosionColor;
-        terrain.DepositionColor = this.settings.DepositionColor;
-        terrain.ErosionColorMultiplier = this.settings.ErosionColorMultiplier;
-
+        this.UpdateColors(ref terrain);
+        
         this.Generator.GenerateEmpty(ref terrain, this.settings.Dimensions, this.settings.MeshDefinition);
     }
 
@@ -199,8 +221,12 @@ internal class TerrainPanel : IPanel
                ImGui.SliderFloat("Lacunarity", ref this.settings.Lacunarity, 0.75f, 1.25f) ||
                ImGui.SliderFloat("CliffStart", ref this.settings.CliffStart, 0.0f, 1.0f) ||
                ImGui.SliderFloat("CliffEnd", ref this.settings.CliffEnd, 0.0f, 1.0f) ||
-               ImGui.SliderFloat("CliffStrength", ref this.settings.CliffStrength, 0.0f, 1.0f) ||
-               ImGui.ColorEdit3("DepositionColor", ref this.settings.DepositionColor) ||
+               ImGui.SliderFloat("CliffStrength", ref this.settings.CliffStrength, 0.0f, 1.0f);
+    }
+
+    private bool ShowHeightMapColorSettings()
+    {
+        return ImGui.ColorEdit3("DepositionColor", ref this.settings.DepositionColor) ||
                ImGui.ColorEdit3("ErosionColor", ref this.settings.ErosionColor) ||
                ImGui.SliderFloat("ErosionColorMultiplier", ref this.settings.ErosionColorMultiplier, 1.0f, 1000.0f);
     }

@@ -88,7 +88,7 @@ MultiUv SampleTextures(float3 world, float2 texCoord, float erosion, float3 heig
     float3 normal = PerturbNormal(Normal, TextureSampler, heightMapNormal, V, texCoord);
 
     MultiUv output;
-    output.albedo = lerp(albedo, tint, 0.75f);
+    output.albedo = lerp(albedo, tint, 0.25f);
     output.metalicness = metalicness;
     output.roughness = roughness;
     output.ambientOcclusion = ambientOcclusion;
@@ -103,6 +103,7 @@ OUTPUT PS(PS_INPUT input)
     OUTPUT output;
 
     float erosion = (Erosion.Sample(TextureSampler, input.texcoord).r * ErosionMultiplier) + 0.65f;
+    erosion = clamp(erosion, 0.0f, 1.0f);
     float3 heightMapNormal = HeigthMapNormal.Sample(TextureSampler, input.texcoord).xyz;
 
     float4 albedo = float4(0.0f, 0.0f, 0.0f, 0.0f);
