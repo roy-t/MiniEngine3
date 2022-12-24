@@ -21,12 +21,11 @@ public sealed class GrassGenerator
     {
         this.Device = device;
     }
-    
+
     public ILifetime<StructuredBuffer<GrassInstanceData>> GenerateClumpedInstanceData(in TerrainComponent terrainComponent, in TransformComponent terrainTransform, out int instances)
     {
         var random = new Random(12345);
 
-        var bladesPerSide = 1000;
         var columns = 50;
         var rows = 50;
 
@@ -54,7 +53,7 @@ public sealed class GrassGenerator
             var xOffset = (random.NextSingle() - 0.49f) * cellSize.X;
             var yOffset = (random.NextSingle() - 0.49f) * cellSize.Y;
 
-            var position = new Vector2(x + xOffset, y + yOffset);            
+            var position = new Vector2(x + xOffset, y + yOffset);
             var rotation = random.NextSingle() * MathF.PI * 2;
             var clump = GrassClump.Default(position, GrassPalette.Pick(), rotation, random.InRange(0.75f, 1.75f));
             clump.ApplyTint = (c, b, d) => ColorMath.Interpolate(c, b, d / maxCellDistance);
@@ -64,24 +63,31 @@ public sealed class GrassGenerator
             return clump;
         });
 
-        // TODO: now that we can place items based on weights/textures, what to do with it?
-
         var heightResource = (RWTexture)this.Device.Resources.Get(terrainComponent.Height);
         var height = this.Device.ImmediateContext.GetSurfaceData<float>(heightResource);
 
         var erosionResource = (RWTexture)this.Device.Resources.Get(terrainComponent.Erosion);
-        var erosion = this.Device.ImmediateContext.GetSurfaceData<float>(erosionResource);
+        var erosion = this.Device.ImmediateContext.GetSurfaceData<Half>(erosionResource);
 
-        //var data = DebugGrassPlacer.GenerateRandomGrass(GrassPalette, bladesPerSide * bladesPerSide, min, max);
-        var distributor = new ObjectDistributor(new Vector2(min, min), new Vector2(max, max), 300, height, heightResource.DimX);
-        
-        var data = distributor.Distribute(1_000_000, v => {
+        var normalsResource = (RWTexture)this.Device.Resources.Get(terrainComponent.Normals);
+        var normals = this.Device.ImmediateContext.GetSurfaceData<Vector4>(normalsResource);
+
+        var weights = GenerateWeights(height, erosion, normals);
+
+        var distributor = new ObjectDistributor(new Vector2(min, min), new Vector2(max, max), 300, weights, heightResource.DimX);
+
+        var data = distributor.Distribute(1_000_000, v =>
+        {
             var data = DebugGrassPlacer.Single(GrassPalette, Random.Shared);
-            data.Position = new Vector3(v.X, 0.0f, v.Y);
-            return data;            
+
+            var ox = ((max - min) / columns) * random.NextSingle();
+            var oy = ((max - min) / rows) * random.NextSingle();
+
+            data.Position = new Vector3(Math.Clamp(v.X + ox, min + 0.001f, max - 0.001f), 0, Math.Clamp(v.Y + oy, min + 0.001f, max - 0.001f));
+            return data;
         });
         instances = data.Length;
-        
+
         for (var i = 0; i < data.Length; i++)
         {
             var blade = data[i];
@@ -109,7 +115,7 @@ public sealed class GrassGenerator
             var y = (int)(((blade.Position.Z - min) / range) * heightResource.DimY);
 
 
-            blade.Position.Y = height[Indexes.ToOneDimensional(x, y, heightResource.DimY)];       
+            blade.Position.Y = height[Indexes.ToOneDimensional(x, y, heightResource.DimY)];
             blade.Position = Vector3.Transform(blade.Position, terrainTransform.Current.GetMatrix());
             data[i] = blade;
         }
@@ -123,5 +129,48 @@ public sealed class GrassGenerator
         instanceBuffer.MapData(this.Device.ImmediateContext, data);
 
         return this.Device.Resources.Add(instanceBuffer);
+    }
+
+    private float[] GenerateWeights(float[] height, Half[] erosion, Vector4[] normals)
+    {
+        var weights = new float[height.Length];
+        for (var i = 0; i < height.Length; i++)
+        {
+            var w = 0.0f;
+
+            var h = height[i];
+            var e = UnpackErosion(erosion[i]);
+            var n = UnpackNormal(normals[i]);
+
+            var dot = Vector3.Dot(Vector3.UnitY, n);
+            if (dot > 0.975f)
+            {
+                w = 1.0f;
+            }
+
+            if (e < 0.000001f)
+            {
+                w = 0.0f;
+            }
+
+            if (h > 0.01f)
+            {
+                w = 0.0f;
+            }
+
+            weights[i] = w;
+        }
+
+        return weights;
+    }
+
+    private static Vector3 UnpackNormal(Vector4 normal)
+    {
+        return new Vector3(normal.X, normal.Y, normal.Z);
+    }
+
+    private static float UnpackErosion(Half erosion)
+    {
+        return (float)erosion;
     }
 }

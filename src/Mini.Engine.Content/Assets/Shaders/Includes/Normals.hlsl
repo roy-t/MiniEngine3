@@ -3,12 +3,12 @@
 
 float3 PackNormal(float3 normal)
 {
-    return float3(0.5f * (normalize(normal) + 1.0f));
+    return 0.5f * (normalize(normal) + 1.0f);
 }
 
 float3 UnpackNormal(float3 normal)
 {
-    return float3(normalize((2.0f * normal) - 1.0f));
+    return normalize((2.0f * normal) - 1.0f);
 }
 
 // Normal mapping as described by Christian Schüler in
