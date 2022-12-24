@@ -111,29 +111,35 @@ OUTPUT PS(PS_INPUT input)
     float ambientOcclusion = 0.0f;
     float3 normal = float3(0.0f, 0.0f, 0.0f);
 
-    const uint steps = 2;
-    float2 texcoords[steps] =
+    const uint steps = 3;
+    float2 texcoords[] =
     {
         input.texcoord * 83.0f,
-        float2(sin(0.33f) * input.texcoord.x, cos(0.33f) * input.texcoord.y) * 53.0f
+        float2(sin(0.33f) * input.texcoord.x, cos(0.33f) * input.texcoord.y) * 53.0f,
+        float2(sin(0.75f) * input.texcoord.x, cos(0.75f) * input.texcoord.y) * 1.0f + float2(0.33, 0.16f)
     };
+
+    float sumWeigth = 0.0f;
 
     [unroll]
     for(uint i = 0; i < steps; i++)
     {
+        float weight = steps / (i + 2.0f);
+        sumWeigth += weight;
+
         MultiUv layer = SampleTextures(input.world, texcoords[i], erosion, heightMapNormal);
-        albedo += layer.albedo;
-        metalicness += layer.metalicness;
-        roughness += layer.roughness;
-        ambientOcclusion += layer.ambientOcclusion;
-        normal += layer.normal;
+        albedo += layer.albedo * weight;
+        metalicness += layer.metalicness * weight;
+        roughness += layer.roughness * weight;
+        ambientOcclusion += layer.ambientOcclusion * weight;
+        normal += layer.normal * weight;
     }
 
-    albedo /= steps;
-    metalicness /= steps;
-    roughness /= steps;
-    ambientOcclusion /= steps;
-    normal = normalize(normal / steps);
+    albedo /= sumWeigth;
+    metalicness /= sumWeigth;
+    roughness /= sumWeigth;
+    ambientOcclusion /= sumWeigth;
+    normal = normalize(normal / sumWeigth);
 
     output.albedo = albedo;
     output.normal = float4(PackNormal(normal), 1.0f);
