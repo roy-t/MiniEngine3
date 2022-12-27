@@ -48,7 +48,7 @@ public sealed class TerrainGenerator
         component.Normals = this.LifetimeManager.Add(normals);
         component.Erosion = this.LifetimeManager.Add(erosion);
 
-        component.Foilage = this.Pixels.CreatePixel(new Color4(0.0f, 0, 0, 1.0f), "Foilage");
+        component.Foilage = this.Pixels.CreatePixel(new Color4(0.0f, 0, 0, 0.0f), "Foilage");
 
         component.Material = this.Content.LoadMaterial(new ContentId(@"Materials\Grass01_MR_2K\grass.mtl", "grass"), MaterialSettings.Default);
     }

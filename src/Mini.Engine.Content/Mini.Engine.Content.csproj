@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
+    <None Remove="Assets\Shaders\Hexagons\Hexagon.hlsl" />
     <None Remove="Assets\Shaders\Includes\FXAA.hlsl" />
     <None Remove="Assets\Shaders\Includes\TAA.hlsl" />
     <None Remove="Assets\Shaders\Lighting\BrdfLutCompute.hlsl" />
@@ -16,6 +17,7 @@
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
+    <AdditionalFiles Include="Assets\Shaders\Hexagons\Hexagon.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\TAA.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\FXAA.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Easings.hlsl" />
