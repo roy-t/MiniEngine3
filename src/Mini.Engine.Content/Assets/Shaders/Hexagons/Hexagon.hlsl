@@ -58,47 +58,42 @@ StructuredBuffer<InstanceData> Instances : register(t5);
 static const float STEP = (TWO_PI / 6.0f);
 static const float INNER_RADIUS = 0.40f;
 static const float OUTER_RADIUS = 0.5f;
+static const float BORDER_RADIUS = OUTER_RADIUS - INNER_RADIUS;
 
 float4 GetPosition(InstanceData data, uint vertexId)
 {
     uint triangleId = vertexId / 3;
     uint triangleVertexId = vertexId % 3;
 
+    float offset = triangleId * STEP;
+    float radians = max(triangleVertexId - 1.0f, 0.0f) * STEP + offset;
+
     if (triangleId < 6)
     {
-        float offset = triangleId * STEP;
-        
         float radius = min(triangleVertexId, 1.0f) * INNER_RADIUS;
-        float radians = max(triangleVertexId - 1.0f, 0.0f) * STEP + offset;
         
         float x = sin(-radians) * radius + data.position.x;
         float y = data.position.y;
         float z = cos(-radians) * radius + data.position.z;
 
         return float4(x, y, z, 1);
-    }
-    else if (triangleId < 12)
+    }    
+    else if (triangleId < 12) // half connecting prism A
     {
-        float offset = (triangleId - 6) * STEP;
-        
-        float radius = INNER_RADIUS + max(1.0f - triangleVertexId, 0) * (OUTER_RADIUS - INNER_RADIUS);
-        float radians = max(triangleVertexId - 1.0f, 0.0f) * STEP + offset;
+        float radius = INNER_RADIUS + max(1.0f - triangleVertexId, 0) * BORDER_RADIUS;
 
         float x = sin(radians) * radius + data.position.x;
-        float y = data.position.y + 0.25f;
+        float y = data.position.y;
         float z = cos(radians) * radius + data.position.z;
         
         return float4(x, y, z, 1);
     }
-    else
+    else // half of connecting prism B
     {
-        float offset = (triangleId - 6) * STEP;
-        
-        float radius = INNER_RADIUS + min(triangleVertexId, 1.0f) * (OUTER_RADIUS - INNER_RADIUS);
-        float radians = max(triangleVertexId - 1.0f, 0.0f) * STEP + offset;
+        float radius = INNER_RADIUS + min(triangleVertexId, 1.0f) * BORDER_RADIUS;
 
         float x = sin(-radians) * radius + data.position.x;
-        float y = data.position.y + 0.25f;
+        float y = data.position.y;
         float z = cos(-radians) * radius + data.position.z;
         
         return float4(x, y, z, 1);

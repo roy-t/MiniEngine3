@@ -18,7 +18,7 @@ public static class HexagonTerrainBuilder
             for (var c = 0; c < columns; c++)
             {
                 var offset = r % 2 == 0
-                    ? new Vector3(width, 0, 0)
+                    ? new Vector3(width, 0.5f, 0)
                     : Vector3.Zero;
 
                 var index = Indexes.ToOneDimensional(c, r, columns);
