@@ -41,7 +41,7 @@ public sealed partial class HexagonSystem : ISystem, IDisposable
         this.Context.VS.SetShader(this.Shader.Vs);
         this.Context.VS.SetConstantBuffer(Hexagon.ConstantsSlot, this.User.ConstantsBuffer);
 
-        this.Context.RS.SetRasterizerState(this.Context.Device.RasterizerStates.CullNone);
+        this.Context.RS.SetRasterizerState(this.Context.Device.RasterizerStates.Default);
         this.Context.RS.SetScissorRect(0, 0, this.Device.Width, this.Device.Height);
         this.Context.RS.SetViewPort(0, 0, this.Device.Width, this.Device.Height);
 
@@ -79,7 +79,7 @@ public sealed partial class HexagonSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(Hexagon.AmbientOcclusion, material.AmbientOcclusion);
 
         this.Context.VS.SetInstanceBuffer(Hexagon.Instances, hexagons.InstanceBuffer);
-        this.Context.DrawInstanced(6 * 3, hexagons.Instances); // TODO: change to TriangleStrip
+        this.Context.DrawInstanced((6 * 3) + (6 * 3) + (6 * 3), hexagons.Instances);
     }
 
     public void OnUnSet()

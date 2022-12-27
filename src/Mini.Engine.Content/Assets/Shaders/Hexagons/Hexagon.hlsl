@@ -5,7 +5,7 @@
 
 struct InstanceData
 {
-    float3 position;    
+    float3 position;
     uint sides;
 };
 
@@ -56,21 +56,55 @@ Texture2D AmbientOcclusion : register(t4);
 StructuredBuffer<InstanceData> Instances : register(t5);
     
 static const float STEP = (TWO_PI / 6.0f);
+static const float INNER_RADIUS = 0.40f;
+static const float OUTER_RADIUS = 0.5f;
 
 float4 GetPosition(InstanceData data, uint vertexId)
 {
     uint triangleId = vertexId / 3;
     uint triangleVertexId = vertexId % 3;
-    
-    float offset = triangleId * STEP;
-    
-    float radius = min(triangleVertexId, 1) * 0.5f;
-    float radians = max(triangleVertexId - 1, 0) * STEP + offset;
-    
-    float x = sin(radians) * radius;
-    float z = cos(radians) * radius;
-    
-    return float4(x, 0, z, 1);
+
+    if (triangleId < 6)
+    {
+        float offset = triangleId * STEP;
+        
+        float radius = min(triangleVertexId, 1.0f) * INNER_RADIUS;
+        float radians = max(triangleVertexId - 1.0f, 0.0f) * STEP + offset;
+        
+        float x = sin(-radians) * radius + data.position.x;
+        float y = data.position.y;
+        float z = cos(-radians) * radius + data.position.z;
+
+        return float4(x, y, z, 1);
+    }
+    else if (triangleId < 12)
+    {
+        float offset = (triangleId - 6) * STEP;
+        
+        float radius = INNER_RADIUS + max(1.0f - triangleVertexId, 0) * (OUTER_RADIUS - INNER_RADIUS);
+        float radians = max(triangleVertexId - 1.0f, 0.0f) * STEP + offset;
+
+        float x = sin(radians) * radius + data.position.x;
+        float y = data.position.y + 0.25f;
+        float z = cos(radians) * radius + data.position.z;
+        
+        return float4(x, y, z, 1);
+    }
+    else
+    {
+        float offset = (triangleId - 6) * STEP;
+        
+        float radius = INNER_RADIUS + min(triangleVertexId, 1.0f) * (OUTER_RADIUS - INNER_RADIUS);
+        float radians = max(triangleVertexId - 1.0f, 0.0f) * STEP + offset;
+
+        float x = sin(-radians) * radius + data.position.x;
+        float y = data.position.y + 0.25f;
+        float z = cos(-radians) * radius + data.position.z;
+        
+        return float4(x, y, z, 1);
+    }
+
+    return float4(0, 0, 0, 1);
 }
 
 float3 GetNormal(InstanceData data, uint vertexId)
