@@ -6,7 +6,12 @@
 struct InstanceData
 {
     float3 position;
-    uint sides;
+    float ne;
+    float e;
+    float se;
+    float sw;
+    float w;
+    float nw;
 };
 
 struct VS_INPUT
@@ -62,13 +67,19 @@ static const float BORDER_RADIUS = OUTER_RADIUS - INNER_RADIUS;
 
 float4 GetPosition(InstanceData data, uint vertexId)
 {
-    uint triangleId = vertexId / 3;
-    uint triangleVertexId = vertexId % 3;
+    float sides[6] = {data.ne, data.e, data.se, data.sw, data.w, data.nw};
 
-    float offset = triangleId * STEP;
+    // 6 sides, with each 3 triangles, or 9 vertices
+    uint side =  vertexId / (9);
+    uint triangleId = (vertexId % 9) / 3;
+    uint triangleVertexId = vertexId  % 3;
+    
+    float offset = side * STEP;
     float radians = max(triangleVertexId - 1.0f, 0.0f) * STEP + offset;
 
-    if (triangleId < 6)
+    float sideOffset = sides[side];
+
+    if( triangleId == 0) // inner hexagon shape
     {
         float radius = min(triangleVertexId, 1.0f) * INNER_RADIUS;
         
@@ -78,28 +89,29 @@ float4 GetPosition(InstanceData data, uint vertexId)
 
         return float4(x, y, z, 1);
     }    
-    else if (triangleId < 12) // half connecting prism A
+    else if (triangleId == 1) // half connecting prism A
     {
-        float radius = INNER_RADIUS + max(1.0f - triangleVertexId, 0) * BORDER_RADIUS;
+        radians = min(triangleVertexId, 1.0f) * STEP + offset;
+        float radius = INNER_RADIUS + (triangleVertexId % 2) * BORDER_RADIUS;
+        float yOffset = (triangleVertexId % 2) * sideOffset;
 
-        float x = sin(radians) * radius + data.position.x;
-        float y = data.position.y;
-        float z = cos(radians) * radius + data.position.z;
+        float x = sin(-radians) * radius + data.position.x;
+        float y = data.position.y + yOffset;
+        float z = cos(-radians) * radius + data.position.z;
         
         return float4(x, y, z, 1);
     }
     else // half of connecting prism B
     {
         float radius = INNER_RADIUS + min(triangleVertexId, 1.0f) * BORDER_RADIUS;
+        float yOffset = min(triangleVertexId, 1.0f) * sideOffset;
 
         float x = sin(-radians) * radius + data.position.x;
-        float y = data.position.y;
+        float y = data.position.y + yOffset;
         float z = cos(-radians) * radius + data.position.z;
         
         return float4(x, y, z, 1);
     }
-
-    return float4(0, 0, 0, 1);
 }
 
 float3 GetNormal(InstanceData data, uint vertexId)
