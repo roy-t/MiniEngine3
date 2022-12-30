@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using Mini.Engine.Core;
 using HexagonInstanceData = Mini.Engine.Content.Shaders.Generated.Hexagon.InstanceData;
 
@@ -15,16 +16,18 @@ public static class HexagonTerrainBuilder
         for (var r = 0; r < rows; r++)
         {
             for (var c = 0; c < columns; c++)
-            {               
+            {
                 var offset = r % 2 == 0
                     ? new Vector3(width, 0, 0)
                     : Vector3.Zero;
 
                 var index = Indexes.ToOneDimensional(c, r, columns);
+                var sides = PackSides(new float[] { -1, -1, -1, -1, -1, -1 });
+
                 data[index] = new HexagonInstanceData()
                 {
                     Position = new Vector3(width * c * 2, 0, r * heigth) + offset,
-                    Ne = 0.1f
+                    Sides = sides
                 };
             }
         }
@@ -32,6 +35,15 @@ public static class HexagonTerrainBuilder
         //ComputeOffsets(data, columns, rows);
 
         return data;
+    }
+
+    private static uint PackSides(float[] offsets)
+    {
+        Debug.Assert(offsets.Length == 6);
+
+        var states = offsets.Select(o => (Tristate)(Math.Sign(o) + 1)).ToArray();
+
+        return BitPacker.Pack(states[0], states[1], states[2], states[3], states[4], states[5]);
     }
 
     //private static void ComputeOffsets(HexagonInstanceData[] data, int columns, int rows)

@@ -6,12 +6,7 @@
 struct InstanceData
 {
     float3 position;
-    float ne;
-    float e;
-    float se;
-    float sw;
-    float w;
-    float nw;
+    uint sides;
 };
 
 struct VS_INPUT
@@ -65,10 +60,17 @@ static const float INNER_RADIUS = 0.40f;
 static const float OUTER_RADIUS = 0.5f;
 static const float BORDER_RADIUS = OUTER_RADIUS - INNER_RADIUS;
 
+float GetSideOffset(uint sides, int index)
+{
+    uint mask = 3 << (index * 2);
+    uint shifted = sides & mask;
+    uint positive = shifted >> (index * 2);
+
+    return positive - 1.0f;
+}
+
 float4 GetPosition(InstanceData data, uint vertexId)
 {
-    float sides[6] = {data.ne, data.e, data.se, data.sw, data.w, data.nw};
-
     // 6 sides, with each 3 triangles, or 9 vertices
     uint side =  vertexId / (9);
     uint triangleId = (vertexId % 9) / 3;
@@ -77,7 +79,7 @@ float4 GetPosition(InstanceData data, uint vertexId)
     float offset = side * STEP;
     float radians = max(triangleVertexId - 1.0f, 0.0f) * STEP + offset;
 
-    float sideOffset = sides[side];
+    float sideOffset = GetSideOffset(data.sides, side) * 0.1f;
 
     if( triangleId == 0) // inner hexagon shape
     {

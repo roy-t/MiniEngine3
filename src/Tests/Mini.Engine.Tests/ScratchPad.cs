@@ -1,7 +1,4 @@
-﻿using System.Numerics;
-using Mini.Engine.Core;
-using Mini.Engine.Graphics;
-using Mini.Engine.Graphics.Cameras;
+﻿using Mini.Engine.Core;
 using Xunit;
 namespace Mini.Engine.Tests;
 public class ScratchPad
@@ -10,20 +7,11 @@ public class ScratchPad
     [Fact]
     public void Foo()
     {
-        var random = new VoseWeightedRandom(Random.Shared, new float[] { 0.25f, 0.50f, 0.25f });
-
-        var outcomes = new int[3];
-        var references = new int []{ 0, 1, 2 };
-        for (var i = 0; i < 1_000_000; i++)
-        {
-            var index = random.Pick(references);
-            outcomes[index]++;
-        }
+        var input = new uint[6]{ 0, 1, 2, 1, 2, 0 };
+        var packed = BitPacker.Pack((Tristate)input[0], (Tristate)input[1], (Tristate)input[2], (Tristate)input[3], (Tristate)input[4], (Tristate)input[5]);
+        var output = BitPacker.Unpack(packed).Select(t => (uint)t).Take(6).ToArray();
 
 
-        if (outcomes[0] > 0)
-        {
-
-        }
+        Assert.Equal(input, output);
     }
 }
