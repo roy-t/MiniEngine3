@@ -79,7 +79,10 @@ public sealed partial class HexagonSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(Hexagon.AmbientOcclusion, material.AmbientOcclusion);
 
         this.Context.VS.SetInstanceBuffer(Hexagon.Instances, hexagons.InstanceBuffer);
-        this.Context.DrawInstanced((6 * 3) + (6 * 3) + (6 * 3), hexagons.Instances);
+
+        // 4 triangles for the inside, 6 * 2 triangles for the flaps, 6 * 2 triangles for the flap connections
+        var vertexCount = (4 + (6 * 2) + (6 * 2)) * 3;
+        this.Context.DrawInstanced(vertexCount, hexagons.Instances);
     }
 
     public void OnUnSet()

@@ -70,49 +70,152 @@ float GetSideOffset(uint sides, int index)
 }
 
 float4 GetPosition(InstanceData data, uint vertexId)
-{
-    // 6 sides, with each 3 triangles, or 9 vertices
-    uint side =  vertexId / (9);
-    uint triangleId = (vertexId % 9) / 3;
-    uint triangleVertexId = vertexId  % 3;
+{    
+    static const float Step = 0.866025403784f; // sin(PI/3)
+    static const float InnerRadius = 0.4f;
+    static const float InX = InnerRadius * Step;
+    static const float InZ = InnerRadius * 0.5f;
     
-    float offset = side * STEP;
-    float radians = max(triangleVertexId - 1.0f, 0.0f) * STEP + offset;
+    static const float OuterRadius = 0.5f;
+    static const float OutX = OuterRadius * Step;
+    static const float OutZ = OuterRadius * 0.5f;
 
-    float sideOffset = GetSideOffset(data.sides, side) * 0.1f;
+    static const float4 vInNorth = float4(0, 0, -InnerRadius, 1);
+    static const float4 vInNorthEast = float4(InX, 0, -InZ, 1);
+    static const float4 vInSouthEast = float4(InX, 0, InZ, 1);
+    static const float4 vInSouth = float4(0, 0, InnerRadius, 1);
+    static const float4 vInSouthWest = float4(-InX, 0, InZ, 1);
+    static const float4 vInNorthWest = float4(-InX, 0, -InZ, 1);
 
-    if( triangleId == 0) // inner hexagon shape
+    static const float4 vOutNorth = float4(0, 0, -OuterRadius, 1);
+    static const float4 vOutNorthEast = float4(OutX, 0, -OutZ, 1);
+    static const float4 vOutSouthEast = float4(OutX, 0, OutZ, 1);
+    static const float4 vOutSouth = float4(0, 0, OuterRadius, 1);
+    static const float4 vOutSouthWest = float4(-OutX, 0, OutZ, 1);
+    static const float4 vOutNorthWest = float4(-OutX, 0, -OutZ, 1);
+    
+    switch(vertexId)
     {
-        float radius = min(triangleVertexId, 1.0f) * INNER_RADIUS;
+        // Top triangle
+        case 0:
+            return vInNorthWest;
+        case 1:
+            return vInNorth;
+        case 2:
+            return vInNorthEast;
         
-        float x = sin(-radians) * radius + data.position.x;
-        float y = data.position.y;
-        float z = cos(-radians) * radius + data.position.z;
+        // Bottom triangle
+        case 3:
+            return vInSouthWest;
+        case 4:
+            return vInSouthEast;
+        case 5:
+            return vInSouth;
 
-        return float4(x, y, z, 1);
-    }    
-    else if (triangleId == 1) // half connecting prism A
-    {
-        radians = min(triangleVertexId, 1.0f) * STEP + offset;
-        float radius = INNER_RADIUS + (triangleVertexId % 2) * BORDER_RADIUS;
-        float yOffset = (triangleVertexId % 2) * sideOffset;
+        // top right middle
+        case 6:
+            return vInNorthWest;
+        case 7:
+            return vInNorthEast;
+        case 8:
+            return vInSouthEast;
 
-        float x = sin(-radians) * radius + data.position.x;
-        float y = data.position.y + yOffset;
-        float z = cos(-radians) * radius + data.position.z;
+        // bottom left middle
+        case 9:
+            return vInSouthWest;
+        case 10:
+            return vInNorthWest;
+        case 11:
+            return vInSouthEast;
+
+        // top right flap
+        case 12:
+            return vInNorth;
+        case 13:
+            return vOutNorth;
+        case 14:
+            return vInNorthEast;
+        case 15:
+            return vOutNorth;
+        case 16:
+            return vOutNorthEast;
+        case 17:
+            return vInNorthEast;
+
+        // Right flap
+        case 18:
+            return vInNorthEast;
+        case 19:
+            return vOutNorthEast;
+        case 20:
+            return vInSouthEast;
+        case 21:
+            return vOutNorthEast;
+        case 22:
+            return vOutSouthEast;
+        case 23:
+            return vInSouthEast;
+
+        // bottom right flap
+        case 24:
+            return vInSouthEast;
+        case 25:
+            return vOutSouthEast;
+        case 26:
+            return vInSouth;
+        case 27:
+            return vOutSouthEast;
+        case 28:
+            return vOutSouth;
+        case 29:
+            return vInSouth;
+
+        // bottom left flap
+        case 30:
+            return vInSouth;
+        case 31:
+            return vOutSouth;
+        case 32:
+            return vInSouthWest;
+        case 33:
+            return vOutSouth;
+        case 34:
+            return vOutSouthWest;
+        case 35:
+            return vInSouthWest;
         
-        return float4(x, y, z, 1);
-    }
-    else // half of connecting prism B
-    {
-        float radius = INNER_RADIUS + min(triangleVertexId, 1.0f) * BORDER_RADIUS;
-        float yOffset = min(triangleVertexId, 1.0f) * sideOffset;
-
-        float x = sin(-radians) * radius + data.position.x;
-        float y = data.position.y + yOffset;
-        float z = cos(-radians) * radius + data.position.z;
+        // left flap
+        case 36:
+            return vInSouthWest;
+        case 37:
+            return vOutSouthWest;
+        case 38:
+            return vInNorthWest;
+        case 39:
+            return vOutSouthWest;
+        case 40:
+            return vOutNorthWest;
+        case 41:
+            return vInNorthWest;
         
-        return float4(x, y, z, 1);
+        // top left flap
+        case 42:
+            return vInNorthWest;
+        case 43:
+            return vOutNorthWest;
+        case 44:
+            return vInNorth;
+        case 45:
+            return vOutNorthWest;
+        case 46:
+            return vOutNorth;
+        case 47:
+            return vInNorth;
+        
+        // TODO: add the connections between each flap
+        // TODO: set height of each outer vertex
+        default:
+            return float4(0, 0, 0, 1);
     }
 }
 
@@ -128,7 +231,7 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     
     PS_INPUT output;
     
-    float4 position = GetPosition(data, vertexId);
+    float4 position = GetPosition(data, vertexId) + float4(data.position, 1);
     float3 normal = GetNormal(data, vertexId);
 
     float3x3 rotation = (float3x3) World;
