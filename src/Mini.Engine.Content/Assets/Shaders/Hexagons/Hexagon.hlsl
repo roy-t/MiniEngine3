@@ -26,7 +26,6 @@ struct PS_INPUT
     float3 normal : NORMAL;
 };
 
-
 struct OUTPUT
 {
     float4 albedo : SV_Target0;
@@ -34,7 +33,14 @@ struct OUTPUT
     float4 normal : SV_Target2;
     float2 velocity : SV_Target3;
 };
-    
+
+struct PNT
+{
+    float4 position;
+    float3 normal;
+    float2 texcoord;
+};
+
 cbuffer Constants : register(b0)
 {
     float4x4 PreviousWorldViewProjection;
@@ -60,7 +66,7 @@ static const float INNER_RADIUS = 0.40f;
 static const float OUTER_RADIUS = 0.5f;
 static const float BORDER_RADIUS = OUTER_RADIUS - INNER_RADIUS;
 
-float GetSideOffset(uint sides, int index)
+float UnPack(uint sides, int index)
 {
     uint mask = 3 << (index * 2);
     uint shifted = sides & mask;
@@ -69,7 +75,23 @@ float GetSideOffset(uint sides, int index)
     return positive - 1.0f;
 }
 
-float4 GetPosition(InstanceData data, uint vertexId)
+float4 GetSideOffset(uint sides, int index)
+{
+    float offset = UnPack(sides, index);
+    return float4(0, offset * 0.05f, 0, 0);
+}
+
+float3 GetSideNormal(float4 innerPosition, float4 outerPosition)
+{
+    float angle = tan(outerPosition.y / distance(innerPosition, outerPosition));
+    angle += PI_OVER_TWO;
+    
+    float2 horizontal = normalize(outerPosition.xz - innerPosition.xz);
+
+    return float3(sin(angle) * horizontal.x, sin(angle), cos(angle) * horizontal.y);
+}
+
+PNT GetPosition(InstanceData data, uint vertexId)
 {    
     static const float Step = 0.866025403784f; // sin(PI/3)
     static const float InnerRadius = 0.4f;
@@ -94,134 +116,267 @@ float4 GetPosition(InstanceData data, uint vertexId)
     static const float4 vOutSouthWest = float4(-OutX, 0, OutZ, 1);
     static const float4 vOutNorthWest = float4(-OutX, 0, -OutZ, 1);
     
+    PNT pnt;
+    pnt.position = float4(0, 0, 0, 1);
+    pnt.normal = float3(0, 1, 0);
+    pnt.texcoord = float2(0, 0);
+
     switch(vertexId)
     {
-        // Top triangle
+        // North triangle
         case 0:
-            return vInNorthWest;
+            pnt.position = vInNorthWest;
+            break;
         case 1:
-            return vInNorth;
+            pnt.position = vInNorth;
+            break;
         case 2:
-            return vInNorthEast;
+            pnt.position = vInNorthEast;
+            break;
         
-        // Bottom triangle
+        // Middle north-east triangle
         case 3:
-            return vInSouthWest;
+            pnt.position = vInSouthWest;
+            break;
         case 4:
-            return vInSouthEast;
+            pnt.position = vInSouthEast;
+            break;
         case 5:
-            return vInSouth;
+            pnt.position = vInSouth;
+            break;
 
-        // top right middle
+        // Middle south west triangle
         case 6:
-            return vInNorthWest;
+            pnt.position = vInNorthWest;
+            break;
         case 7:
-            return vInNorthEast;
+            pnt.position = vInNorthEast;
+            break;
         case 8:
-            return vInSouthEast;
+            pnt.position = vInSouthEast;
+            break;
 
-        // bottom left middle
+        // South triangle
         case 9:
-            return vInSouthWest;
+            pnt.position = vInSouthWest;
+            break;
         case 10:
-            return vInNorthWest;
+            pnt.position = vInNorthWest;
+            break;
         case 11:
-            return vInSouthEast;
+            pnt.position = vInSouthEast;
+            break;
 
-        // top right flap
+        // NE flap
         case 12:
-            return vInNorth;
+            pnt.position = vInNorth;
+            break;
         case 13:
-            return vOutNorth;
+            pnt.position = vOutNorth + GetSideOffset(data.sides, 0);
+            pnt.normal = GetSideNormal(vInNorth, vOutNorth + GetSideOffset(data.sides, 0));
+            break;
         case 14:
-            return vInNorthEast;
+            pnt.position = vInNorthEast;
+            break;
         case 15:
-            return vOutNorth;
+            pnt.position = vOutNorth + GetSideOffset(data.sides, 0);
+            pnt.normal = GetSideNormal(vInNorth, vOutNorth + GetSideOffset(data.sides, 0));
+            break;
         case 16:
-            return vOutNorthEast;
+            pnt.position = vOutNorthEast + GetSideOffset(data.sides, 0);
+            pnt.normal = GetSideNormal(vInNorthEast, vOutNorthEast + GetSideOffset(data.sides, 0));
+            break;
         case 17:
-            return vInNorthEast;
+            pnt.position = vInNorthEast;
+            break;
 
         // Right flap
         case 18:
-            return vInNorthEast;
+            pnt.position = vInNorthEast;
+            break;
         case 19:
-            return vOutNorthEast;
+            pnt.position = vOutNorthEast + GetSideOffset(data.sides, 1);
+            pnt.normal = GetSideNormal(vInNorthEast, vOutNorthEast + GetSideOffset(data.sides, 1));
+            break;
         case 20:
-            return vInSouthEast;
+            pnt.position = vInSouthEast;
+            break;
         case 21:
-            return vOutNorthEast;
+            pnt.position = vOutNorthEast + GetSideOffset(data.sides, 1);
+            pnt.normal = GetSideNormal(vInNorthEast, vOutNorthEast + GetSideOffset(data.sides, 1));
+            break;
         case 22:
-            return vOutSouthEast;
+            pnt.position = vOutSouthEast + GetSideOffset(data.sides, 1);
+            pnt.normal = GetSideNormal(vInSouthEast, vOutSouthEast + GetSideOffset(data.sides, 1));
+            break;
         case 23:
-            return vInSouthEast;
+            pnt.position = vInSouthEast;
+            break;
 
         // bottom right flap
         case 24:
-            return vInSouthEast;
+            pnt.position = vInSouthEast;
+            break;
         case 25:
-            return vOutSouthEast;
+            pnt.position = vOutSouthEast + GetSideOffset(data.sides, 2);
+            pnt.normal = GetSideNormal(vInSouthEast, vOutSouthEast + GetSideOffset(data.sides, 2));
+            break;
         case 26:
-            return vInSouth;
+            pnt.position = vInSouth;
+            break;
         case 27:
-            return vOutSouthEast;
+            pnt.position = vOutSouthEast + GetSideOffset(data.sides, 2);
+            pnt.normal = GetSideNormal(vInSouthEast, vOutSouthEast + GetSideOffset(data.sides, 2));
+            break;
         case 28:
-            return vOutSouth;
+            pnt.position = vOutSouth + GetSideOffset(data.sides, 2);
+            pnt.normal = GetSideNormal(vInSouth, vOutSouth + GetSideOffset(data.sides, 2));
+            break;
         case 29:
-            return vInSouth;
+            pnt.position = vInSouth;
+            break;
 
         // bottom left flap
         case 30:
-            return vInSouth;
+            pnt.position = vInSouth;
+            break;
         case 31:
-            return vOutSouth;
+            pnt.position = vOutSouth + GetSideOffset(data.sides, 3);
+            pnt.normal = GetSideNormal(vInSouth, vOutSouth + GetSideOffset(data.sides, 3));
+            break;
         case 32:
-            return vInSouthWest;
+            pnt.position = vInSouthWest;
+            break;
         case 33:
-            return vOutSouth;
+            pnt.position = vOutSouth + GetSideOffset(data.sides, 3);
+            pnt.normal = GetSideNormal(vInSouth, vOutSouth + GetSideOffset(data.sides, 3));
+            break;
         case 34:
-            return vOutSouthWest;
+            pnt.position = vOutSouthWest + GetSideOffset(data.sides, 3);
+            pnt.normal = GetSideNormal(vInSouthWest, vOutSouthWest + GetSideOffset(data.sides, 3));
+            break;
         case 35:
-            return vInSouthWest;
+            pnt.position = vInSouthWest;
+            break;
         
         // left flap
         case 36:
-            return vInSouthWest;
+            pnt.position = vInSouthWest;
+            break;
         case 37:
-            return vOutSouthWest;
+            pnt.position = vOutSouthWest + GetSideOffset(data.sides, 4);
+            pnt.normal = GetSideNormal(vInSouthWest, vOutSouthWest + GetSideOffset(data.sides, 4));
+            break;
         case 38:
-            return vInNorthWest;
+            pnt.position = vInNorthWest;
+            break;
         case 39:
-            return vOutSouthWest;
+            pnt.position = vOutSouthWest + GetSideOffset(data.sides, 4);
+            pnt.normal = GetSideNormal(vInSouthWest, vOutSouthWest + GetSideOffset(data.sides, 4));
+            break;
         case 40:
-            return vOutNorthWest;
+            pnt.position = vOutNorthWest + GetSideOffset(data.sides, 4);
+            pnt.normal = GetSideNormal(vInNorthWest, vOutNorthWest + GetSideOffset(data.sides, 4));
+            break;
         case 41:
-            return vInNorthWest;
+            pnt.position = vInNorthWest;
+            break;
         
         // top left flap
         case 42:
-            return vInNorthWest;
+            pnt.position = vInNorthWest;
+            break;
         case 43:
-            return vOutNorthWest;
+            pnt.position = vOutNorthWest + GetSideOffset(data.sides, 5);
+            pnt.normal = GetSideNormal(vInNorthWest, vOutNorthWest + GetSideOffset(data.sides, 5));
+            break;
         case 44:
-            return vInNorth;
+            pnt.position = vInNorth;
+            break;
         case 45:
-            return vOutNorthWest;
+            pnt.position = vOutNorthWest + GetSideOffset(data.sides, 5);
+            pnt.normal = GetSideNormal(vInNorthWest, vOutNorthWest + GetSideOffset(data.sides, 5));
+            break;
         case 46:
-            return vOutNorth;
+            pnt.position = vOutNorth + GetSideOffset(data.sides, 5);
+            pnt.normal = GetSideNormal(vInNorth, vOutNorth + GetSideOffset(data.sides, 5));
+            break;
         case 47:
-            return vInNorth;
+            pnt.position = vInNorth;
+            break;
         
-        // TODO: add the connections between each flap
-        // TODO: set height of each outer vertex
-        default:
-            return float4(0, 0, 0, 1);
-    }
-}
+        // N flap north wall
+        case 48:
+            pnt.position = vOutNorth + GetSideOffset(data.sides, 0);
+            break;
+        case 49:
+            pnt.position = vInNorth;
+            break;
+        case 50:
+            pnt.position = vOutNorth + GetSideOffset(data.sides, 5);
+            break;
 
-float3 GetNormal(InstanceData data, uint vertexId)
-{
-    return float3(0, 1, 0);
+        // NE flap north wall
+        case 51:
+            pnt.position = vOutNorthEast + GetSideOffset(data.sides, 1);
+            break;
+        case 52:
+            pnt.position = vInNorthEast;
+            break;
+        case 53:
+            pnt.position = vOutNorthEast + GetSideOffset(data.sides, 0);
+            break;
+
+        // SE flap north wall
+        case 54:
+            pnt.position = vOutSouthEast + GetSideOffset(data.sides, 2);
+            break;
+        case 55:
+            pnt.position = vInSouthEast;
+            break;
+        case 56:
+            pnt.position = vOutSouthEast + GetSideOffset(data.sides, 1);
+            break;
+
+        // S flap north wall
+        case 57:
+            pnt.position = vOutSouth + GetSideOffset(data.sides, 3);
+            break;
+        case 58:
+            pnt.position = vInSouth;
+            break;
+        case 59:
+            pnt.position = vOutSouth + GetSideOffset(data.sides, 2);
+            break;
+        
+        // SW flap north wall
+        case 60:
+            pnt.position = vOutSouthWest + GetSideOffset(data.sides, 4);
+            break;
+        case 61:
+            pnt.position = vInSouthWest;
+            break;
+        case 62:
+            pnt.position = vOutSouthWest + GetSideOffset(data.sides, 3);
+            break;
+
+        // NW flap north wall
+        case 63:
+            pnt.position = vOutNorthWest + GetSideOffset(data.sides, 5);
+            break;
+        case 64:
+            pnt.position = vInNorthWest;
+            break;
+        case 65:
+            pnt.position = vOutNorthWest + GetSideOffset(data.sides, 4);
+            break;
+
+        default:
+            pnt.position = float4(0, 0, 0, 1);
+            break;
+    }
+
+    return pnt;
 }
 
 #pragma VertexShader
@@ -231,9 +386,11 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     
     PS_INPUT output;
     
-    float4 position = GetPosition(data, vertexId) + float4(data.position, 1);
-    float3 normal = GetNormal(data, vertexId);
-
+    PNT pnt = GetPosition(data, vertexId);
+    float4 position = pnt.position + float4(data.position, 1);
+    float3 normal = pnt.normal;
+    float2 texcoord = pnt.texcoord;
+    
     float3x3 rotation = (float3x3) World;
 
     output.position = mul(WorldViewProjection, position);
@@ -255,7 +412,7 @@ OUTPUT PS(PS_INPUT input)
     clip(albedo.a - 0.5f);
 
     float3 V = normalize(CameraPosition - input.world);
-    float3 normal = PerturbNormal(Normal, TextureSampler, input.normal, V, input.texcoord);
+    float3 normal = input.normal; //PerturbNormal(Normal, TextureSampler, input.normal, V, input.texcoord);
  
     float metalicness = Metalicness.Sample(TextureSampler, input.texcoord).r;
     float roughness = Roughness.Sample(TextureSampler, input.texcoord).r;

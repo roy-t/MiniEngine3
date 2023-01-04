@@ -81,7 +81,8 @@ public sealed partial class HexagonSystem : ISystem, IDisposable
         this.Context.VS.SetInstanceBuffer(Hexagon.Instances, hexagons.InstanceBuffer);
 
         // 4 triangles for the inside, 6 * 2 triangles for the flaps, 6 * 2 triangles for the flap connections
-        var vertexCount = (4 + (6 * 2) + (6 * 2)) * 3;
+        var triangleCount = 4 + (6 * 2) + 6;
+        var vertexCount = triangleCount * 3;
         this.Context.DrawInstanced(vertexCount, hexagons.Instances);
     }
 
