@@ -22,7 +22,7 @@ public static class HexagonTerrainBuilder
                     : Vector3.Zero;
 
                 var index = Indexes.ToOneDimensional(c, r, columns);
-                var sides = PackSides(new float[] { -1, 1, -1, 1, -1, 1 });
+                var sides = PackSides(new float[] { -1, 0, -1, 1, -1, 1 });
 
                 data[index] = new HexagonInstanceData()
                 {

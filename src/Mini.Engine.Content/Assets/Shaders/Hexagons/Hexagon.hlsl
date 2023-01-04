@@ -489,7 +489,7 @@ PNT GetPosition(InstanceData data, uint vertexId)
     pnt.position += float4(data.position, 0);
 
     // TODO: fix normal and texture coordinates of walls!
-
+    // texcoord is probably something like float2(data.position.x + data.position.z, data.position.y);?
     return pnt;
 }
 
