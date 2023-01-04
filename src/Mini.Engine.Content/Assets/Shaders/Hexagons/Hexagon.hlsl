@@ -88,11 +88,6 @@ float3 GetTriangleNormal(float4 t0, float4 t1, float4 t2)
     return normalize(c);
 }
 
-float2 GetFlapTexCoord(float4 t0, float4 t1, float4 t2)
-{
-    return float2(0, 0);
-}
-
 PNT GetPosition(InstanceData data, uint vertexId)
 {    
     static const float Step = 0.866025403784f; // sin(PI/3)
@@ -125,373 +120,376 @@ PNT GetPosition(InstanceData data, uint vertexId)
         // North triangle
         case 0:
             pnt.position = vInNorthWest;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 1:
             pnt.position = vInNorth;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 2:
             pnt.position = vInNorthEast;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         
         // Middle north-east triangle
         case 3:
             pnt.position = vInSouthWest;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 4:
             pnt.position = vInSouthEast;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 5:
             pnt.position = vInSouth;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
 
         // Middle south west triangle
         case 6:
             pnt.position = vInNorthWest;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 7:
             pnt.position = vInNorthEast;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 8:
             pnt.position = vInSouthEast;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
 
         // South triangle
         case 9:
             pnt.position = vInSouthWest;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 10:
             pnt.position = vInNorthWest;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 11:
             pnt.position = vInSouthEast;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
 
         // NE flap
         case 12:
             pnt.position = vInNorth;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 13:
             pnt.position = vOutNorth + GetSideOffset(data.sides, 0);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInNorth, pnt.position, vInNorthEast);
             break;
         case 14:
             pnt.position = vInNorthEast;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 15:
             pnt.position = vOutNorth + GetSideOffset(data.sides, 0);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInNorth, pnt.position, vInNorthEast);
             break;
         case 16:
             pnt.position = vOutNorthEast + GetSideOffset(data.sides, 0);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInNorth, pnt.position, vInNorthEast);
             break;
         case 17:
             pnt.position = vInNorthEast;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
 
         // Right flap
         case 18:
             pnt.position = vInNorthEast;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 19:
             pnt.position = vOutNorthEast + GetSideOffset(data.sides, 1);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInNorthEast, pnt.position, vInSouthEast);
             break;
         case 20:
             pnt.position = vInSouthEast;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 21:
             pnt.position = vOutNorthEast + GetSideOffset(data.sides, 1);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInNorthEast, pnt.position, vInSouthEast);
             break;
         case 22:
             pnt.position = vOutSouthEast + GetSideOffset(data.sides, 1);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInNorthEast, pnt.position, vInSouthEast);
             break;
         case 23:
             pnt.position = vInSouthEast;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
 
         // bottom right flap
         case 24:
             pnt.position = vInSouthEast;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 25:
             pnt.position = vOutSouthEast + GetSideOffset(data.sides, 2);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInSouthEast, pnt.position, vInSouth);
             break;
         case 26:
             pnt.position = vInSouth;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 27:
             pnt.position = vOutSouthEast + GetSideOffset(data.sides, 2);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInSouthEast, pnt.position, vInSouth);
             break;
         case 28:
             pnt.position = vOutSouth + GetSideOffset(data.sides, 2);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInSouthEast, pnt.position, vInSouth);
             break;
         case 29:
             pnt.position = vInSouth;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
 
         // bottom left flap
         case 30:
             pnt.position = vInSouth;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 31:
             pnt.position = vOutSouth + GetSideOffset(data.sides, 3);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInSouth, pnt.position, vInSouthWest);
             break;
         case 32:
             pnt.position = vInSouthWest;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 33:
             pnt.position = vOutSouth + GetSideOffset(data.sides, 3);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInSouth, pnt.position, vInSouthWest);
             break;
         case 34:
             pnt.position = vOutSouthWest + GetSideOffset(data.sides, 3);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInSouth, pnt.position, vInSouthWest);
             break;
         case 35:
             pnt.position = vInSouthWest;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         
         // left flap
         case 36:
             pnt.position = vInSouthWest;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 37:
             pnt.position = vOutSouthWest + GetSideOffset(data.sides, 4);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInSouthWest, pnt.position, vInNorthWest);
             break;
         case 38:
             pnt.position = vInNorthWest;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 39:
             pnt.position = vOutSouthWest + GetSideOffset(data.sides, 4);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInSouthWest, pnt.position, vInNorthWest);
             break;
         case 40:
             pnt.position = vOutNorthWest + GetSideOffset(data.sides, 4);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInSouthWest, pnt.position, vInNorthWest);
             break;
         case 41:
             pnt.position = vInNorthWest;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         
         // top left flap
         case 42:
             pnt.position = vInNorthWest;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 43:
             pnt.position = vOutNorthWest + GetSideOffset(data.sides, 5);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInNorthWest, pnt.position, vInNorth);
             break;
         case 44:
             pnt.position = vInNorth;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 45:
             pnt.position = vOutNorthWest + GetSideOffset(data.sides, 5);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInNorthWest, pnt.position, vInNorth);
             break;
         case 46:
             pnt.position = vOutNorth + GetSideOffset(data.sides, 5);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = GetTriangleNormal(vInNorthWest, pnt.position, vInNorth);
             break;
         case 47:
             pnt.position = vInNorth;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         
         // N flap north wall
         case 48:
             pnt.position = vOutNorth + GetSideOffset(data.sides, 0);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 49:
             pnt.position = vInNorth;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 50:
             pnt.position = vOutNorth + GetSideOffset(data.sides, 5);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
 
         // NE flap north wall
         case 51:
             pnt.position = vOutNorthEast + GetSideOffset(data.sides, 1);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 52:
             pnt.position = vInNorthEast;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 53:
             pnt.position = vOutNorthEast + GetSideOffset(data.sides, 0);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
 
         // SE flap north wall
         case 54:
             pnt.position = vOutSouthEast + GetSideOffset(data.sides, 2);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 55:
             pnt.position = vInSouthEast;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 56:
             pnt.position = vOutSouthEast + GetSideOffset(data.sides, 1);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
 
         // S flap north wall
         case 57:
             pnt.position = vOutSouth + GetSideOffset(data.sides, 3);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 58:
             pnt.position = vInSouth;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 59:
             pnt.position = vOutSouth + GetSideOffset(data.sides, 2);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         
         // SW flap north wall
         case 60:
             pnt.position = vOutSouthWest + GetSideOffset(data.sides, 4);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 61:
             pnt.position = vInSouthWest;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 62:
             pnt.position = vOutSouthWest + GetSideOffset(data.sides, 3);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
 
         // NW flap north wall
         case 63:
             pnt.position = vOutNorthWest + GetSideOffset(data.sides, 5);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 64:
             pnt.position = vInNorthWest;
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
         case 65:
             pnt.position = vOutNorthWest + GetSideOffset(data.sides, 4);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
 
         default:
             pnt.position = float4(0, 0, 0, 1);
-            pnt.texcoord = pnt.position.xz;
+            pnt.texcoord = pnt.position.xz + data.position.xy;
             pnt.normal = float3(0, 1, 0);
             break;
     }
 
     pnt.position += float4(data.position, 0);
+
+    // TODO: fix normal and texture coordinates of walls!
+
     return pnt;
 }
 
