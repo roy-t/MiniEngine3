@@ -38,5 +38,12 @@ float3 PerturbNormal(Texture2D tex, sampler samp, float3 normal, float3 view, fl
     float3x3 tbn = CotangentFrame(normal, -view, uv);
     return mul(map, tbn);
 }
+    
+// Normal points in the direction of the viewer if the vertices are given in clock wise order
+float3 GetTriangleNormal(float4 t0, float4 t1, float4 t2)
+{
+    float3 c = cross(t2.xyz - t0.xyz, t1.xyz - t0.xyz);
+    return normalize(c);
+}
 
 #endif
