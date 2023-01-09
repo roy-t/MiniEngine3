@@ -511,18 +511,81 @@ PS_INPUT VS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 
 }
 
+
+struct MultiUv
+{
+    float4 albedo;
+    float metalicness;
+    float roughness;
+    float ambientOcclusion;
+    float3 normal;
+};
+
+MultiUv SampleTextures(float3 world, float2 texCoord, float3 heightMapNormal)
+{
+    float4 albedo = Albedo.Sample(TextureSampler, texCoord);
+    float metalicness = Metalicness.Sample(TextureSampler, texCoord).r;
+    float roughness = Roughness.Sample(TextureSampler, texCoord).r;
+    float ambientOcclusion = AmbientOcclusion.Sample(TextureSampler, texCoord).r;
+
+    float3 V = normalize(CameraPosition - world);
+    float3 normal = PerturbNormal(Normal, TextureSampler, heightMapNormal, V, texCoord);
+
+    MultiUv output;
+    output.albedo = albedo;
+    output.metalicness = metalicness;
+    output.roughness = roughness;
+    output.ambientOcclusion = ambientOcclusion;
+    output.normal = normal;
+
+    return output;
+}
+
 #pragma PixelShader
 OUTPUT PS(PS_INPUT input)
 {
-    float4 albedo = Albedo.Sample(TextureSampler, input.texcoord);
-    clip(albedo.a - 0.5f);
+    const uint steps = 3;
+    float2 texcoords[] =
+    {
+        input.texcoord * 83.0f,
+        float2(sin(0.33f) * input.texcoord.x, cos(0.33f) * input.texcoord.y) * 53.0f,
+        float2(sin(0.75f) * input.texcoord.x, cos(0.75f) * input.texcoord.y) * 1.0f + float2(0.33, 0.16f)
+    };
 
-    float3 V = normalize(CameraPosition - input.world);
-    float3 normal = input.normal; //PerturbNormal(Normal, TextureSampler, input.normal, V, input.texcoord);
+    float sumWeigth = 0.0f;
+
+    float4 albedo = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    float metalicness = 0.0f;
+    float roughness = 0.0f;
+    float ambientOcclusion = 0.0f;
+    float3 normal = float3(0.0f, 0.0f, 0.0f);
+
+    [unroll]
+    for(uint i = 0; i < steps; i++)
+    {
+        float weight = steps / (i + 2.0f);
+        sumWeigth += weight;
+
+        MultiUv layer = SampleTextures(input.world, texcoords[i], input.normal);
+        albedo += layer.albedo * weight;
+        metalicness += layer.metalicness * weight;
+        roughness += layer.roughness * weight;
+        ambientOcclusion += layer.ambientOcclusion * weight;
+        normal += layer.normal * weight;
+    }
+    
+    albedo /= sumWeigth;
+    metalicness /= sumWeigth;
+    roughness /= sumWeigth;
+    ambientOcclusion /= sumWeigth;
+    normal = normalize(normal / sumWeigth);
+   
+    //float3 V = normalize(CameraPosition - input.world);
+    //float3 normal = input.normal; //PerturbNormal(Normal, TextureSampler, input.normal, V, input.texcoord);
  
-    float metalicness = Metalicness.Sample(TextureSampler, input.texcoord).r;
-    float roughness = Roughness.Sample(TextureSampler, input.texcoord).r;
-    float ambientOcclusion = AmbientOcclusion.Sample(TextureSampler, input.texcoord).r;
+    //float metalicness = Metalicness.Sample(TextureSampler, input.texcoord).r;
+    //float roughness = Roughness.Sample(TextureSampler, input.texcoord).r;
+    //float ambientOcclusion = AmbientOcclusion.Sample(TextureSampler, input.texcoord).r;
 
     input.previousPosition /= input.previousPosition.w;
     input.currentPosition /= input.currentPosition.w;

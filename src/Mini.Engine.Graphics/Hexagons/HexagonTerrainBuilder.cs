@@ -8,8 +8,10 @@ public static class HexagonTerrainBuilder
 {
     public static HexagonInstanceData[] Create(int columns, int rows)
     {
-        var width = 0.5f * MathF.Sin((MathF.PI * 2) / 6);
-        var heigth = (1.0f + 0.5f) * 0.5f;
+        var stepY = 0.05f * 2.0f;
+
+        var stepX = 0.5f * MathF.Sin((MathF.PI * 2) / 6);
+        var stepZ = (1.0f + 0.5f) * 0.5f;
 
         var data = new HexagonInstanceData[rows * columns];
 
@@ -17,16 +19,20 @@ public static class HexagonTerrainBuilder
         {
             for (var c = 0; c < columns; c++)
             {
+                
                 var offset = r % 2 == 0
-                    ? new Vector3(width, 0, 0)
+                    ? new Vector3(stepX, 0, 0)
                     : Vector3.Zero;
 
+
+                var y = stepY * r;
+
                 var index = Indexes.ToOneDimensional(c, r, columns);
-                var sides = PackSides(new float[] { 1, 0, 0, -1, 0, 0 });
+                var sides = PackSides(new float[] { -1, 0, 1, 1, 0, -1 });
 
                 data[index] = new HexagonInstanceData()
                 {
-                    Position = new Vector3(width * c * 2, 0, r * heigth) + offset,
+                    Position = new Vector3(stepX * c * 2, y, r * stepZ) + offset,
                     Sides = sides
                 };
             }
@@ -45,6 +51,8 @@ public static class HexagonTerrainBuilder
 
         return BitPacker.Pack(states[0], states[1], states[2], states[3], states[4], states[5]);
     }
+
+
 
     //private static void ComputeOffsets(HexagonInstanceData[] data, int columns, int rows)
     //{
