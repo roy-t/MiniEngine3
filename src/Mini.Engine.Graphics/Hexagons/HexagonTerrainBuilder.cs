@@ -13,37 +13,60 @@ public static class HexagonTerrainBuilder
         var stepX = 0.5f * MathF.Sin((MathF.PI * 2) / 6);
         var stepZ = (1.0f + 0.5f) * 0.5f;
 
-        var data = new HexagonInstanceData[rows * columns];
+        //var data = new HexagonInstanceData[rows * columns];
 
-        for (var r = 0; r < rows; r++)
+        //for (var r = 0; r < rows; r++)
+        //{
+        //    for (var c = 0; c < columns; c++)
+        //    {
+
+        //        var offset = r % 2 == 0
+        //            ? new Vector3(stepX, 0, 0)
+        //            : Vector3.Zero;
+
+
+        //        var y = stepY * r;
+
+        //        var index = Indexes.ToOneDimensional(c, r, columns);
+        //        var arr0 = new float[16] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        //        var arr1 = new float[16] { 0, 0, /* filler */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        //        var s0 = PackSides(arr0);
+        //        var s1 = PackSides(arr1);
+
+        //        data[index] = new HexagonInstanceData()
+        //        {
+        //            Position = new Vector3(stepX * c * 2, y, r * stepZ) + offset,
+        //            S0 = s0,
+        //            S1 = s1
+        //        };
+        //    }
+        //}
+
+        ////ComputeOffsets(data, columns, rows);
+        ///
+
+        var arr0 = new float[16] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        var arr1 = new float[16] { 1, 1, /* filler */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+
+        var arr2 = new float[16] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0 };
+        var arr3 = new float[16] { 0, 0, /* filler */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+
+        var data = new HexagonInstanceData[]
         {
-            for (var c = 0; c < columns; c++)
+            new HexagonInstanceData()
             {
-                
-                var offset = r % 2 == 0
-                    ? new Vector3(stepX, 0, 0)
-                    : Vector3.Zero;
-
-
-                var y = stepY * r;
-
-                var index = Indexes.ToOneDimensional(c, r, columns);
-                var arr0 = new float[16] { -1, -1, -1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-                var arr1 = new float[16] { 1, 1, /* filler */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-                var s0 = PackSides(arr0);
-                var s1 = PackSides(arr1);
-
-                data[index] = new HexagonInstanceData()
-                {
-                    Position = new Vector3(stepX * c * 2, y, r * stepZ) + offset,
-                    S0 = s0,
-                    S1 = s1
-                };
-            }
-        }
-
-        //ComputeOffsets(data, columns, rows);
-
+                Position = new Vector3(0, 0, 0),
+                S0 = PackSides(arr0),
+                S1 = PackSides(arr1)
+            },
+            new HexagonInstanceData()
+            {
+                Position = new Vector3(stepX * 2, stepY, 0),
+                S0 = PackSides(arr2),
+                S1 = PackSides(arr3)
+            },
+        };
         return data;
     }
 

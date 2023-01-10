@@ -151,6 +151,34 @@ static const float4 OuterRing[] =
     vOutNorthNorthWest
 };
 
+static const float4 OuterRingDirections[] =
+{
+    vOutNorth,
+    normalize(vInNorth - vInNorthWest),
+
+    normalize(vInNorthEast - vInSouthWest),
+    vOutNorthEast,
+    normalize(vInNorthEast - vInNorthWest),
+
+    normalize(vInSouthEast - vInSouthWest),
+    vOutSouthEast,
+    normalize(vInSouthEast - vInNorthWest),
+
+    normalize(vInSouth - vInSouthWest),
+    vOutSouth,
+    normalize(vInSouth - vInSouthEast),
+
+    normalize(vInSouthWest - vInNorthEast),
+    vOutSouthWest,
+    normalize(vInSouthWest - vInSouthEast),
+
+    normalize(vInNorthWest - vInNorthEast),
+    vOutNorthWest,
+    normalize(vInNorthWest - vInSouthEast),
+
+    normalize(vInNorth - vInNorthEast)
+};
+
 static const uint E_OUTER_N = 0;
 static const uint E_OUTER_N_NE = 1;
 
@@ -250,13 +278,15 @@ Vertex GetStripVertex(InstanceData data, uint vertexId)
 
         output.position = float4(data.position, 0.0f) + position + offset;
 
-        // TODO: somehow the opposite normal is not exactly the same, leading to lighting problems?
+        // TODO: the opposite normal is not exactly the same, since we start from the center (direction)?
+        // so seen from above they point slightly away from each other
 
         float s = -sign(offset.y); // -1 -> 1, 0 -> 0, 1 -> -1
-        float3 direction = normalize(float3(position.x, 0, position.z));
+        //float3 direction = normalize(float3(position.x, 0, position.z));
+        float2 direction = normalize(OuterRingDirections[index].xz);
         // If s == 0 (the ground is flat) we lerp from 0,1,0 to 0,0,0 which when
         // renormalized is again 0,1,0. In the other case we get a normal reflecting off the hill/cliff
-        float3 normal = lerp(float3(0,1, 0), s * direction, 0.5f);
+        float3 normal = lerp(float3(0, 1, 0), s * float3(direction.x, 0, direction.y), 0.5f);
         output.normal = normalize(normal);
 
         output.texcoord = output.position.xz;
@@ -373,7 +403,8 @@ OUTPUT PS(PS_INPUT input)
     OUTPUT output;
     output.albedo = albedo;
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
-    output.normal = float4(PackNormal(input.normal), 1.0f);
+
+    output.normal = float4(PackNormal(normal), 1.0f);
 
     output.velocity = previousUv - currentUv;
 
