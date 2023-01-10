@@ -237,37 +237,28 @@ Vertex GetStripVertex(InstanceData data, uint vertexId)
     uint2 seq = Sequence[vertexId % 6];
     if (seq.x == E_INNER)
     {
-        output.position = float4(data.position, 0.0f) + InnerRing[(seq.y + instance) % 6];
+        uint index = (seq.y + instance) % 6;
+        output.position = float4(data.position, 0.0f) + InnerRing[index];
         output.normal = float3(0, 1, 0);
         output.texcoord = output.position.xz;
     }
     else // E_OUTER
     {
-        // TODO: fix normals
         uint index = (seq.y + instance * 3) % 18;
         float4 offset = GetSideOffset(data.s0, data.s1, index);
         float4 position = OuterRing[index];
 
         output.position = float4(data.position, 0.0f) + position + offset;
 
-        if (offset.y > 0)
-        {   
-            float3 direction = normalize(float3(position.x, 0, position.z));
-            float3 normal = lerp(float3(0,1, 0), -direction, 0.5f);
-            output.normal = normalize(normal);
-        }
-        else if(offset.y < 0)
-        {
-            float3 direction = normalize(float3(position.x, 0, position.z));
-            float3 normal = lerp(float3(0,1, 0), direction, 0.5f);
-            output.normal = normalize(normal);
-        }
-        else
-        {
-            output.normal = float3(0, 1, 0);
-        }
+        // TODO: somehow the opposite normal is not exactly the same, leading to lighting problems?
 
-        
+        float s = -sign(offset.y); // -1 -> 1, 0 -> 0, 1 -> -1
+        float3 direction = normalize(float3(position.x, 0, position.z));
+        // If s == 0 (the ground is flat) we lerp from 0,1,0 to 0,0,0 which when
+        // renormalized is again 0,1,0. In the other case we get a normal reflecting off the hill/cliff
+        float3 normal = lerp(float3(0,1, 0), s * direction, 0.5f);
+        output.normal = normalize(normal);
+
         output.texcoord = output.position.xz;
     }
 
@@ -382,7 +373,7 @@ OUTPUT PS(PS_INPUT input)
     OUTPUT output;
     output.albedo = albedo;
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
-    output.normal = float4(PackNormal(normal), 1.0f);
+    output.normal = float4(PackNormal(input.normal), 1.0f);
 
     output.velocity = previousUv - currentUv;
 

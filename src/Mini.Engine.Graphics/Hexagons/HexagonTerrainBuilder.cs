@@ -28,7 +28,7 @@ public static class HexagonTerrainBuilder
                 var y = stepY * r;
 
                 var index = Indexes.ToOneDimensional(c, r, columns);
-                var arr0 = new float[16] { 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+                var arr0 = new float[16] { -1, -1, -1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
                 var arr1 = new float[16] { 1, 1, /* filler */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
                 var s0 = PackSides(arr0);
                 var s1 = PackSides(arr1);
