@@ -36,9 +36,8 @@ public sealed partial class HexagonSystem : ISystem, IDisposable
     public void OnSet()
     {
         this.Context.IA.ClearInputLayout();
-        this.Context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
-
-        this.Context.VS.SetShader(this.Shader.Vs);
+        this.Context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleStrip);
+        
         this.Context.VS.SetConstantBuffer(Hexagon.ConstantsSlot, this.User.ConstantsBuffer);
 
         this.Context.RS.SetRasterizerState(this.Context.Device.RasterizerStates.Default);
@@ -78,12 +77,15 @@ public sealed partial class HexagonSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(Hexagon.Roughness, material.Roughness);
         this.Context.PS.SetShaderResource(Hexagon.AmbientOcclusion, material.AmbientOcclusion);
 
-        this.Context.VS.SetInstanceBuffer(Hexagon.Instances, hexagons.InstanceBuffer);
+        this.Context.VS.SetInstanceBuffer(Hexagon.Instances, hexagons.InstanceBuffer);        
 
-        // 4 triangles for the inside, 6 * 2 triangles for the flaps, 6 * 2 triangles for the flap connections
-        var triangleCount = 4 + (6 * 2) + 6;
-        var vertexCount = triangleCount * 3;
-        this.Context.DrawInstanced(vertexCount, hexagons.Instances);
+        // Draw inner hexagon strip
+        this.Context.VS.SetShader(this.Shader.VsHexagon);        
+        this.Context.DrawInstanced(6, hexagons.Instances);
+
+        // Draw outer strip
+        this.Context.VS.SetShader(this.Shader.VsStrip);
+        this.Context.DrawInstanced(6, hexagons.Instances * 6);
     }
 
     public void OnUnSet()

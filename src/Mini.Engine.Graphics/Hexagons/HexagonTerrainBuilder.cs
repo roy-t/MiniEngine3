@@ -28,7 +28,7 @@ public static class HexagonTerrainBuilder
                 var y = stepY * r;
 
                 var index = Indexes.ToOneDimensional(c, r, columns);
-                var sides = PackSides(new float[] { -1, 0, 1, 1, 0, -1 });
+                var sides = PackSides(new float[16]); // TODO: maybe represent this as a state (enum) per 6 points
 
                 data[index] = new HexagonInstanceData()
                 {
@@ -45,11 +45,11 @@ public static class HexagonTerrainBuilder
 
     private static uint PackSides(float[] offsets)
     {
-        Debug.Assert(offsets.Length == 6);
+        Debug.Assert(offsets.Length == 16);
 
         var states = offsets.Select(o => (Tristate)(Math.Sign(o) + 1)).ToArray();
 
-        return BitPacker.Pack(states[0], states[1], states[2], states[3], states[4], states[5]);
+        return BitPacker.Pack(states);
     }
 
 

@@ -1,4 +1,6 @@
-﻿namespace Mini.Engine.Core;
+﻿using System.Diagnostics;
+
+namespace Mini.Engine.Core;
 
 public enum Tristate
 {
@@ -9,19 +11,16 @@ public enum Tristate
 
 public static class BitPacker
 {
-    public static uint Pack(Tristate a, Tristate b = Tristate.Zero, Tristate c = Tristate.Zero, Tristate d = Tristate.Zero, Tristate e = Tristate.Zero, Tristate f = Tristate.Zero, Tristate g = Tristate.Zero, Tristate h = Tristate.Zero)
+    public static uint Pack(params Tristate[] elements)
     {
-        var input = new uint[8]
-        {
-            (uint)a, (uint)b, (uint)c, (uint)d,
-            (uint)e, (uint)f, (uint)g, (uint)h
-        };
-
+        Debug.Assert(elements.Length <= 16);
+        
         var packed = 0u;
 
-        for (var i = 0; i < input.Length; i++)
+        for (var i = 0; i < elements.Length; i++)
         {
-            var shifted = input[i] << (i * 2);
+            var input = (uint)elements[i];
+            var shifted = input << (i * 2);
             packed += shifted;
         }
 
