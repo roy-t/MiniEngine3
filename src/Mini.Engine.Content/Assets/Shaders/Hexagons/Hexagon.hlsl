@@ -6,7 +6,8 @@
 struct InstanceData
 {
     float3 position;
-    uint sides;
+    uint s0;
+    uint s1;
 };
 
 struct VS_INPUT
@@ -34,7 +35,7 @@ struct OUTPUT
     float2 velocity : SV_Target3;
 };
 
-struct PNT
+struct Vertex
 {
     float4 position;
     float3 normal;
@@ -103,6 +104,78 @@ static const float4 vOutNorthWestSouth = vInNorthWest + normalize(vInNorthWest -
 static const float4 vOutNorthWest = float4(-OutX, 0, -OutZ, 1);
 static const float4 vOutNorthWestNorth = vInNorthWest + normalize(vInNorthWest - vInSouthWest) * BorderRadius;
 
+static const uint E_INNER = 0;
+static const float4 InnerRing[] = 
+{
+    vInNorth,
+    vInNorthEast,
+    vInSouthEast,
+    vInSouth,
+    vInSouthWest,
+    vInNorthWest
+};
+
+static const uint E_INNER_N = 0;
+static const uint E_INNER_NE = 1;
+static const uint E_INNER_SE = 2;
+static const uint E_INNER_S = 3;
+static const uint E_INNER_SW = 4;
+static const uint E_INNER_NW = 5;
+
+static const uint E_OUTER = 1;
+static const float4 OuterRing[] =
+{
+    vOutNorth,
+    vOutNorthNorthEast,
+
+    vOutNorthEastNorth,
+    vOutNorthEast,
+    vOutNorthEastEast,
+
+    vOutSouthEastNorth,
+    vOutSouthEast,
+    vOutSouthEastSouth,
+
+    vOutSouthSouthEast,
+    vOutSouth,
+    vOutSouthSouthWest,
+
+    vOutSouthWestSouth,
+    vOutSouthWest,
+    vOutSouthWestNorth,
+
+    vOutNorthWestSouth,
+    vOutNorthWest,
+    vOutNorthWestNorth,
+
+    vOutNorthNorthWest
+};
+
+static const uint E_OUTER_N = 0;
+static const uint E_OUTER_N_NE = 1;
+
+static const uint E_OUTER_NE_N = 2;
+static const uint E_OUTER_NE = 3;
+static const uint E_OUTER_NE_E = 4;
+
+static const uint E_OUTER_SE_N = 5;
+static const uint E_OUTER_SE = 6;
+static const uint E_OUTER_SE_S = 7;
+
+static const uint E_OUTER_S_SE = 8;
+static const uint E_OUTER_S = 9;
+static const uint E_OUTER_S_SW = 10;
+
+static const uint E_OUTER_SW_S = 11;
+static const uint E_OUTER_SW = 12;
+static const uint E_OUTER_SW_N = 13;
+
+static const uint E_OUTER_NW_S = 14;
+static const uint E_OUTER_NW = 15;
+static const uint E_OUTER_NN_N = 16;
+
+static const uint E_OUTER_N_NW = 17;
+
 float UnPack(uint sides, int index)
 {
     uint mask = 3 << (index * 2);
@@ -112,204 +185,108 @@ float UnPack(uint sides, int index)
     return positive - 1.0f;
 }
 
-float4 GetSideOffset(uint sides, int index)
+float4 GetSideOffset(uint s0, uint s1, int index)
 {
-    float offset = UnPack(sides, index);
+    float offset;
+    if(index < 16)
+    {
+        offset = UnPack(s0, index);
+    }
+    else
+    {
+        offset = UnPack(s1, index - 16);
+    }
+    
     return float4(0, offset * 0.05f, 0, 0);
 }
 
-
-PNT GetHexagonVertex(InstanceData data, uint vertexId)
+Vertex GetHexagonVertex(InstanceData data, uint vertexId)
 {
-    PNT output;
-    output.position = float4(0, 0, 0, 1);
-    output.normal = float3(0, 1, 0);
-    output.texcoord = float2(0, 0);
-
-    switch(vertexId)
+    static const float4 Sequence[] = 
     {
-        // Inner Hexagon
-        case 0:
-            output.position = vInNorth;
-            break;
-        case 1:
-            output.position = vInNorthEast;
-            break;
-        case 2:
-            output.position = vInNorthWest;
-            break;
-        case 3:
-            output.position = vInSouthEast;
-            break;
-        case 4:
-            output.position = vInSouthWest;
-            break;
-        case 5:
-            output.position = vInSouth;
-            break;
-    }
+        InnerRing[E_INNER_N],
+        InnerRing[E_INNER_NE],
+        InnerRing[E_INNER_NW],
+        InnerRing[E_INNER_SE],
+        InnerRing[E_INNER_SW],
+        InnerRing[E_INNER_S]
+    };
 
-    output.position += float4(data.position, 0.0f);
-    output.texcoord += output.position.xz;
+    Vertex output;
+    output.position = float4(data.position, 0.0f)+ Sequence[vertexId];
+    output.normal = float3(0, 1, 0);
+    output.texcoord = output.position.xz;
+    return output;
+}
+
+Vertex GetStripVertex(InstanceData data, uint vertexId)
+{
+    static const uint2 Sequence[] = 
+    {
+        uint2(E_OUTER, E_OUTER_N),
+        uint2(E_OUTER, E_OUTER_N_NE),
+        uint2(E_INNER, E_INNER_N),
+        uint2(E_OUTER, E_OUTER_NE_N),
+        uint2(E_INNER, E_INNER_NE),
+        uint2(E_OUTER, E_OUTER_NE),
+    };
+
+    Vertex output;
+    
+    uint instance = vertexId / 6;
+    uint2 seq = Sequence[vertexId % 6];
+    if (seq.x == E_INNER)
+    {
+        output.position = float4(data.position, 0.0f) + InnerRing[(seq.y + instance) % 6];
+        output.normal = float3(0, 1, 0);
+        output.texcoord = output.position.xz;
+    }
+    else // E_OUTER
+    {
+        // TODO: fix normals
+        uint index = (seq.y + instance * 3) % 18;
+        float4 offset = GetSideOffset(data.s0, data.s1, index);
+        float4 position = OuterRing[index];
+
+        output.position = float4(data.position, 0.0f) + position + offset;
+
+        if (offset.y > 0)
+        {   
+            float3 direction = normalize(float3(position.x, 0, position.z));
+            float3 normal = lerp(float3(0,1, 0), -direction, 0.5f);
+            output.normal = normalize(normal);
+        }
+        else if(offset.y < 0)
+        {
+            float3 direction = normalize(float3(position.x, 0, position.z));
+            float3 normal = lerp(float3(0,1, 0), direction, 0.5f);
+            output.normal = normalize(normal);
+        }
+        else
+        {
+            output.normal = float3(0, 1, 0);
+        }
+
+        
+        output.texcoord = output.position.xz;
+    }
 
     return output;
 }
 
-PNT GetStripVertex(InstanceData data, uint vertexId)
-{
-    PNT output;
-    output.position = float4(0, 0, 0, 1);
-    output.normal = float3(0, 1, 0);
-    output.texcoord = float2(0, 0);
-
-    switch(vertexId)
-    {
-        // North East Strip
-        case 0:
-            output.position = vOutNorth;
-            break;
-        case 1:
-            output.position = vOutNorthNorthEast;
-            break;
-        case 2:
-            output.position = vInNorth;
-            break;
-        case 3:
-            output.position = vOutNorthEastNorth;
-            break;
-        case 4:
-            output.position = vInNorthEast;
-            break;
-        case 5:
-            output.position = vOutNorthEast;
-            break;
-
-        // East strip
-        case 6:
-            output.position = vOutNorthEast;
-            break;
-        case 7:
-            output.position = vOutNorthEastEast;
-            break;
-        case 8:
-            output.position = vInNorthEast;
-            break;
-        case 9:
-            output.position = vOutSouthEastNorth;
-            break;
-        case 10:
-            output.position = vInSouthEast;
-            break;
-        case 11:
-            output.position = vOutSouthEast;
-            break;
-
-        // South East strip
-        case 12:
-            output.position = vOutSouthEast;
-            break;
-        case 13:
-            output.position = vOutSouthEastSouth;
-            break;
-        case 14:
-            output.position = vInSouthEast;
-            break;
-        case 15:
-            output.position = vOutSouthSouthEast;
-            break;
-        case 16:
-            output.position = vInSouth;
-            break;
-        case 17:
-            output.position = vOutSouth;
-            break;
-
-        // South West strip
-        case 18:
-            output.position = vOutSouth;
-            break;
-        case 19:
-            output.position = vOutSouthSouthWest;
-            break;
-        case 20:
-            output.position = vInSouth;
-            break;
-        case 21:
-            output.position = vOutSouthWestSouth;
-            break;
-        case 22:
-            output.position = vInSouthWest;
-            break;
-        case 23:
-            output.position = vOutSouthWest;
-            break;
-
-        // West strip
-        case 24:
-            output.position = vOutSouthWest;
-            break;
-        case 25:
-            output.position = vOutSouthWestNorth;
-            break;
-        case 26:
-            output.position = vInSouthWest;
-            break;
-        case 27:
-            output.position = vOutNorthWestSouth;
-            break;
-        case 28:
-            output.position = vInNorthWest;
-            break;
-        case 29:
-            output.position = vOutNorthWest;
-            break;
-
-        // North West strip
-        case 30:
-            output.position = vOutNorthWest;
-            break;
-        case 31:
-            output.position = vOutNorthWestNorth;
-            break;
-        case 32:
-            output.position = vInNorthWest;
-            break;
-        case 33:
-            output.position = vOutNorthNorthWest;
-            break;
-        case 34:
-            output.position = vInNorth;
-            break;
-        case 35:
-            output.position = vOutNorth;
-            break;
-    }
-
-    output.position += float4(data.position, 0.0f);
-    output.texcoord += output.position.xz;
-
-    // TODO: add heights and normals
-
-    return output;
-}
-
-PS_INPUT CreateVsOutput(PNT pnt)
+PS_INPUT CreateVsOutput(Vertex vertex)
 {
     PS_INPUT output;
-
-    float4 position = pnt.position;
-    float3 normal = pnt.normal;
-    float2 texcoord = pnt.texcoord;
     
     float3x3 rotation = (float3x3) World;
 
-    output.position = mul(WorldViewProjection, position);
-    output.previousPosition = mul(PreviousWorldViewProjection, position);
+    output.position = mul(WorldViewProjection, vertex.position);
+    output.previousPosition = mul(PreviousWorldViewProjection, vertex.position);
     output.currentPosition = output.position;
     
-    output.world = mul(World, position).xyz;
-    output.normal = normalize(mul(rotation, normal));
-    output.texcoord = ScreenToTexture(mul((float4x2)World, texcoord).xy);
+    output.world = mul(World, vertex.position).xyz;
+    output.normal = normalize(mul(rotation, vertex.normal));
+    output.texcoord = ScreenToTexture(mul((float4x2)World, vertex.texcoord).xy);
 
     return output;
 }
@@ -317,16 +294,16 @@ PS_INPUT CreateVsOutput(PNT pnt)
 #pragma VertexShader
 PS_INPUT VsHexagon(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
-    PNT pnt = GetHexagonVertex(Instances[instanceId], vertexId);
-    return CreateVsOutput(pnt);
+    Vertex vertex = GetHexagonVertex(Instances[instanceId], vertexId);
+    return CreateVsOutput(vertex);
 }
 
 #pragma VertexShader
 PS_INPUT VsStrip(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
     uint offset = (instanceId % 6) * 6;
-    PNT pnt = GetStripVertex(Instances[instanceId / 6], vertexId + offset);
-    return CreateVsOutput(pnt);
+    Vertex vertex = GetStripVertex(Instances[instanceId / 6], vertexId + offset);
+    return CreateVsOutput(vertex);
 }
 
 struct MultiUv
