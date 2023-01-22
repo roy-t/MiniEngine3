@@ -7,6 +7,7 @@ using Mini.Engine.Graphics.Lighting.PointLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.PostProcessing;
+using Mini.Engine.Graphics.Tiles;
 using Mini.Engine.Graphics.Vegetation;
 using Mini.Engine.Graphics.World;
 
@@ -49,11 +50,17 @@ internal sealed class RenderPipelineBuilder
                 .Requires("Initialization", "GBuffer")
                 .Produces("Renderer", "Hexagons")
                 .Build()
+            .System<TileSystem>()
+                .InSequence()
+                .Requires("Initialization", "GBuffer")
+                .Produces("Renderer", "Tiles")
+                .Build()
             .System<GrassSystem>()
                 .InSequence()                
                 .Requires("Initialization", "GBuffer")
                 .Requires("Renderer", "Terrain")
                 .Requires("Renderer", "Hexagons")
+                .Requires("Renderer", "Tiles")
                 .Produces("Renderer", "Grass")
                 .Build()
             .System<CascadedShadowMapSystem>()
@@ -65,6 +72,7 @@ internal sealed class RenderPipelineBuilder
                 .Requires("Renderer", "Models")
                 .Requires("Renderer", "Terrain")
                 .Requires("Renderer", "Hexagons")
+                .Requires("Renderer", "Tiles")
                 .Requires("Renderer", "Grass")
                 .Produces("Renderer", "PointLights")
                 .Build()
@@ -73,6 +81,7 @@ internal sealed class RenderPipelineBuilder
                 .Requires("Renderer", "Models")
                 .Requires("Renderer", "Terrain")
                 .Requires("Renderer", "Hexagons")
+                .Requires("Renderer", "Tiles")
                 .Requires("Renderer", "Grass")
                 .Produces("Renderer", "ImageBasedLights")
                 .Build()
@@ -81,6 +90,7 @@ internal sealed class RenderPipelineBuilder
                 .Requires("Renderer", "Models")
                 .Requires("Renderer", "Terrain")
                 .Requires("Renderer", "Hexagons")
+                .Requires("Renderer", "Tiles")
                 .Requires("Renderer", "Grass")
                 .Requires("Shadows", "CascadedShadowMap")
                 .Produces("Renderer", "SunLights")
@@ -90,6 +100,7 @@ internal sealed class RenderPipelineBuilder
                 .Requires("Renderer", "Models")
                 .Requires("Renderer", "Terrain")
                 .Requires("Renderer", "Hexagons")
+                .Requires("Renderer", "Tiles")
                 .Requires("Renderer", "Grass")
                 .Requires("Renderer", "PointLights")
                 .Requires("Renderer", "ImageBasedLights")

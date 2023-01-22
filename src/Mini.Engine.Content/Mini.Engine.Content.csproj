@@ -4,6 +4,7 @@
     <None Remove="Assets\Shaders\Includes\FXAA.hlsl" />
     <None Remove="Assets\Shaders\Includes\TAA.hlsl" />
     <None Remove="Assets\Shaders\Lighting\BrdfLutCompute.hlsl" />
+    <None Remove="Assets\Shaders\Tiles\Tiles.hlsl" />
   </ItemGroup> 
   <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
@@ -25,6 +26,7 @@
     <AdditionalFiles Include="Assets\Shaders\AntiAliasShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\BrdfLutCompute.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\TextureShader.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Tiles\Tiles.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\HydraulicErosion.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\Includes\Wind.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\Includes\Utilities.hlsl" />
