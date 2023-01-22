@@ -81,25 +81,78 @@ static const float3 VERTEX_POSITION[] =
     float3(-1, 0, 1),
     float3(-1, 0, -1),
 
-    // 1 Point up (offset 4)
+    // 1 Point up, NW (offset 4)
     float3(1, 0, -1),
     float3(1, 0, 1),
     float3(-1, 0, 1),
-    float3(-1, HEIGTH_DIFFERENCE, -1),
+    float3(-1, 0, -1),
 
-    // 1 side up (offet 8)
-    float3(1, HEIGTH_DIFFERENCE, -1),
+    // 1 side up, N (offet 8)
+    float3(1, 0, -1),
     float3(1, 0, 1),
     float3(-1, 0, 1),
-    float3(-1, HEIGTH_DIFFERENCE, -1),
+    float3(-1, 0, -1),
 
-    // 1 corner up, 1 corner down (offet 12)
+    // 1 corner up NW, 1 corner down SE (offet 12)
     float3(1, 0, -1),
-    float3(1, -HEIGTH_DIFFERENCE, 1),
+    float3(1, -0, 1),
     float3(-1, 0, 1),
-    float3(-1, HEIGTH_DIFFERENCE, -1),
+    float3(-1, 0, -1),
 };
 
+static const float3 VERTEX_HEIGHT_OFFSET[] =
+{
+    // Flat (offset 0)
+    float3(0, 0, 0),
+    float3(0, 0, 0),
+    float3(0, 0, 0),
+    float3(0, 0, 0),
+
+    // 1 Point up, NW (offset 4)
+    float3(0, 0, 0),
+    float3(0, 0, 0),
+    float3(0, 0, 0),
+    float3(0.2357022613286972, 0.2357022613286972, 0.9428090453147888),
+
+    // 1 side up, N (offet 8)
+    float3(0, HEIGTH_DIFFERENCE, 0),
+    float3(0, 0, 0),
+    float3(0, 0, 0),
+    float3(0, HEIGTH_DIFFERENCE, 0),
+
+    // 1 corner up NW, 1 corner down SE (offet 12)
+    float3(0, 0, 0),
+    float3(0, -HEIGTH_DIFFERENCE, 0),
+    float3(0, 0, 0),
+    float3(0, HEIGTH_DIFFERENCE, 0),
+};
+
+static const float3 VERTEX_NORMALS[] =
+{
+    // Flat (offset 0)
+    float3(0, 1, 0),
+    float3(0, 1, 0),
+    float3(0, 1, 0),
+    float3(0, 1, 0),
+
+    // 1 Point up, NW (offset 4)
+    float3(0, 1, 0),
+    float3(0, 1, 0),
+    float3(0, 1, 0),
+    float3(0, HEIGTH_DIFFERENCE, 0),
+
+    // 1 side up, N (offet 8)
+    float3(0, HEIGTH_DIFFERENCE, 0),
+    float3(0, 1, 0),
+    float3(0, 1, 0),
+    float3(0, HEIGTH_DIFFERENCE, 0),
+
+    // 1 corner up NW, 1 corner down SE (offet 12)
+    float3(0, 1, 0),
+    float3(0, -HEIGTH_DIFFERENCE, 0),
+    float3(0, 1, 0),
+    float3(0, HEIGTH_DIFFERENCE, 0),
+};
 
 #pragma VertexShader
 PS_INPUT Vs(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
@@ -109,14 +162,22 @@ PS_INPUT Vs(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
     float3x3 rotation = (float3x3) World;
     
     Vertex vertex;
-    
+
+    // HACK: control type of triangle and rotation
+    uint instanceType = 3;// see list of types at top of file
+    uint instanceRotation = 0; // clockwise as seen from above
+
+
     uint triangleVertexId = vertexId % 3;
     uint triangleOffset = (vertexId / 3) * 2; 
 
-    uint offset = (triangleVertexId + triangleOffset) % 4;
-    uint typeOffset = 0 * 4;
+    uint offset = (triangleVertexId + triangleOffset - instanceRotation) % 4;
+    uint heightOffset = (offset - instanceRotation) % 4;
+    uint typeOffset = instanceType * 4;
 
-    vertex.position = float4(VERTEX_POSITION[offset + typeOffset], 1.0f);
+    float3 position = VERTEX_POSITION[offset + typeOffset] + VERTEX_HEIGHT_OFFSET[heightOffset + typeOffset];
+
+    vertex.position = float4(position, 1.0f);
     vertex.position.xz += ToTwoDimensional(instanceId, Columns) * 2.0f;
     
     vertex.normal = float3(0, 1, 0);
