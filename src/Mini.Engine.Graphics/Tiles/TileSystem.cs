@@ -35,7 +35,7 @@ public sealed partial class TileSystem : ISystem, IDisposable
     public void OnSet()
     {
         this.Context.IA.ClearInputLayout();
-        this.Context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
+        this.Context.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleStrip);
         
         this.Context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
 
@@ -81,7 +81,7 @@ public sealed partial class TileSystem : ISystem, IDisposable
 
        
         this.Context.VS.SetShader(this.Shader.Vs);
-        this.Context.DrawInstanced(6, (int)(tile.Columns * tile.Rows));
+        this.Context.DrawInstanced(4, (int)(tile.Columns * tile.Rows));
     }
 
     public void OnUnSet()
