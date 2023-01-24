@@ -39,8 +39,8 @@ internal class TilePanel : IPanel
 
     public void Update(float elapsed)
     {
-        ImGui.SliderInt("Columns", ref this.Settings.Columns, 1, 1000);
-        ImGui.SliderInt("Rows", ref this.Settings.Rows, 1, 1000);
+        ImGui.SliderInt("Columns", ref this.Settings.Columns, 1, 10);
+        ImGui.SliderInt("Rows", ref this.Settings.Rows, 1, 10);
 
         this.ComponentSelector.Update();
         if (ImGui.Button("Add"))

@@ -7,6 +7,21 @@ public static class TileBuilder
     {
         var tiles = new TileInstanceData[columns * rows];
 
+
+        // TEST X connection (many columns, 1 row)
+
+        //tiles[0] = new TileInstanceData() { Rotation = 1, Type = 2 };
+        //tiles[1] = new TileInstanceData() { Rotation = 3, Type = 2 };
+
+
+        // TEST Y connection (many rows, 1 column
+
+        //tiles[0] = new TileInstanceData() { Rotation = 2, Type = 2 };
+        //tiles[1] = new TileInstanceData() { Rotation = 0, Type = 2 };
+
+        tiles[0] = new TileInstanceData() { Rotation = 1, Type = 2 };
+        tiles[1] = new TileInstanceData() { Rotation = 3, Type = 2 };
+
         tiles[0] = new TileInstanceData() { Rotation = 1, Type = 1 };
         tiles[1] = new TileInstanceData() { Rotation = 2, Type = 2 };
         tiles[2] = new TileInstanceData() { Rotation = 2, Type = 1 };
