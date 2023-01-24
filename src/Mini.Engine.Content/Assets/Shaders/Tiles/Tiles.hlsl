@@ -250,7 +250,7 @@ float3 GetNormal(uint vertexId, uint instanceId)
 
 float3 AverageNormal(float3 normal, uint vertexId, uint instanceId)
 {
-    // vertexId = 1    
+    // vertexId = 1
     uint rotation = Instances[instanceId].rotation; // 2
     uint offset = rotation * 4 + vertexId; // 8 + 1 = 9
     uint corner = VERTEX_ID_TO_CORNER[offset];  // SE
@@ -261,7 +261,6 @@ float3 AverageNormal(float3 normal, uint vertexId, uint instanceId)
     int3x3 neighbourOffsets = CORNER_TO_NEIGHBOURING_CORNER[corner];
 
     float3 accumulator = normal;
-    float weigth = 1.0f;
     for(uint i = 0; i < 3; i++)
     {
         // only int3(0, 1, NE) passes the test
@@ -275,11 +274,10 @@ float3 AverageNormal(float3 normal, uint vertexId, uint instanceId)
             uint neighbourVertexId = CORNER_TO_VERTEX_ID[neighbourRotation * 4 + neighbourOffset.z];
             
             accumulator += GetNormal(neighbourVertexId, neighbourInstanceId);
-            weigth += 1.0f;
         }
     }
-    //return normal;
-    return normalize(accumulator / weigth);
+    
+    return normalize(accumulator);
 }
 
 #pragma VertexShader
