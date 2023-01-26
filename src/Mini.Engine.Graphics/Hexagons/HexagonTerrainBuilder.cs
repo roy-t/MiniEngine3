@@ -11,7 +11,7 @@ public static class HexagonTerrainBuilder
         var stepY = 0.05f * 2.0f;
 
         var stepX = 0.5f * MathF.Sin((MathF.PI * 2) / 6);
-        var stepZ = (1.0f + 0.5f) * 0.5f;
+        //var stepZ = (1.0f + 0.5f) * 0.5f;
 
         //var data = new HexagonInstanceData[rows * columns];
 

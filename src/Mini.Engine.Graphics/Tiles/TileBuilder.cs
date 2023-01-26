@@ -1,4 +1,5 @@
-﻿using TileInstanceData = Mini.Engine.Content.Shaders.Generated.Tiles.InstanceData;
+﻿using Mini.Engine.Core;
+using TileInstanceData = Mini.Engine.Content.Shaders.Generated.Tiles.InstanceData;
 
 namespace Mini.Engine.Graphics.Tiles;
 public static class TileBuilder
@@ -7,32 +8,29 @@ public static class TileBuilder
     {
         var tiles = new TileInstanceData[columns * rows];
 
+        var bump = new TileInstanceData[9]
+        {
+            new TileInstanceData() { Rotation = 1, Type = 1 },
+            new TileInstanceData() { Rotation = 2, Type = 2 },
+            new TileInstanceData() { Rotation = 2, Type = 1 },
+            new TileInstanceData() { Rotation = 1, Type = 2 },
+            new TileInstanceData() { Rotation = 0, Type = 0, Heigth = 1 },
+            new TileInstanceData() { Rotation = 3, Type = 2 },
+            new TileInstanceData() { Rotation = 0, Type = 1 },
+            new TileInstanceData() { Rotation = 0, Type = 2 },
+            new TileInstanceData() { Rotation = 3, Type = 1 },
+        };
 
-        // TEST X connection (many columns, 1 row)
+        for (var c = 0; c < columns; c++)
+        {
+            for(var r = 0; r < rows; r++)
+            {
+                var i = Indexes.ToOneDimensional(c, r, columns);
+                var ti = Indexes.ToOneDimensional(c % 3, r % 3, 3);
 
-        //tiles[0] = new TileInstanceData() { Rotation = 1, Type = 2 };
-        //tiles[1] = new TileInstanceData() { Rotation = 3, Type = 2 };
-
-
-        // TEST Y connection (many rows, 1 column
-
-        //tiles[0] = new TileInstanceData() { Rotation = 2, Type = 2 };
-        //tiles[1] = new TileInstanceData() { Rotation = 0, Type = 2 };
-
-        tiles[0] = new TileInstanceData() { Rotation = 1, Type = 2 };
-        tiles[1] = new TileInstanceData() { Rotation = 3, Type = 2 };
-
-        tiles[0] = new TileInstanceData() { Rotation = 1, Type = 1 };
-        tiles[1] = new TileInstanceData() { Rotation = 2, Type = 2 };
-        tiles[2] = new TileInstanceData() { Rotation = 2, Type = 1 };
-
-        tiles[3] = new TileInstanceData() { Rotation = 1, Type = 2 };
-        tiles[4] = new TileInstanceData() { Rotation = 0, Type = 0, Heigth = 1 };
-        tiles[5] = new TileInstanceData() { Rotation = 3, Type = 2 };
-
-        tiles[6] = new TileInstanceData() { Rotation = 0, Type = 1 };
-        tiles[7] = new TileInstanceData() { Rotation = 0, Type = 2 };
-        tiles[8] = new TileInstanceData() { Rotation = 3, Type = 3 };
+                tiles[i] = bump[ti];
+            }
+        }
 
 
         return tiles;

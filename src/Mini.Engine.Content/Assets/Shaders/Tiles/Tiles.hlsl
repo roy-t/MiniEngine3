@@ -67,78 +67,10 @@ StructuredBuffer<InstanceData> Instances : register(t5);
 static const float HEIGTH_DIFFERENCE = 1.f;
 
 //  v1-------v3    NW-------NE
-//  |         |    |         |
-//  |         |    |         |
-//  |         |    |         |
+//  |  \      |    |         |
+//  |    \    |    |         |
+//  |      \  |    |         |
 //  v0-------v2    SW-------SE
-
-static const uint SW = 0;
-static const uint NW = 1;
-static const uint SE = 2;
-static const uint NE = 3;
-
-
-static const int3x3 CORNER_TO_NEIGHBOURING_CORNER[] =
-{
-    int3x3(int3(-1, 0, SE), int3(-1, 1, NE), int3(0, 1, NW)), //SW -> ...
-    int3x3(int3(-1, 0, NE), int3(-1, -1, SE), int3(0, -1, SW)), //NW -> ...
-    int3x3(int3(1, 0, SW), int3(1, 1, NW), int3(0, 1, NE)), //SE -> ...
-    int3x3(int3(1, 0, NW), int3(1, -1, SW), int3(0, -1, SE)), //NE -> ...
-};
-
-static const uint VERTEX_ID_TO_CORNER[] =
-{
-    // rotation 0
-    SW,
-    NW,
-    SE,
-    NE,
-
-    // rotaton 1
-    NW,
-    NE,
-    SW,
-    SE,
-
-    // rotation 2
-    NE,
-    SE,
-    NW,
-    SW,
-
-    // rotation 3
-    SE,
-    SW,
-    NE,
-    NW
-};
-
-static const uint CORNER_TO_VERTEX_ID[] =
-{
-    // rotation 0
-    SW,
-    NW,
-    SE,
-    NE,
-
-    // rotation 1
-    SE,
-    SW,
-    NE,
-    NW,
-
-    // rotation 2
-    NE,
-    SE,
-    NW,
-    SW,
-
-    // rotation 3
-    NW,
-    NE,
-    SW,
-    SE
-};
 
 static const float3 VERTEX_POSITION[] =
 {
@@ -238,7 +170,6 @@ float3 GetNormal(uint vertexId, uint instanceId)
     uint type = Instances[instanceId].type;
     uint rotation = Instances[instanceId].rotation;
 
-
     float radians = rotation * PI_OVER_TWO;
     float3x3 mat  = CreateRotationYClockWise(radians);
 
@@ -248,38 +179,6 @@ float3 GetNormal(uint vertexId, uint instanceId)
     return mul(mat, normal);
 }
 
-float3 AverageNormal(float3 normal, uint vertexId, uint instanceId)
-{
-    // vertexId = 1
-    uint rotation = Instances[instanceId].rotation; // 2
-    uint offset = rotation * 4 + vertexId; // 8 + 1 = 9
-    uint corner = VERTEX_ID_TO_CORNER[offset];  // SE
-
-    int2 position =  (int2)ToTwoDimensional(instanceId, Columns); // 0, 0
-    
-    // int3x3(int3(1, 0, SW), int3(1, 1, NW), int3(0, 1, NE)), //SE -> ...
-    int3x3 neighbourOffsets = CORNER_TO_NEIGHBOURING_CORNER[corner];
-
-    float3 accumulator = normal;
-    for(uint i = 0; i < 3; i++)
-    {
-        // only int3(0, 1, NE) passes the test
-        int3 neighbourOffset = neighbourOffsets[i];
-        int2 neighbourPosition = position + neighbourOffset.xy;
-        if (neighbourPosition.x >= 0 && neighbourPosition.x < (int)Columns &&
-            neighbourPosition.y >= 0 && neighbourPosition.y < (int)Rows)
-        {   
-            uint neighbourInstanceId = ToOneDimensional((uint)neighbourPosition.x, (uint)neighbourPosition.y, Columns);
-            uint neighbourRotation = Instances[neighbourInstanceId].rotation; // 0
-            uint neighbourVertexId = CORNER_TO_VERTEX_ID[neighbourRotation * 4 + neighbourOffset.z];
-            
-            accumulator += GetNormal(neighbourVertexId, neighbourInstanceId);
-        }
-    }
-    
-    return normalize(accumulator);
-}
-
 #pragma VertexShader
 PS_INPUT Vs(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
@@ -287,9 +186,36 @@ PS_INPUT Vs(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 
     float3 position = GetPosition(vertexId, instanceId);
     float3 normal = GetNormal(vertexId, instanceId);
+    float2 texcoord = float2(position.x, position.z);
 
-    normal = AverageNormal(normal, vertexId, instanceId);
+    float3x3 rotation = (float3x3) World;
+    output.position = mul(WorldViewProjection, float4(position, 1));
+    output.previousPosition = mul(PreviousWorldViewProjection, float4(position, 1));
+    output.currentPosition = output.position;
 
+    output.world = mul(World, float4(position, 1)).xyz;
+    output.normal = normalize(mul(rotation, normal));
+    output.texcoord = ScreenToTexture(mul((float4x2)World, texcoord).xy);
+
+    return output;
+}
+
+#pragma VertexShader
+PS_INPUT VsLine(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
+{
+    PS_INPUT output;
+
+    // HACK!
+    if(vertexId == 2) {
+        vertexId = 3;
+    } else if (vertexId == 3) {
+        vertexId = 2;
+    } else if (vertexId == 4) {
+        vertexId = 0;
+    }
+
+    float3 position = GetPosition(vertexId, instanceId) + float3(0, 0.01, 0);
+    float3 normal = GetNormal(vertexId, instanceId);
     float2 texcoord = float2(position.x, position.z);
 
     float3x3 rotation = (float3x3) World;
@@ -339,9 +265,9 @@ OUTPUT PS(PS_INPUT input)
     const uint steps = 3;
     float2 texcoords[] =
     {
-        input.texcoord * 83.0f,
-        float2(sin(0.33f) * input.texcoord.x, cos(0.33f) * input.texcoord.y) * 53.0f,
-        float2(sin(0.75f) * input.texcoord.x, cos(0.75f) * input.texcoord.y) * 1.0f + float2(0.33, 0.16f)
+        input.texcoord * 1.50942f,
+        float2(sin(0.33f), cos(0.33f)) * 5 + input.texcoord * 0.80948f,
+        float2(sin(0.75f), cos(0.75f)) * 3 + input.texcoord * 0.41235f ,
     };
 
     float sumWeigth = 0.0f;
@@ -380,9 +306,24 @@ OUTPUT PS(PS_INPUT input)
     OUTPUT output;
     output.albedo = albedo;
     output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
-
     output.normal = float4(PackNormal(normal), 1.0f);
+    output.velocity = previousUv - currentUv;
 
+    return output;
+}
+
+#pragma PixelShader
+OUTPUT PsLine(PS_INPUT input)
+{
+    input.previousPosition /= input.previousPosition.w;
+    input.currentPosition /= input.currentPosition.w;
+    float2 previousUv = ScreenToTexture(input.previousPosition.xy - PreviousJitter);
+    float2 currentUv = ScreenToTexture(input.currentPosition.xy - Jitter);
+
+    OUTPUT output;
+    output.albedo = float4(0,0,0,1);
+    output.material = float4(0, 0, 1, 1.0f);
+    output.normal = float4(PackNormal(float3(0, 1, 0)), 1.0f);
     output.velocity = previousUv - currentUv;
 
     return output;

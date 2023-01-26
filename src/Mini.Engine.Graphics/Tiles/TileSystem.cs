@@ -84,6 +84,30 @@ public sealed partial class TileSystem : ISystem, IDisposable
         this.Context.DrawInstanced(4, (int)(tile.Columns * tile.Rows));
     }
 
+    [Process(Query = ProcessQuery.All)]
+    public void DrawTileBorders(ref TileComponent tile, ref TransformComponent transform)
+    {
+        this.Context.IA.SetPrimitiveTopology(PrimitiveTopology.LineStrip);
+
+        ref var camera = ref this.FrameService.GetPrimaryCamera().Camera;
+        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
+
+        var previousWorld = transform.Previous.GetMatrix();
+        var world = transform.Current.GetMatrix();
+        var previousViewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.FrameService.PreviousCameraJitter);
+        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
+        var cameraPosition = cameraTransform.Current.GetPosition();
+
+
+        this.User.MapConstants(this.Context, previousWorld * previousViewProjection, world * viewProjection, world, cameraPosition, this.FrameService.PreviousCameraJitter, this.FrameService.CameraJitter, tile.Columns, tile.Rows);
+
+        this.Context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
+
+        this.Context.VS.SetShader(this.Shader.VsLine);
+        this.Context.PS.SetShader(this.Shader.PsLine);
+        this.Context.DrawInstanced(5, (int)(tile.Columns * tile.Rows));
+    }
+
     public void OnUnSet()
     {
         using var commandList = this.Context.FinishCommandList();

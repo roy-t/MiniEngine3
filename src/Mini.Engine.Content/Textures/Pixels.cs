@@ -30,17 +30,19 @@ public sealed class Pixels
 
     public ILifetime<ITexture> BluePixel => this.CreatePixel(Colors.Blue, "Blue");
 
-    public ILifetime<ITexture> ConductivePixel => this.CreatePixel(Colors.White, "Metalicness");
+    public ILifetime<ITexture> DefaultMaterialPixel => this.MaterialPixel(0.0f, 0.0f, 1.0f);
 
-    public ILifetime<ITexture> DielectricPixel => this.CreatePixel(Colors.Black, "Metalicness");
+    //public ILifetime<ITexture> ConductivePixel => this.CreatePixel(Colors.White, "Metalicness");
 
-    public ILifetime<ITexture> RoughPixel => this.RoughnessPixel(1.0f);
+    //public ILifetime<ITexture> DielectricPixel => this.CreatePixel(Colors.Black, "Metalicness");
 
-    public ILifetime<ITexture> SmoothPixel => this.RoughnessPixel(0.0f);
+    //public ILifetime<ITexture> RoughPixel => this.RoughnessPixel(1.0f);
 
-    public ILifetime<ITexture> VisiblePixel => this.AmbientOcclussionPixel(1.0f);
+    //public ILifetime<ITexture> SmoothPixel => this.RoughnessPixel(0.0f);
 
-    public ILifetime<ITexture> OccludedPixel => this.AmbientOcclussionPixel(0.0f);
+    //public ILifetime<ITexture> VisiblePixel => this.AmbientOcclussionPixel(1.0f);
+
+    //public ILifetime<ITexture> OccludedPixel => this.AmbientOcclussionPixel(0.0f);
 
     public ILifetime<ITexture> AlbedoPixel(Color4 color)
     {
@@ -57,20 +59,10 @@ public sealed class Pixels
         return this.CreatePixel(new Color4(Pack(direction), 1.0f), "Normal");
     }
 
-    public ILifetime<ITexture> MetalicnessPixel(float metalicness)
+    public ILifetime<ITexture> MaterialPixel(float metalicness, float roughness, float ao = 1.0f)
     {
-        return this.CreatePixel(new Color4(metalicness, metalicness, metalicness), "Metalicness");
-    }
-
-    public ILifetime<ITexture> RoughnessPixel(float roughness)
-    {
-        return this.CreatePixel(new Color4(roughness, roughness, roughness), "Roughness");
-    }
-
-    public ILifetime<ITexture> AmbientOcclussionPixel(float ao)
-    {
-        return this.CreatePixel(new Color4(ao, ao, ao), "AmbientOcclusion");
-    }
+        return this.CreatePixel(new Color4(metalicness, roughness, ao), "Material");
+    }   
 
     public ILifetime<ITexture> CreatePixel(Color4 color, string meaning)
     {
