@@ -28,6 +28,13 @@ struct PS_INPUT
     float3 normal : NORMAL;
 };
 
+struct PS_LINE_INPUT
+{
+    float4 position : SV_POSITION;
+    float4 previousPosition : POSITION0;
+    float4 currentPosition : POSITION1;
+};
+
 struct OUTPUT
 {
     float4 albedo : SV_Target0;
@@ -201,12 +208,12 @@ PS_INPUT Vs(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 }
 
 #pragma VertexShader
-PS_INPUT VsLine(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
+PS_LINE_INPUT VsLine(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
-    PS_INPUT output;
+    PS_LINE_INPUT output;
 
-    // HACK!
-    if(vertexId == 2) {
+    // Map vertex Ids of a line strip those of a triangle strip
+    if (vertexId == 2) {
         vertexId = 3;
     } else if (vertexId == 3) {
         vertexId = 2;
@@ -214,18 +221,10 @@ PS_INPUT VsLine(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
         vertexId = 0;
     }
 
-    float3 position = GetPosition(vertexId, instanceId) + float3(0, 0.01, 0);
-    float3 normal = GetNormal(vertexId, instanceId);
-    float2 texcoord = float2(position.x, position.z);
-
-    float3x3 rotation = (float3x3) World;
+    float3 position = GetPosition(vertexId, instanceId) + float3(0, 0.02, 0);
     output.position = mul(WorldViewProjection, float4(position, 1));
     output.previousPosition = mul(PreviousWorldViewProjection, float4(position, 1));
     output.currentPosition = output.position;
-
-    output.world = mul(World, float4(position, 1)).xyz;
-    output.normal = normalize(mul(rotation, normal));
-    output.texcoord = ScreenToTexture(mul((float4x2)World, texcoord).xy);
 
     return output;
 }
@@ -260,7 +259,7 @@ MultiUv SampleTextures(float3 world, float2 texCoord, float3 heightMapNormal)
 }
 
 #pragma PixelShader
-OUTPUT PS(PS_INPUT input)
+OUTPUT Ps(PS_INPUT input)
 {
     const uint steps = 3;
     float2 texcoords[] =
@@ -313,7 +312,7 @@ OUTPUT PS(PS_INPUT input)
 }
 
 #pragma PixelShader
-OUTPUT PsLine(PS_INPUT input)
+OUTPUT PsLine(PS_LINE_INPUT input)
 {
     input.previousPosition /= input.previousPosition.w;
     input.currentPosition /= input.currentPosition.w;
@@ -321,9 +320,9 @@ OUTPUT PsLine(PS_INPUT input)
     float2 currentUv = ScreenToTexture(input.currentPosition.xy - Jitter);
 
     OUTPUT output;
-    output.albedo = float4(0,0,0,1);
-    output.material = float4(0, 0, 1, 1.0f);
-    output.normal = float4(PackNormal(float3(0, 1, 0)), 1.0f);
+    output.albedo = float4(0, 0, 0, 1);
+    output.material = float4(0, 0, 1, 1);
+    output.normal = float4(PackNormal(float3(0, 1, 0)), 1);
     output.velocity = previousUv - currentUv;
 
     return output;
