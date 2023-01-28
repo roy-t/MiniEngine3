@@ -40,7 +40,7 @@ public sealed partial class TileOutlineSystem : ISystem, IDisposable
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
-        this.RenderService.RenderTileOutline(this.Context, ref tile, ref transform, ref camera, ref cameraTransform);
+        this.RenderService.RenderTileOutline(this.Context, in tile, in transform, in camera, in cameraTransform);
     }
 
     public void OnUnSet()

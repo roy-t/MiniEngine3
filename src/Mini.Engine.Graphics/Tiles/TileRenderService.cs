@@ -5,6 +5,7 @@ using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Cameras;
+using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Transforms;
 using Vortice.Direct3D;
 using TileShader = Mini.Engine.Content.Shaders.Generated.Tiles;
@@ -56,7 +57,7 @@ public sealed class TileRenderService : IDisposable
         context.PS.SetSampler(TileShader.TextureSampler, this.AnisotropicWrap);
     }
 
-    public void RenderTile(DeviceContext context, ref TileComponent tile, ref TransformComponent transform, ref CameraComponent camera, ref TransformComponent cameraTransform)
+    public void RenderTile(DeviceContext context, in TileComponent tile, in TransformComponent transform, in CameraComponent camera, in TransformComponent cameraTransform)
     {
         var previousWorld = transform.Previous.GetMatrix();
         var world = transform.Current.GetMatrix();
@@ -87,7 +88,7 @@ public sealed class TileRenderService : IDisposable
         context.PS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
     }
 
-    public void RenderTileOutline(DeviceContext context, ref TileComponent tile, ref TransformComponent transform, ref CameraComponent camera, ref TransformComponent cameraTransform)
+    public void RenderTileOutline(DeviceContext context, in TileComponent tile, in TransformComponent transform, in CameraComponent camera, in TransformComponent cameraTransform)
     {
         var previousWorld = transform.Previous.GetMatrix();
         var world = transform.Current.GetMatrix();
@@ -110,7 +111,7 @@ public sealed class TileRenderService : IDisposable
         context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
     }
 
-    public void RenderTileDepth(DeviceContext context, ref TileComponent tile, ref TransformComponent transform, ref Matrix4x4 viewProjection)
+    public void RenderTileDepth(DeviceContext context, in TileComponent tile, in TransformComponent transform, in Matrix4x4 viewProjection)
     {
         var world = transform.Current.GetMatrix();
         var worldViewProjection = world * viewProjection;
@@ -121,14 +122,16 @@ public sealed class TileRenderService : IDisposable
         context.DrawInstanced(4, (int)(tile.Columns * tile.Rows));
     }
 
-    public void RenderAllTileDepths(DeviceContext context, ref Matrix4x4 viewProjection)
+    public void SetupAndRenderAllTileDepths(DeviceContext context, int x, int y, int width, int height, in Frustum viewVolume, in Matrix4x4 viewProjection)
     {
+        this.SetupTileDepthRender(context, x, y, width, height);
+
         var iterator = this.Tiles.IterateAll();
         while (iterator.MoveNext())
         {
             ref var tile = ref iterator.Current;
             ref var transform = ref this.Transforms[tile.Entity];
-            this.RenderTileDepth(context, ref tile, ref transform, ref viewProjection);
+            this.RenderTileDepth(context, in tile, in transform, in viewProjection);
         }
     }
 

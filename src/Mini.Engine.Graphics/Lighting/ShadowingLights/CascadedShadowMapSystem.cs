@@ -126,9 +126,8 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
 
         this.Context.PS.SetShaderResource(ShadowMap.Albedo, material.Albedo);
         this.TerrainRenderService.RenderAllTerrain(this.Context, viewVolume, this.CallBack);
-
-        this.TileRenderService.SetupTileDepthRender(this.Context, 0, 0, resolution, resolution);
-        this.TileRenderService.RenderAllTileDepths(this.Context, ref viewProjection);
+        
+        this.TileRenderService.SetupAndRenderAllTileDepths(this.Context, 0, 0, resolution, resolution, in viewVolume, in viewProjection);
     }
 
     private static readonly Matrix4x4 TexScaleTransform = Matrix4x4.CreateScale(0.5f, -0.5f, 1.0f) * Matrix4x4.CreateTranslation(0.5f, 0.5f, 0.0f);

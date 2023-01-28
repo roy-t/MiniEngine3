@@ -38,7 +38,7 @@ public sealed partial class TileSystem : ISystem, IDisposable
     {
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
-        this.RenderService.RenderTile(this.Context, ref tile, ref transform, ref camera, ref cameraTransform);
+        this.RenderService.RenderTile(this.Context, in tile, in transform, in camera, in cameraTransform);
     }   
 
     public void OnUnSet()
