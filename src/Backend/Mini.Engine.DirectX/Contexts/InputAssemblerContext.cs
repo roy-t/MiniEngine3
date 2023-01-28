@@ -22,9 +22,9 @@ public sealed class InputAssemblerContext : DeviceContextPart
         this.ID3D11DeviceContext.IASetIndexBuffer(buffer.Buffer, buffer.Format, 0);
     }
 
-    public void SetInputLayout(InputLayout inputLayout)
+    public void SetInputLayout(InputLayout? inputLayout)
     {
-        this.ID3D11DeviceContext.IASetInputLayout(inputLayout.ID3D11InputLayout);
+        this.ID3D11DeviceContext.IASetInputLayout(inputLayout?.ID3D11InputLayout);
     }
 
     public void ClearInputLayout()

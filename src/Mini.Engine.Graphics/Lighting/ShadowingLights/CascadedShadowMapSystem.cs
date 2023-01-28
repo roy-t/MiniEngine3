@@ -62,8 +62,8 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
     [Process(Query = ProcessQuery.All)]
     public void DrawCascades(ref CascadedShadowMapComponent shadowMap, ref TransformComponent viewPoint)
     {
-        var camera = this.FrameService.GetPrimaryCamera().Camera;
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
+        ref var camera = ref this.FrameService.GetPrimaryCamera().Camera;
+        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;
         var surfaceToLight = -viewPoint.Current.GetForward();
 
         this.Frustum.TransformToCameraFrustumInWorldSpace(in camera, in cameraTransform);

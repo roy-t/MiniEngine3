@@ -45,7 +45,7 @@ public sealed partial class CameraSystem : ISystem
     public void Update()
     {
         var elapsed = this.FrameService.Elapsed;
-        ref var transformComponent = ref this.FrameService.GetPrimaryCameraTransform();        
+        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();        
 
         var horizontal = Vector4.Zero;
         var vertical = Vector2.Zero;
@@ -59,7 +59,7 @@ public sealed partial class CameraSystem : ISystem
 
         if (reset)
         {
-            transformComponent.Current = Transform.Identity
+            cameraTransform.Current = Transform.Identity
                 .SetTranslation(Vector3.UnitZ * 10)
                 .FaceTargetConstrained(Vector3.Zero, Vector3.UnitY);
         }
@@ -68,11 +68,11 @@ public sealed partial class CameraSystem : ISystem
         {
             var step = elapsed * this.linearVelocity;
 
-            var forward = transformComponent.Current.GetForward();
+            var forward = cameraTransform.Current.GetForward();
             var backward = -forward;
-            var up = transformComponent.Current.GetUp();
+            var up = cameraTransform.Current.GetUp();
             var down = -up;
-            var left = transformComponent.Current.GetLeft();
+            var left = cameraTransform.Current.GetLeft();
             var right = -left;
 
             var translation = Vector3.Zero;
@@ -86,7 +86,7 @@ public sealed partial class CameraSystem : ISystem
 
             translation *= step;
 
-            transformComponent.Current = transformComponent.Current.AddTranslation(translation);
+            cameraTransform.Current = cameraTransform.Current.AddTranslation(translation);
         }
 
         var movement = Vector2.Zero;
@@ -106,11 +106,11 @@ public sealed partial class CameraSystem : ISystem
         {
             movement *= this.AngularVelocity;
             var rotation = Quaternion.Identity;
-            rotation *= Quaternion.CreateFromAxisAngle(transformComponent.Current.GetUp(), movement.X);
-            rotation *= Quaternion.CreateFromAxisAngle(-transformComponent.Current.GetLeft(), movement.Y);
+            rotation *= Quaternion.CreateFromAxisAngle(cameraTransform.Current.GetUp(), movement.X);
+            rotation *= Quaternion.CreateFromAxisAngle(-cameraTransform.Current.GetLeft(), movement.Y);
 
-            var lookAt = transformComponent.Current.GetPosition() + Vector3.Transform(transformComponent.Current.GetForward(), rotation);
-            transformComponent.Current = transformComponent.Current.FaceTargetConstrained(lookAt, Vector3.UnitY);
+            var lookAt = cameraTransform.Current.GetPosition() + Vector3.Transform(cameraTransform.Current.GetForward(), rotation);
+            cameraTransform.Current = cameraTransform.Current.FaceTargetConstrained(lookAt, Vector3.UnitY);
         }
 
         if (scrolledUp)

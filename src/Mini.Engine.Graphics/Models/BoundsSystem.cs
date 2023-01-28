@@ -62,9 +62,9 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
         {
             var context = this.Device.ImmediateContext;
 
-            var camera = this.FrameService.GetPrimaryCamera().Camera;
-            var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
-            var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.FrameService.CameraJitter); // TODO: is this OK for bounds, or do we need the other one?
+            ref var camera = ref this.FrameService.GetPrimaryCamera();
+            ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;
+            var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform, camera.Jitter); // TODO: is this OK for bounds, or do we need the other one?
             
             this.User.MapConstants(context, viewProjection, Vector4.One);
 
@@ -83,8 +83,8 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
     {
         if (this.DebugFrameService.ShowBounds)
         {
-            var camera = this.FrameService.GetPrimaryCamera().Camera;
-            var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
+            ref var camera = ref this.FrameService.GetPrimaryCamera().Camera;
+            ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;
             var frustum = new Frustum(camera.GetBoundedReversedZViewProjection(in cameraTransform));
 
             var world = transform.Current.GetMatrix();
@@ -120,8 +120,8 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
     {
         if (this.DebugFrameService.ShowBounds)
         {
-            var camera = this.FrameService.GetPrimaryCamera().Camera;
-            var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
+            ref var camera = ref this.FrameService.GetPrimaryCamera().Camera;
+            ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;
             var frustum = new Frustum(camera.GetBoundedReversedZViewProjection(in cameraTransform));
 
             var world = transform.Current.GetMatrix();

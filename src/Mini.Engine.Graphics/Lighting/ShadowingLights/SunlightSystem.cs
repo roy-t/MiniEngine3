@@ -51,9 +51,9 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
     [Process(Query = ProcessQuery.All)]
     public void DrawSunLight(ref SunLightComponent sunlight, ref CascadedShadowMapComponent shadowMap, ref TransformComponent viewPoint)
     {
-        var camera = this.FrameService.GetPrimaryCamera().Camera;
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;        
-        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.FrameService.CameraJitter);
+        ref var camera = ref this.FrameService.GetPrimaryCamera();
+        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;        
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform, camera.Jitter);
         Matrix4x4.Invert(viewProjection, out var inverse);
 
         var shadow = new SunLight.ShadowProperties()

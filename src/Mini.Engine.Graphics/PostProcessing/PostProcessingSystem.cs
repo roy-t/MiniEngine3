@@ -27,7 +27,8 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
 
     public void OnSet()
     {
-        this.FrameService.PBuffer.Swap();
+        ref var camera = ref this.FrameService.GetPrimaryCamera();
+        this.FrameService.PBuffer.Swap(ref camera);
 
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;

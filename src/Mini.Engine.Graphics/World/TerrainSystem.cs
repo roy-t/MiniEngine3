@@ -66,9 +66,9 @@ public sealed partial class TerrainSystem : ISystem, IDisposable
 
         this.Context.PS.SetShaderResource(Terrain.Foilage, component.Foilage);
 
-        var camera = this.FrameService.GetPrimaryCamera().Camera;
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform();        
-        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
+        ref var camera = ref this.FrameService.GetPrimaryCamera();
+        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();        
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, camera.Jitter);
         
         var viewVolume = new Frustum(viewProjection);
 
@@ -111,10 +111,10 @@ public sealed partial class TerrainSystem : ISystem, IDisposable
 
         public void RenderMesh(in TransformComponent transform)
         {
-            var camera = this.FrameService.GetPrimaryCamera().Camera;
-            var cameraTransform = this.FrameService.GetPrimaryCameraTransform();
-            var previousViewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.FrameService.PreviousCameraJitter);
-            var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
+            ref var camera = ref this.FrameService.GetPrimaryCamera();
+            ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
+            var previousViewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, camera.PreviousJitter);
+            var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, camera.Jitter);
 
             var previousWorld = transform.Previous.GetMatrix();
             var world = transform.Current.GetMatrix();
@@ -122,7 +122,7 @@ public sealed partial class TerrainSystem : ISystem, IDisposable
             var previousWorldViewProjection = previousWorld * previousViewProjection;
             var worldViewProjection = world * viewProjection;
 
-            this.User.MapConstants(this.Context, previousWorldViewProjection, worldViewProjection, world, cameraTransform.Current.GetPosition(), this.FrameService.PreviousCameraJitter, this.FrameService.CameraJitter, this.DepositionColor, this.ErosionColor, this.ErosionColorMultiplier);
+            this.User.MapConstants(this.Context, previousWorldViewProjection, worldViewProjection, world, cameraTransform.Current.GetPosition(), camera.PreviousJitter, camera.Jitter, this.DepositionColor, this.ErosionColor, this.ErosionColorMultiplier);
         }
     }
 }

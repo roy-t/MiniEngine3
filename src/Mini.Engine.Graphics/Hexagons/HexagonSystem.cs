@@ -58,16 +58,16 @@ public sealed partial class HexagonSystem : ISystem, IDisposable
     [Process(Query = ProcessQuery.All)]
     public void DrawHexagons(ref HexagonTerrainComponent hexagons, ref TransformComponent transform)
     {
-        ref var camera = ref this.FrameService.GetPrimaryCamera().Camera;
+        ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
         var previousWorld = transform.Previous.GetMatrix();
         var world = transform.Current.GetMatrix();
-        var previousViewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.FrameService.PreviousCameraJitter);
-        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
+        var previousViewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, camera.PreviousJitter);
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, camera.Jitter);
         var cameraPosition = cameraTransform.Current.GetPosition();
 
-        this.User.MapConstants(this.Context, previousWorld * previousViewProjection, world * viewProjection, world, cameraPosition, this.FrameService.PreviousCameraJitter, this.FrameService.CameraJitter);
+        this.User.MapConstants(this.Context, previousWorld * previousViewProjection, world * viewProjection, world, cameraPosition, camera.PreviousJitter, camera.Jitter);
 
         var material = this.Device.Resources.Get(hexagons.Material);
 

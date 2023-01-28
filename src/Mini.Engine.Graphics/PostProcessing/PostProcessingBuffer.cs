@@ -2,6 +2,7 @@
 using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
+using Mini.Engine.Graphics.Cameras;
 using Vortice.DXGI;
 
 namespace Mini.Engine.Graphics.PostProcessing;
@@ -31,29 +32,26 @@ public sealed class PostProcessingBuffer : IDisposable
     public IRenderTarget PreviousVelocity { get; private set; }
     public IRenderTarget CurrentVelocity { get; private set; }
 
-    public Vector2 Jitter { get; private set; }
-    public Vector2 PreviousJitter { get; private set; }
-
     public AAType AntiAliasing { get; set; }
 
-    public void Swap()
+    public void Swap(ref CameraComponent primaryCamera)
     {
         (this.PreviousColor, this.CurrentColor) = (this.CurrentColor, this.PreviousColor);
         (this.PreviousVelocity, this.CurrentVelocity) = (this.CurrentVelocity, this.PreviousVelocity);
 
         if (this.AntiAliasing == AAType.TAA)
         {
-            this.PreviousJitter = this.Jitter;
-
             var w = 2.0f * this.CurrentColor.DimX;
             var h = 2.0f * this.CurrentColor.DimY;
 
-            this.Jitter = this.Sequence.Next2D(-1.0f / w, 1.0f / w, -1.0f / h, 1.0f / h);
+            primaryCamera.PreviousJitter = primaryCamera.Jitter;
+            primaryCamera.Jitter = this.Sequence.Next2D(-1.0f / w, 1.0f / w, -1.0f / h, 1.0f / h);
         }
         else
         {
-            this.PreviousJitter = Vector2.Zero;
-            this.Jitter = Vector2.Zero;
+
+            primaryCamera.PreviousJitter = Vector2.Zero;
+            primaryCamera.Jitter = Vector2.Zero;            
         }
     }
 

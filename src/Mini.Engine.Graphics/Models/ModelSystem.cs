@@ -45,9 +45,9 @@ public sealed partial class ModelSystem : IModelRenderServiceCallBack, ISystem, 
     [Process(Query = ProcessQuery.All)]
     public void DrawModel(ref ModelComponent component, ref TransformComponent transform)
     {
-        var camera = this.FrameService.GetPrimaryCamera().Camera;
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform();        
-        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
+        ref var camera = ref this.FrameService.GetPrimaryCamera();
+        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();        
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, camera.Jitter);
 
         var viewVolume = new Frustum(viewProjection);        
         ModelRenderService.RenderModel(this.Context, in component, in transform, in viewVolume, this);
@@ -55,11 +55,11 @@ public sealed partial class ModelSystem : IModelRenderServiceCallBack, ISystem, 
 
     public void RenderModelCallback(in TransformComponent transform)
     {
-        var camera = this.FrameService.GetPrimaryCamera().Camera;
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform();
+        ref var camera = ref this.FrameService.GetPrimaryCamera();
+        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
-        var previousViewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, this.FrameService.PreviousCameraJitter);
-        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, this.FrameService.CameraJitter);
+        var previousViewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, camera.PreviousJitter);
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, camera.Jitter);
 
         var previousWorld = transform.Previous.GetMatrix();
         var world = transform.Current.GetMatrix();
@@ -67,7 +67,7 @@ public sealed partial class ModelSystem : IModelRenderServiceCallBack, ISystem, 
         var previousWorldViewProjection = previousWorld * previousViewProjection;
         var worldViewProjection = world * viewProjection;
         
-        this.User.MapConstants(this.Context, previousWorldViewProjection, worldViewProjection, world, cameraTransform.Current.GetPosition(), this.FrameService.PreviousCameraJitter, this.FrameService.CameraJitter);
+        this.User.MapConstants(this.Context, previousWorldViewProjection, worldViewProjection, world, cameraTransform.Current.GetPosition(), camera.PreviousJitter, camera.Jitter);
     }
 
     public void RenderPrimitiveCallback(IModel model, Primitive primitive)

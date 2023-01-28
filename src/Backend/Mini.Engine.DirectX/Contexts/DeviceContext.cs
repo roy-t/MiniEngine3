@@ -121,7 +121,7 @@ public abstract class DeviceContext : IDisposable
         this.ID3D11DeviceContext.ClearRenderTargetView(this.Device.BackBufferView, color);
     }
 
-    public void Setup(InputLayout inputLayout, ILifetime<IVertexShader> vertex, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
+    public void Setup(InputLayout? inputLayout, ILifetime<IVertexShader> vertex, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
     {
         this.Setup
         (
@@ -139,7 +139,7 @@ public abstract class DeviceContext : IDisposable
         );
     }
 
-    public void Setup(InputLayout inputLayout, ILifetime<IVertexShader> vertex, int width, int height, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
+    public void Setup(InputLayout? inputLayout, ILifetime<IVertexShader> vertex, int width, int height, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
     {
         this.Setup
         (
@@ -157,7 +157,7 @@ public abstract class DeviceContext : IDisposable
         );
     }
 
-    public void Setup(InputLayout layout, PrimitiveTopology primitive, ILifetime<IVertexShader> vertex, RasterizerState rasterizer, int x, int y, int width, int height, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
+    public void Setup(InputLayout? layout, PrimitiveTopology primitive, ILifetime<IVertexShader> vertex, RasterizerState rasterizer, int x, int y, int width, int height, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
     {
         this.IA.SetInputLayout(layout);
         this.IA.SetPrimitiveTopology(primitive);

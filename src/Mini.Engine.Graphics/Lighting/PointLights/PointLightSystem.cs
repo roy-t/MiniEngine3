@@ -50,10 +50,10 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(PointLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
         this.Context.PS.SetShaderResource(PointLight.Material, this.FrameService.GBuffer.Material);
 
-        var camera = this.FrameService.GetPrimaryCamera().Camera;
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
+        ref var camera = ref this.FrameService.GetPrimaryCamera();
+        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;
         
-        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.FrameService.CameraJitter);
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform, camera.Jitter);
         Matrix4x4.Invert(viewProjection, out var inverseViewProjection);
         this.User.MapConstants(this.Context, inverseViewProjection, cameraTransform.GetPosition());
         this.Context.PS.SetConstantBuffer(PointLight.ConstantsSlot, this.User.ConstantsBuffer);
@@ -65,10 +65,10 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
     [Process(Query = ProcessQuery.All)]
     public void DrawPointLight(ref PointLightComponent component, ref TransformComponent transform)
     {
-        var camera = this.FrameService.GetPrimaryCamera().Camera;
-        var cameraTransform = this.FrameService.GetPrimaryCameraTransform().Current;
+        ref var camera = ref this.FrameService.GetPrimaryCamera();
+        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;
 
-        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform, this.FrameService.CameraJitter);
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform, camera.Jitter);
 
         var radiusOfInfluence = MathF.Sqrt(component.Strength / MinimumLightInfluence);
 
