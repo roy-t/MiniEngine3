@@ -13,6 +13,7 @@ using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Models;
+using Mini.Engine.Graphics.Tiles;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.World;
 using Vortice.Direct3D;
@@ -28,6 +29,7 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
     private readonly FrameService FrameService;
     private readonly ModelRenderService ModelRenderService;
     private readonly TerrainRenderService TerrainRenderService;
+    private readonly TileRenderService TileRenderService;
     private readonly ShadowMap Shader;
     private readonly ShadowMap.User User;
     private readonly InputLayout InputLayout;
@@ -35,7 +37,7 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
     private readonly ILifetime<IMaterial> DefaultMaterial;
     private readonly InternalRenderServiceCallBack CallBack;
 
-    public CascadedShadowMapSystem(Device device, FrameService frameService, ModelRenderService modelRenderService, TerrainRenderService terrainRenderService, ShadowMap shader, ContentManager content)
+    public CascadedShadowMapSystem(Device device, FrameService frameService, ModelRenderService modelRenderService, TerrainRenderService terrainRenderService, ShadowMap shader, ContentManager content, TileRenderService tileRenderService)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<CascadedShadowMapSystem>();
@@ -50,6 +52,7 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
 
         this.DefaultMaterial = content.LoadDefaultMaterial();
         this.CallBack = new InternalRenderServiceCallBack(this.Context, this.User);
+        this.TileRenderService = tileRenderService;
     }
 
     public void OnSet()
@@ -107,6 +110,8 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
 
     private void RenderShadowMap(ILifetime<IDepthStencilBuffer> depthStencilBuffers, int resolution, int slice, Matrix4x4 previousViewProjection, Matrix4x4 viewProjection)
     {
+        this.OnSet();
+
         var material = this.Device.Resources.Get(this.DefaultMaterial);
 
         this.Context.RS.SetViewPort(0, 0, resolution, resolution);
@@ -121,6 +126,9 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
 
         this.Context.PS.SetShaderResource(ShadowMap.Albedo, material.Albedo);
         this.TerrainRenderService.RenderAllTerrain(this.Context, viewVolume, this.CallBack);
+
+        this.TileRenderService.SetupTileDepthRender(this.Context, 0, 0, resolution, resolution);
+        this.TileRenderService.RenderAllTileDepths(this.Context, ref viewProjection);
     }
 
     private static readonly Matrix4x4 TexScaleTransform = Matrix4x4.CreateScale(0.5f, -0.5f, 1.0f) * Matrix4x4.CreateTranslation(0.5f, 0.5f, 0.0f);

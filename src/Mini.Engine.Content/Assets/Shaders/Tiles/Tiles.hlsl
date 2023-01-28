@@ -35,6 +35,12 @@ struct PS_LINE_INPUT
     float4 currentPosition : POSITION1;
 };
 
+struct PS_DEPTH_INPUT
+{
+    float4 position : SV_POSITION;
+    float4 world : WORLD;
+};
+
 struct OUTPUT
 {
     float4 albedo : SV_Target0;
@@ -229,6 +235,18 @@ PS_LINE_INPUT VsLine(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceI
     return output;
 }
 
+#pragma VertexShader
+PS_DEPTH_INPUT VsDepth(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
+{
+    PS_DEPTH_INPUT output;
+
+    float3 position = GetPosition(vertexId, instanceId);
+    output.position = mul(WorldViewProjection, float4(position, 1));
+    output.world = output.position;
+
+    return output;
+}
+
 struct MultiUv
 {
     float4 albedo;
@@ -326,4 +344,10 @@ OUTPUT PsLine(PS_LINE_INPUT input)
     output.velocity = previousUv - currentUv;
 
     return output;
+}
+
+#pragma PixelShader
+float PsDepth(PS_DEPTH_INPUT input) : SV_TARGET
+{
+    return input.world.z / input.world.w;
 }

@@ -1,51 +1,59 @@
-﻿using Mini.Engine.Configuration;
-using Mini.Engine.DirectX.Contexts;
+﻿using System.Numerics;
+using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
-using Mini.Engine.Graphics.Transforms;
-
-using TileShader = Mini.Engine.Content.Shaders.Generated.Tiles;
-using Vortice.Direct3D;
+using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Contexts.States;
-using Mini.Engine.Graphics.Models;
+using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Cameras;
+using Mini.Engine.Graphics.Transforms;
+using Vortice.Direct3D;
+using TileShader = Mini.Engine.Content.Shaders.Generated.Tiles;
 
 namespace Mini.Engine.Graphics.Tiles;
 
 [Service]
 public sealed class TileRenderService : IDisposable
 {
-    //private readonly FrameService FrameService;
-
     private readonly TileShader Shader;
     private readonly TileShader.User User;
 
     private readonly RasterizerState CullCounterClockwise;
-    private readonly BlendState Opaque;
+    private readonly RasterizerState CullNoneNoDepthClip;
     private readonly DepthStencilState ReverseZ;
     private readonly DepthStencilState ReverseZReadOnly;
+    private readonly DepthStencilState Default;
+    private readonly BlendState Opaque;
     private readonly SamplerState AnisotropicWrap;
 
-    public TileRenderService(Device device, TileShader shader)
+    private readonly IComponentContainer<TransformComponent> Transforms;
+    private readonly IComponentContainer<TileComponent> Tiles;
+
+    public TileRenderService(Device device, TileShader shader, IComponentContainer<TransformComponent> transforms, IComponentContainer<TileComponent> tiles)
     {
         this.CullCounterClockwise = device.RasterizerStates.CullCounterClockwise;
-        this.Opaque = device.BlendStates.Opaque;
+        this.CullNoneNoDepthClip = device.RasterizerStates.CullNoneNoDepthClip;
         this.ReverseZ = device.DepthStencilStates.ReverseZ;
         this.ReverseZReadOnly = device.DepthStencilStates.ReverseZReadOnly;
+        this.Default = device.DepthStencilStates.Default;
         this.AnisotropicWrap = device.SamplerStates.AnisotropicWrap;
+        this.Opaque = device.BlendStates.Opaque;
 
         this.Shader = shader;
         this.User = shader.CreateUserFor<TileRenderService>();
+
+        this.Transforms = transforms;
+        this.Tiles = tiles;
     }
 
     /// <summary>
     /// Configures everything for rendering tiles, except for the output (render target)
     /// </summary>    
     public void SetupTileRender(DeviceContext context, int x, int y, int width, int height)
-    {        
-        context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.Vs, this.CullCounterClockwise, x, y, width, height, this.Shader.Ps, this.Opaque, this.ReverseZ);                
+    {
+        context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.Vs, this.CullCounterClockwise, x, y, width, height, this.Shader.Ps, this.Opaque, this.ReverseZ);
         context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
-        context.PS.SetSampler(TileShader.TextureSampler, this.AnisotropicWrap);       
+        context.PS.SetSampler(TileShader.TextureSampler, this.AnisotropicWrap);
     }
 
     public void RenderTile(DeviceContext context, ref TileComponent tile, ref TransformComponent transform, ref CameraComponent camera, ref TransformComponent cameraTransform)
@@ -70,7 +78,7 @@ public sealed class TileRenderService : IDisposable
     }
 
     /// <summary>
-    /// Configures everything for rendering tiles, except for the output (render target)
+    /// Configures everything for rendering tile outlines, except for the output (render target)
     /// </summary>    
     public void SetupTileOutlineRender(DeviceContext context, int x, int y, int width, int height)
     {
@@ -94,10 +102,34 @@ public sealed class TileRenderService : IDisposable
     }
 
     /// <summary>
-    /// Configures everything for rendering the depth of the tiles tiles (for shadowing), except for the output (render target)
-    /// </summary>   
+    /// Configures everything for rendering tiles, except for the output (render target)
+    /// </summary>    
     public void SetupTileDepthRender(DeviceContext context, int x, int y, int width, int height)
-    {                
+    {
+        context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.VsDepth, this.CullNoneNoDepthClip, x, y, width, height, this.Shader.PsDepth, this.Opaque, this.Default);
+        context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
+    }
+
+    public void RenderTileDepth(DeviceContext context, ref TileComponent tile, ref TransformComponent transform, ref Matrix4x4 viewProjection)
+    {
+        var world = transform.Current.GetMatrix();
+        var worldViewProjection = world * viewProjection;
+
+        this.User.MapConstants(context, Matrix4x4.Identity, worldViewProjection, Matrix4x4.Identity, Vector3.Zero, Vector2.Zero, Vector2.Zero, tile.Columns, tile.Rows);
+
+        context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
+        context.DrawInstanced(4, (int)(tile.Columns * tile.Rows));
+    }
+
+    public void RenderAllTileDepths(DeviceContext context, ref Matrix4x4 viewProjection)
+    {
+        var iterator = this.Tiles.IterateAll();
+        while (iterator.MoveNext())
+        {
+            ref var tile = ref iterator.Current;
+            ref var transform = ref this.Transforms[tile.Entity];
+            this.RenderTileDepth(context, ref tile, ref transform, ref viewProjection);
+        }
     }
 
     public void Dispose()
