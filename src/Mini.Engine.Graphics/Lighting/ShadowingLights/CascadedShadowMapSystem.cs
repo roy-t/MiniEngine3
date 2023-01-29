@@ -122,7 +122,8 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
 
         var viewVolume = new Frustum(viewProjection);
         this.CallBack.ViewProjection = viewProjection;        
-        this.ModelRenderService.RenderAllModels(this.Context, viewVolume, this.CallBack);
+
+        this.ModelRenderService.SetupAndRenderAllModels(this.Context, 0, 0, resolution, resolution, in viewVolume, in viewProjection);
 
         this.Context.PS.SetShaderResource(ShadowMap.Albedo, material.Albedo);
         this.TerrainRenderService.RenderAllTerrain(this.Context, viewVolume, this.CallBack);
@@ -205,7 +206,7 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
         this.User.Dispose();
     }
 
-    private sealed class InternalRenderServiceCallBack : IModelRenderServiceCallBack, IMeshRenderServiceCallBack
+    private sealed class InternalRenderServiceCallBack : IMeshRenderServiceCallBack
     {
         private readonly DeviceContext Context;
         private readonly ShadowMap.User User;        
@@ -223,18 +224,6 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
         {
             var world = transform.Current.GetMatrix();
             this.User.MapConstants(this.Context, world * this.ViewProjection);
-        }
-
-        public void RenderModelCallback(in TransformComponent transform)
-        {
-            var world = transform.Current.GetMatrix();
-            this.User.MapConstants(this.Context, world * this.ViewProjection);
-        }
-
-        public void RenderPrimitiveCallback(IModel model, Primitive primitive)
-        {
-            var material = this.Context.Resources.Get(model.Materials[primitive.MaterialIndex]);
-            this.Context.PS.SetShaderResource(ShadowMap.Albedo, material.Albedo);
-        }
+        }      
     }
 }
