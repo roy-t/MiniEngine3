@@ -1,13 +1,9 @@
 ﻿using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content;
-using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.Core;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
-using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
@@ -16,7 +12,6 @@ using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Tiles;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.World;
-using Vortice.Direct3D;
 using Vortice.Direct3D11;
 
 namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
@@ -30,36 +25,22 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
     private readonly ModelRenderService ModelRenderService;
     private readonly TerrainRenderService TerrainRenderService;
     private readonly TileRenderService TileRenderService;
-    private readonly ShadowMap Shader;
-    private readonly ShadowMap.User User;
-    private readonly InputLayout InputLayout;
     private readonly LightFrustum Frustum;
-    private readonly ILifetime<IMaterial> DefaultMaterial;
-    private readonly InternalRenderServiceCallBack CallBack;
 
-    public CascadedShadowMapSystem(Device device, FrameService frameService, ModelRenderService modelRenderService, TerrainRenderService terrainRenderService, ShadowMap shader, ContentManager content, TileRenderService tileRenderService)
+    public CascadedShadowMapSystem(Device device, FrameService frameService, ModelRenderService modelRenderService, TerrainRenderService terrainRenderService, TileRenderService tileRenderService)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<CascadedShadowMapSystem>();
         this.FrameService = frameService;
         this.ModelRenderService = modelRenderService;
         this.TerrainRenderService = terrainRenderService;
-        this.Shader = shader;
-        this.User = shader.CreateUserFor<CascadedShadowMapSystem>();
-
-        this.InputLayout = this.Shader.CreateInputLayoutForVs(ModelVertex.Elements);
-        this.Frustum = new LightFrustum();
-
-        this.DefaultMaterial = content.LoadDefaultMaterial();
-        this.CallBack = new InternalRenderServiceCallBack(this.Context, this.User);
         this.TileRenderService = tileRenderService;
+
+        this.Frustum = new LightFrustum();        
     }
 
     public void OnSet()
     {
-        this.Context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.Device.RasterizerStates.CullNoneNoDepthClip, 0, 0, 1024, 1024, this.Shader.Ps, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.Default);
-        this.Context.VS.SetConstantBuffer(ShadowMap.ConstantsSlot, this.User.ConstantsBuffer);
-        this.Context.PS.SetSampler(ShadowMap.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);
     }
 
     [Process(Query = ProcessQuery.All)]
@@ -110,24 +91,13 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
 
     private void RenderShadowMap(ILifetime<IDepthStencilBuffer> depthStencilBuffers, int resolution, int slice, Matrix4x4 previousViewProjection, Matrix4x4 viewProjection)
     {
-        this.OnSet();
-
-        var material = this.Device.Resources.Get(this.DefaultMaterial);
-
-        this.Context.RS.SetViewPort(0, 0, resolution, resolution);
-        this.Context.RS.SetScissorRect(0, 0, resolution, resolution);
         this.Context.OM.SetRenderTarget(depthStencilBuffers, slice);
-
         this.Context.Clear(depthStencilBuffers, slice, DepthStencilClearFlags.Depth, 1.0f, 0);
 
         var viewVolume = new Frustum(viewProjection);
-        this.CallBack.ViewProjection = viewProjection;        
 
-        this.ModelRenderService.SetupAndRenderAllModels(this.Context, 0, 0, resolution, resolution, in viewVolume, in viewProjection);
-
-        this.Context.PS.SetShaderResource(ShadowMap.Albedo, material.Albedo);
-        this.TerrainRenderService.RenderAllTerrain(this.Context, viewVolume, this.CallBack);
-        
+        this.ModelRenderService.SetupAndRenderAllModelDepths(this.Context, 0, 0, resolution, resolution, in viewVolume, in viewProjection);
+        this.TerrainRenderService.SetupAndRenderAllTerrainDepths(this.Context, 0, 0, resolution, resolution, in viewVolume, in viewProjection);
         this.TileRenderService.SetupAndRenderAllTileDepths(this.Context, 0, 0, resolution, resolution, in viewVolume, in viewProjection);
     }
 
@@ -201,29 +171,6 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
 
     public void Dispose()
     {
-        this.InputLayout.Dispose();
         this.Context.Dispose();
-        this.User.Dispose();
-    }
-
-    private sealed class InternalRenderServiceCallBack : IMeshRenderServiceCallBack
-    {
-        private readonly DeviceContext Context;
-        private readonly ShadowMap.User User;        
-
-        public InternalRenderServiceCallBack(DeviceContext context, ShadowMap.User user)
-        {
-            this.Context = context;
-            this.User = user;
-            this.ViewProjection = Matrix4x4.Identity;
-        }
-
-        public Matrix4x4 ViewProjection { get; set; }
-
-        public void RenderMesh(in TransformComponent transform)
-        {
-            var world = transform.Current.GetMatrix();
-            this.User.MapConstants(this.Context, world * this.ViewProjection);
-        }      
     }
 }

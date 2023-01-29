@@ -43,7 +43,7 @@ public sealed class ModelRenderService
 
         this.Shader = shader;
         this.User = shader.CreateUserFor<ModelRenderService>();
-        this.InputLayout = this.Shader.CreateInputLayoutForVs(ModelVertex.Elements);
+        this.InputLayout = shader.CreateInputLayoutForVs(ModelVertex.Elements);
 
         this.ShadowMapShader = shadowMapShader;
         this.ShadowMapUser = shadowMapShader.CreateUserFor<ModelRenderService>();
@@ -145,7 +145,7 @@ public sealed class ModelRenderService
         }
     }
 
-    public void SetupAndRenderAllModels(DeviceContext context, int x, int y, int width, int height, in Frustum viewVolume, in Matrix4x4 viewProjection)
+    public void SetupAndRenderAllModelDepths(DeviceContext context, int x, int y, int width, int height, in Frustum viewVolume, in Matrix4x4 viewProjection)
     {
         this.SetupModelDepthRender(context, x, y, width, height);
 
