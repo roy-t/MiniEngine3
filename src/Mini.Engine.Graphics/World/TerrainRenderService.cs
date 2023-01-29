@@ -16,7 +16,7 @@ using Terrain = Mini.Engine.Content.Shaders.Generated.Terrain;
 namespace Mini.Engine.Graphics.World;
 
 [Service]
-public sealed class TerrainRenderService
+public sealed class TerrainRenderService : IDisposable
 {
     private readonly IComponentContainer<TransformComponent> Transforms;
     private readonly IComponentContainer<TerrainComponent> TerrainContainer;
@@ -69,6 +69,9 @@ public sealed class TerrainRenderService
         context.PS.SetSampler(Terrain.TextureSampler, this.AnisotropicWrap);
     }
 
+    /// <summary>
+    /// Renders a single terrain component, assumes device has been properly setup
+    /// </summary>
     public void RenderTerrain(DeviceContext context, in TerrainComponent terrainComponent, in TransformComponent transformComponent, in CameraComponent cameraComponent, in TransformComponent cameraTransformComponent)
     {
         var viewProjection = cameraComponent.Camera.GetInfiniteReversedZViewProjection(in cameraTransformComponent.Current, cameraComponent.Jitter);
@@ -111,6 +114,9 @@ public sealed class TerrainRenderService
         }
     }
 
+    /// <summary>
+    /// Configures everything for rendering tile depths, except for the output (render target)
+    /// </summary> 
     public void SetupTerrainDepthRender(DeviceContext context, int x, int y, int width, int height)
     {
         context.Setup(this.ShadowMapInputLayout, PrimitiveTopology.TriangleList, this.ShadowMapShader.Vs, this.CullNoneNoDepthClip, x, y, width, height, this.ShadowMapShader.Ps, this.Opaque, this.Default);
@@ -118,6 +124,9 @@ public sealed class TerrainRenderService
         context.PS.SetSampler(ShadowMap.TextureSampler, this.AnisotropicWrap);
     }
 
+    /// <summary>
+    /// Renders the depth of a single terrain component, assumes device has been properly setup
+    /// </summary>
     public void RenderTerrainDepth(DeviceContext context, in TerrainComponent terrainComponent, in TransformComponent transformComponent, in Frustum viewVolume, in Matrix4x4 viewProjection)
     {
         var mesh = context.Resources.Get(terrainComponent.Mesh);
@@ -137,7 +146,10 @@ public sealed class TerrainRenderService
         }
     }
 
-    internal void SetupAndRenderAllTerrainDepths(DeviceContext context, int x, int y, int width, int height, in Frustum viewVolume, in Matrix4x4 viewProjection)
+    /// <summary>
+    /// Calls SetupTerrainDepthRender and then draws all terrain components
+    /// </summary>
+    public void SetupAndRenderAllTerrainDepths(DeviceContext context, int x, int y, int width, int height, in Frustum viewVolume, in Matrix4x4 viewProjection)
     {
         this.SetupTerrainDepthRender(context, x, y, width, height);
 
@@ -148,5 +160,11 @@ public sealed class TerrainRenderService
             ref var transform = ref this.Transforms[terrain.Entity];
             this.RenderTerrainDepth(context, in terrain, in transform, in viewVolume, in viewProjection);
         }
+    }
+
+    public void Dispose()
+    {
+        this.User.Dispose();
+        this.ShadowMapUser.Dispose();
     }
 }

@@ -57,6 +57,9 @@ public sealed class TileRenderService : IDisposable
         context.PS.SetSampler(TileShader.TextureSampler, this.AnisotropicWrap);
     }
 
+    /// <summary>
+    /// Renders a single tile component, assumes device has been properly setup
+    /// </summary>
     public void RenderTile(DeviceContext context, in TileComponent tile, in TransformComponent transform, in CameraComponent camera, in TransformComponent cameraTransform)
     {
         var previousWorld = transform.Previous.GetMatrix();
@@ -88,6 +91,9 @@ public sealed class TileRenderService : IDisposable
         context.PS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
     }
 
+    /// <summary>
+    /// Renders a single outline for a tile component, assumes device has been properly setup
+    /// </summary>
     public void RenderTileOutline(DeviceContext context, in TileComponent tile, in TransformComponent transform, in CameraComponent camera, in TransformComponent cameraTransform)
     {
         var previousWorld = transform.Previous.GetMatrix();
@@ -103,14 +109,17 @@ public sealed class TileRenderService : IDisposable
     }
 
     /// <summary>
-    /// Configures everything for rendering tiles, except for the output (render target)
-    /// </summary>    
+    /// Configures everything for rendering tile depths, except for the output (render target)
+    /// </summary>   
     public void SetupTileDepthRender(DeviceContext context, int x, int y, int width, int height)
     {
         context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.VsDepth, this.CullNoneNoDepthClip, x, y, width, height, this.Shader.PsDepth, this.Opaque, this.Default);
         context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
     }
 
+    /// <summary>
+    /// Renders the depth of a single tile component, assumes device has been properly setup
+    /// </summary>
     public void RenderTileDepth(DeviceContext context, in TileComponent tile, in TransformComponent transform, in Matrix4x4 viewProjection)
     {
         var world = transform.Current.GetMatrix();
@@ -122,6 +131,9 @@ public sealed class TileRenderService : IDisposable
         context.DrawInstanced(4, (int)(tile.Columns * tile.Rows));
     }
 
+    /// <summary>
+    /// Calls SetupTileDepthRender and then draws all tile components
+    /// </summary>
     public void SetupAndRenderAllTileDepths(DeviceContext context, int x, int y, int width, int height, in Frustum viewVolume, in Matrix4x4 viewProjection)
     {
         this.SetupTileDepthRender(context, x, y, width, height);

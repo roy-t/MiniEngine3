@@ -16,7 +16,7 @@ using ShadowMap = Mini.Engine.Content.Shaders.Generated.ShadowMap;
 namespace Mini.Engine.Graphics.Models;
 
 [Service]
-public sealed class ModelRenderService
+public sealed class ModelRenderService : IDisposable
 {
     private readonly IComponentContainer<TransformComponent> Transforms;
     private readonly IComponentContainer<ModelComponent> Models;
@@ -69,6 +69,9 @@ public sealed class ModelRenderService
         context.PS.SetSampler(Geometry.TextureSampler, this.AnisotropicWrap);
     }
 
+    /// <summary>
+    /// Renders a single model component, assumes device has been properly setup
+    /// </summary>
     public void RenderModel(DeviceContext context, in ModelComponent modelComponent, in TransformComponent transformComponent, in CameraComponent cameraComponent, in TransformComponent cameraTransformComponent)
     {
         var viewProjection = cameraComponent.Camera.GetInfiniteReversedZViewProjection(in cameraTransformComponent.Current, cameraComponent.Jitter);
@@ -110,6 +113,9 @@ public sealed class ModelRenderService
         }
     }
 
+    /// <summary>
+    /// Configures everything for rendering model depths, except for the output (render target)
+    /// </summary> 
     public void SetupModelDepthRender(DeviceContext context, int x, int y, int width, int height)
     {
         context.Setup(this.ShadowMapInputLayout, PrimitiveTopology.TriangleList, this.ShadowMapShader.Vs, this.CullNoneNoDepthClip, x, y, width, height, this.ShadowMapShader.Ps, this.Opaque, this.Default);
@@ -117,6 +123,9 @@ public sealed class ModelRenderService
         context.PS.SetSampler(ShadowMap.TextureSampler, this.AnisotropicWrap);
     }
 
+    /// <summary>
+    /// Renders the depth of a single model component, assumes device has been properly setup
+    /// </summary>
     public void RenderModelDepth(DeviceContext context, in ModelComponent modelComponent, in TransformComponent transformComponent, in Frustum viewVolume, in Matrix4x4 viewProjection)
     {
         var model = context.Resources.Get(modelComponent.Model);
@@ -145,6 +154,9 @@ public sealed class ModelRenderService
         }
     }
 
+    /// <summary>
+    /// Calls SetupModelDepthRender and then draws all model components
+    /// </summary>
     public void SetupAndRenderAllModelDepths(DeviceContext context, int x, int y, int width, int height, in Frustum viewVolume, in Matrix4x4 viewProjection)
     {
         this.SetupModelDepthRender(context, x, y, width, height);
@@ -156,5 +168,11 @@ public sealed class ModelRenderService
             ref var transform = ref this.Transforms[model.Entity];
             this.RenderModelDepth(context, in model, in transform, in viewVolume, in viewProjection);
         }
+    }
+
+    public void Dispose()
+    {
+        this.User.Dispose();
+        this.ShadowMapUser.Dispose();
     }
 }
