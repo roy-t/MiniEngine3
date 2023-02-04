@@ -82,6 +82,41 @@ public sealed class TileRenderService : IDisposable
     }
 
     /// <summary>
+    /// Configures everything for rendering tile walls, except for the output (render target)
+    /// </summary>    
+    public void SetupTileWallRender(DeviceContext context, int x, int y, int width, int height)
+    {
+        context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.VsWall, this.CullCounterClockwise, x, y, width, height, this.Shader.Ps, this.Opaque, this.ReverseZ);
+        context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
+        context.PS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
+        context.PS.SetSampler(TileShader.TextureSampler, this.AnisotropicWrap);
+    }
+
+    /// <summary>
+    /// Renders the walls for a single tile component, assumes device has been properly setup
+    /// </summary>
+    public void RenderTileWalls(DeviceContext context, in TileComponent tile, in TransformComponent transform, in CameraComponent camera, in TransformComponent cameraTransform)
+    {
+        var previousWorld = transform.Previous.GetMatrix();
+        var world = transform.Current.GetMatrix();
+        var previousViewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, camera.PreviousJitter);
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, camera.Jitter);
+        var cameraPosition = cameraTransform.Current.GetPosition();
+
+        this.User.MapConstants(context, previousWorld * previousViewProjection, world * viewProjection, world, cameraPosition, camera.PreviousJitter, camera.Jitter, tile.Columns, tile.Rows);
+
+        var material = context.Resources.Get(tile.Material);
+        context.PS.SetShaderResource(TileShader.Albedo, material.Albedo);
+        context.PS.SetShaderResource(TileShader.Normal, material.Normal);
+        context.PS.SetShaderResource(TileShader.Metalicness, material.Metalicness);
+        context.PS.SetShaderResource(TileShader.Roughness, material.Roughness);
+        context.PS.SetShaderResource(TileShader.AmbientOcclusion, material.AmbientOcclusion);
+
+        context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
+        context.DrawInstanced(10, (int)(tile.Columns * tile.Rows));
+    }
+
+    /// <summary>
     /// Configures everything for rendering tile outlines, except for the output (render target)
     /// </summary>    
     public void SetupTileOutlineRender(DeviceContext context, int x, int y, int width, int height)

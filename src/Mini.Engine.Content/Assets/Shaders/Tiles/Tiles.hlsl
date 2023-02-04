@@ -85,6 +85,11 @@ static const float HEIGTH_DIFFERENCE = 1.f;
 //  |      \  |    |         |
 //  v0-------v2    SW-------SE
 
+static const uint OUTLINE_VERTEX_ID_MAP[] =
+{
+    0, 1, 3, 2, 0
+};
+
 static const float3 VERTEX_POSITION[] =
 {
     // Flat (offset 0)
@@ -146,6 +151,15 @@ static const float3 VERTEX_NORMALS[] =
     float3(-0.2357022613286972, 0.9428090453147888, 0.2357022613286972), // NW
     float3(0, 1, 0),
     float3(-0.2357022613286972, 0.9428090453147888, 0.2357022613286972), // NE
+};
+
+static const uint WALL_VERTEX_ID_MAP[] =
+{
+    1, 1,
+    0, 0,
+    2, 2,
+    3, 3,
+    1, 1
 };
 
 // Clockwise rotation over the y axis
@@ -214,18 +228,42 @@ PS_INPUT Vs(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 }
 
 #pragma VertexShader
+PS_INPUT VsWall(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
+{
+    PS_INPUT output;
+
+    uint cornerId = WALL_VERTEX_ID_MAP[vertexId];
+    float3 position = GetPosition(cornerId, instanceId);
+    position.y = position.y *  (vertexId % 2);
+
+    float3 flatPosition = float3(position.x, 0, position.z);
+    float3 flatCenterPosition = VERTEX_POSITION[cornerId];
+    float3 sideNormal = normalize(flatPosition - flatCenterPosition);
+    float3 topNormal = GetNormal(cornerId, instanceId);
+    
+    float3 normal = lerp(sideNormal, topNormal, clamp(position.y, 0, 1));
+    
+    float2 texcoord = float2(position.x + position.z, position.y);
+
+    float3x3 rotation = (float3x3) World;
+    output.position = mul(WorldViewProjection, float4(position, 1));
+    output.previousPosition = mul(PreviousWorldViewProjection, float4(position, 1));
+    output.currentPosition = output.position;
+
+    output.world = mul(World, float4(position, 1)).xyz;
+    output.normal = normalize(mul(rotation, normal));
+    output.texcoord = ScreenToTexture(mul((float4x2)World, texcoord).xy);
+
+    return output;
+}
+
+#pragma VertexShader
 PS_LINE_INPUT VsLine(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
+    // TODO: include walls
     PS_LINE_INPUT output;
 
-    // Map vertex Ids of a line strip those of a triangle strip
-    if (vertexId == 2) {
-        vertexId = 3;
-    } else if (vertexId == 3) {
-        vertexId = 2;
-    } else if (vertexId == 4) {
-        vertexId = 0;
-    }
+    vertexId = OUTLINE_VERTEX_ID_MAP[vertexId];
 
     float3 position = GetPosition(vertexId, instanceId) + float3(0, 0.02, 0);
     output.position = mul(WorldViewProjection, float4(position, 1));

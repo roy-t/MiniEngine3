@@ -8,13 +8,14 @@ public static class TileBuilder
     {
         var tiles = new TileInstanceData[columns * rows];
 
+
         var bump = new TileInstanceData[9]
         {
             new TileInstanceData() { Rotation = 1, Type = 1 },
             new TileInstanceData() { Rotation = 2, Type = 2 },
             new TileInstanceData() { Rotation = 2, Type = 1 },
             new TileInstanceData() { Rotation = 1, Type = 2 },
-            new TileInstanceData() { Rotation = 0, Type = 0, Heigth = 1 },
+            new TileInstanceData() { Rotation = 0, Type = 0, Heigth = 4 },
             new TileInstanceData() { Rotation = 3, Type = 2 },
             new TileInstanceData() { Rotation = 0, Type = 1 },
             new TileInstanceData() { Rotation = 0, Type = 2 },
@@ -28,7 +29,7 @@ public static class TileBuilder
                 var i = Indexes.ToOneDimensional(c, r, columns);
                 var ti = Indexes.ToOneDimensional(c % 3, r % 3, 3);
 
-                tiles[i] = bump[ti];
+                tiles[i] = bump[ti];                
             }
         }
 
