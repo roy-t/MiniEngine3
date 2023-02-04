@@ -167,6 +167,29 @@ public sealed class TileRenderService : IDisposable
     }
 
     /// <summary>
+    /// Configures everything for rendering tile wall depths, except for the output (render target)
+    /// </summary>   
+    public void SetupTileWallDepthRender(DeviceContext context, int x, int y, int width, int height)
+    {
+        context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.VsWallDepth, this.CullNoneNoDepthClip, x, y, width, height, this.Shader.PsDepth, this.Opaque, this.Default);
+        context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
+    }
+
+    /// <summary>
+    /// Renders the depth of the walls of a single tile component, assumes device has been properly setup
+    /// </summary>
+    public void RenderTilWallDepth(DeviceContext context, in TileComponent tile, in TransformComponent transform, in Matrix4x4 viewProjection)
+    {
+        var world = transform.Current.GetMatrix();
+        var worldViewProjection = world * viewProjection;
+
+        this.User.MapConstants(context, Matrix4x4.Identity, worldViewProjection, Matrix4x4.Identity, Vector3.Zero, Vector2.Zero, Vector2.Zero, tile.Columns, tile.Rows);
+
+        context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
+        context.DrawInstanced(10, (int)(tile.Columns * tile.Rows));
+    }
+
+    /// <summary>
     /// Calls SetupTileDepthRender and then draws all tile components
     /// </summary>
     public void SetupAndRenderAllTileDepths(DeviceContext context, int x, int y, int width, int height, in Frustum viewVolume, in Matrix4x4 viewProjection)
@@ -178,7 +201,24 @@ public sealed class TileRenderService : IDisposable
         {
             ref var tile = ref iterator.Current;
             ref var transform = ref this.Transforms[tile.Entity];
-            this.RenderTileDepth(context, in tile, in transform, in viewProjection);
+            this.RenderTileDepth(context, in tile, in transform, in viewProjection);            
+        }
+    }
+
+    /// <summary>
+    /// Calls SetupTileWallDepthRender and then draws all tile components
+    /// </summary>
+    public void SetupAndRenderAllTileWallDepths(DeviceContext context, int x, int y, int width, int height, in Frustum viewVolume, in Matrix4x4 viewProjection)
+    {
+        // TODO: there's a bug where the tops of the walls don't self shadow!?
+        this.SetupTileWallDepthRender(context, x, y, width, height);
+
+        var iterator = this.Tiles.IterateAll();
+        while (iterator.MoveNext())
+        {
+            ref var tile = ref iterator.Current;
+            ref var transform = ref this.Transforms[tile.Entity];
+            this.RenderTilWallDepth(context, in tile, in transform, in viewProjection);
         }
     }
 

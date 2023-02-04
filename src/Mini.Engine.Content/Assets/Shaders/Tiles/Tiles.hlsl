@@ -258,6 +258,21 @@ PS_INPUT VsWall(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 }
 
 #pragma VertexShader
+PS_DEPTH_INPUT VsWallDepth(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
+{
+    PS_DEPTH_INPUT output;
+
+    uint cornerId = WALL_VERTEX_ID_MAP[vertexId];
+    float3 position = GetPosition(cornerId, instanceId);
+    position.y = position.y *  (vertexId % 2);
+
+    output.position = mul(WorldViewProjection, float4(position, 1));
+    output.world = output.position;
+
+    return output;
+}
+
+#pragma VertexShader
 PS_LINE_INPUT VsLine(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
     // TODO: include walls

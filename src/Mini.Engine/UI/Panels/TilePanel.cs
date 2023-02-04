@@ -65,8 +65,8 @@ internal class TilePanel : IPanel
         var creator = this.Administrator.Components;
 
         ref var transform = ref creator.Create<TransformComponent>(entity);
-        transform.Previous = Transform.Identity;
-        transform.Current = Transform.Identity;
+        transform.Current = Transform.Identity.SetScale(15);
+        transform.Previous = transform.Current;        
 
         ref var tile = ref creator.Create<TileComponent>(entity);
         tile.Material = this.Content.LoadMaterial(new ContentId(@"Materials\Grass01_MR_2K\grass.mtl", "grass"), MaterialSettings.Default);
