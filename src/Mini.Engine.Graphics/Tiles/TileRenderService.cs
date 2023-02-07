@@ -70,7 +70,7 @@ public sealed class TileRenderService : IDisposable
 
         this.User.MapConstants(context, previousWorld * previousViewProjection, world * viewProjection, world, cameraPosition, camera.PreviousJitter, camera.Jitter, tile.Columns, tile.Rows);
 
-        var material = context.Resources.Get(tile.Material);
+        var material = context.Resources.Get(tile.TopMaterial);
         context.PS.SetShaderResource(TileShader.Albedo, material.Albedo);
         context.PS.SetShaderResource(TileShader.Normal, material.Normal);
         context.PS.SetShaderResource(TileShader.Metalicness, material.Metalicness);
@@ -105,7 +105,7 @@ public sealed class TileRenderService : IDisposable
 
         this.User.MapConstants(context, previousWorld * previousViewProjection, world * viewProjection, world, cameraPosition, camera.PreviousJitter, camera.Jitter, tile.Columns, tile.Rows);
 
-        var material = context.Resources.Get(tile.Material);
+        var material = context.Resources.Get(tile.WallMaterial);
         context.PS.SetShaderResource(TileShader.Albedo, material.Albedo);
         context.PS.SetShaderResource(TileShader.Normal, material.Normal);
         context.PS.SetShaderResource(TileShader.Metalicness, material.Metalicness);
@@ -121,7 +121,7 @@ public sealed class TileRenderService : IDisposable
     /// </summary>    
     public void SetupTileOutlineRender(DeviceContext context, int x, int y, int width, int height)
     {
-        context.Setup(null, PrimitiveTopology.LineStrip, this.Shader.VsLine, this.CullCounterClockwise, x, y, width, height, this.Shader.PsLine, this.Opaque, this.ReverseZReadOnly);
+        context.Setup(null, PrimitiveTopology.LineList, this.Shader.VsLine, this.CullCounterClockwise, x, y, width, height, this.Shader.PsLine, this.Opaque, this.ReverseZReadOnly);
         context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
     }
@@ -140,7 +140,7 @@ public sealed class TileRenderService : IDisposable
         this.User.MapConstants(context, previousWorld * previousViewProjection, world * viewProjection, world, cameraPosition, camera.PreviousJitter, camera.Jitter, tile.Columns, tile.Rows);
 
         context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
-        context.DrawInstanced(5, (int)(tile.Columns * tile.Rows));
+        context.DrawInstanced(16, (int)(tile.Columns * tile.Rows));
     }
 
     /// <summary>

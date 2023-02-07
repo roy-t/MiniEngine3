@@ -87,7 +87,10 @@ static const float HEIGTH_DIFFERENCE = 1.f;
 
 static const uint OUTLINE_VERTEX_ID_MAP[] =
 {
-    0, 1, 3, 2, 0
+    // top
+    0, 1, 1, 3, 3, 2, 2, 0,
+    // sides
+    0, 0, 1, 1, 3, 3, 2, 2
 };
 
 static const float3 VERTEX_POSITION[] =
@@ -275,12 +278,18 @@ PS_DEPTH_INPUT VsWallDepth(uint vertexId : SV_VertexID, uint instanceId : SV_Ins
 #pragma VertexShader
 PS_LINE_INPUT VsLine(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
-    // TODO: include walls
     PS_LINE_INPUT output;
 
-    vertexId = OUTLINE_VERTEX_ID_MAP[vertexId];
+    uint cornerId = OUTLINE_VERTEX_ID_MAP[vertexId];
 
-    float3 position = GetPosition(vertexId, instanceId) + float3(0, 0.02, 0);
+    float3 position = GetPosition(cornerId, instanceId);
+    if (vertexId > 7)
+    {
+        position.y = position.y * (vertexId % 2);
+    }
+
+    position.y += 0.02f; // prevent depth inaccuracies causing jagged lines
+
     output.position = mul(WorldViewProjection, float4(position, 1));
     output.previousPosition = mul(PreviousWorldViewProjection, float4(position, 1));
     output.currentPosition = output.position;

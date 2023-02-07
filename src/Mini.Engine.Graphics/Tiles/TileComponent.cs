@@ -10,7 +10,8 @@ namespace Mini.Engine.Graphics.Tiles;
 public struct TileComponent : IComponent
 {
     public ILifetime<StructuredBuffer<TileInstanceData>> InstanceBuffer;    
-    public ILifetime<IMaterial> Material;
+    public ILifetime<IMaterial> TopMaterial;
+    public ILifetime<IMaterial> WallMaterial;
     public uint Columns;
     public uint Rows;
 

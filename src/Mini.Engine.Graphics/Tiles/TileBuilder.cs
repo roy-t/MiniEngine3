@@ -7,7 +7,7 @@ public static class TileBuilder
     public static TileInstanceData[] Create(int columns, int rows)
     {
         var tiles = new TileInstanceData[columns * rows];
-
+        var random = Random.Shared;
 
         var bump = new TileInstanceData[9]
         {
@@ -29,7 +29,9 @@ public static class TileBuilder
                 var i = Indexes.ToOneDimensional(c, r, columns);
                 var ti = Indexes.ToOneDimensional(c % 3, r % 3, 3);
 
-                tiles[i] = bump[ti];                
+                tiles[i] = bump[ti];
+
+                tiles[i].Heigth = (uint)random.Next(0, 4);
             }
         }
 
