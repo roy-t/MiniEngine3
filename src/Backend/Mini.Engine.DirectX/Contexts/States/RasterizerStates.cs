@@ -26,6 +26,8 @@ public sealed class RasterizerStates : IDisposable
 {
     internal RasterizerStates(ID3D11Device device)
     {
+        // TODO: default descriptions do not enable the scissor rectangle!
+
         this.WireFrame = Create(device, RasterizerDescription.Wireframe, nameof(this.WireFrame));
         this.Line = Create(device, CreateLine(), nameof(this.Line));
 
@@ -74,7 +76,7 @@ public sealed class RasterizerStates : IDisposable
             SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
             DepthClipEnable = true,
             ScissorEnable = true,
-            MultisampleEnable = true,
+            MultisampleEnable = false,
             AntialiasedLineEnable = false,
         };
     }
@@ -90,8 +92,8 @@ public sealed class RasterizerStates : IDisposable
             DepthBiasClamp = RasterizerDescription.DefaultDepthBiasClamp,
             SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
             DepthClipEnable = false,
-            ScissorEnable = false,
-            MultisampleEnable = true,
+            ScissorEnable = true,
+            MultisampleEnable = false,
             AntialiasedLineEnable = false,
         };
     }
@@ -107,8 +109,8 @@ public sealed class RasterizerStates : IDisposable
             DepthBiasClamp = RasterizerDescription.DefaultDepthBiasClamp,
             SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
             DepthClipEnable = false,
-            ScissorEnable = false,
-            MultisampleEnable = true,
+            ScissorEnable = true,
+            MultisampleEnable = false,
             AntialiasedLineEnable = false,
         };
     }
@@ -124,8 +126,8 @@ public sealed class RasterizerStates : IDisposable
             DepthBiasClamp = RasterizerDescription.DefaultDepthBiasClamp,
             SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
             DepthClipEnable = false,
-            ScissorEnable = false,
-            MultisampleEnable = true,
+            ScissorEnable = true,
+            MultisampleEnable = false,
             AntialiasedLineEnable = false,
         };
     }
@@ -141,7 +143,7 @@ public sealed class RasterizerStates : IDisposable
             DepthBias = RasterizerDescription.DefaultDepthBias,
             DepthBiasClamp = RasterizerDescription.DefaultDepthBiasClamp,
             SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
-            DepthClipEnable = true,
+            DepthClipEnable = false,
             ScissorEnable = true,
             MultisampleEnable = false,
             AntialiasedLineEnable = true,

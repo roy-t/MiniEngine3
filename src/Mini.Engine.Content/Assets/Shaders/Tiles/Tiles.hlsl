@@ -31,8 +31,6 @@ struct PS_INPUT
 struct PS_LINE_INPUT
 {
     float4 position : SV_POSITION;
-    float4 previousPosition : POSITION0;
-    float4 currentPosition : POSITION1;
 };
 
 struct PS_DEPTH_INPUT
@@ -289,10 +287,7 @@ PS_LINE_INPUT VsLine(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceI
     }
 
     position.y += 0.02f; // prevent depth inaccuracies causing jagged lines
-
     output.position = mul(WorldViewProjection, float4(position, 1));
-    output.previousPosition = mul(PreviousWorldViewProjection, float4(position, 1));
-    output.currentPosition = output.position;
 
     return output;
 }
@@ -392,20 +387,10 @@ OUTPUT Ps(PS_INPUT input)
 }
 
 #pragma PixelShader
-OUTPUT PsLine(PS_LINE_INPUT input)
+float4 PsLine(PS_LINE_INPUT input) : SV_TARGET
 {
-    input.previousPosition /= input.previousPosition.w;
-    input.currentPosition /= input.currentPosition.w;
-    float2 previousUv = ScreenToTexture(input.previousPosition.xy - PreviousJitter);
-    float2 currentUv = ScreenToTexture(input.currentPosition.xy - Jitter);
-
     OUTPUT output;
-    output.albedo = float4(0, 0, 0, 1);
-    output.material = float4(0, 0, 1, 1);
-    output.normal = float4(PackNormal(float3(0, 1, 0)), 1);
-    output.velocity = previousUv - currentUv;
-
-    return output;
+    return float4(0, 0, 0, 1);    
 }
 
 #pragma PixelShader

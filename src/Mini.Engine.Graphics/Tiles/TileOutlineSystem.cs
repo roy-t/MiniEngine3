@@ -31,7 +31,8 @@ public sealed partial class TileOutlineSystem : ISystem, IDisposable
         this.RenderService.SetupTileOutlineRender(this.Context, 0, 0, this.Device.Width, this.Device.Height);
 
         var gBuffer = this.FrameService.GBuffer;
-        this.Context.OM.SetRenderTargets(gBuffer.DepthStencilBuffer, gBuffer.Albedo, gBuffer.Material, gBuffer.Normal, gBuffer.Velocity);
+        var lBuffer = this.FrameService.LBuffer;
+        this.Context.OM.SetRenderTargets(gBuffer.DepthStencilBuffer, lBuffer.Light);
     }
 
     [Process(Query = ProcessQuery.All)]
