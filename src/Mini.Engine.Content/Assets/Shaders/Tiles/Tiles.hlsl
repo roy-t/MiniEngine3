@@ -59,6 +59,15 @@ cbuffer Constants : register(b0)
     uint Rows;
 };
 
+cbuffer HighlightConstants : register(b1)
+{    
+    uint MinColumn;
+    uint MaxColumn;
+    uint MinRow;
+    uint MaxRow;
+    float4 Tint;
+};
+
 sampler TextureSampler : register(s0);
 
 Texture2D Albedo : register(t0);
@@ -75,7 +84,7 @@ StructuredBuffer<InstanceData> Instances : register(t5);
 // - 1 side up
 // - 1 corner up, 1 corner down
 
-static const float HEIGTH_DIFFERENCE = 1.f;
+    static const float HEIGTH_DIFFERENCE = 1.f;
 
 //  v1-------v3    NW-------NE
 //  |  \      |    |         |
@@ -83,27 +92,27 @@ static const float HEIGTH_DIFFERENCE = 1.f;
 //  |      \  |    |         |
 //  v0-------v2    SW-------SE
 
-static const uint OUTLINE_VERTEX_ID_MAP[] =
-{
+    static const uint OUTLINE_VERTEX_ID_MAP[] =
+    {
     // top
-    0, 1, 1, 3, 3, 2, 2, 0,
+        0, 1, 1, 3, 3, 2, 2, 0,
     // sides
     0, 0, 1, 1, 3, 3, 2, 2
-};
+    };
 
-static const float3 VERTEX_POSITION[] =
-{
+    static const float3 VERTEX_POSITION[] =
+    {
     // Flat (offset 0)
-    float3(-1, 0, 1), // SW
+        float3(-1, 0, 1), // SW
     float3(-1, 0, -1), // NW
     float3(1, 0, 1), // SE
     float3(1, 0, -1), // NE
-};
+    };
 
-static const float3 VERTEX_HEIGHT_OFFSET[] =
-{
+    static const float3 VERTEX_HEIGHT_OFFSET[] =
+    {
     // Flat (offset 0)
-    float3(0, 0, 0),
+        float3(0, 0, 0),
     float3(0, 0, 0),
     float3(0, 0, 0),
     float3(0, 0, 0),
@@ -125,12 +134,12 @@ static const float3 VERTEX_HEIGHT_OFFSET[] =
     float3(0, 0, 0),
     float3(0, 0, 0),
     float3(0, HEIGTH_DIFFERENCE, 0),
-};
+    };
 
-static const float3 VERTEX_NORMALS[] =
-{
+    static const float3 VERTEX_NORMALS[] =
+    {
     // Flat (offset 0)
-    float3(0, 1, 0),
+        float3(0, 1, 0),
     float3(0, 1, 0),
     float3(0, 1, 0),
     float3(0, 1, 0),
@@ -152,16 +161,16 @@ static const float3 VERTEX_NORMALS[] =
     float3(-0.2357022613286972, 0.9428090453147888, 0.2357022613286972), // NW
     float3(0, 1, 0),
     float3(-0.2357022613286972, 0.9428090453147888, 0.2357022613286972), // NE
-};
+    };
 
-static const uint WALL_VERTEX_ID_MAP[] =
-{
-    1, 1,
+    static const uint WALL_VERTEX_ID_MAP[] =
+    {
+        1, 1,
     0, 0,
     2, 2,
     3, 3,
     1, 1
-};
+    };
 
 // Clockwise rotation over the y axis
 float3x3 CreateRotationYClockWise(float radians)
@@ -291,6 +300,29 @@ PS_LINE_INPUT VsLine(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceI
 
     return output;
 }
+    
+    #pragma VertexShader
+PS_LINE_INPUT VsHighlight(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
+{
+    PS_LINE_INPUT output;
+
+    uint cornerId = OUTLINE_VERTEX_ID_MAP[vertexId];
+
+    uint2 xy = ToTwoDimensional(instanceId, MaxColumn - MinColumn + 1);
+    xy += uint2(MinColumn, MinRow);
+    instanceId = ToOneDimensional(xy.x, xy.y, Columns);
+    
+    float3 position = GetPosition(cornerId, instanceId);
+    if (vertexId > 7)
+    {
+        position.y = position.y * (vertexId % 2);
+    }
+
+    position.y += 0.02f; // prevent depth inaccuracies causing jagged lines
+    output.position = mul(WorldViewProjection, float4(position, 1));
+
+    return output;
+}
 
 #pragma VertexShader
 PS_DEPTH_INPUT VsDepth(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
@@ -388,9 +420,14 @@ OUTPUT Ps(PS_INPUT input)
 
 #pragma PixelShader
 float4 PsLine(PS_LINE_INPUT input) : SV_TARGET
-{
-    OUTPUT output;
+{ 
     return float4(0, 0, 0, 1);    
+}
+    
+#pragma PixelShader
+float4 PsHighlight(PS_LINE_INPUT input) : SV_TARGET
+{    
+    return Tint;
 }
 
 #pragma PixelShader

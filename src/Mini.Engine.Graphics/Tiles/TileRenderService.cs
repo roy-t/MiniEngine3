@@ -124,13 +124,14 @@ public sealed class TileRenderService : IDisposable
     }
 
     /// <summary>
-    /// Configures everything for rendering tile outlines, except for the output (render target)
+    /// Configures everything for rendering tile outlines and highlights, except for the output (render target)
     /// </summary>    
-    public void SetupTileOutlineRender(DeviceContext context, int x, int y, int width, int height)
+    public void SetupTileOutlineAndHighlightsRenderer(DeviceContext context, int x, int y, int width, int height)
     {
         context.Setup(null, PrimitiveTopology.LineList, this.Shader.VsLine, this.Line, x, y, width, height, this.Shader.PsLine, this.Opaque, this.ReverseZReadOnly);
-        context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
-        context.PS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
+
+        context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);        
+        context.PS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);        
     }
 
     /// <summary>
@@ -148,6 +149,33 @@ public sealed class TileRenderService : IDisposable
 
         context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
         context.DrawInstanced(16, (int)(tile.Columns * tile.Rows));
+    }
+
+    /// <summary>
+    /// Renders a single outline for a tile component, assumes device has been properly setup
+    /// </summary>
+    public void RenderTileHighlight(DeviceContext context, in TileComponent tile, in TileHighlightComponent highlight, in TransformComponent transform, in CameraComponent camera, in TransformComponent cameraTransform)
+    {
+        // HACK:
+        context.VS.SetShader(this.Shader.VsHighlight);
+        context.VS.SetConstantBuffer(TileShader.HighlightConstantsSlot, this.User.HighlightConstantsBuffer);
+        context.PS.SetShader(this.Shader.PsHighlight);
+        context.PS.SetConstantBuffer(TileShader.HighlightConstantsSlot, this.User.HighlightConstantsBuffer);
+
+        var previousWorld = transform.Previous.GetMatrix();
+        var world = transform.Current.GetMatrix();
+        var previousViewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, camera.PreviousJitter);
+        var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Current, camera.Jitter);
+        var cameraPosition = cameraTransform.Current.GetPosition();
+
+        this.User.MapConstants(context, previousWorld * previousViewProjection, world * viewProjection, world, cameraPosition, camera.PreviousJitter, camera.Jitter, tile.Columns, tile.Rows);
+        this.User.MapHighlightConstants(context, highlight.StartColumn, highlight.EndColumn, highlight.StartRow, highlight.EndRow, highlight.Tint);
+
+        var columns = (highlight.EndColumn - highlight.StartColumn) + 1;
+        var rows = (highlight.EndRow - highlight.StartRow) + 1;
+
+        context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
+        context.DrawInstanced(16, (int)(columns * rows));
     }
 
     /// <summary>

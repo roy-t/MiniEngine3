@@ -28,7 +28,7 @@ public sealed partial class TileOutlineSystem : ISystem, IDisposable
 
     public void OnSet()
     {
-        this.RenderService.SetupTileOutlineRender(this.Context, 0, 0, this.Device.Width, this.Device.Height);
+        this.RenderService.SetupTileOutlineAndHighlightsRenderer(this.Context, 0, 0, this.Device.Width, this.Device.Height);
 
         var gBuffer = this.FrameService.GBuffer;
         var lBuffer = this.FrameService.LBuffer;
@@ -42,6 +42,15 @@ public sealed partial class TileOutlineSystem : ISystem, IDisposable
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
         this.RenderService.RenderTileOutline(this.Context, in tile, in transform, in camera, in cameraTransform);
+    }
+
+    [Process(Query = ProcessQuery.All)]
+    public void DrawTileHighlights(ref TileComponent tile, ref TileHighlightComponent highlight, ref TransformComponent transform)
+    {
+        ref var camera = ref this.FrameService.GetPrimaryCamera();
+        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
+
+        this.RenderService.RenderTileHighlight(this.Context, in tile, in highlight, in transform, in camera, in cameraTransform);
     }
 
     public void OnUnSet()

@@ -9,7 +9,7 @@ using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Tiles;
 using Mini.Engine.Graphics.Transforms;
-
+using Vortice.Mathematics;
 using TileInstanceData = Mini.Engine.Content.Shaders.Generated.Tiles.InstanceData;
 
 namespace Mini.Engine.UI.Panels;
@@ -17,20 +17,27 @@ namespace Mini.Engine.UI.Panels;
 [Service]
 internal class TilePanel : IPanel
 {
-    private readonly ComponentSelector<TileComponent> ComponentSelector;
+    private readonly ComponentSelector<TileComponent> TileComponentSelector;
+    private readonly ComponentSelector<TileHighlightComponent> TileHighlightComponentSelector;
     private readonly Device Device;
     private readonly ECSAdministrator Administrator;
     private readonly ContentManager Content;
 
     private readonly GeneratorSettings Settings;
 
-    public TilePanel(Device device, ECSAdministrator administrator, ContentManager content, IComponentContainer<TileComponent> container)
+    private int minColumn;
+    private int maxColumn;
+    private int minRow;
+    private int maxRow;
+
+    public TilePanel(Device device, ECSAdministrator administrator, ContentManager content, IComponentContainer<TileComponent> tiles, IComponentContainer<TileHighlightComponent> highlights)
     {
         this.Device = device;
         this.Administrator = administrator;
         this.Content = content;
 
-        this.ComponentSelector = new ComponentSelector<TileComponent>("Components", container);
+        this.TileComponentSelector = new ComponentSelector<TileComponent>("Tile Components", tiles);
+        this.TileHighlightComponentSelector = new ComponentSelector<TileHighlightComponent>("Highlight Components", highlights);
 
         this.Settings = new GeneratorSettings();
     }
@@ -42,21 +49,49 @@ internal class TilePanel : IPanel
         ImGui.SliderInt("Columns", ref this.Settings.Columns, 1, 2048);
         ImGui.SliderInt("Rows", ref this.Settings.Rows, 1, 2048);
 
-        this.ComponentSelector.Update();
+        this.TileComponentSelector.Update();
         if (ImGui.Button("Add"))
         {
             this.CreateTiles();
         }
 
-        if (this.ComponentSelector.HasComponent())
+        if (this.TileComponentSelector.HasComponent())
         {
             ImGui.SameLine();
+            ref var component = ref this.TileComponentSelector.Get();
             if (ImGui.Button("Remove"))
             {
-                ref var component = ref this.ComponentSelector.Get();
                 this.Administrator.Components.MarkForRemoval(component.Entity);
             }
+
+            this.TileHighlightComponentSelector.Update();
+            ImGui.DragIntRange2("Column Range", ref this.minColumn, ref this.maxColumn, 0.05f, 0, (int)component.Columns);
+            ImGui.DragIntRange2("Row Range", ref this.minRow, ref this.maxRow, 0.05f, 0, (int)component.Rows);
+            if (ImGui.Button("Add Highlight"))
+            {
+                this.CreateHighlight(ref component);
+            }
+
+            if (this.TileHighlightComponentSelector.HasComponent())
+            {
+                ref var highlight = ref this.TileHighlightComponentSelector.Get();
+                if (ImGui.Button("Remove Highlight"))
+                {
+                    // TODO: highligt removal without destroying the entity!
+                }
+            }
         }
+    }
+
+    private void CreateHighlight(ref TileComponent tile)
+    {
+        var entity = tile.Entity;
+        ref var component = ref this.Administrator.Components.Create<TileHighlightComponent>(entity);
+        component.StartColumn = (uint)this.minColumn;
+        component.EndColumn = (uint)this.maxColumn;
+        component.StartRow = (uint)this.minRow;
+        component.EndRow = (uint)this.maxRow;
+        component.Tint = Colors.Red;
     }
 
     private void CreateTiles()
@@ -66,7 +101,7 @@ internal class TilePanel : IPanel
 
         ref var transform = ref creator.Create<TransformComponent>(entity);
         transform.Current = Transform.Identity.SetScale(1);
-        transform.Previous = transform.Current;        
+        transform.Previous = transform.Current;
 
         ref var tile = ref creator.Create<TileComponent>(entity);
         tile.TopMaterial = this.Content.LoadMaterial(new ContentId(@"Materials\Grass01_MR_2K\grass.mtl", "grass"), MaterialSettings.Default);
