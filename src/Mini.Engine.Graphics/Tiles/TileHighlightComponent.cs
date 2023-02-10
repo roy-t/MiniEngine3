@@ -5,10 +5,10 @@ using Vortice.Mathematics;
 namespace Mini.Engine.Graphics.Tiles;
 public struct TileHighlightComponent : IComponent
 {    
-    public uint StartColumn;
-    public uint EndColumn;
-    public uint StartRow;
-    public uint EndRow;
+    public uint MinColumn;
+    public uint MaxColumn;
+    public uint MinRow;
+    public uint MaxRow;
     public Color4 Tint;
 
     public Entity Entity { get; set; }

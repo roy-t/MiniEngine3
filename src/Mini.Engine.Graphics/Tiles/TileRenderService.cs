@@ -8,6 +8,7 @@ using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Transforms;
 using Vortice.Direct3D;
+using Vortice.Mathematics;
 using TileShader = Mini.Engine.Content.Shaders.Generated.Tiles;
 
 namespace Mini.Engine.Graphics.Tiles;
@@ -126,12 +127,15 @@ public sealed class TileRenderService : IDisposable
     /// <summary>
     /// Configures everything for rendering tile outlines and highlights, except for the output (render target)
     /// </summary>    
-    public void SetupTileOutlineAndHighlightsRenderer(DeviceContext context, int x, int y, int width, int height)
+    public void SetupRenderTileOutline(DeviceContext context, int x, int y, int width, int height)
     {
-        context.Setup(null, PrimitiveTopology.LineList, this.Shader.VsLine, this.Line, x, y, width, height, this.Shader.PsLine, this.Opaque, this.ReverseZReadOnly);
+        context.Setup(null, PrimitiveTopology.LineList, this.Shader.VsOutline, this.Line, x, y, width, height, this.Shader.PsOutline, this.Opaque, this.ReverseZReadOnly);
 
-        context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);        
-        context.PS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);        
+        context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
+        context.VS.SetConstantBuffer(TileShader.OutlineConstantsSlot, this.User.OutlineConstantsBuffer);
+
+        context.PS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
+        context.PS.SetConstantBuffer(TileShader.OutlineConstantsSlot, this.User.OutlineConstantsBuffer);
     }
 
     /// <summary>
@@ -146,6 +150,7 @@ public sealed class TileRenderService : IDisposable
         var cameraPosition = cameraTransform.Current.GetPosition();
 
         this.User.MapConstants(context, previousWorld * previousViewProjection, world * viewProjection, world, cameraPosition, camera.PreviousJitter, camera.Jitter, tile.Columns, tile.Rows);
+        this.User.MapOutlineConstants(context, 0, tile.Columns - 1, 0, tile.Rows -1, Colors.Black);
 
         context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
         context.DrawInstanced(16, (int)(tile.Columns * tile.Rows));
@@ -156,12 +161,6 @@ public sealed class TileRenderService : IDisposable
     /// </summary>
     public void RenderTileHighlight(DeviceContext context, in TileComponent tile, in TileHighlightComponent highlight, in TransformComponent transform, in CameraComponent camera, in TransformComponent cameraTransform)
     {
-        // HACK:
-        context.VS.SetShader(this.Shader.VsHighlight);
-        context.VS.SetConstantBuffer(TileShader.HighlightConstantsSlot, this.User.HighlightConstantsBuffer);
-        context.PS.SetShader(this.Shader.PsHighlight);
-        context.PS.SetConstantBuffer(TileShader.HighlightConstantsSlot, this.User.HighlightConstantsBuffer);
-
         var previousWorld = transform.Previous.GetMatrix();
         var world = transform.Current.GetMatrix();
         var previousViewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform.Previous, camera.PreviousJitter);
@@ -169,10 +168,10 @@ public sealed class TileRenderService : IDisposable
         var cameraPosition = cameraTransform.Current.GetPosition();
 
         this.User.MapConstants(context, previousWorld * previousViewProjection, world * viewProjection, world, cameraPosition, camera.PreviousJitter, camera.Jitter, tile.Columns, tile.Rows);
-        this.User.MapHighlightConstants(context, highlight.StartColumn, highlight.EndColumn, highlight.StartRow, highlight.EndRow, highlight.Tint);
+        this.User.MapOutlineConstants(context, highlight.MinColumn, highlight.MaxColumn, highlight.MinRow, highlight.MaxRow, highlight.Tint);
 
-        var columns = (highlight.EndColumn - highlight.StartColumn) + 1;
-        var rows = (highlight.EndRow - highlight.StartRow) + 1;
+        var columns = (highlight.MaxColumn - highlight.MinColumn) + 1;
+        var rows = (highlight.MaxRow - highlight.MinRow) + 1;
 
         context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
         context.DrawInstanced(16, (int)(columns * rows));

@@ -59,7 +59,7 @@ cbuffer Constants : register(b0)
     uint Rows;
 };
 
-cbuffer HighlightConstants : register(b1)
+cbuffer OutlineConstants : register(b1)
 {    
     uint MinColumn;
     uint MaxColumn;
@@ -283,26 +283,7 @@ PS_DEPTH_INPUT VsWallDepth(uint vertexId : SV_VertexID, uint instanceId : SV_Ins
 }
 
 #pragma VertexShader
-PS_LINE_INPUT VsLine(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
-{
-    PS_LINE_INPUT output;
-
-    uint cornerId = OUTLINE_VERTEX_ID_MAP[vertexId];
-
-    float3 position = GetPosition(cornerId, instanceId);
-    if (vertexId > 7)
-    {
-        position.y = position.y * (vertexId % 2);
-    }
-
-    position.y += 0.02f; // prevent depth inaccuracies causing jagged lines
-    output.position = mul(WorldViewProjection, float4(position, 1));
-
-    return output;
-}
-    
-    #pragma VertexShader
-PS_LINE_INPUT VsHighlight(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
+PS_LINE_INPUT VsOutline(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
 {
     PS_LINE_INPUT output;
 
@@ -419,13 +400,7 @@ OUTPUT Ps(PS_INPUT input)
 }
 
 #pragma PixelShader
-float4 PsLine(PS_LINE_INPUT input) : SV_TARGET
-{ 
-    return float4(0, 0, 0, 1);    
-}
-    
-#pragma PixelShader
-float4 PsHighlight(PS_LINE_INPUT input) : SV_TARGET
+float4 PsOutline(PS_LINE_INPUT input) : SV_TARGET
 {    
     return Tint;
 }

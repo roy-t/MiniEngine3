@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Xml.Linq;
 using Mini.Engine.Configuration;
 
 namespace Mini.Engine.ECS.Components;
@@ -6,7 +7,7 @@ namespace Mini.Engine.ECS.Components;
 [Service]
 public sealed class ComponentAdministrator
 {
-    // TODO: class assumes single threaded component creation
+    // TODO: class assumes single threaded component creation/deletion
 
     private readonly ContainerStore ContainerStore;
 
@@ -27,7 +28,7 @@ public sealed class ComponentAdministrator
     {
         var store = this.ContainerStore.GetContainer<T>();
         return ref store[entity];
-    }
+    }   
 
     public void MarkForRemoval(Entity entity)
     {
