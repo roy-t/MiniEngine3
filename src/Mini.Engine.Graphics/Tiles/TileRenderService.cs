@@ -20,10 +20,14 @@ public sealed class TileRenderService : IDisposable
 
     private readonly RasterizerState CullCounterClockwise;
     private readonly RasterizerState CullNoneNoDepthClip;
+    private readonly RasterizerState Line;
+
     private readonly DepthStencilState ReverseZ;
     private readonly DepthStencilState ReverseZReadOnly;
     private readonly DepthStencilState Default;
+    
     private readonly BlendState Opaque;
+
     private readonly SamplerState AnisotropicWrap;
 
     private readonly IComponentContainer<TransformComponent> Transforms;
@@ -33,9 +37,12 @@ public sealed class TileRenderService : IDisposable
     {
         this.CullCounterClockwise = device.RasterizerStates.CullCounterClockwise;
         this.CullNoneNoDepthClip = device.RasterizerStates.CullNoneNoDepthClip;
+        this.Line = device.RasterizerStates.Line;
+
         this.ReverseZ = device.DepthStencilStates.ReverseZ;
         this.ReverseZReadOnly = device.DepthStencilStates.ReverseZReadOnly;
         this.Default = device.DepthStencilStates.Default;
+        
         this.AnisotropicWrap = device.SamplerStates.AnisotropicWrap;
         this.Opaque = device.BlendStates.Opaque;
 
@@ -121,7 +128,7 @@ public sealed class TileRenderService : IDisposable
     /// </summary>    
     public void SetupTileOutlineRender(DeviceContext context, int x, int y, int width, int height)
     {
-        context.Setup(null, PrimitiveTopology.LineList, this.Shader.VsLine, this.CullCounterClockwise, x, y, width, height, this.Shader.PsLine, this.Opaque, this.ReverseZReadOnly);
+        context.Setup(null, PrimitiveTopology.LineList, this.Shader.VsLine, this.Line, x, y, width, height, this.Shader.PsLine, this.Opaque, this.ReverseZReadOnly);
         context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
     }

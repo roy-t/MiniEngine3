@@ -27,6 +27,7 @@ public sealed class RasterizerStates : IDisposable
     internal RasterizerStates(ID3D11Device device)
     {
         this.WireFrame = Create(device, RasterizerDescription.Wireframe, nameof(this.WireFrame));
+        this.Line = Create(device, CreateLine(), nameof(this.Line));
 
         this.CullNone = Create(device, RasterizerDescription.CullNone, nameof(this.CullNone));
 
@@ -44,6 +45,7 @@ public sealed class RasterizerStates : IDisposable
     public RasterizerState Default { get; set; }
 
     public RasterizerState WireFrame { get; }
+    public RasterizerState Line { get; }
 
     public RasterizerState CullNone { get; }
     public RasterizerState CullNoneCounterClockwiseScissor { get; }
@@ -67,9 +69,9 @@ public sealed class RasterizerStates : IDisposable
             CullMode = CullMode.None,
             FillMode = FillMode.Solid,
             FrontCounterClockwise = false,
-            DepthBias = 0,
-            DepthBiasClamp = 0f,
-            SlopeScaledDepthBias = 0f,
+            DepthBias = RasterizerDescription.DefaultDepthBias,
+            DepthBiasClamp = RasterizerDescription.DefaultDepthBiasClamp,
+            SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
             DepthClipEnable = true,
             ScissorEnable = true,
             MultisampleEnable = true,
@@ -84,9 +86,9 @@ public sealed class RasterizerStates : IDisposable
             CullMode = CullMode.None,
             FillMode = FillMode.Solid,
             FrontCounterClockwise = false,
-            DepthBias = 0,
-            DepthBiasClamp = 0f,
-            SlopeScaledDepthBias = 0f,
+            DepthBias = RasterizerDescription.DefaultDepthBias,
+            DepthBiasClamp = RasterizerDescription.DefaultDepthBiasClamp,
+            SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
             DepthClipEnable = false,
             ScissorEnable = false,
             MultisampleEnable = true,
@@ -101,9 +103,9 @@ public sealed class RasterizerStates : IDisposable
             CullMode = CullMode.Front,
             FillMode = FillMode.Solid,
             FrontCounterClockwise = false,
-            DepthBias = 0,
-            DepthBiasClamp = 0f,
-            SlopeScaledDepthBias = 0f,
+            DepthBias = RasterizerDescription.DefaultDepthBias,
+            DepthBiasClamp = RasterizerDescription.DefaultDepthBiasClamp,
+            SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
             DepthClipEnable = false,
             ScissorEnable = false,
             MultisampleEnable = true,
@@ -118,13 +120,31 @@ public sealed class RasterizerStates : IDisposable
             CullMode = CullMode.Back,
             FillMode = FillMode.Solid,
             FrontCounterClockwise = false,
-            DepthBias = 0,
-            DepthBiasClamp = 0f,
-            SlopeScaledDepthBias = 0f,
+            DepthBias = RasterizerDescription.DefaultDepthBias,
+            DepthBiasClamp = RasterizerDescription.DefaultDepthBiasClamp,
+            SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
             DepthClipEnable = false,
             ScissorEnable = false,
             MultisampleEnable = true,
             AntialiasedLineEnable = false,
+        };
+    }
+
+    private static RasterizerDescription CreateLine()
+    {
+        
+        return new RasterizerDescription()
+        {
+            CullMode = CullMode.None,
+            FillMode = FillMode.Solid,
+            FrontCounterClockwise = false,
+            DepthBias = RasterizerDescription.DefaultDepthBias,
+            DepthBiasClamp = RasterizerDescription.DefaultDepthBiasClamp,
+            SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
+            DepthClipEnable = true,
+            ScissorEnable = true,
+            MultisampleEnable = false,
+            AntialiasedLineEnable = true,
         };
     }
 
