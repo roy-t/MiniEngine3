@@ -2,11 +2,14 @@
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Contexts.States;
+using Mini.Engine.DirectX.Debugging;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.Direct3D11.Debug;
 using Vortice.DXGI;
+using Vortice.DXGI.Debug;
 using static Vortice.Direct3D11.D3D11;
+using static Vortice.DXGI.DXGI;
 
 [assembly: InternalsVisibleTo("Mini.Engine.Debugging")]
 [assembly: InternalsVisibleTo("Mini.Engine.Content")]
@@ -20,10 +23,13 @@ public sealed class Device : IDisposable
 
     private readonly IntPtr WindowHandle;
 
+    private readonly IDXGIFactory4 DXGIFactory;
+    private readonly bool PresentAllowTearing;
     private IDXGISwapChain swapChain = null!;
 
 #if DEBUG
     private static readonly DeviceCreationFlags Flags = DeviceCreationFlags.Debug;
+    private readonly DebugLayerExceptionConverter DebugLayerExceptionConverter;
 #else
         private static readonly DeviceCreationFlags Flags = DeviceCreationFlags.None;
 #endif
@@ -38,8 +44,24 @@ public sealed class Device : IDisposable
         _ = D3D11CreateDevice(null, DriverType.Hardware, Flags, null, out var device, out var context);
 #nullable restore
         this.ID3D11Device = device;
+        this.DXGIFactory = this.CreateDxgiFactory(out this.PresentAllowTearing);
 #if DEBUG
         this.ID3D11Debug = device.QueryInterface<ID3D11Debug>();
+        this.DebugLayerExceptionConverter = new DebugLayerExceptionConverter();
+        var dxgiInfoQueue = DXGI.DXGIGetDebugInterface1<IDXGIInfoQueue>();
+        dxgiInfoQueue.PushEmptyStorageFilter(DebugAll);
+        dxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Warning, true);
+        dxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Error, true);
+        dxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Corruption, true);
+        this.DebugLayerExceptionConverter.Register(dxgiInfoQueue, DebugAll);
+
+        var d3d11InfoQueue = this.ID3D11Debug.QueryInterface<ID3D11InfoQueue>();
+        d3d11InfoQueue.PushEmptyStorageFilter();
+        d3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Warning, true);
+        d3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Error, true);
+        d3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Corruption, true);
+
+        this.DebugLayerExceptionConverter.Register(d3d11InfoQueue);
 #endif
         this.ID3D11DeviceContext = context;
 
@@ -123,28 +145,31 @@ public sealed class Device : IDisposable
         this.BackBufferView.DebugName = DebugNameGenerator.GetName(nameof(Device), "BackBufferView");
     }
 
-    private IDXGIFactory5 GetDxgiFactory()
+    private IDXGIFactory4 CreateDxgiFactory(out bool presentAllowTearing)
     {
-        var dxgiFactory = this.ID3D11Device.QueryInterface<IDXGIDevice>()
+        var factory4 = this.ID3D11Device.QueryInterface<IDXGIDevice>()
             ?.GetParent<IDXGIAdapter>()
-            ?.GetParent<IDXGIFactory5>() // Requires DXGI 1.5 which was added in the Windows 10 Anniverary edition
+            ?.GetParent<IDXGIFactory4>()
             ?? throw new Exception("Could not query for IDXGIAdapter or IDXGIFactory5");
-        return dxgiFactory;
+
+
+        // Requires DXGI 1.5 which was added in the Windows 10 Anniverary edition
+        using var factory5 = factory4.QueryInterface<IDXGIFactory5>();
+        presentAllowTearing = factory5?.PresentAllowTearing ?? false;
+
+        return factory4;
     }
 
     private void CreateSwapChain(int width, int height)
     {
-        var dxgiFactory = this.GetDxgiFactory();
         var swapchainDesc = this.CreateSwapChainDescription(width, height);
 
-        this.swapChain = dxgiFactory.CreateSwapChainForHwnd(this.ID3D11Device, this.WindowHandle, swapchainDesc);
+        this.swapChain = this.DXGIFactory.CreateSwapChainForHwnd(this.ID3D11Device, this.WindowHandle, swapchainDesc);
         this.CreateBackBuffer();
     }
 
     private SwapChainDescription1 CreateSwapChainDescription(int width, int height)
     {
-        var dxgiFactory = this.GetDxgiFactory();
-
         return new SwapChainDescription1()
         {
             BufferCount = 2,
@@ -157,7 +182,7 @@ public sealed class Device : IDisposable
             SampleDescription = new SampleDescription(1, 0),
             SwapEffect = SwapEffect.FlipDiscard,
             BufferUsage = Usage.RenderTargetOutput,
-            Flags = dxgiFactory.PresentAllowTearing ? SwapChainFlags.AllowTearing : SwapChainFlags.None
+            Flags = this.PresentAllowTearing ? SwapChainFlags.AllowTearing : SwapChainFlags.None
         };
     }
 
@@ -180,6 +205,7 @@ public sealed class Device : IDisposable
 #if DEBUG
         this.ID3D11Debug.ReportLiveDeviceObjects(ReportLiveDeviceObjectFlags.Detail);
 #endif
+        this.DXGIFactory.Dispose();
         this.ID3D11Device.Dispose();
     }
 }

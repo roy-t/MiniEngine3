@@ -1,0 +1,63 @@
+﻿using Serilog.Events;
+using System.Runtime.ExceptionServices;
+using Vortice.Direct3D11.Debug;
+using Vortice.DXGI.Debug;
+
+namespace Mini.Engine.DirectX.Debugging;
+
+internal sealed class DebugLayerExceptionConverter
+{
+    private readonly List<IDebugMessageProvider> Providers;
+    private readonly LogEventLevel LogEventLevel;
+
+    public DebugLayerExceptionConverter(LogEventLevel minLogEventLevel = LogEventLevel.Warning)
+    {
+        this.Providers = new List<IDebugMessageProvider>();
+        this.LogEventLevel = minLogEventLevel;
+
+        AppDomain.CurrentDomain.FirstChanceException += this.OnFirstChanceExceptionHandler;
+    }
+
+    public void Register(ID3D11InfoQueue infoQueue)
+    {
+        this.Providers.Add(new Direct3D11DebugMessageProvider(infoQueue));
+    }
+
+    public void Register(IDXGIInfoQueue infoQueue, Guid producer)
+    {        
+        this.Providers.Add(new DxgiDebugMessageProvider(infoQueue, producer));
+    }
+
+    private void OnFirstChanceExceptionHandler(object? _, FirstChanceExceptionEventArgs e)
+    {
+        var exceptions = new List<Exception>();
+        var buffer = new List<Message>();
+
+        for (var i = 0; i < this.Providers.Count; i++)
+        {
+            buffer.Clear();
+            var provider = this.Providers[i];
+            provider.GetAllMessages(buffer);
+
+            for (var j = 0; j < buffer.Count; j++)
+            {
+                var message = buffer[j];
+                if (message.Level >= this.LogEventLevel)
+                {
+                    exceptions.Add(new Exception(message.Description, e.Exception));
+                }
+
+            }
+        }
+
+        if (exceptions.Count == 1)
+        {
+            throw exceptions[0];
+        }
+
+        if (exceptions.Count > 1)
+        {
+            throw new AggregateException(exceptions);
+        }
+    }
+}

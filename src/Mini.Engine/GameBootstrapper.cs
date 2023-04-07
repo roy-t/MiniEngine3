@@ -24,7 +24,6 @@ public sealed class GameBootstrapper
     private readonly DiskFileSystem FileSystem;
     private readonly ILogger Logger;
 
-    private DebugLayerLogger debugLayerLogger;
     private EditorUserInterface ui;
     private IGameLoop gameLoop;
 
@@ -74,27 +73,24 @@ public sealed class GameBootstrapper
         this.Logger.Information("Bootstrapping {@gameLoop} took: {@milliseconds}ms", gameLoopType, stopWatch.ElapsedMilliseconds);
     }
 
-    [MemberNotNull(nameof(debugLayerLogger), nameof(ui), nameof(gameLoop))]
+    [MemberNotNull(nameof(ui), nameof(gameLoop))]
     private void RunLoadingScreenAndLoad(Type gameLoopType, Services services)
     {
         var loadingScreen = services.Resolve<LoadingScreen>();
         var initializationOrder = InjectableDependencies.CreateInitializationOrder(gameLoopType);
         var serviceActions = initializationOrder.Select(t => new LoadAction(t.Name, () => services.Resolve(t)));
 
-        DebugLayerLogger? debugLayerLogger = null;
         EditorUserInterface? ui = null;
         IGameLoop? gameLoop = null;
 
         var actions = new List<LoadAction>(serviceActions)
-        {
-            new LoadAction(nameof(DebugLayerLogger), () => debugLayerLogger = services.Resolve<DebugLayerLogger>()),
+        {            
             new LoadAction(nameof(EditorUserInterface), () => ui = services.Resolve<EditorUserInterface>()),
             new LoadAction(gameLoopType.Name, () => gameLoop = services.Resolve<IGameLoop>(gameLoopType)),
         };
 
         loadingScreen.Load(actions, "gameloop");
 
-        this.debugLayerLogger = debugLayerLogger!;
         this.ui = ui!;
 
         this.gameLoop = gameLoop!;
@@ -121,7 +117,6 @@ public sealed class GameBootstrapper
             {
                 this.ui.NewFrame((float)elapsed);
             }
-            this.debugLayerLogger.LogMessages();
 
             while (accumulator >= dt)
             {
