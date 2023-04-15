@@ -24,6 +24,10 @@ public sealed class RasterizerState : IDisposable
 
 public sealed class RasterizerStates : IDisposable
 {
+    private const int DefaultDepthBias = 0;
+    private const int DefaultDepthBiasClamp = 0;
+    private const int DefaultSlopeScaledDepthBias = 0;
+
     internal RasterizerStates(ID3D11Device device)
     {
         // TODO: default descriptions do not enable the scissor rectangle!
@@ -71,9 +75,9 @@ public sealed class RasterizerStates : IDisposable
             CullMode = CullMode.None,
             FillMode = FillMode.Solid,
             FrontCounterClockwise = false,
-            DepthBias = RasterizerDescription.DefaultDepthBias,
-            DepthBiasClamp = RasterizerDescription.DefaultDepthBiasClamp,
-            SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
+            DepthBias = DefaultDepthBias,
+            DepthBiasClamp = DefaultDepthBiasClamp,
+            SlopeScaledDepthBias = DefaultSlopeScaledDepthBias,
             DepthClipEnable = true,
             ScissorEnable = true,
             MultisampleEnable = false,
@@ -88,9 +92,9 @@ public sealed class RasterizerStates : IDisposable
             CullMode = CullMode.None,
             FillMode = FillMode.Solid,
             FrontCounterClockwise = false,
-            DepthBias = RasterizerDescription.DefaultDepthBias,
-            DepthBiasClamp = RasterizerDescription.DefaultDepthBiasClamp,
-            SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
+            DepthBias = DefaultDepthBias,
+            DepthBiasClamp = DefaultDepthBiasClamp,
+            SlopeScaledDepthBias = DefaultSlopeScaledDepthBias,
             DepthClipEnable = false,
             ScissorEnable = true,
             MultisampleEnable = false,
@@ -105,9 +109,9 @@ public sealed class RasterizerStates : IDisposable
             CullMode = CullMode.Front,
             FillMode = FillMode.Solid,
             FrontCounterClockwise = false,
-            DepthBias = RasterizerDescription.DefaultDepthBias,
-            DepthBiasClamp = RasterizerDescription.DefaultDepthBiasClamp,
-            SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
+            DepthBias = DefaultDepthBias,
+            DepthBiasClamp = DefaultDepthBiasClamp,
+            SlopeScaledDepthBias = DefaultSlopeScaledDepthBias,
             DepthClipEnable = false,
             ScissorEnable = true,
             MultisampleEnable = false,
@@ -122,9 +126,9 @@ public sealed class RasterizerStates : IDisposable
             CullMode = CullMode.Back,
             FillMode = FillMode.Solid,
             FrontCounterClockwise = false,
-            DepthBias = RasterizerDescription.DefaultDepthBias,
-            DepthBiasClamp = RasterizerDescription.DefaultDepthBiasClamp,
-            SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
+            DepthBias = DefaultDepthBias,
+            DepthBiasClamp = DefaultDepthBiasClamp,
+            SlopeScaledDepthBias = DefaultSlopeScaledDepthBias,
             DepthClipEnable = false,
             ScissorEnable = true,
             MultisampleEnable = false,
@@ -140,9 +144,9 @@ public sealed class RasterizerStates : IDisposable
             CullMode = CullMode.None,
             FillMode = FillMode.Solid,
             FrontCounterClockwise = false,
-            DepthBias = RasterizerDescription.DefaultDepthBias,
-            DepthBiasClamp = RasterizerDescription.DefaultDepthBiasClamp,
-            SlopeScaledDepthBias = RasterizerDescription.DefaultSlopeScaledDepthBias,
+            DepthBias = DefaultDepthBias,
+            DepthBiasClamp = DefaultDepthBiasClamp,
+            SlopeScaledDepthBias = DefaultSlopeScaledDepthBias,
             DepthClipEnable = false,
             ScissorEnable = true,
             MultisampleEnable = false,

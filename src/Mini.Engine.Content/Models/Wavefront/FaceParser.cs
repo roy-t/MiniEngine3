@@ -26,15 +26,14 @@ internal sealed class FaceParser : ObjStatementParser
 
     private static Int3 ParseTriplet(ReadOnlySpan<char> slice)
     {
-        var point = Int3.Zero;
         var index = slice.IndexOf('/');
-        point.X = int.Parse(slice[..index]);
+        var x  = int.Parse(slice[..index]);
 
         slice = slice[(index + 1)..];
         index = slice.IndexOf('/');
-        point.Y = int.Parse(slice[..index]);
-        point.Z = int.Parse(slice[(index + 1)..]);
+        var y = int.Parse(slice[..index]);
+        var z = int.Parse(slice[(index + 1)..]);
 
-        return point;
+        return new Int3(x, y, z);
     }
 }

@@ -59,7 +59,7 @@ public sealed class SamplerStates : IDisposable
             AddressV = TextureAddressMode.Clamp,
             AddressW = TextureAddressMode.Clamp,
             BorderColor = Colors.White,
-            ComparisonFunction = ComparisonFunction.LessEqual,
+            ComparisonFunc = ComparisonFunction.LessEqual,
             Filter = Filter.ComparisonAnisotropic, // Should this be ComparisonXYZ or not?
             MaxAnisotropy = 1,
             MaxLOD = float.MaxValue,
@@ -76,7 +76,7 @@ public sealed class SamplerStates : IDisposable
             AddressV = TextureAddressMode.Clamp,
             AddressW = TextureAddressMode.Clamp,
             BorderColor = Colors.White,
-            ComparisonFunction = ComparisonFunction.Greater,
+            ComparisonFunc = ComparisonFunction.Greater,
             Filter = Filter.ComparisonAnisotropic, // Should this be ComparisonXYZ or not?
             MaxAnisotropy = 1,
             MaxLOD = float.MaxValue,

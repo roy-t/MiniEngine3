@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <PackageReference Include="Vortice.D3DCompiler" Version="2.1.41" />
-    <PackageReference Include="Vortice.Direct3D11" Version="2.1.41" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="2.4.2" />
+    <PackageReference Include="Vortice.Direct3D11" Version="2.4.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Mini.Engine.Core\Mini.Engine.Core.csproj" />

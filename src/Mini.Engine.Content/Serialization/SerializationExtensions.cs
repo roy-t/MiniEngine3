@@ -63,11 +63,7 @@ public static class SerializationExtensions
 
     public static BoundingBox ReadBoundingBox(this ContentReader reader)
     {
-        return new BoundingBox
-        {
-            Min = reader.ReadVector3(),
-            Max = reader.ReadVector3()
-        };
+        return new BoundingBox(reader.ReadVector3(), reader.ReadVector3());
     }
 
     public static void Write(this ContentWriter writer, ContentId id)
