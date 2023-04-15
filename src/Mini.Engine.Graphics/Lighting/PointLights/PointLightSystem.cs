@@ -104,5 +104,6 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
         this.User.Dispose();
         this.InputLayout.Dispose();
         this.Context.Dispose();
+        this.Sphere.Dispose();
     }
 }

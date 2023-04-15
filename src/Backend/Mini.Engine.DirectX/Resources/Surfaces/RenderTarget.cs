@@ -43,7 +43,7 @@ public class RenderTarget : Surface, IRenderTarget
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        for (var i = 0; i < this.DimZ; i++)
+        for (var i = 0; i < this.AsRenderTarget.ID3D11RenderTargetViews.Length; i++)
         {
             this.AsRenderTarget.ID3D11RenderTargetViews[i].Dispose();
         }

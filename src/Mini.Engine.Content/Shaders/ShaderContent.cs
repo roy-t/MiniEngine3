@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Mini.Engine.Content;
 using Mini.Engine.DirectX.Resources.Shaders;
 
 namespace Mini.Engine.Content.Shaders;

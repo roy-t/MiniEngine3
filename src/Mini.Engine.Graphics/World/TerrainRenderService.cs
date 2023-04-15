@@ -120,8 +120,7 @@ public sealed class TerrainRenderService : IDisposable
     public void SetupTerrainDepthRender(DeviceContext context, int x, int y, int width, int height)
     {
         context.Setup(this.ShadowMapInputLayout, PrimitiveTopology.TriangleList, this.ShadowMapShader.Vs, this.CullNoneNoDepthClip, x, y, width, height, this.ShadowMapShader.Ps, this.Opaque, this.Default);
-        context.VS.SetConstantBuffer(ShadowMap.ConstantsSlot, this.ShadowMapUser.ConstantsBuffer);
-        //context.PS.SetSampler(ShadowMap.TextureSampler, this.AnisotropicWrap);
+        context.VS.SetConstantBuffer(ShadowMap.ConstantsSlot, this.ShadowMapUser.ConstantsBuffer);        
         context.PS.ClearShader();
     }
 
@@ -165,7 +164,9 @@ public sealed class TerrainRenderService : IDisposable
 
     public void Dispose()
     {
-        this.User.Dispose();
+        this.User.Dispose();        
         this.ShadowMapUser.Dispose();
+        this.InputLayout.Dispose();
+        this.ShadowMapInputLayout.Dispose();
     }
 }

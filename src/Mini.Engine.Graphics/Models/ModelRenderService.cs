@@ -120,7 +120,7 @@ public sealed class ModelRenderService : IDisposable
     {
         context.Setup(this.ShadowMapInputLayout, PrimitiveTopology.TriangleList, this.ShadowMapShader.Vs, this.CullNoneNoDepthClip, x, y, width, height, this.ShadowMapShader.Ps, this.Opaque, this.Default);
         context.VS.SetConstantBuffer(ShadowMap.ConstantsSlot, this.ShadowMapUser.ConstantsBuffer);
-        context.PS.SetSampler(ShadowMap.TextureSampler, this.AnisotropicWrap);
+        context.PS.ClearShader();
     }
 
     /// <summary>
@@ -174,5 +174,7 @@ public sealed class ModelRenderService : IDisposable
     {
         this.User.Dispose();
         this.ShadowMapUser.Dispose();
+        this.InputLayout.Dispose();
+        this.ShadowMapInputLayout.Dispose();
     }
 }

@@ -12,6 +12,10 @@ public static class RenderTargetViews
         var rtv = device.ID3D11Device.CreateRenderTargetView(texture, description);
         rtv.DebugName = DebugNameGenerator.GetName(owner, "RTV", format, (arrayIndex * 1000) + mipSlice);
 
+        if(rtv.DebugName.Contains("2Environment_RTV"))
+        {
+
+        }
         return rtv;
     }
 }

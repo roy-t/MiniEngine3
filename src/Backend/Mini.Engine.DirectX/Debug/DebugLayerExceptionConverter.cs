@@ -15,7 +15,7 @@ internal sealed class DebugLayerExceptionConverter
         this.Providers = new List<IDebugMessageProvider>();
         this.LogEventLevel = minLogEventLevel;
 
-        AppDomain.CurrentDomain.FirstChanceException += this.OnFirstChanceExceptionHandler;
+        AppDomain.CurrentDomain.FirstChanceException += this.CheckExceptions;
     }
 
     public void Register(ID3D11InfoQueue infoQueue)
@@ -28,7 +28,12 @@ internal sealed class DebugLayerExceptionConverter
         this.Providers.Add(new DxgiDebugMessageProvider(infoQueue, producer));
     }
 
-    private void OnFirstChanceExceptionHandler(object? _, FirstChanceExceptionEventArgs e)
+    public void CheckExceptions()
+    {
+        this.CheckExceptions(null, null);
+    }
+
+    private void CheckExceptions(object? _, FirstChanceExceptionEventArgs? e)
     {
         var exceptions = new List<Exception>();
         var buffer = new List<Message>();
@@ -44,7 +49,7 @@ internal sealed class DebugLayerExceptionConverter
                 var message = buffer[j];
                 if (message.Level >= this.LogEventLevel)
                 {
-                    exceptions.Add(new Exception(message.Description, e.Exception));
+                    exceptions.Add(new Exception(message.Description, e?.Exception));
                 }
 
             }

@@ -13,7 +13,7 @@ using ImageInfo = Mini.Engine.DirectX.Resources.Surfaces.ImageInfo;
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 [Service]
-public sealed class BrdfLutProcessor : ContentProcessor<ITexture, TextureContent, TextureSettings>
+public sealed class BrdfLutProcessor : ContentProcessor<ITexture, TextureContent, TextureSettings>, IDisposable
 {
     private const int Resolution = 512;
 
@@ -27,9 +27,9 @@ public sealed class BrdfLutProcessor : ContentProcessor<ITexture, TextureContent
     public BrdfLutProcessor(Device device, BrdfLutCompute shader)
         : base(device.Resources, ProcessorVersion, ProcessorType, ".hdr")
     {
-        this.Device = device;
-      
+        this.Device = device;      
         this.Shader = shader;
+
         this.User = this.Shader.CreateUserFor<BrdfLutProcessor>();
     }
 
@@ -93,5 +93,10 @@ public sealed class BrdfLutProcessor : ContentProcessor<ITexture, TextureContent
         };
 
         return image;
+    }
+
+    public void Dispose()
+    {
+        this.User.Dispose();
     }
 }

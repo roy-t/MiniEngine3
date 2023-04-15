@@ -46,13 +46,18 @@ public sealed class SceneManager
         this.nextScene = index;
     }
 
-    private void ChangeScene(int index)
+    public void ClearScene()
     {
         if (this.activeScene >= 0)
         {
             this.Administrator.RemoveAll();
-            this.LifetimeManager.PopFrame();            
-        }        
+            this.LifetimeManager.PopFrame();
+        }
+    }
+
+    private void ChangeScene(int index)
+    {
+        this.ClearScene();    
 
         this.activeScene = index;
         var title = this.Scenes[this.activeScene].Title;

@@ -184,6 +184,7 @@ public sealed class TileRenderService : IDisposable
     {
         context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.VsDepth, this.CullNoneNoDepthClip, x, y, width, height, this.Shader.PsDepth, this.Opaque, this.Default);
         context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
+        context.PS.ClearShader();
     }
 
     /// <summary>
@@ -207,6 +208,7 @@ public sealed class TileRenderService : IDisposable
     {
         context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.VsWallDepth, this.CullNoneNoDepthClip, x, y, width, height, this.Shader.PsDepth, this.Opaque, this.Default);
         context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
+        context.PS.ClearShader();
     }
 
     /// <summary>

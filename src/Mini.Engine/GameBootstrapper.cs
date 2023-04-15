@@ -98,7 +98,6 @@ public sealed class GameBootstrapper
 
     public void Run()
     {
-        //return;
         var stopwatch = Stopwatch.StartNew();
 
         const double dt = 1.0 / 60.0; // constant tick rate of simulation
@@ -165,7 +164,7 @@ public sealed class GameBootstrapper
                 this.height = this.Window.Height;
                 this.ResizeDeviceResources();
             }
-        }
+        }        
     }
 
     private void ResizeDeviceResources()

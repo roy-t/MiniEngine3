@@ -27,9 +27,12 @@ public sealed class Device : IDisposable
     private readonly bool PresentAllowTearing;
     private IDXGISwapChain swapChain = null!;
 
+
 #if DEBUG
     private static readonly DeviceCreationFlags Flags = DeviceCreationFlags.Debug;
     private readonly DebugLayerExceptionConverter DebugLayerExceptionConverter;
+    private readonly IDXGIInfoQueue DxgiInfoQueue;
+    private readonly ID3D11InfoQueue D3d11InfoQueue;
 #else
         private static readonly DeviceCreationFlags Flags = DeviceCreationFlags.None;
 #endif
@@ -48,20 +51,20 @@ public sealed class Device : IDisposable
 #if DEBUG
         this.ID3D11Debug = device.QueryInterface<ID3D11Debug>();
         this.DebugLayerExceptionConverter = new DebugLayerExceptionConverter();
-        var dxgiInfoQueue = DXGI.DXGIGetDebugInterface1<IDXGIInfoQueue>();
-        dxgiInfoQueue.PushEmptyStorageFilter(DebugAll);
-        dxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Warning, true);
-        dxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Error, true);
-        dxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Corruption, true);
-        this.DebugLayerExceptionConverter.Register(dxgiInfoQueue, DebugAll);
+        this.DxgiInfoQueue = DXGI.DXGIGetDebugInterface1<IDXGIInfoQueue>();
+        this.DxgiInfoQueue.PushEmptyStorageFilter(DebugAll);
+        this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Warning, true);
+        this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Error, true);
+        this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Corruption, true);
+        this.DebugLayerExceptionConverter.Register(this.DxgiInfoQueue, DebugAll);
 
-        var d3d11InfoQueue = this.ID3D11Debug.QueryInterface<ID3D11InfoQueue>();
-        d3d11InfoQueue.PushEmptyStorageFilter();
-        d3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Warning, true);
-        d3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Error, true);
-        d3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Corruption, true);
+        this.D3d11InfoQueue = this.ID3D11Debug.QueryInterface<ID3D11InfoQueue>();
+        this.D3d11InfoQueue.PushEmptyStorageFilter();
+        this.D3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Warning, true);
+        this.D3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Error, true);
+        this.D3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Corruption, true);
 
-        this.DebugLayerExceptionConverter.Register(d3d11InfoQueue);
+        this.DebugLayerExceptionConverter.Register(this.D3d11InfoQueue);
 #endif
         this.ID3D11DeviceContext = context;
 
@@ -206,7 +209,18 @@ public sealed class Device : IDisposable
         this.ID3D11Device.Dispose();
 
 #if DEBUG
+        // Avoid not getting a readout of all left over objects, by breaking on the first finding
+
+        //this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Warning, false);
+        //this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Error, false);
+        //this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Corruption, false);        
+
+        //this.D3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Warning, false);
+        //this.D3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Error, false);
+        //this.D3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Corruption, false);
+        
         this.ID3D11Debug.ReportLiveDeviceObjects(ReportLiveDeviceObjectFlags.Detail | ReportLiveDeviceObjectFlags.IgnoreInternal);
+        this.DebugLayerExceptionConverter.CheckExceptions();
 #endif                
     }
 }

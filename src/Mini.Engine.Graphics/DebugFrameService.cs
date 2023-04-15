@@ -6,7 +6,7 @@ using Vortice.DXGI;
 namespace Mini.Engine.Graphics;
 
 [Service]
-public sealed class DebugFrameService
+public sealed class DebugFrameService : IDisposable
 {
     public DebugFrameService(Device device)
     {
@@ -24,4 +24,9 @@ public sealed class DebugFrameService
     public bool EnableDebugOverlay { get; set; }
     public bool ShowBounds { get; set; }
     public bool RenderToViewport { get; set; }
+
+    public void Dispose()
+    {
+        this.DebugOverlay.Dispose();
+    }
 }

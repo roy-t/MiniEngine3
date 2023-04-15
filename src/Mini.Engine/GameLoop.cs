@@ -83,7 +83,16 @@ internal sealed class GameLoop : IGameLoop
 
     public void Dispose()
     {
-        this.EditorState.Save();
+        this.SceneManager.ClearScene();
+
+        this.LifetimeManager.PopFrame(); // Games
+
+        this.UpdatePipeline.Dispose();
         this.RenderPipeline.Dispose();
+        this.DebugPipeline.Dispose();
+
+        this.LifetimeManager.PopFrame(); // Pipelines
+
+        this.EditorState.Save();        
     }
 }

@@ -10,7 +10,7 @@ using Shaders = Mini.Engine.Content.Shaders.Generated;
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 [Service]
-public sealed class CubeMapGenerator
+public sealed class CubeMapGenerator : IDisposable
 {
     private enum CubeMapFace
     {
@@ -144,5 +144,10 @@ public sealed class CubeMapGenerator
             CubeMapFace.NegativeZ => Matrix4x4.CreateLookAt(Vector3.Zero, Vector3.UnitZ, Vector3.UnitY),
             _ => throw new ArgumentOutOfRangeException(nameof(face))
         };
+    }
+
+    public void Dispose()
+    {
+        this.User.Dispose();
     }
 }
