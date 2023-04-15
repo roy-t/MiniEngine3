@@ -26,30 +26,34 @@ public class EditorState
 
     public void Save()
     {
-        using var stream = new FileStream(Path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.SequentialScan);
-        using var writer = new BinaryWriter(stream);
-        writer.Write(this.SceneManager.ActiveScene);
+        try
+        {
+            using var stream = new FileStream(Path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.SequentialScan);
+            using var writer = new BinaryWriter(stream);
+            writer.Write(this.SceneManager.ActiveScene);
 
-        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
+            ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
-        // Position
-        writer.Write(cameraTransform.Current.GetPosition().X);
-        writer.Write(cameraTransform.Current.GetPosition().Y);
-        writer.Write(cameraTransform.Current.GetPosition().Z);
+            // Position
+            writer.Write(cameraTransform.Current.GetPosition().X);
+            writer.Write(cameraTransform.Current.GetPosition().Y);
+            writer.Write(cameraTransform.Current.GetPosition().Z);
 
-        // Rotation
-        writer.Write(cameraTransform.Current.GetRotation().X);
-        writer.Write(cameraTransform.Current.GetRotation().Y);
-        writer.Write(cameraTransform.Current.GetRotation().Z);
-        writer.Write(cameraTransform.Current.GetRotation().W);
+            // Rotation
+            writer.Write(cameraTransform.Current.GetRotation().X);
+            writer.Write(cameraTransform.Current.GetRotation().Y);
+            writer.Write(cameraTransform.Current.GetRotation().Z);
+            writer.Write(cameraTransform.Current.GetRotation().W);
 
-        // Origin
-        writer.Write(cameraTransform.Current.GetOrigin().X);
-        writer.Write(cameraTransform.Current.GetOrigin().Y);
-        writer.Write(cameraTransform.Current.GetOrigin().Z);
+            // Origin
+            writer.Write(cameraTransform.Current.GetOrigin().X);
+            writer.Write(cameraTransform.Current.GetOrigin().Y);
+            writer.Write(cameraTransform.Current.GetOrigin().Z);
 
-        // Scale
-        writer.Write(cameraTransform.Current.GetScale());
+            // Scale
+            writer.Write(cameraTransform.Current.GetScale());
+        }
+        catch (Exception) { }
     }
 
     public void Restore()
@@ -84,7 +88,12 @@ public class EditorState
 
             this.shouldUpdate = true;
         }
-        catch (Exception) { }
+        catch (Exception)
+        {
+            this.PreferredScene = 0;
+            this.preferredTransform = Transform.Identity;
+            this.shouldUpdate = false;
+        }
     }
 
     public void Update()

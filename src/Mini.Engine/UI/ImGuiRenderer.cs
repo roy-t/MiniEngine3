@@ -15,7 +15,7 @@ using ImDrawIdx = System.UInt16;
 
 namespace Mini.Engine.UI;
 
-internal sealed class ImGuiRenderer
+internal sealed class ImGuiRenderer : IDisposable
 {
     // Borrowed resources
     private readonly Device Device;

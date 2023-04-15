@@ -200,12 +200,13 @@ public sealed class Device : IDisposable
 
         this.BackBuffer?.Dispose();
         this.swapChain?.Dispose();
+        this.DXGIFactory.Dispose();
 
         this.ID3D11DeviceContext.Dispose();
-#if DEBUG
-        this.ID3D11Debug.ReportLiveDeviceObjects(ReportLiveDeviceObjectFlags.Detail);
-#endif
-        this.DXGIFactory.Dispose();
         this.ID3D11Device.Dispose();
+
+#if DEBUG
+        this.ID3D11Debug.ReportLiveDeviceObjects(ReportLiveDeviceObjectFlags.Detail | ReportLiveDeviceObjectFlags.IgnoreInternal);
+#endif                
     }
 }

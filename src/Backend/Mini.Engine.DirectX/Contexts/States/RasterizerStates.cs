@@ -152,10 +152,16 @@ public sealed class RasterizerStates : IDisposable
 
     public void Dispose()
     {
+        this.Default.Dispose();
+        this.WireFrame.Dispose();
+        this.Line.Dispose();
+
         this.CullNone.Dispose();
+        this.CullNoneCounterClockwiseScissor.Dispose();
         this.CullCounterClockwise.Dispose();
         this.CullClockwise.Dispose();
 
+        this.CullNoneNoDepthClip.Dispose();
         this.CullCounterClockwiseNoDepthClip.Dispose();
         this.CullClockwiseNoDepthClip.Dispose();
     }

@@ -48,7 +48,7 @@ internal sealed class GameLoop : IGameLoop
     }
 
     public void Update(float time, float elapsed)
-    {
+    {        
         this.FrameService.Elapsed = elapsed;
         this.SceneManager.CheckChangeScene();
         this.Content.ReloadChangedContent();
@@ -60,7 +60,7 @@ internal sealed class GameLoop : IGameLoop
     public void Draw(float alpha)
     {
         this.FrameService.Alpha = alpha;
-        this.RenderPipeline.Frame();
+        this.RenderPipeline.Frame();        
 
         this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.CurrentColor);        
 

@@ -88,8 +88,11 @@ public sealed class SamplerStates : IDisposable
     public void Dispose()
     {
         this.PointWrap.Dispose();
+        this.PointClamp.Dispose();
         this.LinearWrap.Dispose();
         this.LinearClamp.Dispose();
         this.AnisotropicWrap.Dispose();
+        this.CompareLessEqualClamp.Dispose();
+        this.CompareGreaterClamp.Dispose();
     }
 }

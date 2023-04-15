@@ -9,29 +9,29 @@ public interface IShader : IDisposable
 }
 
 // TODO: we can probably get rid of this soon!
-public abstract class Shader<TShader> : IDisposable
-    where TShader : ID3D11DeviceChild
-{
-    protected readonly Device Device;
-    protected Blob blob;
+//public abstract class Shader<TShader> : IDisposable
+//    where TShader : ID3D11DeviceChild
+//{
+//    protected readonly Device Device;
+//    protected Blob blob;
 
-    public Shader(Device device, string name)
-    {
-        this.Device = device;
-        this.blob = null!;
-        this.ID3D11Shader = null!;
-        this.Name = name;
-    }
+//    public Shader(Device device, string name)
+//    {
+//        this.Device = device;
+//        this.blob = null!;
+//        this.ID3D11Shader = null!;
+//        this.Name = name;
+//    }
 
-    public string Name { get; }
+//    public string Name { get; }
 
-    public TShader ID3D11Shader { get; set; } 
+//    public TShader ID3D11Shader { get; set; } 
 
-    public virtual void Dispose()
-    {
-        this.blob?.Dispose();
-        this.ID3D11Shader?.Dispose();
+//    public virtual void Dispose()
+//    {
+//        this.blob?.Dispose();
+//        this.ID3D11Shader?.Dispose();
 
-        GC.SuppressFinalize(this);
-    }
-}
+//        GC.SuppressFinalize(this);
+//    }
+//}

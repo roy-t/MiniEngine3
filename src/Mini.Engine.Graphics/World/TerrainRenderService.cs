@@ -121,7 +121,8 @@ public sealed class TerrainRenderService : IDisposable
     {
         context.Setup(this.ShadowMapInputLayout, PrimitiveTopology.TriangleList, this.ShadowMapShader.Vs, this.CullNoneNoDepthClip, x, y, width, height, this.ShadowMapShader.Ps, this.Opaque, this.Default);
         context.VS.SetConstantBuffer(ShadowMap.ConstantsSlot, this.ShadowMapUser.ConstantsBuffer);
-        context.PS.SetSampler(ShadowMap.TextureSampler, this.AnisotropicWrap);
+        //context.PS.SetSampler(ShadowMap.TextureSampler, this.AnisotropicWrap);
+        context.PS.ClearShader();
     }
 
     /// <summary>

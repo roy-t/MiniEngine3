@@ -71,8 +71,7 @@ public sealed class FrameService : IDisposable
 
     public void Resize(Device device)
     {
-        this.Dispose();
-
+        this.Dispose();        
         this.GBuffer = new GeometryBuffer(device);
         this.LBuffer = new LightBuffer(device);
         this.PBuffer = new PostProcessingBuffer(device);

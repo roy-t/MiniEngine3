@@ -28,6 +28,11 @@ public sealed class PixelShaderContext : DeviceContextPart
         this.ID3D11DeviceContext.PSSetSamplers(startSlot, nativeSamplers);
     }
 
+    public void ClearShader()
+    {
+        this.ID3D11DeviceContext.PSSetShader(null, null, 0);
+    }
+
     public void SetShader(ILifetime<IPixelShader> shader)
     {
         var resource = this.DeviceContext.Resources.Get(shader).ID3D11Shader;

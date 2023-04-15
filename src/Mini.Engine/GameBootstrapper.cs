@@ -98,6 +98,7 @@ public sealed class GameBootstrapper
 
     public void Run()
     {
+        //return;
         var stopwatch = Stopwatch.StartNew();
 
         const double dt = 1.0 / 60.0; // constant tick rate of simulation
@@ -112,6 +113,13 @@ public sealed class GameBootstrapper
 
             elapsed = Math.Min(elapsed, 0.25);
             accumulator += elapsed;
+
+#if DEBUG
+            foreach(var type in HotReloadManager.GetChangedTypes())
+            {
+                this.Logger.Warning("{type} was changed", type);
+            }
+#endif
 
             if (this.enableUI)
             {
