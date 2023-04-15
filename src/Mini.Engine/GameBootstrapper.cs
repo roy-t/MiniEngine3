@@ -75,7 +75,7 @@ public sealed class GameBootstrapper
 
     [MemberNotNull(nameof(ui), nameof(gameLoop))]
     private void RunLoadingScreenAndLoad(Type gameLoopType, Services services)
-    {
+    {        
         var loadingScreen = services.Resolve<LoadingScreen>();
         var initializationOrder = InjectableDependencies.CreateInitializationOrder(gameLoopType);
         var serviceActions = initializationOrder.Select(t => new LoadAction(t.Name, () => services.Resolve(t)));

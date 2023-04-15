@@ -33,6 +33,9 @@ public sealed class Device : IDisposable
     private readonly DebugLayerExceptionConverter DebugLayerExceptionConverter;
     private readonly IDXGIInfoQueue DxgiInfoQueue;
     private readonly ID3D11InfoQueue D3d11InfoQueue;
+
+    private readonly ID3D11Debug ID3D11Debug;
+    private readonly IDXGIDebug IDXGIDebug;
 #else
         private static readonly DeviceCreationFlags Flags = DeviceCreationFlags.None;
 #endif
@@ -51,6 +54,8 @@ public sealed class Device : IDisposable
 #if DEBUG
         this.ID3D11Debug = device.QueryInterface<ID3D11Debug>();
         this.DebugLayerExceptionConverter = new DebugLayerExceptionConverter();
+
+        this.IDXGIDebug = DXGI.DXGIGetDebugInterface1<IDXGIDebug>();
         this.DxgiInfoQueue = DXGI.DXGIGetDebugInterface1<IDXGIInfoQueue>();
         this.DxgiInfoQueue.PushEmptyStorageFilter(DebugAll);
         this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Warning, true);
@@ -94,9 +99,7 @@ public sealed class Device : IDisposable
     public LifetimeManager Resources { get; }
 
     internal ID3D11Device ID3D11Device { get; }
-#if DEBUG
-    internal ID3D11Debug ID3D11Debug { get; }
-#endif
+
     internal ID3D11DeviceContext ID3D11DeviceContext { get; }
 
     internal ID3D11Texture2D BackBuffer { get; private set; } = null!;
@@ -150,16 +153,20 @@ public sealed class Device : IDisposable
 
     private IDXGIFactory4 CreateDxgiFactory(out bool presentAllowTearing)
     {
-        var factory4 = this.ID3D11Device.QueryInterface<IDXGIDevice>()
-            ?.GetParent<IDXGIAdapter>()
-            ?.GetParent<IDXGIFactory4>()
-            ?? throw new Exception("Could not query for IDXGIAdapter or IDXGIFactory5");
+        using var device = this.ID3D11Device.QueryInterface<IDXGIDevice>();
+        device.DebugName = "DEV_DXGI4";
 
+        using var adapter = device.GetParent<IDXGIAdapter>();
+        adapter.DebugName = "ADAPTER_DXGI4";
+
+        var factory4 = adapter.GetParent<IDXGIFactory4>();
+        factory4.DebugName = "FACTORY4_DXGI4";
 
         // Requires DXGI 1.5 which was added in the Windows 10 Anniverary edition
         using var factory5 = factory4.QueryInterface<IDXGIFactory5>();
+        factory5.DebugName = "FACTORY5_DXGI4";
         presentAllowTearing = factory5?.PresentAllowTearing ?? false;
-
+       
         return factory4;
     }
 
@@ -211,15 +218,20 @@ public sealed class Device : IDisposable
 #if DEBUG
         // Avoid not getting a readout of all left over objects, by breaking on the first finding
 
-        //this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Warning, false);
-        //this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Error, false);
-        //this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Corruption, false);        
+        this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Warning, false);
+        this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Error, false);
+        this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Corruption, false);
 
-        //this.D3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Warning, false);
-        //this.D3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Error, false);
-        //this.D3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Corruption, false);
-        
+        // TODO: somehow we do not clean up everything, which is reported as an error here
+        this.IDXGIDebug.ReportLiveObjects(DebugAll, ReportLiveObjectFlags.Detail | ReportLiveObjectFlags.IgnoreInternal);
+
+        this.D3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Warning, false);
+        this.D3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Error, false);
+        this.D3d11InfoQueue.SetBreakOnSeverity(MessageSeverity.Corruption, false);
+
+        // TODO: somehow we do not clean up everything, which is reported as an error here
         this.ID3D11Debug.ReportLiveDeviceObjects(ReportLiveDeviceObjectFlags.Detail | ReportLiveDeviceObjectFlags.IgnoreInternal);
+
         this.DebugLayerExceptionConverter.CheckExceptions();
 #endif                
     }
