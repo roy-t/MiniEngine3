@@ -18,11 +18,6 @@ internal sealed class DebugLayerExceptionConverter
         AppDomain.CurrentDomain.FirstChanceException += this.CheckExceptions;
     }
 
-    public void Register(ID3D11InfoQueue infoQueue)
-    {
-        this.Providers.Add(new Direct3D11DebugMessageProvider(infoQueue));
-    }
-
     public void Register(IDXGIInfoQueue infoQueue, Guid producer)
     {        
         this.Providers.Add(new DxgiDebugMessageProvider(infoQueue, producer));
