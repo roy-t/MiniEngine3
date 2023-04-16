@@ -50,7 +50,7 @@ public sealed class GameBootstrapper
         this.LifetimeManager = new LifetimeManager(this.Logger);
         this.LifetimeManager.PushFrame(nameof(GameBootstrapper));
 
-        this.Device = new Device(this.Window.Handle, this.width, this.height, this.LifetimeManager);
+        this.Device = new Device(this.Window.Handle, this.width, this.height, this.LifetimeManager);        
         this.InputService = new InputService(this.Window);
         this.Keyboard = new Keyboard();
         this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);

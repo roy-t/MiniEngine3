@@ -49,7 +49,7 @@ internal sealed class DebugLayerExceptionConverter
                 var message = buffer[j];
                 if (message.Level >= this.LogEventLevel)
                 {
-                    exceptions.Add(new Exception(message.Description, e?.Exception));
+                    exceptions.Add(new Exception($"{message.Level}: {message.Description}", e?.Exception));
                 }
 
             }
