@@ -1,6 +1,5 @@
 ﻿using Serilog.Events;
 using System.Runtime.ExceptionServices;
-using Vortice.Direct3D11.Debug;
 using Vortice.DXGI.Debug;
 
 namespace Mini.Engine.DirectX.Debugging;

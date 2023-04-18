@@ -7,13 +7,21 @@ using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.PostProcessing;
 using Mini.Engine.Scenes;
 using Mini.Engine.UI;
+using Mini.Engine.Windows;
+using static Windows.Win32.UI.Input.KeyboardAndMouse.VIRTUAL_KEY;
 
 namespace Mini.Engine;
 
 [Service]
 internal sealed class GameLoop : IGameLoop
 {
+    private static readonly ushort F1 = InputService.GetScanCode(VK_F1);
+
     private readonly Device Device;
+    private readonly EditorUserInterface UserInterface;
+    private readonly InputService InputService;
+    private readonly Keyboard Keyboard;
+
     private readonly LifetimeManager LifetimeManager;
     private readonly EditorState EditorState;
     private readonly PresentationHelper Presenter;
@@ -25,9 +33,15 @@ internal sealed class GameLoop : IGameLoop
     private readonly ParallelPipeline RenderPipeline;
     private readonly ParallelPipeline DebugPipeline;
 
-    public GameLoop(Device device, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, UpdatePipelineBuilder updatePipelineBuilder, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content)
+    private bool enableUI;
+
+    public GameLoop(Device device, EditorUserInterface userInterface, InputService inputService, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, UpdatePipelineBuilder updatePipelineBuilder, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content)
     {
         this.Device = device;
+        this.UserInterface = userInterface;
+        this.InputService = inputService;
+        this.Keyboard = new Keyboard();
+
         this.LifetimeManager = lifetimeManager;
         this.EditorState = editorState;
         this.Presenter = presenter;
@@ -37,32 +51,45 @@ internal sealed class GameLoop : IGameLoop
         this.Content = content;
 
         this.LifetimeManager.PushFrame("Pipelines");
-        this.UpdatePipeline = updatePipelineBuilder.Build();        
-        this.RenderPipeline = renderBuilder.Build();        
+        this.UpdatePipeline = updatePipelineBuilder.Build();
+        this.RenderPipeline = renderBuilder.Build();
         this.DebugPipeline = debugBuilder.Build();
 
         this.LifetimeManager.PushFrame("Game");
 
         this.EditorState.Restore();
         this.SceneManager.Set(this.EditorState.PreferredScene);
+
+        this.enableUI = !StartupArguments.NoUi;
     }
 
     public void Update(float time, float elapsed)
-    {        
+    {
         this.FrameService.Elapsed = elapsed;
+
+        this.UserInterface.NewFrame(elapsed);
+
         this.SceneManager.CheckChangeScene();
         this.Content.ReloadChangedContent();
-        this.EditorState.Update();        
-                        
-        this.UpdatePipeline.Frame();      
+        this.EditorState.Update();
+
+        this.UpdatePipeline.Frame();
+
+        while (this.InputService.ProcessEvents(this.Keyboard))
+        {
+            if (this.Keyboard.Pressed(F1))
+            {
+                this.enableUI = !this.enableUI;
+            }
+        }
     }
 
     public void Draw(float alpha)
     {
         this.FrameService.Alpha = alpha;
-        this.RenderPipeline.Frame();        
+        this.RenderPipeline.Frame();
 
-        this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.CurrentColor);        
+        this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.CurrentColor);
 
         if (this.DebugFrameService.EnableDebugOverlay)
         {
@@ -73,12 +100,18 @@ internal sealed class GameLoop : IGameLoop
                 this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();
                 this.Presenter.Present(this.Device.ImmediateContext, this.DebugFrameService.DebugOverlay);
             }
-        }       
+        }
+
+        if (this.enableUI)
+        {
+            this.UserInterface.Render();
+        }
     }
 
     public void Resize(int width, int height)
     {
         this.FrameService.Resize(this.Device);
+        this.UserInterface.Resize(width, height);
     }
 
     public void Dispose()
@@ -93,6 +126,6 @@ internal sealed class GameLoop : IGameLoop
 
         this.LifetimeManager.PopFrame(); // Pipelines
 
-        this.EditorState.Save();        
+        this.EditorState.Save();
     }
 }

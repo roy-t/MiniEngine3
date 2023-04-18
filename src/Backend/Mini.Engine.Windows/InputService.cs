@@ -45,6 +45,7 @@ public sealed class InputService
         return ProcesEvents(mouse, this.MouseEvents);
     }
 
+    // TODO: make it easier to handle one-off keyboard clicks, instead of doing while
     public bool ProcessEvents(Keyboard keyboard)
     {
         return ProcesEvents(keyboard, this.KeyboardEvents);

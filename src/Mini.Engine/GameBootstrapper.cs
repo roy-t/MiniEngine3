@@ -23,13 +23,11 @@ public sealed class GameBootstrapper
     private readonly Device Device;
     private readonly DiskFileSystem FileSystem;
     private readonly ILogger Logger;
-
-    private EditorUserInterface ui;
+    
     private IGameLoop gameLoop;
 
     private readonly InputService InputService;
-    private readonly Keyboard Keyboard;
-    private bool enableUI = true;
+    private readonly Keyboard Keyboard;    
 
     private int width;
     private int height;
@@ -62,7 +60,6 @@ public sealed class GameBootstrapper
         services.Register(this.Window);
         services.RegisterAs<DiskFileSystem, IVirtualFileSystem>(this.FileSystem);
 
-        this.enableUI = !StartupArguments.NoUi;
 
         // Load everything we need to display something
         var gameLoopType = Type.GetType(StartupArguments.GameLoopType, true, true)
@@ -73,7 +70,7 @@ public sealed class GameBootstrapper
         this.Logger.Information("Bootstrapping {@gameLoop} took: {@milliseconds}ms", gameLoopType, stopWatch.ElapsedMilliseconds);
     }
 
-    [MemberNotNull(nameof(ui), nameof(gameLoop))]
+    [MemberNotNull(nameof(gameLoop))]
     private void RunLoadingScreenAndLoad(Type gameLoopType, Services services)
     {        
         var loadingScreen = services.Resolve<LoadingScreen>();
@@ -89,9 +86,7 @@ public sealed class GameBootstrapper
             new LoadAction(gameLoopType.Name, () => gameLoop = services.Resolve<IGameLoop>(gameLoopType)),
         };
 
-        loadingScreen.Load(actions, "gameloop");
-
-        this.ui = ui!;
+        loadingScreen.Load(actions, "gameloop");        
 
         this.gameLoop = gameLoop!;
     }
@@ -120,10 +115,6 @@ public sealed class GameBootstrapper
             }
 #endif
 
-            if (this.enableUI)
-            {
-                this.ui.NewFrame((float)elapsed);
-            }
 
             while (accumulator >= dt)
             {
@@ -133,11 +124,6 @@ public sealed class GameBootstrapper
                     if (this.Keyboard.Pressed(Escape))
                     {
                         this.Window.Dispose();
-                    }
-
-                    if (this.Keyboard.Pressed(F1))
-                    {
-                        this.enableUI = !this.enableUI;
                     }
                 }
 
@@ -152,10 +138,6 @@ public sealed class GameBootstrapper
 
             this.Device.ImmediateContext.ClearBackBuffer();
             this.gameLoop.Draw((float)alpha); // alpha signifies how much to lerp between current and future state
-            if (this.enableUI)
-            {
-                this.ui.Render();
-            }
             this.Device.Present();
 
             if (!this.Window.IsMinimized && (this.Window.Width != this.width || this.Window.Height != this.height))
@@ -169,8 +151,7 @@ public sealed class GameBootstrapper
 
     private void ResizeDeviceResources()
     {
-        this.Device.Resize(this.width, this.height);
-        this.ui.Resize(this.width, this.height);
+        this.Device.Resize(this.width, this.height);        
         this.gameLoop.Resize(this.width, this.height);
     }
 
