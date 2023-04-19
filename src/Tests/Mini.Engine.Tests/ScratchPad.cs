@@ -14,4 +14,30 @@ public class ScratchPad
 
         Assert.Equal(input, output);
     }
+
+
+    public struct FooStruct
+    {
+        public int Bar;
+        public void SetBar(int value)
+        {
+            this.Bar = value;
+        }
+    }
+
+
+    [Fact]
+    public async void Bar()
+    {
+        var b = new FooStruct();
+        Set(ref b, 400);
+
+        Assert.Equal(400, b.Bar);
+    }
+
+
+    public static void Set(ref FooStruct value, int x)
+    {
+        value.SetBar(x);
+    }
 }

@@ -43,7 +43,7 @@ public sealed class ComponentContainer<T> : IComponentContainer<T>
     public ComponentContainer(ComponentTracker tracker)
     {
         this.Pool = new PoolAllocator<T>(InitialCapacity);
-        this.Bit = tracker.GetBit<T>();
+        this.Bit = tracker.GetBit();
         this.Tracker = tracker;
     }
 

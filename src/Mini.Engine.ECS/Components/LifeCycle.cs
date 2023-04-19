@@ -11,7 +11,7 @@ public enum LifeCycleState : byte
 
 public readonly record struct LifeCycle(LifeCycleState Current, LifeCycleState Next)
 {
-    internal static LifeCycle Init()
+    public static LifeCycle Init()
     {
         return new LifeCycle(LifeCycleState.Created, LifeCycleState.New);
     }

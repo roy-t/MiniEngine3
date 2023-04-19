@@ -7,32 +7,33 @@ public readonly record struct ComponentBit(ulong Bit);
 [Service]
 public sealed class ComponentTracker
 {
-    private readonly Dictionary<Guid, ComponentBit> Bits;
     private readonly Dictionary<Entity, ComponentBit> EntityComponents;
+    private const ulong BIT_MIN = 0b_0000000000000000000000000000000000000000000000000000000000000001UL;
+    private const ulong BIT_Max = 0b_1000000000000000000000000000000000000000000000000000000000000000UL;
 
-    public ComponentTracker(ComponentCatalog components)
+    private ulong bit;
+
+    public ComponentTracker()
     {
-        this.Bits = new Dictionary<Guid, ComponentBit>();
         this.EntityComponents = new Dictionary<Entity, ComponentBit>();
+    }
 
-        var bit = 0b_0000000000000000000000000000000000000000000000000000000000000001UL;
-
-        if (components.Count > 64)
+    public ComponentBit GetBit()        
+    {
+        if (this.bit < BIT_MIN)
+        {
+            this.bit = BIT_MIN;
+        }
+        else if(this.bit < BIT_Max)
+        {
+            this.bit <<= 1;
+        }
+        else
         {
             throw new Exception("More than 64 component types, update range of ComponentBit");
         }
 
-        foreach (var type in components)
-        {
-            this.Bits.Add(type.GUID, new ComponentBit(bit));
-            bit <<= 1;
-        }
-    }
-
-    public ComponentBit GetBit<T>()
-        where T : IComponent
-    {
-        return this.Bits[typeof(T).GUID];
+        return new ComponentBit(this.bit);
     }
 
     public bool HasComponent(Entity entity, ComponentBit component)

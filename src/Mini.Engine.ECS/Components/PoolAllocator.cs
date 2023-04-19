@@ -7,13 +7,13 @@ public sealed class PoolAllocator<T>
 {
     private const int MinimumCapacity = 10;
 
-    private readonly BitArray Occupancy;
+    //private readonly BitArray Occupancy;
     private readonly IndexTracker Tracker;
     private T[] pool;
 
     public PoolAllocator(int capacity)
     {
-        this.Occupancy = new BitArray(capacity);
+        //this.Occupancy = new BitArray(capacity);
         this.Tracker = new IndexTracker(capacity);
         this.pool = new T[capacity];
     }
@@ -52,7 +52,7 @@ public sealed class PoolAllocator<T>
 
         var index = this.Count;
 
-        this.Occupancy[index] = true;
+        //this.Occupancy[index] = true;
         this.Tracker.InsertOrUpdate(entity, index);
         this.Count++;
 
@@ -75,7 +75,7 @@ public sealed class PoolAllocator<T>
         var index = this.Tracker.Remove(entity);
 
         this.pool[index] = default;
-        this.Occupancy[index] = false;
+        //this.Occupancy[index] = false;
 
         this.FillGap(index);
 
@@ -90,7 +90,7 @@ public sealed class PoolAllocator<T>
         }
 
         Array.Resize(ref this.pool, newCapacity);
-        this.Occupancy.Length = newCapacity;
+        //this.Occupancy.Length = newCapacity;
         this.Tracker.Reserve(newCapacity);
     }
 
@@ -107,7 +107,7 @@ public sealed class PoolAllocator<T>
         }
 
         Array.Resize(ref this.pool, newCapacity);
-        this.Occupancy.Length = newCapacity;
+        //this.Occupancy.Length = newCapacity;
     }
 
     private void FillGap(int gapIndex)
@@ -119,8 +119,8 @@ public sealed class PoolAllocator<T>
         {
             this.pool[low] = this.pool[high];
             this.pool[high] = default;
-            this.Occupancy[high] = false;
-            this.Occupancy[low] = true;
+            //this.Occupancy[high] = false;
+            //this.Occupancy[low] = true;
 
             this.Tracker.InsertOrUpdate(this.pool[low].Entity, low);
         }
