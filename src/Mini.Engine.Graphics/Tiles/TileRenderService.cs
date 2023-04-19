@@ -236,8 +236,8 @@ public sealed class TileRenderService : IDisposable
         while (iterator.MoveNext())
         {
             ref var tile = ref iterator.Current;
-            ref var transform = ref this.Transforms[tile.Entity];
-            this.RenderTileDepth(context, in tile, in transform, in viewProjection);            
+            ref var transform = ref this.Transforms[tile.Entity].Value;
+            this.RenderTileDepth(context, in tile.Value, in transform, in viewProjection);            
         }
     }
 
@@ -253,8 +253,8 @@ public sealed class TileRenderService : IDisposable
         while (iterator.MoveNext())
         {
             ref var tile = ref iterator.Current;
-            ref var transform = ref this.Transforms[tile.Entity];
-            this.RenderTilWallDepth(context, in tile, in transform, in viewProjection);
+            ref var transform = ref this.Transforms[tile.Entity].Value;
+            this.RenderTilWallDepth(context, in tile.Value, in transform, in viewProjection);
         }
     }
 

@@ -83,7 +83,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
     private Vector3 GetGrassToSunVector()
     {
         ref var sun = ref this.SunLights.First(ComponentContainer<SunLightComponent>.AcceptAll);
-        ref var transform = ref this.Transforms[sun.Entity];
+        ref var transform = ref this.Transforms[sun.Entity].Value;
         return -transform.Current.GetForward();
     }
 

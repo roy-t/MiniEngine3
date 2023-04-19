@@ -5,6 +5,10 @@ using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Transforms;
 using System.Numerics;
+using Mini.Engine.DirectX;
+using Mini.Engine.Graphics.Lighting;
+using Mini.Engine.Graphics.Models;
+using Mini.Engine.Graphics.PostProcessing;
 
 namespace Mini.Engine.Graphics.Diesel;
 
@@ -14,7 +18,7 @@ public sealed class CameraService
     private readonly EntityAdministrator Administrator;
     private readonly IComponentContainer<CameraComponent> Cameras;
     private readonly IComponentContainer<TransformComponent> Transforms;
-    private Mini.Engine.ECS.Entity cameraEntity;
+    private Entity cameraEntity;
 
     public CameraService(EntityAdministrator administrator, IComponentContainer<CameraComponent> cameras, IComponentContainer<TransformComponent> transforms)
     {
@@ -25,12 +29,12 @@ public sealed class CameraService
 
     public ref CameraComponent GetPrimaryCamera()
     {
-        return ref this.Cameras[this.cameraEntity];
+        return ref this.Cameras[this.cameraEntity].Value;
     }
 
     public ref TransformComponent GetPrimaryCameraTransform()
     {
-        return ref this.Transforms[this.cameraEntity];
+        return ref this.Transforms[this.cameraEntity].Value;
     }
 
     public void InitializePrimaryCamera(float width, float height)
@@ -43,5 +47,11 @@ public sealed class CameraService
         transform.Current = Transform.Identity
             .SetTranslation(new Vector3(0, 0, 10))
             .FaceTargetConstrained(Vector3.Zero, Vector3.UnitY);
+    }
+
+    public void Resize(float width, float height)
+    {
+        ref var camera = ref this.Cameras[this.cameraEntity].Value;
+        camera.Camera = camera.Camera with { AspectRatio = width / height };
     }
 }

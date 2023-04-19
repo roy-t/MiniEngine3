@@ -1,67 +1,31 @@
-﻿using System.Collections;
-using Mini.Engine.Core.Lifetime;
-using Mini.Engine.ECS;
-using Mini.Engine.ECS.Components;
+﻿namespace Mini.Engine.ECS.Components;
 
-namespace Mini.Engine.Graphics.Diesel;
-
-public sealed class CompContainer<T>
+public struct Component<T>
     where T : struct
 {
-
-
-    private const int InitialCapacity = 10;
-
-    private readonly ComponentTracker Tracker;
-    private readonly ComponentBit Bit;
-
-    private readonly Pool<T> Pool;
-
-    public CompContainer(ComponentTracker tracker)
-    {
-        this.Tracker = tracker;
-        this.Bit = tracker.GetBit();
-        this.Pool = new Pool<T>(InitialCapacity);
-    }
-
-    public bool Contains(Entity entity)
-    {
-        return this.Tracker.HasComponent(entity, this.Bit);
-    }
-
-
-    //public ILifetime<T> Create(Entity entity)
-    //{
-
-    //}
-}
-
-public struct Entry<T>
-    where T : struct
-{
-    public T Component;
+    public T Value;
     public Entity Entity;
     public LifeCycle LifeCycle;
 }
 
-public sealed class Pool<T>
+public sealed class ComponentPool<T>
     where T : struct
 {
     private readonly int MinimumCapacity;
     private readonly IndexTracker Tracker;
-    private Entry<T>[] entries;
+    private Component<T>[] entries;
 
-    public Pool(int initialCapacity)
+    public ComponentPool(int initialCapacity)
     {
         this.MinimumCapacity = initialCapacity;
         this.Tracker = new IndexTracker(initialCapacity);
-        this.entries = new Entry<T>[initialCapacity];
+        this.entries = new Component<T>[initialCapacity];
     }
 
     public int Count { get; private set; }
     public int Capacity => this.entries.Length;
 
-    public ref Entry<T> this[int index]
+    public ref Component<T> this[int index]
     {
         get
         {
@@ -74,7 +38,7 @@ public sealed class Pool<T>
         }
     }
 
-    public ref Entry<T> this[Entity entity]
+    public ref Component<T> this[Entity entity]
     {
         get
         {
@@ -83,7 +47,7 @@ public sealed class Pool<T>
         }
     }
 
-    public ref Entry<T> CreateFor(Entity entity)
+    public ref Component<T> CreateFor(Entity entity)
     {
         if (this.Count >= this.Capacity)
         {

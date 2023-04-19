@@ -80,13 +80,13 @@ internal class TerrainPanel : IPanel
 
                 if (this.ShowHeightMapColorSettings())
                 {
-                    ref var component = ref this.ComponentSelector.Get();
+                    ref var component = ref this.ComponentSelector.Get().Value;
                     this.UpdateColors(ref component);
                 }
 
                 if (this.heightMapChanged || ImGui.Button("Update Heigth Map"))
                 {
-                    ref var component = ref this.ComponentSelector.Get();
+                    ref var component = ref this.ComponentSelector.Get().Value;
                     this.SetElevation(ref component);
                     this.heightMapChanged = false;
                 }
@@ -105,7 +105,7 @@ internal class TerrainPanel : IPanel
                 ImGui.SameLine();
                 if (ImGui.Button("Reset Colors"))
                 {
-                    ref var component = ref this.ComponentSelector.Get();
+                    ref var component = ref this.ComponentSelector.Get().Value;
                     var settings = new HeightMapGeneratorSettings();
                     this.settings.ErosionColor = settings.ErosionColor;
                     this.settings.DepositionColor = settings.DepositionColor;                    
@@ -125,7 +125,7 @@ internal class TerrainPanel : IPanel
 
                 if ((this.erosionChanged && this.instantUpdate) || ImGui.Button("Set Erosion"))
                 {
-                    ref var component = ref this.ComponentSelector.Get();
+                    ref var component = ref this.ComponentSelector.Get().Value;
                     this.SetErosion(ref component);
                     this.erosionChanged = false;
                 }
@@ -133,7 +133,7 @@ internal class TerrainPanel : IPanel
                 ImGui.SameLine();
                 if (ImGui.Button("Realtime Erosion"))
                 {
-                    ref var component = ref this.ComponentSelector.Get();
+                    ref var component = ref this.ComponentSelector.Get().Value;
                     this.isErodingRealTime = true;
                     this.elapsedRealTime = TimeSpan.Zero;
                 }
@@ -141,7 +141,7 @@ internal class TerrainPanel : IPanel
                 ImGui.SameLine();
                 if (ImGui.Button("Iterate Erosion"))
                 {
-                    ref var component = ref this.ComponentSelector.Get();
+                    ref var component = ref this.ComponentSelector.Get().Value;
                     this.IterateErosion(ref component, this.erosionSettings);
                 }
 
@@ -164,7 +164,7 @@ internal class TerrainPanel : IPanel
 
     private void UpdateRealtimeErosion(float elapsed)
     {
-        ref var terrain = ref this.ComponentSelector.Get();
+        ref var terrain = ref this.ComponentSelector.Get().Value;
 
         this.elapsedRealTime += TimeSpan.FromSeconds(elapsed);
         var perSecond = this.erosionSettings.Droplets / this.ExpectedRealTime.TotalSeconds;

@@ -1,5 +1,4 @@
-﻿using Mini.Engine.Configuration;
-using Mini.Engine.ECS;
+﻿using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
 using Xunit;
 using static Xunit.Assert;
@@ -10,13 +9,8 @@ public class ComponentTrackerTests
     public struct ComponentA : IComponent
     {
         public ComponentA(Entity entity)
-        {
-            this.LifeCycle = new LifeCycle();
-            this.Entity = entity;
+        {         
         }
-
-        public LifeCycle LifeCycle { get; set; }
-        public Entity Entity { get; set; }
 
         public void Destroy() { }
     }
@@ -24,13 +18,8 @@ public class ComponentTrackerTests
     public struct ComponentB : IComponent
     {
         public ComponentB(Entity entity)
-        {
-            this.LifeCycle = new LifeCycle();
-            this.Entity = entity;
+        {            
         }
-
-        public LifeCycle LifeCycle { get; set; }
-        public Entity Entity { get; set; }
 
         public void Destroy() { }
     }
@@ -38,13 +27,12 @@ public class ComponentTrackerTests
     [Fact]
     public void SmokeTest()
     {
-        var catalog = new ComponentCatalog(new[] { typeof(ComponentTrackerTests).Assembly });
-        var tracker = new ComponentTracker(catalog);
+        var tracker = new ComponentTracker();
               
-        var bitA = tracker.GetBit<ComponentA>();
+        var bitA = tracker.GetBit();
         Equal(1UL, bitA.Bit);
 
-        var bitB = tracker.GetBit<ComponentB>();
+        var bitB = tracker.GetBit();
         Equal(2UL, bitB.Bit);
 
         var entity = new Entity(1);

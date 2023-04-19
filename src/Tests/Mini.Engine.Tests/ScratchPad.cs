@@ -1,4 +1,6 @@
 ﻿using Mini.Engine.Core;
+using Mini.Engine.ECS;
+using Mini.Engine.ECS.Components;
 using Xunit;
 namespace Mini.Engine.Tests;
 public class ScratchPad
@@ -15,8 +17,9 @@ public class ScratchPad
         Assert.Equal(input, output);
     }
 
+    
 
-    public struct FooStruct
+    public struct FooStruct : IComponent
     {
         public int Bar;
         public void SetBar(int value)
@@ -26,17 +29,23 @@ public class ScratchPad
     }
 
 
-    [Fact]
-    public async void Bar()
+    [Fact] public void Bar()
     {
-        var b = new FooStruct();
-        Set(ref b, 400);
+        var values = new ComponentPool<FooStruct>(10);
+        var entity = new Entity(3);
 
-        Assert.Equal(400, b.Bar);
+        ref var x = ref values.CreateFor(entity).Value;
+        x.Bar = 33;
+
+
+        ref var thing = ref values[entity];
+
+        Assert.Equal(33, thing.Value.Bar);
+
     }
 
 
-    public static void Set(ref FooStruct value, int x)
+    private static void Set(ref FooStruct value, int x)
     {
         value.SetBar(x);
     }

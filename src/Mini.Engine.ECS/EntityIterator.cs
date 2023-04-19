@@ -1,20 +1,21 @@
-﻿namespace Mini.Engine.ECS.Components;
+﻿using Mini.Engine.ECS.Components;
 
-public struct ResultIterator<T>
+namespace Mini.Engine.ECS;
+public struct EntityIterator<T>
     where T : struct, IComponent
 {
     private readonly ComponentPool<T> Pool;
     private readonly IQuery<T> Query;
     private int index;
 
-    public ResultIterator(ComponentPool<T> pool, IQuery<T> query)
+    public EntityIterator(ComponentPool<T> pool, IQuery<T> query)
     {
         this.Pool = pool;
         this.Query = query;
         this.index = -1;
     }
 
-    public ref Component<T> Current => ref this.Pool[this.index];
+    public Entity Current => this.Pool[this.index].Entity;
 
     public bool MoveNext()
     {
@@ -32,7 +33,7 @@ public struct ResultIterator<T>
         return false;
     }
 
-    public ResultIterator<T> GetEnumerator()
+    public EntityIterator<T> GetEnumerator()
     {
         return this;
     }

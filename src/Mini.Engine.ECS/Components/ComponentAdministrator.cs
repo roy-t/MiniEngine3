@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-using System.Xml.Linq;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
 
 namespace Mini.Engine.ECS.Components;
 
@@ -23,7 +21,7 @@ public sealed class ComponentAdministrator
         return ref container.Create(entity);
     }
  
-    public ref T GetComponent<T>(Entity entity)
+    public ref Component<T> GetComponent<T>(Entity entity)
         where T : struct, IComponent
     {
         var store = this.ContainerStore.GetContainer<T>();

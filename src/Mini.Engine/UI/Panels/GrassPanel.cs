@@ -46,9 +46,9 @@ internal sealed class GrassPanel : IPanel
             ref var terrainComponent = ref this.TerrainComponentSelector.Get();
             if (ImGui.Button("Place grass on terrain"))
             {
-                ref var transform = ref this.Transforms[terrainComponent.Entity];
+                ref var transform = ref this.Transforms[terrainComponent.Entity].Value;
 
-                this.CreateClumpedGrass(ref terrainComponent, in transform);
+                this.CreateClumpedGrass(ref terrainComponent.Value, in transform);
             }
         }
 
@@ -67,7 +67,7 @@ internal sealed class GrassPanel : IPanel
 
         if (this.GrassComponentSelector.HasComponent())
         {
-            ref var grassComponent = ref this.GrassComponentSelector.Get();
+            ref var grassComponent = ref this.GrassComponentSelector.Get().Value;
 
             if (ImGui.BeginTable("GrassComponentTable", 2))
             {

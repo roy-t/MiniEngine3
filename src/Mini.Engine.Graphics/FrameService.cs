@@ -49,12 +49,12 @@ public sealed class FrameService : IDisposable
 
     public ref CameraComponent GetPrimaryCamera()
     {
-        return ref this.Cameras[this.cameraEntity];
+        return ref this.Cameras[this.cameraEntity].Value;
     }
 
     public ref TransformComponent GetPrimaryCameraTransform()
     {
-        return ref this.Transforms[this.cameraEntity];
+        return ref this.Transforms[this.cameraEntity].Value;
     }
 
     public void InitializePrimaryCamera()
@@ -76,7 +76,7 @@ public sealed class FrameService : IDisposable
         this.LBuffer = new LightBuffer(device);
         this.PBuffer = new PostProcessingBuffer(device);
 
-        ref var camera = ref this.Cameras[this.cameraEntity];
+        ref var camera = ref this.Cameras[this.cameraEntity].Value;
         camera.Camera = camera.Camera with { AspectRatio = this.GBuffer.AspectRatio };
     }
 

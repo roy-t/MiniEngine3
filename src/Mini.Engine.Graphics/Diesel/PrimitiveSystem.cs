@@ -38,8 +38,8 @@ public class PrimitiveSystem
                 ref var model = ref iterator.Current;
                 if (this.Transforms.Contains(model.Entity))
                 {
-                    ref var transform = ref this.Transforms[model.Entity];
-                    this.DrawPrimitive(in camera, in cameraTransform, in model, in transform);
+                    ref var transform = ref this.Transforms[model.Entity].Value;
+                    this.DrawPrimitive(in camera, in cameraTransform, in model.Value, in transform);
                 }
             }
 

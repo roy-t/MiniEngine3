@@ -29,29 +29,29 @@ public class PoolAllocatorTests
     public void SmokeTest()
     {
         var entity = new Entity(1);
-        var allocator = new PoolAllocator<Component>(10);
+        var allocator = new ComponentPool<Component>(10);
         Equal(10, allocator.Capacity);
 
 
-        ref var component = ref allocator.CreateFor(entity);
+        ref var component = ref allocator.CreateFor(entity).Value;
         component.Value = 1;
 
         Equal(1, allocator.Count);
-        Equal(1, allocator[0].Value);
+        Equal(1, allocator[0].Value.Value);
 
         allocator.DestroyFor(entity);
         Equal(0, allocator.Count);
         Equal(0, component.Value);
 
         Equal(10, allocator.Capacity);
-        allocator.Reserve(100);
+        allocator.Resize(100);
         Equal(100, allocator.Capacity);
         allocator.Trim();
         Equal(0, allocator.Capacity);
 
         for (var i = 0; i < 100; i++)
         {
-            ref var c = ref allocator.CreateFor(new Entity(i));
+            ref var c = ref allocator.CreateFor(new Entity(i)).Value;
             c.Value = i;
         }
 
@@ -64,25 +64,25 @@ public class PoolAllocatorTests
         allocator.Destroy(50);
         Equal(99, allocator.Count);
 
-        True(allocator[50].Value >= 0);
+        True(allocator[50].Value.Value >= 0);
     }
 
     [Fact]
     public void LifeCycleTest()
     {
         var entity = new Entity(1);
-        var allocator = new PoolAllocator<Component>(10);
+        var allocator = new ComponentPool<Component>(10);
 
-        ref var component = ref allocator.CreateFor(entity);
-        Equal(LifeCycleState.Created, component.LifeCycle.Current);
-        Equal(LifeCycleState.New, component.LifeCycle.Next);
+        ref var entry = ref allocator.CreateFor(entity);
+        Equal(LifeCycleState.Created, entry.LifeCycle.Current);
+        Equal(LifeCycleState.New, entry.LifeCycle.Next);
 
-        component.LifeCycle = component.LifeCycle.ToNext();
-        Equal(LifeCycleState.New, component.LifeCycle.Current);
-        Equal(LifeCycleState.Unchanged, component.LifeCycle.Next);
+        entry.LifeCycle = entry.LifeCycle.ToNext();
+        Equal(LifeCycleState.New, entry.LifeCycle.Current);
+        Equal(LifeCycleState.Unchanged, entry.LifeCycle.Next);
 
-        component.LifeCycle = component.LifeCycle.ToChanged();
-        Equal(LifeCycleState.Changed, component.LifeCycle.Next);
+        entry.LifeCycle = entry.LifeCycle.ToChanged();
+        Equal(LifeCycleState.Changed, entry.LifeCycle.Next);
 
         ref var component2 = ref allocator[0];
         Equal(LifeCycleState.Changed, component2.LifeCycle.Next);

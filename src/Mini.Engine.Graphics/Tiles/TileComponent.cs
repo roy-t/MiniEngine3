@@ -1,5 +1,4 @@
 ﻿using Mini.Engine.ECS.Components;
-using Mini.Engine.ECS;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Resources.Models;
@@ -14,7 +13,4 @@ public struct TileComponent : IComponent
     public ILifetime<IMaterial> WallMaterial;
     public uint Columns;
     public uint Rows;
-
-    public Entity Entity { get; set; }
-    public LifeCycle LifeCycle { get; set; }
 }

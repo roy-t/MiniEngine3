@@ -65,8 +65,8 @@ internal class TilePanel : IPanel
             }
 
             this.TileHighlightComponentSelector.Update();
-            ImGui.DragIntRange2("Column Range", ref this.minColumn, ref this.maxColumn, 0.05f, 0, (int)(component.Columns - 1));
-            ImGui.DragIntRange2("Row Range", ref this.minRow, ref this.maxRow, 0.05f, 0, (int)(component.Rows - 1));
+            ImGui.DragIntRange2("Column Range", ref this.minColumn, ref this.maxColumn, 0.05f, 0, (int)(component.Value.Columns - 1));
+            ImGui.DragIntRange2("Row Range", ref this.minRow, ref this.maxRow, 0.05f, 0, (int)(component.Value.Rows - 1));
 
 
             if (this.TileHighlightComponentSelector.HasComponent())
@@ -81,15 +81,14 @@ internal class TilePanel : IPanel
             {
                 if (ImGui.Button("Add Highlight"))
                 {
-                    this.CreateHighlight(ref component);
+                    this.CreateHighlight(component.Entity);
                 }
             }
         }
     }
 
-    private void CreateHighlight(ref TileComponent tile)
-    {
-        var entity = tile.Entity;
+    private void CreateHighlight(Entity entity)
+    {        
         ref var component = ref this.Administrator.Components.Create<TileHighlightComponent>(entity);
         component.MinColumn = (uint)this.minColumn;
         component.MaxColumn = (uint)this.maxColumn;

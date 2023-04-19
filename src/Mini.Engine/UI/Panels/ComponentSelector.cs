@@ -6,7 +6,6 @@ namespace Mini.Engine.UI.Panels;
 internal sealed class ComponentSelector<T>
     where T : struct, IComponent
 {
-
     private readonly IComponentContainer<T> Container;
     private readonly List<Entity> Entities;
 
@@ -25,11 +24,12 @@ internal sealed class ComponentSelector<T>
     {
         this.Entities.Clear();
 
-        var iterator = this.Container.IterateAll();
-        while (iterator.MoveNext())
+        foreach (var entity in this.Container.IterateAllEntities())
         {
-            ref var component = ref iterator.Current;
-            this.Entities.Add(component.Entity);
+            if (this.Container.Contains(entity))
+            {
+                this.Entities.Add(entity);
+            }
         }
 
         Entity? selectedEntity = null;
@@ -60,7 +60,7 @@ internal sealed class ComponentSelector<T>
         return this.selected < this.Entities.Count;
     }
 
-    public ref T Get()
+    public ref Component<T> Get()
     {
         return ref this.Container[this.Entities[this.selected]];
     }

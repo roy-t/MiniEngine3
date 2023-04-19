@@ -157,8 +157,8 @@ public sealed class TerrainRenderService : IDisposable
         while (iterator.MoveNext())
         {
             ref var terrain = ref iterator.Current;
-            ref var transform = ref this.Transforms[terrain.Entity];
-            this.RenderTerrainDepth(context, in terrain, in transform, in viewVolume, in viewProjection);
+            ref var transform = ref this.Transforms[terrain.Entity].Value;
+            this.RenderTerrainDepth(context, in terrain.Value, in transform, in viewVolume, in viewProjection);
         }
     }
 

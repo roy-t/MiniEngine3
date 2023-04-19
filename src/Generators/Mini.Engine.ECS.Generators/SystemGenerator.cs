@@ -99,7 +99,7 @@ namespace Mini.Engine.ECS.Generators
                 block.Text.WriteLine($"ref var p{i} = ref this.{component}Container[p0.Entity];");
             }
 
-            var argumentList = string.Join(", ", Enumerable.Range(0, components.Count).Select(i => $"ref p{i}"));
+            var argumentList = string.Join(", ", Enumerable.Range(0, components.Count).Select(i => $"ref p{i}.Value"));
             block.Text.WriteLine($"this.System.{method.Name}({argumentList});");
 
             var body = new Body();

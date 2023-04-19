@@ -165,8 +165,8 @@ public sealed class ModelRenderService : IDisposable
         while (iterator.MoveNext())
         {
             ref var model = ref iterator.Current;
-            ref var transform = ref this.Transforms[model.Entity];
-            this.RenderModelDepth(context, in model, in transform, in viewVolume, in viewProjection);
+            ref var transform = ref this.Transforms[model.Entity].Value;
+            this.RenderModelDepth(context, in model.Value, in transform, in viewVolume, in viewProjection);
         }
     }
 

@@ -33,7 +33,7 @@ internal sealed class SunPanel : IPanel
         if (this.ComponentSelector.HasComponent())
         {
             ref var sun = ref this.ComponentSelector.Get();
-            ref var transform = ref this.TransformContainer[sun.Entity];
+            ref var transform = ref this.TransformContainer[sun.Entity].Value;
 
             var heigth = transform.Current.GetPosition().Y;
             var lightToSurface = transform.Current.GetForward();
@@ -49,10 +49,10 @@ internal sealed class SunPanel : IPanel
                     .FaceTargetConstrained(foo, Vector3.UnitY);
             }
 
-            var color = sun.Color.ToVector4();
+            var color = sun.Value.Color.ToVector4();
             if(ImGui.ColorEdit4("Color", ref color))
             {
-                sun.Color = new Color4(color);
+                sun.Value.Color = new Color4(color);
             }
         }
     }
