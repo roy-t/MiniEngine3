@@ -23,6 +23,7 @@ public class PrimitiveSystem
         this.Transforms = transforms;
     }
 
+    // TODO: maybe its nice to try this with tasks?
     public Task<CommandList> DrawPrimitives()
     {
         return Task<CommandList>.Run(() =>
