@@ -5,10 +5,6 @@ using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Transforms;
 using System.Numerics;
-using Mini.Engine.DirectX;
-using Mini.Engine.Graphics.Lighting;
-using Mini.Engine.Graphics.Models;
-using Mini.Engine.Graphics.PostProcessing;
 
 namespace Mini.Engine.Graphics.Diesel;
 

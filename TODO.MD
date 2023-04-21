@@ -47,3 +47,5 @@ See: https://docs.microsoft.com/en-us/windows/win32/direct3ddxgi/variable-refres
 Ideas for terain rendering without repeats (stochastic texturing), blog contains other tips about terrains
 https://medium.com/@jasonbooth_86226/stochastic-texturing-3c2e58d76a14
 or: https://polycount.com/discussion/116254/terrain-tiling-reduction-multi-uv-mixing
+
+If trying out tasks, there's a lot I can do to figure out where to run tasks. See: https://devblogs.microsoft.com/dotnet/configureawait-faq/ (misleading name) also configureawait(false) seems like a good option to set!

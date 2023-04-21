@@ -55,10 +55,14 @@
     <AdditionalFiles Include="Assets\Shaders\ColorShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\UserInterface.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\World\HeightMap.hlsl" />
+	<AdditionalFiles Include="Assets\Shaders\Diesel\Primitive.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.12.0" />
     <PackageReference Include="StbImageSharp" Version="2.27.12" />
     <PackageReference Include="SuperCompressed" Version="1.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Assets\Shaders\Diesel\" />
   </ItemGroup>
 </Project>

@@ -1,10 +1,7 @@
 ﻿using System.Diagnostics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
-using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
