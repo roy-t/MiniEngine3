@@ -5,8 +5,8 @@ using Mini.Engine.UI.Panels;
 namespace Mini.Engine.UI;
 
 [Service]
-internal sealed class EditorUserInterface : UserInterface
+internal sealed class DieselUserInterface : UserInterface
 {
-    public EditorUserInterface(UICore core, IEnumerable<IEditorPanel> panels, IEnumerable<IEditorMenu> menus)
+    public DieselUserInterface(UICore core, IEnumerable<IDieselPanel> panels, IEnumerable<IDieselMenu> menus)
         : base(core, panels, menus) { }
 }

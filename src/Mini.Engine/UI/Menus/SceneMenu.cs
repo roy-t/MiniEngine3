@@ -5,7 +5,7 @@ using Mini.Engine.Scenes;
 namespace Mini.Engine.UI.Menus;
 
 [Service]
-internal sealed class SceneMenu : IMenu
+internal sealed class SceneMenu : IEditorMenu
 {
     private readonly SceneManager SceneManager;    
     private int currentItem;

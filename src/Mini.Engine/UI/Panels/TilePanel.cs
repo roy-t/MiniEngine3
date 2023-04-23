@@ -15,7 +15,7 @@ using TileInstanceData = Mini.Engine.Content.Shaders.Generated.Tiles.InstanceDat
 namespace Mini.Engine.UI.Panels;
 
 [Service]
-internal class TilePanel : IPanel
+internal class TilePanel : IEditorPanel
 {
     private readonly ComponentSelector<TileComponent> TileComponentSelector;
     private readonly ComponentSelector<TileHighlightComponent> TileHighlightComponentSelector;

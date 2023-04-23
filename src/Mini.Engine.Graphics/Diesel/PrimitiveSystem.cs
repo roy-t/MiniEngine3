@@ -24,7 +24,7 @@ public sealed class PrimitiveSystem : IDisposable
         this.Primitives = models;
         this.Transforms = transforms;
     }
-    
+
     public Task<CommandList> DrawPrimitives(RenderTarget albedo, DepthStencilBuffer depth, int x, int y, int width, int heigth, float alpha)
     {
         return Task.Run(() =>
@@ -33,8 +33,8 @@ public sealed class PrimitiveSystem : IDisposable
 
             ref var camera = ref this.CameraService.GetPrimaryCamera();
             ref var cameraTransform = ref this.CameraService.GetPrimaryCameraTransform();
-            
-            foreach(ref var primitive in this.Primitives.IterateAll())
+
+            foreach (ref var primitive in this.Primitives.IterateAll())
             {
                 if (this.Transforms.Contains(primitive.Entity))
                 {

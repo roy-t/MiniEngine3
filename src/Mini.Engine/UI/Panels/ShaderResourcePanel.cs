@@ -6,7 +6,7 @@ using Mini.Engine.UI.Components;
 namespace Mini.Engine.UI.Panels;
 
 [Service]
-internal sealed class ShaderResourcePanel : IPanel
+internal sealed class ShaderResourcePanel : IEditorPanel
 {
     private readonly FrameService FrameService;
     private readonly DebugFrameService DebugFrameService;

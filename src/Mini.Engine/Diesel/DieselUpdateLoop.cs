@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Configuration;
+﻿using System.Diagnostics;
+using Mini.Engine.Configuration;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Diesel;
@@ -12,18 +13,25 @@ internal class DieselUpdateLoop
     private readonly CameraController CameraController;
     private readonly CameraService CameraService;
 
-    public DieselUpdateLoop(ComponentLifeCycleSystem lifeCycleSystem, CameraController cameraController, CameraService cameraService)
+    private readonly MetricService MetricService;
+
+    public DieselUpdateLoop(ComponentLifeCycleSystem lifeCycleSystem, CameraController cameraController, CameraService cameraService, MetricService metricService)
     {
         this.LifeCycleSystem = lifeCycleSystem;
         this.CameraController = cameraController;
         this.CameraService = cameraService;
+        this.MetricService = metricService;
     }
 
     public void Run(float elapsed)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         this.LifeCycleSystem.Process();
 
         ref var cameraTransform = ref this.CameraService.GetPrimaryCameraTransform();
         this.CameraController.Update(elapsed, ref cameraTransform.Current);
+
+        this.MetricService.Update("DieselUpdateLoop.Run.ms", stopwatch.ElapsedMilliseconds);
     }
 }

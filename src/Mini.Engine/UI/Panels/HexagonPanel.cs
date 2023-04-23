@@ -15,7 +15,7 @@ using HexagonInstanceData = Mini.Engine.Content.Shaders.Generated.Hexagon.Instan
 namespace Mini.Engine.UI.Panels;
 
 [Service]
-internal class HexagonPanel : IPanel
+internal class HexagonPanel : IEditorPanel
 {
     private readonly ComponentSelector<HexagonTerrainComponent> ComponentSelector;
     private readonly Device Device;

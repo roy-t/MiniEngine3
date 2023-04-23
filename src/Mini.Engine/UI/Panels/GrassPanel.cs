@@ -11,7 +11,7 @@ using Mini.Engine.Graphics.World;
 namespace Mini.Engine.UI.Panels;
 
 [Service]
-internal sealed class GrassPanel : IPanel
+internal sealed class GrassPanel : IEditorPanel
 {
     private readonly GrassGenerator GrassPlacer;
     private readonly ContentManager Content;    

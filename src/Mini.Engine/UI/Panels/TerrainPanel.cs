@@ -8,7 +8,7 @@ using Mini.Engine.Graphics.World;
 
 namespace Mini.Engine.UI.Panels;
 [Service]
-internal class TerrainPanel : IPanel
+internal class TerrainPanel : IEditorPanel
 {
     private readonly ComponentSelector<TerrainComponent> ComponentSelector;
     private readonly ECSAdministrator Administrator;

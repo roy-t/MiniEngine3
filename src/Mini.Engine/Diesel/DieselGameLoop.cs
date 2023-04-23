@@ -8,6 +8,7 @@ using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Diesel;
 using Mini.Engine.Graphics.PostProcessing;
 using Mini.Engine.Graphics.Transforms;
+using Mini.Engine.UI;
 using Vortice.DXGI;
 using Vortice.Mathematics;
 
@@ -17,6 +18,7 @@ namespace Mini.Engine.Diesel;
 internal sealed class DieselGameLoop : IGameLoop
 {
     private readonly Device Device;
+    private readonly DieselUserInterface UserInterface;
     private readonly ECSAdministrator Administrator;
     private readonly DieselUpdateLoop UpdateLoop;
     private readonly DieselRenderLoop RenderLoop;
@@ -29,9 +31,10 @@ internal sealed class DieselGameLoop : IGameLoop
 
     private bool isSceneSet;
 
-    public DieselGameLoop(Device device, ECSAdministrator administrator, DieselUpdateLoop updateLoop, DieselRenderLoop renderLoop, PresentationHelper presentationHelper, CameraService cameraService)
+    public DieselGameLoop(Device device, DieselUserInterface userInterface, ECSAdministrator administrator, DieselUpdateLoop updateLoop, DieselRenderLoop renderLoop, PresentationHelper presentationHelper, CameraService cameraService)
     {
         this.Device = device;
+        this.UserInterface = userInterface;
         this.Administrator = administrator;
         this.UpdateLoop = updateLoop;
         this.RenderLoop = renderLoop;
@@ -79,14 +82,17 @@ internal sealed class DieselGameLoop : IGameLoop
             primitive.Mesh = this.Device.Resources.Add(mesh);
             primitive.Color = Colors.Red;            
         }
-
+        
         this.UpdateLoop.Run(elapsed);
+        this.UserInterface.NewFrame(elapsed);
     }
 
     public void Draw(float alpha)
     {
         this.RenderLoop.Run(this.albedo, this.depthStencilBuffer, 0, 0, this.Device.Width, this.Device.Height, alpha);
         this.PresentationHelper.ToneMapAndPresent(this.Device.ImmediateContext, this.albedo);
+
+        this.UserInterface.Render();
     }
 
     [MemberNotNull(nameof(albedo), nameof(depthStencilBuffer))]
@@ -100,6 +106,7 @@ internal sealed class DieselGameLoop : IGameLoop
         this.depthStencilBuffer = new DepthStencilBuffer(this.Device, nameof(this.depthStencilBuffer), DepthStencilFormat.D32_Float, width, height, 1);
 
         this.CameraService.Resize(width, height);
+        this.UserInterface.Resize(width, height);
     }
 
     public void Dispose()

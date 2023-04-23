@@ -118,7 +118,7 @@ internal sealed class GameLoop : IGameLoop
     {
         this.SceneManager.ClearScene();
 
-        this.LifetimeManager.PopFrame(); // Games
+        this.LifetimeManager.PopFrame(); // Game
 
         this.UpdatePipeline.Dispose();
         this.RenderPipeline.Dispose();

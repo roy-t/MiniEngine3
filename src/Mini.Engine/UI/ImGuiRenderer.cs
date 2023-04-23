@@ -1,17 +1,15 @@
 ﻿using System.Numerics;
 using ImGuiNET;
-using Mini.Engine.Content.Shaders.Generated;
-using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
-using Mini.Engine.DirectX.Resources;
-using Mini.Engine.DirectX.Resources.Shaders;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 using ImDrawIdx = System.UInt16;
+
+using Shader = Mini.Engine.Content.Shaders.Generated.UserInterface;
 
 namespace Mini.Engine.UI;
 
@@ -24,14 +22,14 @@ internal sealed class ImGuiRenderer : IDisposable
 
     // Created resources
     private readonly DeferredDeviceContext DeferredContext;
-    private readonly UserInterface Shader;
-    private readonly UserInterface.User User;
+    private readonly Shader Shader;
+    private readonly Shader.User User;
     private readonly ISurface FontTexture;
     private readonly InputLayout InputLayout;
     private readonly VertexBuffer<ImDrawVert> VertexBuffer;
     private readonly IndexBuffer<ImDrawIdx> IndexBuffer;
 
-    public ImGuiRenderer(Device device, UITextureRegistry textureRegistry, UserInterface shader)
+    public ImGuiRenderer(Device device, UITextureRegistry textureRegistry, Shader shader)
     {
         this.Device = device;
         this.TextureRegistry = textureRegistry;
@@ -111,7 +109,7 @@ internal sealed class ImGuiRenderer : IDisposable
                 this.DeferredContext.RS.SetScissorRect(left, top, right - left, bottom - top);
 
                 var texture = this.TextureRegistry.Get(cmd.TextureId);
-                this.DeferredContext.PS.SetShaderResource(UserInterface.Texture, texture);
+                this.DeferredContext.PS.SetShaderResource(Shader.Texture, texture);
 
                 this.DeferredContext.DrawIndexed((int)cmd.ElemCount, (int)(cmd.IdxOffset + globalIndexOffset), (int)(cmd.VtxOffset + lobalVertexOffset));
             }
@@ -140,7 +138,7 @@ internal sealed class ImGuiRenderer : IDisposable
 
         context.IA.SetVertexBuffer(this.VertexBuffer);
         context.IA.SetIndexBuffer(this.IndexBuffer);
-        context.VS.SetConstantBuffer(UserInterface.ConstantsSlot, this.User.ConstantsBuffer);
+        context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
     }
 

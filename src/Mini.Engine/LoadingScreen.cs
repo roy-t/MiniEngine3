@@ -13,7 +13,7 @@ namespace Mini.Engine;
 public sealed record LoadAction(string Description, Action Load);
 
 [Service]
-public sealed class LoadingScreen
+internal sealed class LoadingScreen
 {
     private static TimeSpan ReportDelta = TimeSpan.FromSeconds(1.0 / 60.0);
 

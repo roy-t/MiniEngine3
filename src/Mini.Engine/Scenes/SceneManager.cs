@@ -1,14 +1,12 @@
 ﻿using Mini.Engine.Configuration;
-using Mini.Engine.Content;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.ECS;
 using Mini.Engine.Graphics;
-using Mini.Engine.UI;
 
 namespace Mini.Engine.Scenes;
 
 [Service]
-public sealed class SceneManager
+internal sealed class SceneManager
 {
     private readonly LifetimeManager LifetimeManager;
     private readonly LoadingScreen LoadingScreen;    

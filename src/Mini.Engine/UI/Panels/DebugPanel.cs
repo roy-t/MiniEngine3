@@ -10,7 +10,7 @@ using Mini.Engine.Graphics.PostProcessing;
 namespace Mini.Engine.UI.Panels;
 
 [Service]
-internal sealed class DebugPanel : IPanel
+internal sealed class DebugPanel : IEditorPanel
 {
     private readonly Device Device;
     private readonly FrameService FrameService;

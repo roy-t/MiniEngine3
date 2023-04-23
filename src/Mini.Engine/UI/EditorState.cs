@@ -6,7 +6,7 @@ using Mini.Engine.Scenes;
 namespace Mini.Engine.UI;
 
 [Service]
-public class EditorState
+internal class EditorState
 {
     private const string Path = "editor.blob";
     private readonly FrameService FrameService;

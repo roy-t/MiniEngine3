@@ -1,20 +1,21 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Configuration;
-using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.Windows;
+
+using Shader = Mini.Engine.Content.Shaders.Generated.UserInterface;
 
 namespace Mini.Engine.UI;
 
 [Service]
-public sealed class UICore : IDisposable
+internal sealed class UICore : IDisposable
 {
     private readonly ImGuiRenderer Renderer;
     private readonly ImGuiInputHandler Input;
     private readonly ImGuiIOPtr IO;
 
-    public UICore(Win32Window window, Device device, UITextureRegistry textureRegistry, UserInterface shader)
+    public UICore(Win32Window window, Device device, UITextureRegistry textureRegistry, Shader shader)
     {
         ImGui.CreateContext();        
 

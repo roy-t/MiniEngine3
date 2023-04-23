@@ -10,7 +10,7 @@ using Vortice.Mathematics;
 namespace Mini.Engine.UI.Panels;
 
 [Service]
-internal sealed class SunPanel : IPanel
+internal sealed class SunPanel : IEditorPanel
 {
     private readonly IComponentContainer<SunLightComponent> SunContainer;
     private readonly IComponentContainer<TransformComponent> TransformContainer;

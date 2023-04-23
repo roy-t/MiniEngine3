@@ -5,3 +5,11 @@ public interface IPanel
     public string Title { get; }
     public void Update(float elapsed);
 }
+
+public interface IEditorPanel : IPanel
+{
+}
+
+public interface IDieselPanel : IPanel
+{
+}
