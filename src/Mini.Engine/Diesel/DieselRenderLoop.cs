@@ -21,6 +21,8 @@ internal class DieselRenderLoop
 
     private readonly Queue<Task<CommandList>> GpuWorkQueue;
 
+    private readonly Stopwatch Stopwatch;
+
     public DieselRenderLoop(Device device, PrimitiveSystem primitiveSystem, MetricService metricService)
     {
         this.Device = device;
@@ -29,11 +31,13 @@ internal class DieselRenderLoop
 
         this.GpuWorkQueue = new Queue<Task<CommandList>>();
         this.MetricService = metricService;
+
+        this.Stopwatch = new Stopwatch();
     }
 
     public void Run(RenderTarget albedo, DepthStencilBuffer depth, int x, int y, int width, int heigth, float alpha)
     {
-        var stopwatch = Stopwatch.StartNew();
+        this.Stopwatch.Restart();
 
         ClearBuffersSystem.Clear(this.Device, albedo, Colors.Transparent);
         ClearBuffersSystem.Clear(this.Device, depth);        
@@ -50,7 +54,7 @@ internal class DieselRenderLoop
             commandList.Dispose();
         }
 
-        this.MetricService.Update("DieselRenderLoop.Run.Millis", (float)stopwatch.Elapsed.TotalMilliseconds);
+        this.MetricService.Update("DieselRenderLoop.Run.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
     }
 
     private void Enqueue(Task<CommandList> task)

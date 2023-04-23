@@ -15,6 +15,7 @@ internal class DieselUpdateLoop
     private readonly CameraService CameraService;
 
     private readonly MetricService MetricService;
+    private readonly Stopwatch Stopwatch;
 
     public DieselUpdateLoop(ComponentLifeCycleSystem lifeCycleSystem, CameraController cameraController, CameraService cameraService, MetricService metricService)
     {
@@ -22,17 +23,19 @@ internal class DieselUpdateLoop
         this.CameraController = cameraController;
         this.CameraService = cameraService;
         this.MetricService = metricService;
+
+        this.Stopwatch = new Stopwatch();
     }
 
     public void Run(float elapsed)
     {
-        var stopwatch = Stopwatch.StartNew();
+        this.Stopwatch.Restart();
 
         this.LifeCycleSystem.Process();
 
         ref var cameraTransform = ref this.CameraService.GetPrimaryCameraTransform();
         this.CameraController.Update(elapsed, ref cameraTransform.Current);
 
-        this.MetricService.Update("DieselUpdateLoop.Run.Millis", (float)stopwatch.Elapsed.TotalMilliseconds);
+        this.MetricService.Update("DieselUpdateLoop.Run.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
     }
 }

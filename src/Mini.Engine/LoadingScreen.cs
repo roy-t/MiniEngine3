@@ -81,7 +81,7 @@ internal sealed class LoadingScreen
             ImGuiWindowFlags.NoDecoration))
         {
             ImGui.ProgressBar(progress);
-            ImGui.Text(message);
+            ImGui.TextUnformatted(message);
             ImGui.End();
         }
 

@@ -1,8 +1,6 @@
-﻿using System.Drawing.Text;
-using ImGuiNET;
+﻿using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
-using Mini.Engine.Graphics.Diesel;
 
 namespace Mini.Engine.UI.Panels;
 
@@ -14,21 +12,21 @@ internal sealed class PerformancePanel : IEditorPanel, IDieselPanel
     private readonly MetricService MetricService;
     private readonly List<Gauge> FilteredGauges;
 
-    private string search;
+    private string filter;
 
 
     public PerformancePanel(MetricService metricService)
     {
         this.MetricService = metricService;
         this.FilteredGauges = new List<Gauge>();
-        this.search = string.Empty;
+        this.filter = string.Empty;
     }
 
     public void Update(float elapsed)
     {
         this.MetricService.UpdateBuiltInGauges();
 
-        ImGui.InputText("Filter", ref this.search, 100);
+        ImGui.InputText("Filter", ref this.filter, 100);
 
         if (ImGui.BeginTable("Gauges", 4,  ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.Hideable))
         {
@@ -42,7 +40,7 @@ internal sealed class PerformancePanel : IEditorPanel, IDieselPanel
             this.FilteredGauges.Clear();
             foreach (var gauge in this.MetricService.Gauges)
             {
-                if (string.IsNullOrEmpty(this.search) || gauge.Tag.StartsWith(this.search, StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrEmpty(this.filter) || gauge.Tag.Contains(this.filter, StringComparison.OrdinalIgnoreCase))
                 {
                     this.FilteredGauges.Add(gauge);
                 }

@@ -1,6 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Mini.Engine.Configuration;
+using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
@@ -48,7 +50,7 @@ internal sealed class DieselGameLoop : IGameLoop
         this.Resize(device.Width, device.Height);
     }
 
-    public void Update(float time, float elapsed)
+    public void Update(float elapsedSimulationTime, float elapsedRealWorldTime)
     {
         if (!this.isSceneSet)
         {
@@ -82,9 +84,9 @@ internal sealed class DieselGameLoop : IGameLoop
             primitive.Mesh = this.Device.Resources.Add(mesh);
             primitive.Color = Colors.Red;            
         }
-        
-        this.UpdateLoop.Run(elapsed);
-        this.UserInterface.NewFrame(elapsed);
+
+        this.UpdateLoop.Run(elapsedSimulationTime);
+        this.UserInterface.NewFrame(elapsedRealWorldTime);
     }
 
     public void Draw(float alpha)

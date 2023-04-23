@@ -89,7 +89,7 @@ internal sealed class DebugPanel : IEditorPanel
     {
         if (this.RenderDoc == null)
         {
-            ImGui.Text("RenderDoc has been disabled");
+            ImGui.TextUnformatted("RenderDoc has been disabled");
         }
         else
         {           

@@ -29,14 +29,15 @@ internal sealed class PerformanceCounters : IDisposable
 
     public sealed class PerformanceAggregator : IDisposable
     {
-        private readonly float Scale;
         private PerformanceCounter? counter;
+        private Timer? timer;
+
+        private readonly float Scale;
 
         public PerformanceAggregator(string categoryName, string counterName, string? instanceFilter = null, float scale = 1.0f)
         {
             this.Scale = scale;
-
-            Task.Run(() =>
+            _ = Task.Run(() =>
             {
                 if (PerformanceCounterCategory.CounterExists(counterName, categoryName))
                 {
@@ -66,14 +67,23 @@ internal sealed class PerformanceCounters : IDisposable
                         this.counter = new PerformanceCounter(categoryName, counterName, true);
                     }
                 }
+
+                if (this.counter != null)
+                {
+                    this.timer = new Timer(_ => this.Value = (this.counter?.NextValue() ?? 0.0f) * this.Scale, null, TimeSpan.FromMilliseconds(20), TimeSpan.FromMilliseconds(20));
+                }
             });
         }
 
-        public float Value => (this.counter?.NextValue() ?? 0.0f) * this.Scale;
+        public float Value { get; private set; }
 
         public void Dispose()
         {
-            this.counter?.Dispose();
+            this.timer?.Dispose();
+            this.timer = null;
+
+            this.counter = null;
+            this.counter?.Dispose();            
         }
     }
 }

@@ -1,4 +1,7 @@
-﻿using ImGuiNET;
+﻿using System.Diagnostics;
+using System.Management;
+using ImGuiNET;
+using Mini.Engine.Debugging;
 using Mini.Engine.UI.Menus;
 using Mini.Engine.UI.Panels;
 
@@ -38,16 +41,20 @@ internal abstract class UserInterface
     }
 
     private readonly UICore Core;
-    private readonly MicroBenchmark MicroBenchmark;
+    private readonly MetricService Metrics;
     private readonly List<PanelRegistration> Panels;
     private readonly List<MenuRegistration> Menus;
 
-    public UserInterface(UICore core, IEnumerable<IPanel> panels, IEnumerable<IMenu> menus)
+    private readonly Stopwatch Stopwatch;
+
+    public UserInterface(UICore core, MetricService metrics, IEnumerable<IPanel> panels, IEnumerable<IMenu> menus)
     {
         this.Core = core;
-        this.MicroBenchmark = new MicroBenchmark("Perf");
+        this.Metrics = metrics;
         this.Panels = panels.Select(p => new PanelRegistration(p.Title, p.Title, p, true)).ToList();
         this.Menus = menus.Select(m => new MenuRegistration(m.Title, m)).ToList();
+
+        this.Stopwatch = new Stopwatch();
     }
 
     public void Resize(int width, int height)
@@ -55,10 +62,11 @@ internal abstract class UserInterface
         this.Core.Resize(width, height);
     }
 
-    public void NewFrame(float elapsed)
+    public void NewFrame(float elapsedRealWorldTime)
     {
-        this.Core.NewFrame(elapsed);
-        this.MicroBenchmark.Update(elapsed);
+        this.Stopwatch.Restart();
+
+        this.Core.NewFrame(elapsedRealWorldTime);
 
         ImGui.DockSpaceOverViewport(ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode);
 
@@ -82,13 +90,13 @@ internal abstract class UserInterface
             {
                 if (ImGui.BeginMenu(menu.Title))
                 {
-                    menu.Update(elapsed);
+                    menu.Update(elapsedRealWorldTime);
 
                     ImGui.EndMenu();
                 }
             }
 
-            ImGui.Text(this.MicroBenchmark.ToString());
+            ImGui.TextUnformatted($"Perf {this.GetGameBootStrapperAverageMillis():F2} ms");
             ImGui.EndMainMenuBar();
         }
 
@@ -99,13 +107,28 @@ internal abstract class UserInterface
                 var isVisible = true;
                 if (ImGui.Begin(panel.Title, ref isVisible))
                 {
-                    panel.Update(elapsed);
+                    panel.Update(elapsedRealWorldTime);
                     ImGui.End();
                 }
 
                 panel.IsVisible = isVisible;
             }
         }
+
+        this.Metrics.Update("UserInterface.Run.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
+    }
+
+    private float GetGameBootStrapperAverageMillis()
+    {
+        foreach (var gauge in this.Metrics.Gauges)
+        {
+            if (gauge.Tag == "GameBootstrapper.Run.Millis")
+            {
+                return gauge.Average;
+            }
+        }
+
+        return 0.0f;
     }
 
     public void Render()

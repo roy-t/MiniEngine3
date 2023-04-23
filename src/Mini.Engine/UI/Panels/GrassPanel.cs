@@ -37,7 +37,7 @@ internal sealed class GrassPanel : IEditorPanel
 
     public void Update(float elapsed)
     {
-        ImGui.Text("Create");      
+        ImGui.TextUnformatted("Create");      
 
         this.TerrainComponentSelector.Update();        
 
@@ -76,9 +76,9 @@ internal sealed class GrassPanel : IEditorPanel
                 ImGui.TableHeadersRow();
 
                 ImGui.TableNextColumn();
-                ImGui.Text("Instances");
+                ImGui.TextUnformatted("Instances");
                 ImGui.TableNextColumn();
-                ImGui.Text(grassComponent.Instances.ToString());
+                ImGui.TextUnformatted(grassComponent.Instances.ToString());
 
                 ImGui.EndTable();
             }            

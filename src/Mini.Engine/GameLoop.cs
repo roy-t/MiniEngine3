@@ -63,11 +63,11 @@ internal sealed class GameLoop : IGameLoop
         this.enableUI = !StartupArguments.NoUi;
     }
 
-    public void Update(float time, float elapsed)
+    public void Update(float elapsedSimulationTime, float elapsedRealWorldTime)
     {
-        this.FrameService.Elapsed = elapsed;
+        this.FrameService.Elapsed = elapsedSimulationTime;
 
-        this.UserInterface.NewFrame(elapsed);
+        this.UserInterface.NewFrame(elapsedRealWorldTime);
 
         this.SceneManager.CheckChangeScene();
         this.Content.ReloadChangedContent();
