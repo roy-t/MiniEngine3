@@ -4,7 +4,6 @@ using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.Graphics;
-using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.PostProcessing;
 
 namespace Mini.Engine.UI.Panels;
@@ -15,22 +14,19 @@ internal sealed class DebugPanel : IEditorPanel
     private readonly Device Device;
     private readonly FrameService FrameService;
     private readonly DebugFrameService DebugFrameService;
-    private readonly PerformanceCounters Counters;
 
     private readonly RenderDoc? RenderDoc;
-    private readonly PostProcessingSystem PostProcessingSystem;
 
     private RasterizerState[] RasterizerStates;
     private int selectedRasterizerState;
 
     private uint nextCaptureToOpen;
 
-    public DebugPanel(Device device, FrameService frameService, DebugFrameService debugFrameService, PerformanceCounters counters, Services services)
+    public DebugPanel(Device device, FrameService frameService, DebugFrameService debugFrameService, Services services)
     {
         this.Device = device;
         this.FrameService = frameService;
         this.DebugFrameService = debugFrameService;
-        this.Counters = counters;
         this.RasterizerStates = new RasterizerState[]
         {
             device.RasterizerStates.CullCounterClockwise,
@@ -43,8 +39,6 @@ internal sealed class DebugPanel : IEditorPanel
             this.RenderDoc = instance;
             this.nextCaptureToOpen = uint.MaxValue;
         }
-
-        this.PostProcessingSystem = services.Resolve<PostProcessingSystem>();
     }
 
     public string Title => "Debug";
@@ -98,19 +92,7 @@ internal sealed class DebugPanel : IEditorPanel
             ImGui.Text("RenderDoc has been disabled");
         }
         else
-        {
-            var gpuMB = this.Counters.GPUMemoryCounter.Value / (1024 * 1024);
-            ImGui.LabelText("GPU Memory Usage", $"{gpuMB:F2} MB");
-
-            var gpuUsage = this.Counters.GPUUsageCounter.Value;
-            ImGui.LabelText("GPU Usage", $"{gpuUsage:F2} %%");
-
-            var cpuMB = this.Counters.CPUMemoryCounter.Value / (1024 * 1024);
-            ImGui.LabelText("CPU Memory Usage", $"{cpuMB:F2} MB");
-
-            var cpuUsage = this.Counters.CPUUsageCounter.Value;
-            ImGui.LabelText("CPU Usage", $"{cpuUsage:F2} %%");
-
+        {           
             if (ImGui.Button("Capture"))
             {
                 this.nextCaptureToOpen = this.RenderDoc.GetNumCaptures() + 1;
