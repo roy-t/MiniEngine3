@@ -1,9 +1,8 @@
 ﻿using System.Diagnostics;
-using Mini.Engine.Configuration;
 
 namespace Mini.Engine.Debugging;
-[Service]
-public sealed class PerformanceCounters
+
+internal sealed class PerformanceCounters : IDisposable
 {
     public readonly PerformanceAggregator GPUMemoryCounter;
     public readonly PerformanceAggregator GPUUsageCounter;
@@ -19,12 +18,19 @@ public sealed class PerformanceCounters
         this.CPUUsageCounter = new PerformanceAggregator("Process", "% Processor Time", scale: 1.0f / Environment.ProcessorCount);
     }
 
-    public class PerformanceAggregator
+    public void Dispose()
     {
-        private const int CheckEveryXFrames = 100;
+        this.GPUMemoryCounter.Dispose();
+        this.GPUUsageCounter.Dispose();
+
+        this.CPUMemoryCounter.Dispose();
+        this.CPUUsageCounter.Dispose();
+    }
+
+    public sealed class PerformanceAggregator : IDisposable
+    {
+        private readonly float Scale;
         private PerformanceCounter? counter;
-        private float lastValue;
-        private int ticks;
 
         public PerformanceAggregator(string categoryName, string counterName, string? instanceFilter = null, float scale = 1.0f)
         {
@@ -63,20 +69,11 @@ public sealed class PerformanceCounters
             });
         }
 
-        public float Scale { get; }
+        public float Value => (this.counter?.NextValue() ?? 0.0f) * this.Scale;
 
-        public float Value
+        public void Dispose()
         {
-            get
-            {
-                if (this.ticks++ % CheckEveryXFrames == 0)
-                {
-                    this.lastValue = (this.counter?.NextValue() ?? 0.0f) * this.Scale;
-                }
-
-                return this.lastValue;
-            }
+            this.counter?.Dispose();
         }
     }
-
 }

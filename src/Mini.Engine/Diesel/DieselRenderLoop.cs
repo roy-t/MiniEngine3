@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Mini.Engine.Configuration;
+using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources.Surfaces;
@@ -49,7 +50,7 @@ internal class DieselRenderLoop
             commandList.Dispose();
         }
 
-        this.MetricService.Update("DieselRenderLoop.Run.ms", stopwatch.ElapsedMilliseconds);
+        this.MetricService.Update("DieselRenderLoop.Run.Millis", (float)stopwatch.Elapsed.TotalMilliseconds);
     }
 
     private void Enqueue(Task<CommandList> task)

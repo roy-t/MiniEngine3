@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Mini.Engine.Configuration;
+using Mini.Engine.Debugging;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Diesel;
@@ -32,6 +33,6 @@ internal class DieselUpdateLoop
         ref var cameraTransform = ref this.CameraService.GetPrimaryCameraTransform();
         this.CameraController.Update(elapsed, ref cameraTransform.Current);
 
-        this.MetricService.Update("DieselUpdateLoop.Run.ms", stopwatch.ElapsedMilliseconds);
+        this.MetricService.Update("DieselUpdateLoop.Run.Millis", (float)stopwatch.Elapsed.TotalMilliseconds);
     }
 }
