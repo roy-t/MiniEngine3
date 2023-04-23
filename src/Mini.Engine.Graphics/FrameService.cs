@@ -38,7 +38,9 @@ public sealed class FrameService : IDisposable
     /// <summary>
     /// How much time has passed since the last frame
     /// </summary>
-    public float Elapsed { get; set; }
+    public float ElapsedGameTime { get; set; }
+
+    public float ElapsedRealWorldTime { get; set; }
 
     //public Vector2 CameraJitter => this.PBuffer.Jitter;
     //public Vector2 PreviousCameraJitter => this.PBuffer.PreviousJitter;

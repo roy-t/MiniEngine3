@@ -4,6 +4,7 @@ using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources.Surfaces;
+using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Diesel;
 using Vortice.Mathematics;
 
@@ -14,40 +15,46 @@ internal class DieselRenderLoop
 {
     private readonly Device Device;
     private readonly ImmediateDeviceContext ImmediateContext;
-
     private readonly MetricService MetricService;
 
-    private readonly PrimitiveSystem PrimitiveSystem;
-
     private readonly Queue<Task<CommandList>> GpuWorkQueue;
-
     private readonly Stopwatch Stopwatch;
 
-    public DieselRenderLoop(Device device, PrimitiveSystem primitiveSystem, MetricService metricService)
+    private readonly CameraService CameraService;
+    private readonly CameraController CameraController;
+    private readonly PrimitiveSystem PrimitiveSystem;
+
+    public DieselRenderLoop(Device device, MetricService metricService, PrimitiveSystem primitiveSystem, CameraController cameraController, CameraService cameraService)
     {
         this.Device = device;
-        this.PrimitiveSystem = primitiveSystem;
         this.ImmediateContext = device.ImmediateContext;
-
-        this.GpuWorkQueue = new Queue<Task<CommandList>>();
         this.MetricService = metricService;
 
+        this.GpuWorkQueue = new Queue<Task<CommandList>>();
         this.Stopwatch = new Stopwatch();
+
+        this.CameraController = cameraController;
+        this.CameraService = cameraService;
+        this.PrimitiveSystem = primitiveSystem;
     }
 
-    public void Run(RenderTarget albedo, DepthStencilBuffer depth, int x, int y, int width, int heigth, float alpha)
+    public void Run(RenderTarget albedo, DepthStencilBuffer depth, int x, int y, int width, int heigth, float alpha, float elapsedRealWorldTime)
     {
         this.Stopwatch.Restart();
 
         ClearBuffersSystem.Clear(this.Device, albedo, Colors.Transparent);
-        ClearBuffersSystem.Clear(this.Device, depth);        
+        ClearBuffersSystem.Clear(this.Device, depth);
+
+        ref var cameraTransform = ref this.CameraService.GetPrimaryCameraTransform();
+        this.CameraController.Update(elapsedRealWorldTime, ref cameraTransform.Current);
+
 
         this.Enqueue(this.PrimitiveSystem.DrawPrimitives(albedo, depth, x, y, width, heigth, alpha));
 
         while (this.GpuWorkQueue.Any())
         {
             var task = this.GpuWorkQueue.Dequeue();
-            task.Wait();            
+            task.Wait();
 
             var commandList = task.Result;
             this.ImmediateContext.ExecuteCommandList(commandList);

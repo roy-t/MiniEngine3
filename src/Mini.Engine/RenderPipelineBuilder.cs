@@ -1,6 +1,7 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
+using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Hexagons;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.PointLights;
@@ -30,9 +31,14 @@ internal sealed class RenderPipelineBuilder
         // TODO: having dependencies is nice, but its still unclear what happens first
         // maybe just manually define stages and set for each stage if it runs in parallel or not?
 
-        return pipeline        
+        return pipeline
+            .System<CameraSystem>()
+                .InSequence()
+                .Produces("Initialization", "Camera")
+                .Build()
             .System<ClearBuffersSystem>()
                 .InSequence()
+                .Requires("Initialization", "Camera")
                 .Produces("Initialization", "GBuffer")
                 .Build()
             .System<ModelSystem>()
@@ -41,7 +47,7 @@ internal sealed class RenderPipelineBuilder
                 .Produces("Renderer", "Models")
                 .Build()
             .System<TerrainSystem>()
-                .InSequence()                
+                .InSequence()
                 .Requires("Initialization", "GBuffer")
                 .Produces("Renderer", "Terrain")
                 .Build()
@@ -61,7 +67,7 @@ internal sealed class RenderPipelineBuilder
                 .Produces("Renderer", "TileWalls")
                 .Build()
             .System<GrassSystem>()
-                .InSequence()                
+                .InSequence()
                 .Requires("Initialization", "GBuffer")
                 .Requires("Renderer", "Terrain")
                 .Requires("Renderer", "Hexagons")
@@ -70,7 +76,7 @@ internal sealed class RenderPipelineBuilder
                 .Produces("Renderer", "Grass")
                 .Build()
             .System<CascadedShadowMapSystem>()
-                .InSequence()                
+                .InSequence()
                 .Produces("Shadows", "CascadedShadowMap")
                 .Build()
             .System<PointLightSystem>()

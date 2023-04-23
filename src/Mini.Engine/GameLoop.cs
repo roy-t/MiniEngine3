@@ -65,7 +65,8 @@ internal sealed class GameLoop : IGameLoop
 
     public void Update(float elapsedSimulationTime, float elapsedRealWorldTime)
     {
-        this.FrameService.Elapsed = elapsedSimulationTime;
+        this.FrameService.ElapsedGameTime = elapsedSimulationTime;
+        this.FrameService.ElapsedRealWorldTime = elapsedRealWorldTime;
 
         this.UserInterface.NewFrame(elapsedRealWorldTime);
 
@@ -84,7 +85,7 @@ internal sealed class GameLoop : IGameLoop
         }
     }
 
-    public void Draw(float alpha)
+    public void Draw(float alpha, float elapsedRealWorldTime)
     {
         this.FrameService.Alpha = alpha;
         this.RenderPipeline.Frame();

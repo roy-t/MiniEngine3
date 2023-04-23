@@ -26,7 +26,7 @@ public sealed partial class WindSystem : ISystem
     [Process]
     public void UpdateWind()
     {
-        this.Accumulator += this.FrameService.Elapsed;
+        this.Accumulator += this.FrameService.ElapsedGameTime;
     }
 
     public void OnUnSet() { }

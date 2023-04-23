@@ -1,7 +1,6 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Pipeline;
-using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Graphics.Vegetation;
 
@@ -32,11 +31,6 @@ internal sealed class UpdatePipelineBuilder
            .System<TransformSystem>()
                .Parallel()
                .Produces("Initialization", "Transforms")
-               .Build()           
-            .System<CameraSystem>()
-               .Parallel()
-               .Requires("Initialization", "Transforms")
-               .Produces("Initialization", "Camera")
                .Build()
             .Build();
     }

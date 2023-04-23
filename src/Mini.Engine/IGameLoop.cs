@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace Mini.Engine;
+﻿namespace Mini.Engine;
 
 internal interface IGameLoop : IDisposable
-{
-    void Draw(float alpha);
+{    
     void Update(float elapsedSimulationTime, float elapsedRealWorldTime);
+    void Draw(float alpha, float elapsedRealWorldTime);
     void Resize(int width, int height);
 }

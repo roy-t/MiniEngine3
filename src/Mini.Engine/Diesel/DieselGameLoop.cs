@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
@@ -89,9 +87,9 @@ internal sealed class DieselGameLoop : IGameLoop
         this.UserInterface.NewFrame(elapsedRealWorldTime);
     }
 
-    public void Draw(float alpha)
+    public void Draw(float alpha, float elapsedRealWorldTime)
     {
-        this.RenderLoop.Run(this.albedo, this.depthStencilBuffer, 0, 0, this.Device.Width, this.Device.Height, alpha);
+        this.RenderLoop.Run(this.albedo, this.depthStencilBuffer, 0, 0, this.Device.Width, this.Device.Height, alpha, elapsedRealWorldTime);
         this.PresentationHelper.ToneMapAndPresent(this.Device.ImmediateContext, this.albedo);
 
         this.UserInterface.Render();

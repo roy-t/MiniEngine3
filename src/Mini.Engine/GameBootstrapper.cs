@@ -110,7 +110,10 @@ public sealed class GameBootstrapper
             {
                 this.Logger.Warning("{type} was changed", type);
             }
-#endif            
+#endif
+            // TOOD: this is good for sim, but makes the camera (and possibly animations) stutter
+            // even if they run on the ElapsedRealWorldTime, because the position just doesn't get updated every frame then
+            // these kind of things should run in the draw step!
             while (accumulator >= dt)
             {
                 accumulator -= dt;
@@ -131,7 +134,7 @@ public sealed class GameBootstrapper
             var alpha = accumulator / dt;
 
             this.Device.ImmediateContext.ClearBackBuffer();
-            this.gameLoop.Draw((float)alpha); // alpha signifies how much to lerp between current and future state
+            this.gameLoop.Draw((float)alpha, (float)elapsed); // alpha signifies how much to lerp between current and future state
 
             this.Device.Present();
 

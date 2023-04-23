@@ -1,5 +1,4 @@
-﻿using System;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
 using Mini.Engine.Windows;
 
@@ -28,7 +27,7 @@ internal sealed class SingleFrameLoop : IGameLoop
 
     public void Update(float elapsedSimulationTime, float elapsedRealWorldTime) { }
 
-    public void Draw(float alpha)
+    public void Draw(float alpha, float elapsedRealWorldTime)
     {
         if (this.drawCalls == 0 && this.RenderDoc != null)
         {

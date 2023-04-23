@@ -27,7 +27,7 @@ public sealed partial class TransformSystem : ISystem
     [Process(Query = ProcessQuery.All)]
     public void Rotate(ref TransformComponent transform, ref MovementComponent movement)
     {
-        var diff = this.FrameService.Elapsed * MathHelper.TwoPi * 0.055f;
+        var diff = this.FrameService.ElapsedGameTime * MathHelper.TwoPi * 0.055f;
         var rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, diff);
         //transform.Current = transform.Current.AddRotation(rotation);
     }

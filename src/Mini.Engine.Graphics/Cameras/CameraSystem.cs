@@ -21,7 +21,7 @@ public sealed partial class CameraSystem : ISystem
     [Process]
     public void Update()
     {
-        var elapsed = this.FrameService.Elapsed;
+        var elapsed = this.FrameService.ElapsedRealWorldTime;
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
         this.CameraController.Update(elapsed, ref cameraTransform.Current);
