@@ -146,6 +146,7 @@ public sealed class GameBootstrapper
             accumulator += Math.Min(elapsed, 0.25);
 
             this.metrics.Update("GameBootstrapper.Run.Millis", (float)stopwatch.Elapsed.TotalMilliseconds);
+            this.metrics.UpdateBuiltInGauges();
         }     
     }
 

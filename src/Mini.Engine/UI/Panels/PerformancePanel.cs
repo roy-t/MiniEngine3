@@ -9,7 +9,7 @@ internal sealed class PerformancePanel : IEditorPanel, IDieselPanel
 {
     public string Title => "Performance";
 
-    private readonly MetricService MetricService;
+    private readonly MetricService Metrics;
     private readonly List<Gauge> FilteredGauges;
 
     private string filter;
@@ -17,15 +17,13 @@ internal sealed class PerformancePanel : IEditorPanel, IDieselPanel
 
     public PerformancePanel(MetricService metricService)
     {
-        this.MetricService = metricService;
+        this.Metrics = metricService;
         this.FilteredGauges = new List<Gauge>();
         this.filter = string.Empty;
     }
 
     public void Update(float elapsed)
-    {
-        this.MetricService.UpdateBuiltInGauges();
-
+    {        
         ImGui.InputText("Filter", ref this.filter, 100);
 
         if (ImGui.BeginTable("Gauges", 4,  ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.Hideable))
@@ -38,7 +36,7 @@ internal sealed class PerformancePanel : IEditorPanel, IDieselPanel
             ImGui.TableHeadersRow();
 
             this.FilteredGauges.Clear();
-            foreach (var gauge in this.MetricService.Gauges)
+            foreach (var gauge in this.Metrics.Gauges)
             {
                 if (string.IsNullOrEmpty(this.filter) || gauge.Tag.Contains(this.filter, StringComparison.OrdinalIgnoreCase))
                 {
