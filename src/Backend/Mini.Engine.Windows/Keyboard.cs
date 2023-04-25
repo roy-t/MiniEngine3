@@ -36,7 +36,7 @@ public sealed class Keyboard : InputDevice
     {
         return new Vector3(this.AsFloat(state, x), this.AsFloat(state, y), this.AsFloat(state, z));
     }
-
+    
     public Vector4 AsVector(InputState state, ushort x, ushort y, ushort z, ushort w)
     {
         return new Vector4(this.AsFloat(state, x), this.AsFloat(state, y), this.AsFloat(state, z), this.AsFloat(state, w));

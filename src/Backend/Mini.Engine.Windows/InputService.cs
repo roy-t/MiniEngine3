@@ -7,6 +7,9 @@ using static Windows.Win32.PInvoke;
 
 namespace Mini.Engine.Windows;
 
+// TODO: it is quite hard to use this class right, as clicks should be handled once iteration at a time
+// as to not miss the first down/up event. But helds should be handled only once otherwise you run into duplication.
+
 public sealed class InputService
 {
     private const ushort HID_USAGE_PAGE_GENERIC = 0x01;
@@ -93,7 +96,6 @@ public sealed class InputService
         {
             device.NextFrame();
             device.iterator = 0;
-            return true;
         }
 
         if (device.iterator < events.Count)

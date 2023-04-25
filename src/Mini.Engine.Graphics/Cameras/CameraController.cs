@@ -19,9 +19,9 @@ public sealed class CameraController
     private const float MinLinearVelocity = 1.0f;
     private const float MaxLinearVelocity = 25.0f;
 
-    private readonly float AngularVelocity = MathF.PI * 0.002f;
+    private readonly float AngularVelocity = MathF.PI;
 
-    private float linearVelocity = 5.0f;    
+    private float linearVelocity = 5.0f;
 
     private readonly Mouse Mouse;
     private readonly Keyboard Keyboard;
@@ -32,20 +32,22 @@ public sealed class CameraController
         this.InputController = inputController;
 
         this.Mouse = new Mouse();
-        this.Keyboard = new Keyboard();        
+        this.Keyboard = new Keyboard();
     }
 
     public void Update(float elapsed, ref Transform cameraTransform)
-    {        
+    {
         var horizontal = Vector4.Zero;
         var vertical = Vector2.Zero;
         var reset = false;
         while (this.InputController.ProcessEvents(this.Keyboard))
         {
-            horizontal += this.Keyboard.AsVector(InputState.Pressed, CodeForward, CodeLeft, CodeBackward, CodeRight);
-            vertical += this.Keyboard.AsVector(InputState.Pressed, CodeUp, CodeDown);
             reset |= this.Keyboard.Pressed(CodeReset);
+
         }
+
+        horizontal += this.Keyboard.AsVector(InputState.Pressed, CodeForward, CodeLeft, CodeBackward, CodeRight);
+        vertical += this.Keyboard.AsVector(InputState.Pressed, CodeUp, CodeDown);
 
         if (reset)
         {
@@ -53,7 +55,7 @@ public sealed class CameraController
                 .SetTranslation(Vector3.UnitZ * 10)
                 .FaceTargetConstrained(Vector3.Zero, Vector3.UnitY);
         }
-
+       
         if (horizontal.LengthSquared() > 0 || vertical.LengthSquared() > 0)
         {
             var step = elapsed * this.linearVelocity;
@@ -85,16 +87,17 @@ public sealed class CameraController
         var rightButtonDown = false;
 
         while (this.InputController.ProcessEvents(this.Mouse))
-        {
-            movement += this.Mouse.Movement;
+        {            
             scrolledUp |= this.Mouse.ScrolledUp;
             scrolledDown |= this.Mouse.ScrolledDown;
             rightButtonDown |= this.Mouse.Held(MouseButtons.Right);
         }
 
+        movement += this.Mouse.Movement;
+
         if (movement.LengthSquared() > 0 && rightButtonDown)
         {
-            movement *= this.AngularVelocity;
+            movement *= this.AngularVelocity * elapsed;
             var rotation = Quaternion.Identity;
             rotation *= Quaternion.CreateFromAxisAngle(cameraTransform.GetUp(), movement.X);
             rotation *= Quaternion.CreateFromAxisAngle(-cameraTransform.GetLeft(), movement.Y);
