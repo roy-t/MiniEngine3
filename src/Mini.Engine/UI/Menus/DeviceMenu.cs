@@ -1,5 +1,6 @@
 ﻿using ImGuiNET;
 using Mini.Engine.Configuration;
+using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 
 namespace Mini.Engine.UI.Menus;
@@ -8,10 +9,15 @@ namespace Mini.Engine.UI.Menus;
 internal class DeviceMenu : IEditorMenu, IDieselMenu
 {
     private readonly Device Device;
+    private readonly RenderDoc? RenderDoc;
 
-    public DeviceMenu(Device device)
+    private uint nextCaptureToOpen;
+
+    public DeviceMenu(Device device, Services services)
     {
         this.Device = device;
+        this.RenderDoc = services.ResolveOrDefault<RenderDoc>();
+        this.nextCaptureToOpen = uint.MaxValue;
     }
 
     public string Title => "Device";
@@ -22,6 +28,34 @@ internal class DeviceMenu : IEditorMenu, IDieselMenu
         if (ImGui.Checkbox("Vertical Sync", ref vSync))
         {
             this.Device.VSync = vSync;
+        }
+
+        this.ShowRenderDoc();
+    }
+
+    private void ShowRenderDoc()
+    {
+        if (this.RenderDoc == null)
+        {
+            ImGui.BeginDisabled(true);
+            ImGui.MenuItem("Capture Frame");
+            ImGui.EndDisabled();
+        }
+        else
+        {            
+            if (ImGui.MenuItem("Capture Frame"))
+            {
+                this.nextCaptureToOpen = this.RenderDoc.GetNumCaptures() + 1;
+                this.RenderDoc.TriggerCapture();
+            }
+
+            if (this.RenderDoc.GetNumCaptures() == this.nextCaptureToOpen)
+            {
+                var path = this.RenderDoc.GetCapture(this.RenderDoc.GetNumCaptures() - 1) ?? string.Empty;
+                this.RenderDoc.LaunchReplayUI(path);
+                this.nextCaptureToOpen = uint.MaxValue;
+
+            }
         }
     }
 }

@@ -2,11 +2,11 @@
   "profiles": {
     "Content - Shader": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\Projects\\CSharp\\MiniEngine3\\src\\Mini.Engine.Content\\Assets\\Shaders\\AntiAliasShader.hlsl\""
+      "commandLineArgs": "\"$(ProjectDir)../../Mini.Engine.Content\\Assets\\Shaders\\AntiAliasShader.hlsl\""
     },
     "Content - System": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\Projects\\CSharp\\MiniEngine3\\src\\Mini.Engine.Graphics\\Lighting\\ShadowingLights\\CascadedShadowMapSystem.cs\""
+      "commandLineArgs": "\"$(ProjectDir)../../Mini.Engine.Graphics\\Lighting\\ShadowingLights\\CascadedShadowMapSystem.cs\""
     }
   }
 }

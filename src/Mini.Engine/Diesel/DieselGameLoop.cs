@@ -23,8 +23,8 @@ internal sealed class DieselGameLoop : IGameLoop
     private readonly DieselUpdateLoop UpdateLoop;
     private readonly DieselRenderLoop RenderLoop;
 
-    private RenderTarget albedo; // TODO: replace with ILifeTime things!
-    private DepthStencilBuffer depthStencilBuffer; // TODO: replace with ILifeTime things!
+    private RenderTarget albedo;
+    private DepthStencilBuffer depthStencilBuffer;
 
     private readonly PresentationHelper PresentationHelper;
     private readonly CameraService CameraService;

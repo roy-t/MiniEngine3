@@ -15,6 +15,10 @@
     "Mini.Engine.Diesel - Logger": {
       "commandName": "Project",
       "commandLineArgs": "--gameLoop \"Mini.Engine.Diesel.DieselGameLoop\" --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
+    },
+    "Mini.Engine.Diesel - Renderdoc": {
+      "commandName": "Project",
+      "commandLineArgs": "--renderdoc --gameLoop \"Mini.Engine.Diesel.DieselGameLoop\" --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
     }
   }
 }

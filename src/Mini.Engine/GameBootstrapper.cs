@@ -166,11 +166,11 @@ public sealed class GameBootstrapper
             var loaded = RenderDoc.Load(out var renderDoc);
             if (loaded)
             {
-                services.Register(renderDoc);
+                services.Register<RenderDoc?>(renderDoc);
                 this.Logger.Information("Started RenderDoc");
             }
             else
-            {
+            {                
                 this.Logger.Warning("Could not start RenderDoc");
             }
         }

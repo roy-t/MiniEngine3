@@ -1,5 +1,4 @@
-﻿using System;
-using LightInject;
+﻿using LightInject;
 
 namespace Mini.Engine.Configuration;
 
@@ -31,6 +30,12 @@ public sealed class Services
     {
         instance = this.Container.TryGetInstance<T>();
         return instance != null;
+    }
+
+    public T? ResolveOrDefault<T>(T? @default = null)
+        where T : class
+    {
+        return this.Container.TryGetInstance<T>() ?? @default;
     }
 
     public void Register<T>(T instance)
