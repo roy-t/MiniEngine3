@@ -1,24 +1,24 @@
 {
   "profiles": {
-    "Mini.Engine - Renderdoc": {
+    "Editor - Renderdoc": {
       "commandName": "Project",
       "commandLineArgs": "--renderdoc --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
     },
-    "Mini.Engine - Logger": {
+    "Editor - Logger": {
       "commandName": "Project",
       "commandLineArgs": "--content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
     },
-    "Mine.Engine - Single Frame": {
+    "Editor - Single Frame": {
       "commandName": "Project",
       "commandLineArgs": "--gameLoop \"Mini.Engine.SingleFrameLoop\" --no-ui --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
     },
-    "Mini.Engine.Diesel - Logger": {
-      "commandName": "Project",
-      "commandLineArgs": "--gameLoop \"Mini.Engine.Diesel.DieselGameLoop\" --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
-    },
-    "Mini.Engine.Diesel - Renderdoc": {
+    "Diesel - Renderdoc": {
       "commandName": "Project",
       "commandLineArgs": "--renderdoc --gameLoop \"Mini.Engine.Diesel.DieselGameLoop\" --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
+    },
+    "Diesel - Logger": {
+      "commandName": "Project",
+      "commandLineArgs": "--gameLoop \"Mini.Engine.Diesel.DieselGameLoop\" --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
     }
   }
 }
