@@ -105,12 +105,7 @@ public sealed class GameBootstrapper
         {
             // Main loop based on https://www.gafferongames.com/post/fix_your_timestep/            
             stopwatch.Restart();
-#if DEBUG
-            foreach (var type in HotReloadManager.GetChangedTypes())
-            {
-                this.Logger.Warning("{type} was changed", type);
-            }
-#endif
+
             // TOOD: this is good for sim, but makes the camera (and possibly animations) stutter
             // even if they run on the ElapsedRealWorldTime, because the position just doesn't get updated every frame then
             // these kind of things should run in the draw step!

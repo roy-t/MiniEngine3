@@ -1,6 +1,5 @@
 ﻿#if DEBUG
 
-
 [assembly: System.Reflection.Metadata.MetadataUpdateHandler(typeof(Mini.Engine.HotReloadManager))]
 
 namespace Mini.Engine;
@@ -14,22 +13,9 @@ public static class HotReloadManager
     private static readonly List<Action<string>> Reporters = new();
     private static readonly List<(string? Filter, Action<string> Callback)> Callbacks = new();
 
-    public static IEnumerable<string> GetChangedTypes()
-    {
-        if (ChangedTypes.Count == 0)
-        {
-            return Enumerable.Empty<string>();
-        }
-
-        var value = new List<string>(ChangedTypes);
-        ChangedTypes.Clear();
-
-        return value;
-    }
-
     public static void ClearCache(Type[]? updatedTypes)
     {
-
+        ChangedTypes.Clear();
     }
 
     public static void UpdateApplication(Type[]? updatedTypes)
