@@ -94,7 +94,7 @@ internal static class ShaderUserGenerator
             lines.Add($"{fieldName} = {path}");
         }
 
-        return string.Join($",{Environment.NewLine}", lines.ToArray());
+        return string.Join($",\n", lines.ToArray());
     }
 
     private static string GenerateDisposeCalls(IReadOnlyList<CBuffer> cBuffers)

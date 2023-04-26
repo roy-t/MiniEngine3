@@ -46,13 +46,13 @@ public sealed class ShaderGenerator : IIncrementalGenerator
 
         var arguments = "Mini.Engine.DirectX.Device device, Mini.Engine.Content.ContentManager content";
 
-        var assignments = GenerateFieldAssignments() + Environment.NewLine + GenerateShaderPropertyAssignments(shader.FilePath, shader.Functions);
+        var assignments = GenerateFieldAssignments() + "\n" + GenerateShaderPropertyAssignments(shader.FilePath, shader.Functions);
 
-        var properties = GenerateShaderProperties(shader.Functions) + Environment.NewLine + GenerateSourceProperty(shader.FilePath);
+        var properties = GenerateShaderProperties(shader.Functions) + "\n" + GenerateSourceProperty(shader.FilePath);
 
         var structures = StructGenerator.Generate(shader.Structures) + StructGenerator.Generate(shader.CBuffers, shader.Structures);
 
-        var methods = GenerateShaderTypeSpecificMethods(shader.Functions) + Environment.NewLine + GenerateCreateUserMethod(@class, shader.CBuffers);
+        var methods = GenerateShaderTypeSpecificMethods(shader.Functions) + "\n" + GenerateCreateUserMethod(@class, shader.CBuffers);
 
         var innerClass = ShaderUserGenerator.Generate(shader);
 

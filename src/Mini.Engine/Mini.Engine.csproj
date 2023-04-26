@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ImGui.NET" Version="1.87.3" />
+    <PackageReference Include="ImGui.NET" Version="1.89.5" />
   </ItemGroup>
 
   <ItemGroup>

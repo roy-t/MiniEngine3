@@ -59,7 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.12.0" />
-    <PackageReference Include="StbImageSharp" Version="2.27.12" />
+    <PackageReference Include="StbImageSharp" Version="2.27.13" />
     <PackageReference Include="SuperCompressed" Version="1.1.0" />
   </ItemGroup>
   <ItemGroup>
