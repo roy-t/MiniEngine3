@@ -1,16 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 using Mini.Engine.Configuration;
+using Mini.Engine.Content;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
-using Mini.Engine.ECS;
-using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Diesel;
 using Mini.Engine.Graphics.PostProcessing;
-using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.UI;
 using Vortice.DXGI;
-using Vortice.Mathematics;
 
 namespace Mini.Engine.Diesel;
 
@@ -18,8 +14,8 @@ namespace Mini.Engine.Diesel;
 internal sealed class DieselGameLoop : IGameLoop
 {
     private readonly Device Device;
+    private readonly ContentManager Content;
     private readonly DieselUserInterface UserInterface;
-    private readonly ECSAdministrator Administrator;
     private readonly DieselUpdateLoop UpdateLoop;
     private readonly DieselRenderLoop RenderLoop;
 
@@ -29,13 +25,11 @@ internal sealed class DieselGameLoop : IGameLoop
     private readonly PresentationHelper PresentationHelper;
     private readonly CameraService CameraService;
 
-    private bool isSceneSet;
-
-    public DieselGameLoop(Device device, DieselUserInterface userInterface, ECSAdministrator administrator, DieselUpdateLoop updateLoop, DieselRenderLoop renderLoop, PresentationHelper presentationHelper, CameraService cameraService)
+    public DieselGameLoop(Device device, ContentManager content, DieselUserInterface userInterface, DieselUpdateLoop updateLoop, DieselRenderLoop renderLoop, PresentationHelper presentationHelper, CameraService cameraService)
     {
         this.Device = device;
+        this.Content = content;
         this.UserInterface = userInterface;
-        this.Administrator = administrator;
         this.UpdateLoop = updateLoop;
         this.RenderLoop = renderLoop;
         this.PresentationHelper = presentationHelper;
@@ -50,38 +44,7 @@ internal sealed class DieselGameLoop : IGameLoop
 
     public void Update(float elapsedSimulationTime, float elapsedRealWorldTime)
     {
-        if (!this.isSceneSet)
-        {
-            this.isSceneSet = true;
-
-            var entities = this.Administrator.Entities;
-            var components = this.Administrator.Components;
-
-            var entity = entities.Create();
-            ref var transform = ref components.Create<TransformComponent>(entity);
-            transform.Current = Transform.Identity;
-            
-            var positions = new Vector3[]
-            {
-                new Vector3(-1, 0, 0),
-                new Vector3(0, 0, -1),
-                new Vector3(1, 0, 0),
-            };
-
-            var vertices = new PrimitiveVertex[]
-            {
-                new PrimitiveVertex(positions[0], new Vector3(0, 1, 0)),
-                new PrimitiveVertex(positions[1], new Vector3(0, 1, 0)),
-                new PrimitiveVertex(positions[2], new Vector3(0, 1, 0)),
-            };
-
-            var indices = new int[] { 0, 1, 2, };
-            var mesh = new PrimitiveMesh(this.Device, vertices, indices, BoundingBox.CreateFromPoints(positions), "mesh");
-
-            ref var primitive = ref components.Create<PrimitiveComponent>(entity);
-            primitive.Mesh = this.Device.Resources.Add(mesh);
-            primitive.Color = Colors.Red;            
-        }
+        this.Content.ReloadChangedContent();
 
         this.UpdateLoop.Run(elapsedSimulationTime);
         this.UserInterface.NewFrame(elapsedRealWorldTime);

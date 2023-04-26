@@ -10,12 +10,16 @@ internal class HotReloadPanel : IEditorPanel, IDieselPanel
 {
     public string Title => "Hot Reload";
 
-    private readonly List<(DateTime, ContentId, Exception?)> Reports;
+    private readonly List<(DateTime, string, Exception?)> Reports;
 
     public HotReloadPanel(ContentManager content)
     {
-        this.Reports = new List<(DateTime, ContentId, Exception?)>();
-        content.AddReloadReporter((c, e) => this.Reports.Insert(0, (DateTime.Now, c, e)));
+        this.Reports = new List<(DateTime, string, Exception?)>();
+        content.AddReloadReporter((c, e) => this.Reports.Insert(0, (DateTime.Now, c.ToString(), e)));
+
+#if DEBUG
+        HotReloadManager.AddReloadReporter(f => this.Reports.Insert(0, (DateTime.Now, f, null)));
+#endif
     }
 
     public void Update(float elapsed)
@@ -52,7 +56,7 @@ internal class HotReloadPanel : IEditorPanel, IDieselPanel
                 ImGui.TextUnformatted($"{timestamp:HH::mm:ss.fff}");
 
                 ImGui.TableSetColumnIndex(1);
-                ImGui.TextUnformatted(content.ToString());
+                ImGui.TextUnformatted(content);
 
                 ImGui.TableSetColumnIndex(2);
                 ImGui.TextUnformatted(exception?.Message ?? " - ");
@@ -64,6 +68,6 @@ internal class HotReloadPanel : IEditorPanel, IDieselPanel
             {
                 ImGui.PopStyleColor();
             }
-        }       
+        }
     }
 }
