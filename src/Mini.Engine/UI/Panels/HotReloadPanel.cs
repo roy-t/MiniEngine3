@@ -24,7 +24,6 @@ internal class HotReloadPanel : IEditorPanel, IDieselPanel
 
     public void Update(float elapsed)
     {
-
         if (ImGui.BeginTable("Reports", 3, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.Hideable))
         {
             ImGui.TableSetupColumn("TimeStamp", ImGuiTableColumnFlags.WidthFixed);

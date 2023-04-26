@@ -15,7 +15,7 @@ namespace Mini.Engine.UI.Panels;
 [Service]
 internal class PrimitivePanel : IDieselPanel
 {
-    private readonly Device Device;
+    
     private readonly IComponentContainer<PrimitiveComponent> Container;
     private readonly ComponentSelector<PrimitiveComponent> Primitives;
     private readonly ECSAdministrator Administrator;
@@ -25,9 +25,8 @@ internal class PrimitivePanel : IDieselPanel
 
     private bool shouldReload;
 
-    public PrimitivePanel(Device device, IComponentContainer<PrimitiveComponent> container, ECSAdministrator administrator, ProceduralMeshGenerator generator)
+    public PrimitivePanel(IComponentContainer<PrimitiveComponent> container, ECSAdministrator administrator, ProceduralMeshGenerator generator)
     {
-        this.Device = device;
         this.Container = container;
         this.Primitives = new ComponentSelector<PrimitiveComponent>("Primitives", container);
         this.Administrator = administrator;
@@ -79,7 +78,7 @@ internal class PrimitivePanel : IDieselPanel
         transform.Previous = transform.Current;
 
         ref var component = ref creator.Create<PrimitiveComponent>(entity);
-        component.Mesh = this.Generator.GenerateQuad(this.Device, Vector3.Zero, 1.0f, "primitive");
+        component.Mesh = this.Generator.GenerateQuad(Vector3.Zero, 1.0f, "primitive");
         component.Color = Colors.Orange;
 
     }
