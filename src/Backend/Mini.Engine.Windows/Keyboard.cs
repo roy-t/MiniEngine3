@@ -7,36 +7,57 @@ public sealed class Keyboard : InputDevice
 {
     public Keyboard() : base(256) { }
 
+    /// <summary>
+    /// If the given button state changed to pressed this event
+    /// </summary>
     public bool Pressed(ushort code)
     {
-        return this.States[code].HasFlag(InputState.JustPressed);
+        return this.States[code] == InputState.Pressed;
     }
 
+    /// <summary>
+    /// If the given button was pressed both the previous and current event
+    /// </summary>  
     public bool Held(ushort code)
     {
-        return this.States[code].HasFlag(InputState.Pressed);
+        return this.States[code] == InputState.Held;
     }
 
+    /// <summary>
+    /// If the given button state changed to released this event
+    /// </summary>
     public bool Released(ushort code)
     {
-        return this.States[code].HasFlag(InputState.JustReleased);
+        return this.States[code] == InputState.Released;
     }
 
+    /// <summary>
+    /// 1.0f if the button was an in the given state, 0.0f otherwise
+    /// </summary>    
     public float AsFloat(InputState state, ushort key)
     {
-        return this.States[key].HasFlag(state) ? 1.0f : 0.0f;
+        return this.States[key] == state ? 1.0f : 0.0f;
     }
 
+    /// <summary>
+    /// A vector with for each given button 1.0f if the button was an in the given state, 0.0f otherwise
+    /// </summary>
     public Vector2 AsVector(InputState state, ushort x, ushort y)
     {
         return new Vector2(this.AsFloat(state, x), this.AsFloat(state, y));
     }
 
+    /// <summary>
+    /// A vector with for each given button 1.0f if the button was an in the given state, 0.0f otherwise
+    /// </summary>
     public Vector3 AsVector(InputState state, ushort x, ushort y, ushort z)
     {
         return new Vector3(this.AsFloat(state, x), this.AsFloat(state, y), this.AsFloat(state, z));
     }
-    
+
+    /// <summary>
+    /// A vector with for each given button 1.0f if the button was an in the given state, 0.0f otherwise
+    /// </summary>
     public Vector4 AsVector(InputState state, ushort x, ushort y, ushort z, ushort w)
     {
         return new Vector4(this.AsFloat(state, x), this.AsFloat(state, y), this.AsFloat(state, z), this.AsFloat(state, w));
@@ -55,10 +76,18 @@ public sealed class Keyboard : InputDevice
         switch (state)
         {
             case KeyFlags.Make:
-                this.States[code] = InputState.JustPressed | InputState.Pressed;
+                // To ignore repeated key inputs when a user holds a key
+                if (this.States[code] != InputState.Held)
+                {
+                    this.States[code] = InputState.Pressed;
+                }
                 break;
             case KeyFlags.Break:
-                this.States[code] = InputState.JustReleased | InputState.Released;
+                // To ignore repeated key inputs when a user holds a key
+                if (this.States[code] != InputState.None)
+                {
+                    this.States[code] = InputState.Released;
+                }
                 break;
         }
     }

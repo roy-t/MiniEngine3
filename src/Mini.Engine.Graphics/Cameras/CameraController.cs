@@ -35,19 +35,19 @@ public sealed class CameraController
         this.Keyboard = new Keyboard();
     }
 
+
+
     public void Update(float elapsed, ref Transform cameraTransform)
     {
-        var horizontal = Vector4.Zero;
-        var vertical = Vector2.Zero;
         var reset = false;
         while (this.InputController.ProcessEvents(this.Keyboard))
         {
             reset |= this.Keyboard.Pressed(CodeReset);
-
         }
 
-        horizontal += this.Keyboard.AsVector(InputState.Pressed, CodeForward, CodeLeft, CodeBackward, CodeRight);
-        vertical += this.Keyboard.AsVector(InputState.Pressed, CodeUp, CodeDown);
+        // If a key is held it will not generate new events
+        var horizontal = this.Keyboard.AsVector(InputState.Held, CodeForward, CodeLeft, CodeBackward, CodeRight);
+        var vertical = this.Keyboard.AsVector(InputState.Held, CodeUp, CodeDown);
 
         if (reset)
         {
@@ -55,7 +55,7 @@ public sealed class CameraController
                 .SetTranslation(Vector3.UnitZ * 10)
                 .FaceTargetConstrained(Vector3.Zero, Vector3.UnitY);
         }
-       
+
         if (horizontal.LengthSquared() > 0 || vertical.LengthSquared() > 0)
         {
             var step = elapsed * this.linearVelocity;
@@ -82,22 +82,20 @@ public sealed class CameraController
         }
 
         var movement = Vector2.Zero;
-        var scrolledUp = false;
-        var scrolledDown = false;
+        var scroll = 0;
         var rightButtonDown = false;
 
         while (this.InputController.ProcessEvents(this.Mouse))
-        {            
-            scrolledUp |= this.Mouse.ScrolledUp;
-            scrolledDown |= this.Mouse.ScrolledDown;
+        {
+            movement += this.Mouse.Movement;
+            scroll += this.Mouse.ScrolledUp ? 1 : 0;
+            scroll -= this.Mouse.ScrolledDown ? 1 : 0;
             rightButtonDown |= this.Mouse.Held(MouseButtons.Right);
         }
 
-        movement += this.Mouse.Movement;
-
         if (movement.LengthSquared() > 0 && rightButtonDown)
         {
-            movement *= this.AngularVelocity * elapsed;
+            movement *= this.AngularVelocity * 0.05f * elapsed;
             var rotation = Quaternion.Identity;
             rotation *= Quaternion.CreateFromAxisAngle(cameraTransform.GetUp(), movement.X);
             rotation *= Quaternion.CreateFromAxisAngle(-cameraTransform.GetLeft(), movement.Y);
@@ -106,14 +104,6 @@ public sealed class CameraController
             cameraTransform = cameraTransform.FaceTargetConstrained(lookAt, Vector3.UnitY);
         }
 
-        if (scrolledUp)
-        {
-            this.linearVelocity = Math.Max(this.linearVelocity - 1, MinLinearVelocity);
-        }
-
-        if (scrolledDown)
-        {
-            this.linearVelocity = Math.Min(this.linearVelocity + 1, MaxLinearVelocity);
-        }
+        this.linearVelocity = Math.Clamp(this.linearVelocity - scroll, MinLinearVelocity, MaxLinearVelocity);
     }
 }

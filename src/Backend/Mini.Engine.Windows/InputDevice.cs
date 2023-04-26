@@ -2,13 +2,27 @@
 
 namespace Mini.Engine.Windows;
 
-[Flags]
-public enum InputState : ushort
+public enum InputState : byte
 {
-    Released = 2,
-    JustPressed = 4,
-    Pressed = 8,
-    JustReleased = 16
+    /// <summary>
+    /// The button is not being held and nothing happened to it recently
+    /// </summary>
+    None = 0,
+
+    /// <summary>
+    /// The button was just pressed
+    /// </summary>
+    Pressed = 2,
+
+    /// <summary>
+    /// The button is being held, not this does not generate new input events!
+    /// </summary>    
+    Held = 4,
+
+    /// <summary>
+    /// The button was just released
+    /// </summary>
+    Released = 8
 }
 
 public abstract class InputDevice
@@ -23,10 +37,6 @@ public abstract class InputDevice
     internal InputDevice(int size)
     {
         this.States = new InputState[size];
-        for (var i = 0; i < this.States.Length; i++)
-        {
-            this.States[i] = InputState.Released;
-        }
     }
 
     internal static void Decay(InputState[] states)
@@ -35,12 +45,10 @@ public abstract class InputDevice
         {
             states[i] = states[i] switch
             {
-                InputState.JustPressed => InputState.Pressed,
-                InputState.JustPressed | InputState.Pressed => InputState.Pressed,
-                InputState.Pressed => InputState.Pressed,
-                InputState.JustReleased => InputState.Released,
-                InputState.JustReleased | InputState.Released => InputState.Released,
-                InputState.Released => InputState.Released,
+                InputState.Pressed => InputState.Held,                
+                InputState.Held => InputState.Held,
+                InputState.Released => InputState.None,                
+                InputState.None => InputState.None,
                 _ => throw new NotImplementedException(),
             };
         }

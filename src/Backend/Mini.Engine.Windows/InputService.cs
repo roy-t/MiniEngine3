@@ -28,7 +28,7 @@ public sealed class InputService
 
     public InputService(Win32Window window)
     {
-        Win32Application.RegisterMessageListener(WM_INPUT, (wParam, lParam) => this.ProcessMessage(wParam, lParam));
+        Win32Application.RegisterMessageListener(WM_INPUT, this.ProcessMessage);
 
         var devices = new RAWINPUTDEVICE[] { CreateKeyboard(window.Handle), CreateMouse(window.Handle) };
         var success = RegisterRawInputDevices(devices, (uint)Marshal.SizeOf<RAWINPUTDEVICE>());
@@ -48,7 +48,6 @@ public sealed class InputService
         return ProcesEvents(mouse, this.MouseEvents);
     }
 
-    // TODO: make it easier to handle one-off keyboard clicks, instead of doing while
     public bool ProcessEvents(Keyboard keyboard)
     {
         return ProcesEvents(keyboard, this.KeyboardEvents);
