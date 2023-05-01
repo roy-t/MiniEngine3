@@ -1,5 +1,5 @@
-﻿using System.Numerics;
-using System.Xml.Linq;
+﻿using System.Diagnostics;
+using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
@@ -7,7 +7,13 @@ using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Diesel.Procedural;
 
-public record struct Quad(Vector3 A, Vector3 B, Vector3 C, Vector3 D, Vector3 Normal);
+public record struct Shape(params Vector2[] Vertices);
+
+public record struct Quad(Vector3 Normal, Vector3 A, Vector3 B, Vector3 C, Vector3 D);
+
+// TODO: bad name, not much procedural about it
+// move all the shape/line math somewhere else
+// move all the actions somewhere else
 
 [Service]
 public sealed class ProceduralMeshGenerator
@@ -19,11 +25,55 @@ public sealed class ProceduralMeshGenerator
         this.Device = device;
     }
 
+    private static Shape CreateSingleRailCrossSection()
+    {
+        var railTopWidth = 0.1f;
+        var railBottomWidth = 0.2f;
+        var railHeigth = 0.2f;
+
+        return new Shape(new Vector2(railTopWidth / 2.0f, railHeigth), new Vector2(railBottomWidth / 2.0f, 0.0f), new Vector2(-railBottomWidth / 2.0f, 0.0f), new Vector2(-railTopWidth / 2.0f, railHeigth));
+    }
+
+    private static Quad[] Extrude(Shape crossSection, float depth)
+    {
+        if (crossSection.Vertices.Length < 2)
+        {
+            throw new Exception("Invalid cross section");
+        }
+
+        var quads = new Quad[crossSection.Vertices.Length];
+
+        for (var i = 0; i < crossSection.Vertices.Length; i++)
+        {
+            var a = crossSection.Vertices[i];
+            var b = crossSection.Vertices[(i + 1) % crossSection.Vertices.Length];
+            var n = GetNormalFromLineSegement(a, b);
+            var normal = new Vector3(n.X, n.Y, 0.0f);
+            quads[i] = new Quad(normal, new Vector3(b.X, b.Y, -depth), new Vector3(b.X, b.Y, 0.0f), new Vector3(a.X, a.Y, 0.0f), new Vector3(a.X, a.Y, -depth));
+        }
+
+        return quads;
+    }
+
+    private static Vector2 GetNormalFromLineSegement(Vector2 start, Vector2 end)
+    {
+        Debug.Assert(start != end, $"{start} == {end}");
+
+        var dx = end.X - start.X;
+        var dy = end.Y - start.Y;
+
+        return Vector2.Normalize(new Vector2(-dy, dx));
+    }
+
+    public ILifetime<PrimitiveMesh> GenerateRail(string name)
+    {
+        var crossSection = CreateSingleRailCrossSection();
+        var quads = Extrude(crossSection, 10.0f);
+        return this.FromQuads(name, quads);
+    }
+
     public ILifetime<PrimitiveMesh> GenerateQuad(Vector3 position, float extents, string name)
     {
-        var indices = new int[] { 0, 1, 2,
-                                  2, 3, 0 };
-
         var positions = new Vector3[]
         {
             position + new Vector3(extents, 0, -extents), // NE
@@ -32,7 +82,7 @@ public sealed class ProceduralMeshGenerator
             position + new Vector3(-extents, 0, -extents), // NW
         };
 
-        var quad = new Quad(positions[0], positions[1], positions[2], positions[3], Vector3.UnitY);
+        var quad = new Quad(Vector3.UnitY, positions[0], positions[1], positions[2], positions[3]);
         return this.FromQuads(name, quad);
     }
 
@@ -63,7 +113,7 @@ public sealed class ProceduralMeshGenerator
             vertices[nV++] = new PrimitiveVertex(quad.C, quad.Normal);
             vertices[nV++] = new PrimitiveVertex(quad.D, quad.Normal);
 
-            bounds = BoundingBox.CreateMerged(bounds, BoundingBox.CreateFromPoints(new[] { quads[0].A, quads[0].B, quads[0].C, quads[0].D }));
+            bounds = BoundingBox.CreateMerged(bounds, BoundingBox.CreateFromPoints(new[] { quads[i].A, quads[i].B, quads[i].C, quads[i].D }));
         }
 
         var mesh = new PrimitiveMesh(this.Device, vertices, indices, bounds, name);

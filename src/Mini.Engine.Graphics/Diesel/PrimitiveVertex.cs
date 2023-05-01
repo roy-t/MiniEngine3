@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
@@ -22,4 +23,9 @@ public struct PrimitiveVertex
             new InputElementDescription("POSITION", 0, Format.R32G32B32_Float, 0 * sizeof(float), 0, InputClassification.PerVertexData, 0),            
             new InputElementDescription("NORMAL", 0, Format.R32G32B32_Float, 3 * sizeof(float), 0, InputClassification.PerVertexData, 0)
     };
+
+    public override string ToString()
+    {
+        return $"P: {this.Position}, N: {this.Normal}";
+    }
 }

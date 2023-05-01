@@ -94,7 +94,7 @@ public sealed class InputService
         if (device.iterator == -1)
         {
             device.NextFrame();
-            device.iterator = 0;
+            device.iterator = 0;            
         }
 
         if (device.iterator < events.Count)
@@ -103,11 +103,9 @@ public sealed class InputService
             device.iterator++;
             return true;
         }
-        else
-        {
-            device.iterator = -1;
-            return false;
-        }
+
+        device.iterator = -1;
+        return false;
     }
 
     private static RAWINPUTDEVICE CreateMouse(HWND hwnd)

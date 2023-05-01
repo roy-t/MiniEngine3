@@ -1,3 +1,5 @@
+#include "../Includes/Gamma.hlsl"
+
 struct VS_INPUT
 {
     float3 position : POSITION;    
@@ -40,8 +42,8 @@ PS_INPUT VS(VS_INPUT input)
 #pragma PixelShader
 OUTPUT PS(PS_INPUT input)
 {
-    OUTPUT output;
-    output.albedo = Albedo;
+    OUTPUT output;    
+    output.albedo = ToLinear(Albedo);
     
     return output;
 }

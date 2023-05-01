@@ -78,7 +78,8 @@ internal class PrimitivePanel : IDieselPanel
         transform.Previous = transform.Current;
 
         ref var component = ref creator.Create<PrimitiveComponent>(entity);
-        component.Mesh = this.Generator.GenerateQuad(Vector3.Zero, 1.0f, "primitive");
+        //component.Mesh = this.Generator.GenerateQuad(Vector3.Zero, 1.0f, "primitive");
+        component.Mesh = this.Generator.GenerateRail("rail");
         component.Color = Colors.Orange;
 
     }

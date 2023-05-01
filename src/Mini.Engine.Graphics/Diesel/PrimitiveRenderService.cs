@@ -42,7 +42,7 @@ public sealed class PrimitiveRenderService : IDisposable
 
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
-    }
+    }    
 
     public void Render(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in PrimitiveComponent primitive, in Transform transform)
     {
