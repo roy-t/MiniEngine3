@@ -58,7 +58,7 @@ public sealed class PrimitiveRenderService : IDisposable
             context.IA.SetVertexBuffer(mesh.Vertices);
             context.IA.SetIndexBuffer(mesh.Indices);
 
-            this.User.MapConstants(context, world * viewProjection, world, primitive.Color);
+            this.User.MapConstants(context, world * viewProjection, world, cameraTransform.GetPosition(), primitive.Color);
 
             context.DrawIndexed(mesh.Indices.Length, 0, 0);
         }

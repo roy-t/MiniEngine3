@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<ItemGroup>		
+		<PackageReference Include="SimplexNoise" Version="2.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Backend\Mini.Engine.Core\Mini.Engine.Core.csproj" />
+	  <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
+	  <ProjectReference Include="..\Mini.Engine.Configuration\Mini.Engine.Configuration.csproj" />
+	  <ProjectReference Include="..\Mini.Engine.Graphics\Mini.Engine.Graphics.csproj" />
+	</ItemGroup>
+</Project>

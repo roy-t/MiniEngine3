@@ -29,7 +29,7 @@ public static class HotReloadManager
                 Reporters.ForEach(r => r(name));
                 Callbacks.ForEach(t =>
                 {
-                    if (t.Filter?.Equals(name, StringComparison.OrdinalIgnoreCase) ?? true)
+                    if (t.Filter?.StartsWith(name, StringComparison.OrdinalIgnoreCase) ?? true)
                     {
                         t.Callback(name);
                     }

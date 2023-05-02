@@ -1,13 +1,13 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Configuration;
-using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Diesel;
-using Mini.Engine.Graphics.Diesel.Procedural;
 using Mini.Engine.Graphics.Transforms;
+using Mini.Engine.Modelling;
+using Mini.Engine.Modelling.Generators;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.UI.Panels;
@@ -19,21 +19,21 @@ internal class PrimitivePanel : IDieselPanel
     private readonly IComponentContainer<PrimitiveComponent> Container;
     private readonly ComponentSelector<PrimitiveComponent> Primitives;
     private readonly ECSAdministrator Administrator;
-    private readonly ProceduralMeshGenerator Generator;
+    private readonly PrimitiveMeshBuilder Builder;
 
     public string Title => "Primitives";
 
     private bool shouldReload;
 
-    public PrimitivePanel(IComponentContainer<PrimitiveComponent> container, ECSAdministrator administrator, ProceduralMeshGenerator generator)
+    public PrimitivePanel(IComponentContainer<PrimitiveComponent> container, ECSAdministrator administrator, PrimitiveMeshBuilder builder)
     {
         this.Container = container;
         this.Primitives = new ComponentSelector<PrimitiveComponent>("Primitives", container);
         this.Administrator = administrator;
-        this.Generator = generator;
+        this.Builder = builder;
 
 #if DEBUG
-        HotReloadManager.AddReloadCallback(typeof(ProceduralMeshGenerator).FullName, _ => this.shouldReload = true);
+        HotReloadManager.AddReloadCallback("Mini.Engine.Modelling", _ => this.shouldReload = true);
 #endif
     }
 
@@ -77,9 +77,10 @@ internal class PrimitivePanel : IDieselPanel
         transform.Current = Transform.Identity;
         transform.Previous = transform.Current;
 
-        ref var component = ref creator.Create<PrimitiveComponent>(entity);
-        //component.Mesh = this.Generator.GenerateQuad(Vector3.Zero, 1.0f, "primitive");
-        component.Mesh = this.Generator.GenerateRail("rail");
+        ref var component = ref creator.Create<PrimitiveComponent>(entity);        
+        //var q = QuadGenerator.Generate(Vector3.Zero, 1.0f);
+        var q = TrainRailGenerator.Generate();
+        component.Mesh = this.Builder.FromQuads("rail", q);
         component.Color = Colors.Orange;
 
     }

@@ -17,6 +17,7 @@
     <ProjectReference Include="..\Mini.Engine.Content\Mini.Engine.Content.csproj" />
     <ProjectReference Include="..\Mini.Engine.ECS\Mini.Engine.ECS.csproj" />
     <ProjectReference Include="..\Mini.Engine.Graphics\Mini.Engine.Graphics.csproj" />
+    <ProjectReference Include="..\Mini.Engine.Modelling\Mini.Engine.Modelling.csproj" />
   </ItemGroup>
 
 </Project>
