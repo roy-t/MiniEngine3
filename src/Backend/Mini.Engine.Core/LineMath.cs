@@ -12,5 +12,5 @@ public static class LineMath
         var dy = end.Y - start.Y;
 
         return Vector2.Normalize(new Vector2(-dy, dx));
-    }
+    }    
 }

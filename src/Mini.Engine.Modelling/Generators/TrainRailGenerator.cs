@@ -7,9 +7,16 @@ public static class TrainRailGenerator
     public static Quad[] Generate()
     {
         var crossSection = CreateSingleRailCrossSection();
-        var quads = Extruder.Extrude(crossSection, 10.0f);
+        var layout = CreateTrackLayout();
+        var quads = Extruder.Extrude(crossSection, layout, true);
 
         return quads;
+    }
+
+    private static Vector3[] CreateTrackLayout()
+    {
+        return new Vector3[] { new Vector3(0, 0, 0), new Vector3(0, 0, -1), new Vector3(1, 0.5f, -5) };
+        //return new Vector3[] { new Vector3(0, 0, 0), new Vector3(0, 0, -1), new Vector3(0, 0, -2) };
     }
 
     private static Shape CreateSingleRailCrossSection()

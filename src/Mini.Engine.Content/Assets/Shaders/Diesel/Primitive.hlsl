@@ -54,6 +54,7 @@ OUTPUT PS(PS_INPUT input)
         normalize(float3(-0.5, -0.8, 0.0)),
         normalize(float3(0.0, -0.8, 0.5)),
         normalize(float3(0.0, -0.8, -0.5)),
+        normalize(float3(0.0, 1.0, 0.0)),
     };
     
     const float3 colors[] =
@@ -61,7 +62,8 @@ OUTPUT PS(PS_INPUT input)
         ToLinear(float3(1.0, 0.9, 0.9)),
         ToLinear(float3(1.0, 0.9, 0.9)),
         ToLinear(float3(0.9, 0.9, 1.0)),
-        ToLinear(float3(0.9, 0.0, 1.0)),
+        ToLinear(float3(0.9, 0.9, 1.0)),
+        ToLinear(float3(0.5, 0.5, 0.5)),
     };
     
     const float Strength = 10.0f;
@@ -75,7 +77,7 @@ OUTPUT PS(PS_INPUT input)
         
     float3 accumulator = float3(0, 0, 0);
         
-    for (uint i = 0; i < 4; i++)
+    for (uint i = 0; i < 5; i++)
     {    
         float3 L = normalize(-lights[i]);
         accumulator += ComputeLight(albedo, normal, mat, position, CameraPosition, L, float4(colors[i], 1.0f), Strength);

@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using ImGuiNET;
+﻿using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
