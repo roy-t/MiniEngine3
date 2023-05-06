@@ -49,4 +49,9 @@ public sealed class PrimitiveMeshBuilder
         var mesh = new PrimitiveMesh(this.Device, vertices, indices, bounds, name);
         return this.Device.Resources.Add(mesh);
     }
+
+    //public ILifetime<PrimitiveMesh> FromGeometry(string name, Geometry geometry)
+    //{
+    //    var faces = 
+    //}
 }
