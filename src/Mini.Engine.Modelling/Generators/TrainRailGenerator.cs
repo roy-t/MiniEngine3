@@ -107,15 +107,14 @@ public static class TrainRailGenerator
 
     private static Quad CreateSingleRailEndCap(Vector3 position, Vector3 direction)
     {
-        var topRight = new Vector3(SINGLE_RAIL_WIDTH_TOP / 2.0f, SINGLE_RAIL_HEIGTH, 0.0f);
-        var bottomRight = new Vector3(SINGLE_RAIL_WIDTH_BOTTOM / 2.0f, 0.0f, 0.0f);
-        var bottomLeft = new Vector3(-SINGLE_RAIL_WIDTH_BOTTOM / 2.0f, 0.0f, 0.0f);
-        var topLeft = new Vector3(-SINGLE_RAIL_WIDTH_TOP / 2.0f, SINGLE_RAIL_HEIGTH, 0.0f);
+        var crossSection = CreateSingleRailCrossSection();
 
+        var topRight = crossSection[0].ToVector3();
+        var bottomRight = crossSection[1].ToVector3();
+        var bottomLeft = crossSection[2].ToVector3();
+        var topLeft = crossSection[3].ToVector3();
 
-        var h = new Vector3(0, BALLAST_HEIGHT_TOP, 0.0f);
-
-        var quad = new Quad(Vector3.UnitZ, topRight + h, bottomRight + h, bottomLeft + h, topLeft + h);
+        var quad = new Quad(Vector3.UnitZ, topRight, bottomRight, bottomLeft, topLeft);
 
         var transform = new Transform(position, Quaternion.Identity, Vector3.Zero, 1.0f);
         transform = transform.FaceTargetConstrained(position + direction, Vector3.UnitY);
@@ -150,10 +149,10 @@ public static class TrainRailGenerator
     private static Quad CreateTopBallastEndCap(Vector3 position, Vector3 direction)
     {
         var crossSection = CreateBallastCrossSection();        
-        var topRight = new Vector3(crossSection[0], 0);
-        var bottomRight = new Vector3(crossSection[1], 0);
-        var bottomLeft = new Vector3(crossSection[4], 0);
-        var topLeft = new Vector3(crossSection[5], 0);
+        var topRight = crossSection[0].ToVector3();
+        var bottomRight = crossSection[1].ToVector3();
+        var bottomLeft = crossSection[4].ToVector3();
+        var topLeft = crossSection[5].ToVector3();
         
         var quad = new Quad(Vector3.UnitZ, topRight, bottomRight, bottomLeft, topLeft);
 
@@ -166,10 +165,10 @@ public static class TrainRailGenerator
     private static Quad CreateBottomBallastEndCap(Vector3 position, Vector3 direction)
     {
         var crossSection = CreateBallastCrossSection();
-        var topRight = new Vector3(crossSection[1], 0);
-        var bottomRight = new Vector3(crossSection[2], 0);
-        var bottomLeft = new Vector3(crossSection[3], 0);
-        var topLeft = new Vector3(crossSection[4], 0);
+        var topRight = crossSection[1].ToVector3();
+        var bottomRight = crossSection[2].ToVector3();
+        var bottomLeft = crossSection[3].ToVector3();
+        var topLeft = crossSection[4].ToVector3();
 
         var quad = new Quad(Vector3.UnitZ, topRight, bottomRight, bottomLeft, topLeft);
 
