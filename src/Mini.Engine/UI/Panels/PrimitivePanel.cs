@@ -33,6 +33,7 @@ internal class PrimitivePanel : IDieselPanel
 
 #if DEBUG
         HotReloadManager.AddReloadCallback("Mini.Engine.Modelling", _ => this.shouldReload = true);
+        HotReloadManager.AddReloadCallback("Mini.Engine.UI.Panels.PrimitivePanel", _ => this.shouldReload = true);
 #endif
     }
 
@@ -41,7 +42,7 @@ internal class PrimitivePanel : IDieselPanel
         this.Primitives.Update();
         if (ImGui.Button("Add"))
         {
-            this.CreatePrimitive();
+            this.CreatePrimitives();
         }
 
         if (this.Primitives.HasComponent())
@@ -63,11 +64,19 @@ internal class PrimitivePanel : IDieselPanel
             }
 
             this.shouldReload = false;
-            this.CreatePrimitive();
+            this.CreatePrimitives();
         }
     }
 
-    private void CreatePrimitive()
+    private void CreatePrimitives()
+    {
+        var trackLayout = TrainRailGenerator.CreateTrackLayout();
+        this.CreateRailPrimitive(trackLayout);
+        this.CreateBallastPrimitive(trackLayout);
+
+    }
+
+    private void CreateRailPrimitive(Path3D trackLayout)
     {
         var entity = this.Administrator.Entities.Create();
         var creator = this.Administrator.Components;
@@ -76,11 +85,28 @@ internal class PrimitivePanel : IDieselPanel
         transform.Current = Transform.Identity;
         transform.Previous = transform.Current;
 
-        ref var component = ref creator.Create<PrimitiveComponent>(entity);        
-        //var q = QuadGenerator.Generate(Vector3.Zero, 1.0f);
-        var q = TrainRailGenerator.Generate();
-        component.Mesh = this.Builder.FromQuads("rail", q);
-        component.Color = Colors.Orange;
+        ref var component = ref creator.Create<PrimitiveComponent>(entity);
 
+        var rails = TrainRailGenerator.GenerateRails(trackLayout);
+
+        component.Mesh = this.Builder.FromQuads("rail", rails);
+        component.Color = new Color4(0.4f, 0.28f, 0.30f, 1.0f);
+    }
+
+    private void CreateBallastPrimitive(Path3D trackLayout)
+    {
+        var entity = this.Administrator.Entities.Create();
+        var creator = this.Administrator.Components;
+
+        ref var transform = ref creator.Create<TransformComponent>(entity);
+        transform.Current = Transform.Identity;
+        transform.Previous = transform.Current;
+
+        ref var component = ref creator.Create<PrimitiveComponent>(entity);
+
+        var ballast = TrainRailGenerator.GenerateBallast(trackLayout);
+
+        component.Mesh = this.Builder.FromQuads("ballast", ballast);
+        component.Color = new Color4(0.33f, 0.27f, 0.25f, 1.0f);
     }
 }

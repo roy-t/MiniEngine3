@@ -7,63 +7,94 @@ public record struct Path2D(bool IsClosed, params Vector2[] Positions)
 {
     public Vector2 this[int index]
     {
-        get => this.Positions[index % this.Positions.Length];
-        set => this.Positions[index % this.Positions.Length] = value;
+        get
+        {
+            var i = this.IsClosed ? (index % this.Positions.Length) : index;
+            if (this.IsClosed && i < 0) { i += this.Length; }
+            return this.Positions[i];
+        }
+        set
+        {
+            var i = this.IsClosed ? (index % this.Positions.Length) : index;
+            if (this.IsClosed && i < 0) { i += this.Length; }
+            this.Positions[i] = value;
+        }
     }
 
     public int Length => this.Positions.Length;
 
     public Vector2 GetForward(int index)
     {
+        this.AssetValidPath();
         this.AssertValidIndex(index);
 
-        if (index == 0 && this.Length > 1)
+        if (this.IsClosed || (index + 1) < this.Length)
         {
-            return Vector2.Normalize(this[1] - this[0]);
-        }
+            var from = this[index];
+            var to = this[index + 1];
 
-        if (!this.IsClosed && index == this.Length - 1)
+            return Vector2.Normalize(to - from);
+        }
+        else
         {
-            // Continue in the direction we were going
-            return Vector2.Normalize(this[index] - this[index - 1]);
-        }
+            // If the path is not closed, the forward direction of the last position
+            // is the same as the second to last one.
+            var from = this[index - 1];
+            var to = this[index];
 
-        return Vector2.Normalize(this[index + 1] - this[index]);
+            return Vector2.Normalize(to - from);
+        }
     }
 
     public Vector2 GetBackward(int index)
     {
+        this.AssetValidPath();
         this.AssertValidIndex(index);
 
-        if (!this.IsClosed && index == 0 && this.Length > 1)
+        if (this.IsClosed || index > 0)
         {
-            // Continue in the direction we were going
-            return Vector2.Normalize(this[0] - this[1]);
-        }
+            var from = this[index];
+            var to = this[index - 1];
 
-        if (index == this.Length - 1)
+            return Vector2.Normalize(to - from);
+        }
+        else
         {
-            return Vector2.Normalize(this[index - 1] - this[index]);
-        }
+            // If the path is not closed, the backward direction of the first position
+            // is the same as the second one.
+            var from = this[index + 1];
+            var to = this[index];
 
-        return Vector2.Normalize(this[index - 1] - this[index]);
+            return Vector2.Normalize(to - from);
+        }
     }
 
     public Vector2 GetForwardAlongBendToNextPosition(int index)
     {
+        this.AssetValidPath();
         this.AssertValidIndex(index);
 
-        if (index == 0)
+
+        if (this.IsClosed || index > 0)
         {
-            return this.GetForward(index);
+            return Vector2.Normalize(this.GetForward(index - 1) + this.GetForward(index));
         }
 
-        return Vector2.Normalize(this.GetForward(index - 1) + this.GetForward(index));
+        return this.GetForward(index);
     }
 
     [Conditional("DEBUG")]
     private void AssertValidIndex(int index)
     {
-        Debug.Assert(index >= 0 && (this.IsClosed || index < this.Length));
+        if (!this.IsClosed)
+        {
+            Debug.Assert(index >= 0 && index < this.Length);
+        }
+    }
+
+    [Conditional("DEBUG")]
+    private void AssetValidPath()
+    {
+        Debug.Assert(this.Length >= 2);
     }
 }
