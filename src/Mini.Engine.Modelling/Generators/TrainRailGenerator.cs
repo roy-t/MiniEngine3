@@ -47,7 +47,7 @@ public static class TrainRailGenerator
 
     public static Path3D CreateTrackLayout()
     {
-        var layout = new Vector3[40];
+        var layout = new Vector3[10];
         var step = (MathF.PI * 2.0f) / layout.Length;
         for (var i = 0; i < layout.Length; i++)
         {
@@ -98,7 +98,7 @@ public static class TrainRailGenerator
         for (var i = 0; i < railLayouts.Length; i++)
         {
             var layout = railLayouts[i];
-            caps[i * 2] = CreateSingleRailEndCap(layout[0], layout.GetForward(0));
+            caps[(i * 2) + 0] = CreateSingleRailEndCap(layout[0], layout.GetForward(0));
             caps[(i * 2) + 1] = CreateSingleRailEndCap(layout[layout.Length - 1], layout.GetBackward(layout.Length - 1));
         }
 
@@ -107,15 +107,9 @@ public static class TrainRailGenerator
 
     private static Quad CreateSingleRailEndCap(Vector3 position, Vector3 direction)
     {
-        var crossSection = CreateSingleRailCrossSection();
-
-        var topRight = crossSection[0].ToVector3();
-        var bottomRight = crossSection[1].ToVector3();
-        var bottomLeft = crossSection[2].ToVector3();
-        var topLeft = crossSection[3].ToVector3();
-
-        var quad = new Quad(Vector3.UnitZ, topRight, bottomRight, bottomLeft, topLeft);
-
+        var crossSection = CreateSingleRailCrossSection();        
+        var quad = Quad.SingleFromPath(crossSection, Vector3.UnitZ);
+        
         var transform = new Transform(position, Quaternion.Identity, Vector3.Zero, 1.0f);
         transform = transform.FaceTargetConstrained(position + direction, Vector3.UnitY);
 
@@ -137,45 +131,28 @@ public static class TrainRailGenerator
 
     private static Quad[] CreateBallastEndCaps(Path3D trackLayout)
     {
-        return new Quad[4]
-        {
-            CreateTopBallastEndCap(trackLayout[0], trackLayout.GetForward(0)),
-            CreateBottomBallastEndCap(trackLayout[0], trackLayout.GetForward(0)),
-            CreateTopBallastEndCap(trackLayout[trackLayout.Length - 1], trackLayout.GetBackward(trackLayout.Length - 1)),
-            CreateBottomBallastEndCap(trackLayout[trackLayout.Length - 1], trackLayout.GetBackward(trackLayout.Length - 1)),
-        };
+        var start = CreateBallastEndCap(trackLayout[0], trackLayout.GetForward(0));
+        var end = CreateBallastEndCap(trackLayout[trackLayout.Length - 1], trackLayout.GetBackward(trackLayout.Length - 1));
+
+
+        return ArrayUtilities.Concat(start, end);        
     }
 
-    private static Quad CreateTopBallastEndCap(Vector3 position, Vector3 direction)
-    {
-        var crossSection = CreateBallastCrossSection();        
-        var topRight = crossSection[0].ToVector3();
-        var bottomRight = crossSection[1].ToVector3();
-        var bottomLeft = crossSection[4].ToVector3();
-        var topLeft = crossSection[5].ToVector3();
-        
-        var quad = new Quad(Vector3.UnitZ, topRight, bottomRight, bottomLeft, topLeft);
-
-        var transform = new Transform(position, Quaternion.Identity, Vector3.Zero, 1.0f);
-        transform = transform.FaceTargetConstrained(position + direction, Vector3.UnitY);
-
-        return quad.CreateTransformed(in transform);
-    }
-
-    private static Quad CreateBottomBallastEndCap(Vector3 position, Vector3 direction)
+    private static Quad[] CreateBallastEndCap(Vector3 position, Vector3 direction)
     {
         var crossSection = CreateBallastCrossSection();
-        var topRight = crossSection[1].ToVector3();
-        var bottomRight = crossSection[2].ToVector3();
-        var bottomLeft = crossSection[3].ToVector3();
-        var topLeft = crossSection[4].ToVector3();
+        var quads = Quad.MultipleFromPath(crossSection, Vector3.UnitZ, 0, 1, 4, 5, 1, 2, 3, 4);
 
-        var quad = new Quad(Vector3.UnitZ, topRight, bottomRight, bottomLeft, topLeft);
+        for (var i = 0; i < quads.Length; i++)
+        {
+            var transform = new Transform(position, Quaternion.Identity, Vector3.Zero, 1.0f);
+            transform = transform.FaceTargetConstrained(position + direction, Vector3.UnitY);
 
-        var transform = new Transform(position, Quaternion.Identity, Vector3.Zero, 1.0f);
-        transform = transform.FaceTargetConstrained(position + direction, Vector3.UnitY);
+            quads[i] = quads[i].CreateTransformed(in transform);
+        }
 
-        return quad.CreateTransformed(in transform);
-    }
+
+        return quads;
+    }  
 }
 
