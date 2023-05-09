@@ -22,11 +22,14 @@ struct OUTPUT
   
 cbuffer Constants : register(b0)
 {
-    float4x4 WorldViewProjection;     
     float4x4 World;
+    float4x4 ViewProjection;    
     float3 CameraPosition;
     float4 Albedo;
 };
+
+    
+StructuredBuffer<float4x4> Instances : register(t0);
     
 #pragma VertexShader
 PS_INPUT VS(VS_INPUT input)
@@ -36,8 +39,27 @@ PS_INPUT VS(VS_INPUT input)
     float3x3 rotation = (float3x3) World;
     float4 position = float4(input.position, 1.0);
 
-    output.position = mul(WorldViewProjection, position);
+    float4x4 worldViewProjection = mul(ViewProjection, World);
+    output.position = mul(worldViewProjection, position);
     output.world = mul(World, position).xyz;
+    output.normal = normalize(mul(rotation, input.normal));
+
+    return output;
+}
+    
+#pragma VertexShader
+PS_INPUT VSInstanced(VS_INPUT input, uint instanceId : SV_InstanceID)
+{
+    PS_INPUT output;
+    
+    float4x4 world = Instances[instanceId];
+    float4x4 worldViewProjection = mul(ViewProjection, world);
+    
+    float3x3 rotation = (float3x3) world;
+    float4 position = float4(input.position, 1.0);
+
+    output.position = mul(worldViewProjection, position);
+    output.world = mul(world, position).xyz;
     output.normal = normalize(mul(rotation, input.normal));
 
     return output;

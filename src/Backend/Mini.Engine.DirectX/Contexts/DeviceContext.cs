@@ -80,6 +80,11 @@ public abstract class DeviceContext : IDisposable
         this.ID3D11DeviceContext.DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation);
     }
 
+    public void DrawIndexedInstanced(int indexCountPerInstance, int instanceCount, int startIndexLocation = 0, int baseVertexLocation = 0, int startInstanceLocation = 0)
+    {
+        this.ID3D11DeviceContext.DrawIndexedInstanced(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+    }
+
     public void Clear(IRWTexture texture, Color4 color)
     {
         this.ID3D11DeviceContext.ClearUnorderedAccessView(texture.UnorderedAccessViews[0], color);

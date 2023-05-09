@@ -1,6 +1,8 @@
-﻿using Mini.Engine.Configuration;
+﻿using System.Numerics;
+using Mini.Engine.Configuration;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.Graphics.Diesel;
 using Vortice.Mathematics;
 
@@ -50,8 +52,11 @@ public sealed class PrimitiveMeshBuilder
         return this.Device.Resources.Add(mesh);
     }
 
-    //public ILifetime<PrimitiveMesh> FromGeometry(string name, Geometry geometry)
-    //{
-    //    var faces = 
-    //}
+    public ILifetime<StructuredBuffer<Matrix4x4>> Instance(string name, params Matrix4x4[] instances)
+    {
+        var buffer = new StructuredBuffer<Matrix4x4>(this.Device, name);
+        buffer.MapData(this.Device.ImmediateContext, instances);
+
+        return this.Device.Resources.Add(buffer);
+    }
 }

@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Configuration;
+﻿using System.Numerics;
+using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
@@ -42,7 +43,7 @@ public sealed class PrimitiveRenderService : IDisposable
 
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
-    }    
+    }
 
     public void Render(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in PrimitiveComponent primitive, in Transform transform)
     {
@@ -58,12 +59,37 @@ public sealed class PrimitiveRenderService : IDisposable
             context.IA.SetVertexBuffer(mesh.Vertices);
             context.IA.SetIndexBuffer(mesh.Indices);
 
-            this.User.MapConstants(context, world * viewProjection, world, cameraTransform.GetPosition(), primitive.Color);
+            this.User.MapConstants(context, world, viewProjection, cameraTransform.GetPosition(), primitive.Color);
 
             context.DrawIndexed(mesh.Indices.Length, 0, 0);
         }
     }
 
+    public void SetupInstanced(DeviceContext context, RenderTarget albedo, DepthStencilBuffer depth, int x, int y, int width, int heigth)
+    {
+        context.OM.SetRenderTarget(albedo, depth);
+
+        context.Setup(this.InputLayout, Vortice.Direct3D.PrimitiveTopology.TriangleList, this.Shader.Vsinstanced, this.CullCounterClockwise, x, y, width, heigth, this.Shader.Ps, this.Opaque, this.ReverseZ);
+
+        context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
+        context.PS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
+    }
+
+    public void Render(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in PrimitiveComponent primitive, in InstancesComponent instances)
+    {
+        var viewProjection = camera.GetInfiniteReversedZViewProjection(in cameraTransform);
+
+        var world = Matrix4x4.Identity;
+        var mesh = context.Resources.Get(primitive.Mesh);
+
+        context.IA.SetVertexBuffer(mesh.Vertices);
+        context.IA.SetIndexBuffer(mesh.Indices);
+        context.VS.SetInstanceBuffer(Shader.Instances, instances.InstanceBuffer);
+
+        this.User.MapConstants(context, world, viewProjection, cameraTransform.GetPosition(), primitive.Color);
+
+        context.DrawIndexedInstanced(mesh.IndexCount, instances.InstanceCount);
+    }
 
     public void Dispose()
     {

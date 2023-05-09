@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using System.Numerics;
+using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
@@ -48,23 +49,33 @@ internal class PrimitivePanel : IDieselPanel
         if (this.Primitives.HasComponent())
         {
             ImGui.SameLine();
-
             if (ImGui.Button("Remove"))
             {
                 ref var component = ref this.Primitives.Get();
                 this.Administrator.Components.MarkForRemoval(component.Entity);
             }
+
+            ImGui.SameLine();            
+            if(ImGui.Button("Clear"))
+            {
+                this.ClearPrimitives();
+            }
         }
 
         if (this.shouldReload)
         {
-            foreach (var entity in this.Container.IterateAllEntities())
-            {
-                this.Administrator.Components.MarkForRemoval(entity);
-            }
+            this.ClearPrimitives();
 
             this.shouldReload = false;
             this.CreatePrimitives();
+        }
+    }
+
+    private void ClearPrimitives()
+    {
+        foreach (var entity in this.Container.IterateAllEntities())
+        {
+            this.Administrator.Components.MarkForRemoval(entity);
         }
     }
 
@@ -72,8 +83,32 @@ internal class PrimitivePanel : IDieselPanel
     {
         var trackLayout = TrainRailGenerator.CreateTrackLayout();
         this.CreateRailPrimitive(trackLayout);
+        this.CreateRailPrimitiveInstances(trackLayout);
         this.CreateBallastPrimitive(trackLayout);
 
+    }
+
+    private void CreateRailPrimitiveInstances(Path3D trackLayout)
+    {
+        var entity = this.Administrator.Entities.Create();
+        var creator = this.Administrator.Components;
+
+        var matrices = new Matrix4x4[]
+        {
+            Matrix4x4.CreateTranslation(Vector3.UnitX * 10),
+            Matrix4x4.CreateTranslation(Vector3.UnitX * 20)
+        };
+
+        ref var instances = ref creator.Create<InstancesComponent>(entity);
+        instances.InstanceBuffer = this.Builder.Instance("rail_instances", matrices);
+        instances.InstanceCount = matrices.Length;
+
+        ref var component = ref creator.Create<PrimitiveComponent>(entity);
+
+        var rails = TrainRailGenerator.GenerateRails(trackLayout);
+
+        component.Mesh = this.Builder.FromQuads("rail", rails);
+        component.Color = new Color4(0.4f, 0.28f, 0.30f, 1.0f);
     }
 
     private void CreateRailPrimitive(Path3D trackLayout)
@@ -82,7 +117,7 @@ internal class PrimitivePanel : IDieselPanel
         var creator = this.Administrator.Components;
 
         ref var transform = ref creator.Create<TransformComponent>(entity);
-        transform.Current = Transform.Identity;
+        transform.Current = Transform.Identity.AddTranslation(Vector3.UnitX * 5);
         transform.Previous = transform.Current;
 
         ref var component = ref creator.Create<PrimitiveComponent>(entity);
@@ -99,7 +134,7 @@ internal class PrimitivePanel : IDieselPanel
         var creator = this.Administrator.Components;
 
         ref var transform = ref creator.Create<TransformComponent>(entity);
-        transform.Current = Transform.Identity;
+        transform.Current = Transform.Identity.AddTranslation(Vector3.UnitX * 5);
         transform.Previous = transform.Current;
 
         ref var component = ref creator.Create<PrimitiveComponent>(entity);
