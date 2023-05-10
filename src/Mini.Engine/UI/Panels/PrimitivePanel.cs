@@ -15,7 +15,7 @@ namespace Mini.Engine.UI.Panels;
 [Service]
 internal class PrimitivePanel : IDieselPanel
 {
-    
+
     private readonly IComponentContainer<PrimitiveComponent> Container;
     private readonly ComponentSelector<PrimitiveComponent> Primitives;
     private readonly ECSAdministrator Administrator;
@@ -55,8 +55,8 @@ internal class PrimitivePanel : IDieselPanel
                 this.Administrator.Components.MarkForRemoval(component.Entity);
             }
 
-            ImGui.SameLine();            
-            if(ImGui.Button("Clear"))
+            ImGui.SameLine();
+            if (ImGui.Button("Clear"))
             {
                 this.ClearPrimitives();
             }
@@ -82,10 +82,10 @@ internal class PrimitivePanel : IDieselPanel
     private void CreatePrimitives()
     {
         var trackLayout = TrainRailGenerator.CreateTrackLayout();
-        this.CreateRailPrimitive(trackLayout);
+        
         this.CreateRailPrimitiveInstances(trackLayout);
-        this.CreateBallastPrimitive(trackLayout);
-
+        this.CreateRailTieInstances(trackLayout);
+        this.CreateRailBallastInstances(trackLayout);        
     }
 
     private void CreateRailPrimitiveInstances(Path3D trackLayout)
@@ -95,29 +95,15 @@ internal class PrimitivePanel : IDieselPanel
 
         var matrices = new Matrix4x4[]
         {
-            Matrix4x4.CreateTranslation(Vector3.UnitX * 10),
-            Matrix4x4.CreateTranslation(Vector3.UnitX * 20)
+            Matrix4x4.Identity
         };
 
         ref var instances = ref creator.Create<InstancesComponent>(entity);
         instances.InstanceBuffer = this.Builder.Instance("rail_instances", matrices);
         instances.InstanceCount = matrices.Length;
 
-        ref var component = ref creator.Create<PrimitiveComponent>(entity);
-
-        var rails = TrainRailGenerator.GenerateRails(trackLayout);
-
-        component.Mesh = this.Builder.FromQuads("rail", rails);
-        component.Color = new Color4(0.4f, 0.28f, 0.30f, 1.0f);
-    }
-
-    private void CreateRailPrimitive(Path3D trackLayout)
-    {
-        var entity = this.Administrator.Entities.Create();
-        var creator = this.Administrator.Components;
-
         ref var transform = ref creator.Create<TransformComponent>(entity);
-        transform.Current = Transform.Identity.AddTranslation(Vector3.UnitX * 5);
+        transform.Current = Transform.Identity;//.AddRotation(Quaternion.CreateFromYawPitchRoll(7, 0, 0));
         transform.Previous = transform.Current;
 
         ref var component = ref creator.Create<PrimitiveComponent>(entity);
@@ -128,13 +114,43 @@ internal class PrimitivePanel : IDieselPanel
         component.Color = new Color4(0.4f, 0.28f, 0.30f, 1.0f);
     }
 
-    private void CreateBallastPrimitive(Path3D trackLayout)
+    private void CreateRailTieInstances(Path3D trackLayout)
     {
         var entity = this.Administrator.Entities.Create();
         var creator = this.Administrator.Components;
 
+        var (quads, matrices) = TrainRailGenerator.GenerateRailTies(trackLayout);
+
+        ref var instances = ref creator.Create<InstancesComponent>(entity);
+        instances.InstanceBuffer = this.Builder.Instance("ties_instances", matrices);
+        instances.InstanceCount = matrices.Length;
+
         ref var transform = ref creator.Create<TransformComponent>(entity);
-        transform.Current = Transform.Identity.AddTranslation(Vector3.UnitX * 5);
+        transform.Current = Transform.Identity;
+        transform.Previous = transform.Current;
+
+        ref var component = ref creator.Create<PrimitiveComponent>(entity);
+
+        component.Mesh = this.Builder.FromQuads("ties", quads);
+        component.Color = new Color4(1.0f, 0.0f, 0.0f, 1.0f);
+    }
+
+    private void CreateRailBallastInstances(Path3D trackLayout)
+    {
+        var entity = this.Administrator.Entities.Create();
+        var creator = this.Administrator.Components;
+
+        var matrices = new Matrix4x4[]
+        {
+            Matrix4x4.Identity
+        };
+
+        ref var instances = ref creator.Create<InstancesComponent>(entity);
+        instances.InstanceBuffer = this.Builder.Instance("ballast_instances", matrices);
+        instances.InstanceCount = matrices.Length;
+
+        ref var transform = ref creator.Create<TransformComponent>(entity);
+        transform.Current = Transform.Identity;
         transform.Previous = transform.Current;
 
         ref var component = ref creator.Create<PrimitiveComponent>(entity);

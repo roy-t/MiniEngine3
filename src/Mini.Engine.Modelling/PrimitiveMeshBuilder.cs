@@ -40,10 +40,11 @@ public sealed class PrimitiveMeshBuilder
             indices[nI++] = nV + 3;
             indices[nI++] = nV + 0;
 
-            vertices[nV++] = new PrimitiveVertex(quad.A, quad.Normal);
-            vertices[nV++] = new PrimitiveVertex(quad.B, quad.Normal);
-            vertices[nV++] = new PrimitiveVertex(quad.C, quad.Normal);
-            vertices[nV++] = new PrimitiveVertex(quad.D, quad.Normal);
+            var normal = quad.GetNormal();
+            vertices[nV++] = new PrimitiveVertex(quad.A, normal);
+            vertices[nV++] = new PrimitiveVertex(quad.B, normal);
+            vertices[nV++] = new PrimitiveVertex(quad.C, normal);
+            vertices[nV++] = new PrimitiveVertex(quad.D, normal);
 
             bounds = BoundingBox.CreateMerged(bounds, BoundingBox.CreateFromPoints(new[] { quads[i].A, quads[i].B, quads[i].C, quads[i].D }));
         }

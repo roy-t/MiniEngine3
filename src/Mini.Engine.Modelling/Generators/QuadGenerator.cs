@@ -13,6 +13,6 @@ public static class QuadGenerator
             position + new Vector3(-extents, 0, -extents), // NW
         };
 
-        return new Quad(Vector3.UnitY, positions[0], positions[1], positions[2], positions[3]);
+        return new Quad(positions[0], positions[1], positions[2], positions[3]);
     }
 }

@@ -52,7 +52,7 @@ PS_INPUT VSInstanced(VS_INPUT input, uint instanceId : SV_InstanceID)
 {
     PS_INPUT output;
     
-    float4x4 world = Instances[instanceId];
+    float4x4 world = mul(World, Instances[instanceId]);
     float4x4 worldViewProjection = mul(ViewProjection, world);
     
     float3x3 rotation = (float3x3) world;

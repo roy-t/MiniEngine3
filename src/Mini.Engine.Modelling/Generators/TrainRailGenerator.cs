@@ -19,6 +19,10 @@ public static class TrainRailGenerator
     private const float BALLAST_HEIGHT_MIDDLE = 0.5f;
     private const float BALLAST_HEIGHT_BOTTOM = 0.0f;
 
+    private const float RAIL_TIE_WIDTH = 2.0f;
+    private const float RAIL_TIE_HEIGHT = 0.15f;
+    private const float RAIL_TIE_DEPTH = 0.2f;
+    private const float RAIL_TIE_SPACING = 0.3f + RAIL_TIE_DEPTH;
 
     public static Quad[] GenerateRails(Path3D trackLayout)
     {
@@ -40,9 +44,18 @@ public static class TrainRailGenerator
         var crossSection = CreateBallastCrossSection();
         var ballast = Extruder.Extrude(crossSection, trackLayout);
 
-        var caps = CreateBallastEndCaps(trackLayout);
+        return ballast;
+        //var caps = CreateBallastEndCaps(trackLayout);
+        //return ArrayUtilities.Concat(ballast, caps);
+    }
 
-        return ArrayUtilities.Concat(ballast, caps);
+    public static (Quad[], Matrix4x4[]) GenerateRailTies(Path3D trackLayout)
+    {
+        var quads = CreateSingleRailTie();
+        var transforms = Walker.Walk(trackLayout, RAIL_TIE_SPACING);
+        var matrices = transforms.Select(t => t.GetMatrix()).ToArray();
+
+        return (quads, matrices);
     }
 
     public static Path3D CreateTrackLayout()
@@ -54,9 +67,8 @@ public static class TrainRailGenerator
             layout[i] = new Vector3(MathF.Cos(step * i), 0, MathF.Sin(step * i)) * 5.0f;
         }
 
-        return new Path3D(false, layout);
+        return new Path3D(true, layout); // TODO: closed lop true creates really weird rail and ballast
     }
-
 
     private static Path3D CreateSingleRailLayout(Path3D trackLayout, float offset)
     {
@@ -73,7 +85,7 @@ public static class TrainRailGenerator
             var up = Vector3.UnitY;
             var left = Vector3.Normalize(Vector3.Cross(up, forward));
 
-            railLayout[i] = trackLayout[i] + left * offset;
+            railLayout[i] = trackLayout[i] + (left * offset);
         }
 
         return new Path3D(trackLayout.IsClosed, railLayout);
@@ -108,7 +120,7 @@ public static class TrainRailGenerator
     private static Quad CreateSingleRailEndCap(Vector3 position, Vector3 direction)
     {
         var crossSection = CreateSingleRailCrossSection();        
-        var quad = Quad.SingleFromPath(crossSection, Vector3.UnitZ);
+        var quad = Quad.SingleFromPath(crossSection);
         
         var transform = new Transform(position, Quaternion.Identity, Vector3.Zero, 1.0f);
         transform = transform.FaceTargetConstrained(position + direction, Vector3.UnitY);
@@ -141,7 +153,7 @@ public static class TrainRailGenerator
     private static Quad[] CreateBallastEndCap(Vector3 position, Vector3 direction)
     {
         var crossSection = CreateBallastCrossSection();
-        var quads = Quad.MultipleFromPath(crossSection, Vector3.UnitZ, 0, 1, 4, 5, 1, 2, 3, 4);
+        var quads = Quad.MultipleFromPath(crossSection, 0, 1, 4, 5, 1, 2, 3, 4);
 
         for (var i = 0; i < quads.Length; i++)
         {
@@ -153,6 +165,27 @@ public static class TrainRailGenerator
 
 
         return quads;
-    }  
+    }
+
+    private static Quad[] CreateSingleRailTie()
+    {
+        var h = new Vector3(0, BALLAST_HEIGHT_TOP, 0);
+
+        var topRightA = new Vector3(RAIL_TIE_WIDTH / 2.0f, RAIL_TIE_HEIGHT, RAIL_TIE_DEPTH / 2.0f) + h;
+        var bottomRightA = new Vector3(RAIL_TIE_WIDTH / 2.0f, 0.0f, RAIL_TIE_DEPTH / 2.0f) + h;
+        var bottomLeftA = new Vector3(-RAIL_TIE_WIDTH / 2.0f, 0.0f, RAIL_TIE_DEPTH / 2.0f) + h;
+        var topLeftA = new Vector3(-RAIL_TIE_WIDTH / 2.0f, RAIL_TIE_HEIGHT, RAIL_TIE_DEPTH / 2.0f) + h;
+
+        var front = new Path3D(true, topRightA, bottomRightA, bottomLeftA, topLeftA);
+
+        var topRightB = new Vector3(RAIL_TIE_WIDTH / 2.0f, RAIL_TIE_HEIGHT, -RAIL_TIE_DEPTH / 2.0f) + h;
+        var bottomRightB = new Vector3(RAIL_TIE_WIDTH / 2.0f, 0.0f, -RAIL_TIE_DEPTH / 2.0f) + h;
+        var bottomLeftB = new Vector3(-RAIL_TIE_WIDTH / 2.0f, 0.0f, -RAIL_TIE_DEPTH / 2.0f) + h;
+        var topLeftB = new Vector3(-RAIL_TIE_WIDTH / 2.0f, RAIL_TIE_HEIGHT, -RAIL_TIE_DEPTH / 2.0f) + h;
+
+        var back = new Path3D(true, topRightB, bottomRightB, bottomLeftB, topLeftB);
+
+        return Joiner.Join(front, back);
+    }
 }
 
