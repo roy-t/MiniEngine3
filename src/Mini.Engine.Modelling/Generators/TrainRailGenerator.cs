@@ -43,10 +43,9 @@ public static class TrainRailGenerator
     {
         var crossSection = CreateBallastCrossSection();
         var ballast = Extruder.Extrude(crossSection, trackLayout);
-
-        return ballast;
-        //var caps = CreateBallastEndCaps(trackLayout);
-        //return ArrayUtilities.Concat(ballast, caps);
+        
+        var caps = CreateBallastEndCaps(trackLayout);
+        return ArrayUtilities.Concat(ballast, caps);
     }
 
     public static (Quad[], Matrix4x4[]) GenerateRailTies(Path3D trackLayout)
@@ -67,7 +66,7 @@ public static class TrainRailGenerator
             layout[i] = new Vector3(MathF.Cos(step * i), 0, MathF.Sin(step * i)) * 5.0f;
         }
 
-        return new Path3D(true, layout); // TODO: closed lop true creates really weird rail and ballast
+        return new Path3D(true, layout);
     }
 
     private static Path3D CreateSingleRailLayout(Path3D trackLayout, float offset)

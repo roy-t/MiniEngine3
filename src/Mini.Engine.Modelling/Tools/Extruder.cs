@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Reflection.Metadata.Ecma335;
 using Mini.Engine.Core;
 using Mini.Engine.Graphics;
 
@@ -8,10 +9,16 @@ public static class Extruder
     public static Quad[] Extrude(Path2D crossSection, float depth, bool closeShape = true)
     {
         var layout = new Path3D(closeShape, Vector3.Zero, Vector3.UnitZ * -depth);
-        return Extrude(crossSection, layout);
+        return Extrude(crossSection, layout, Vector3.UnitY);
     }
 
+
     public static Quad[] Extrude(Path2D crossSection, Path3D path)
+    {
+        return Extrude(crossSection, path, Vector3.UnitY);
+    }
+
+    public static Quad[] Extrude(Path2D crossSection, Path3D path, Vector3 up)
     {
         if (crossSection.Length < 2)
         {
@@ -23,28 +30,24 @@ public static class Extruder
             throw new Exception("Invalid path");
         }
 
-
-        var length = path.IsClosed ? path.Length : path.Length - 1;
-        var loops = crossSection.IsClosed ? crossSection.Length : crossSection.Length - 1;
-
-        var quads = new Quad[length * loops];
+        var quads = new Quad[path.Steps * crossSection.Steps];
 
         var counter = 0;
-        for (var i = 0; i < length; i++)
+        for (var i = 0; i < path.Steps; i++)
         {
             var positionA = path[i];
-            var directionA = path.GetForwardAlongBendToNextPosition(i); // TODO: get forward along bend breaks when looping!!!!
+            var directionA = path.GetForwardAlongBendToNextPosition(i); 
             var matrixA = new Transform(positionA, Quaternion.Identity, Vector3.Zero, 1.0f)
-                .FaceTarget(positionA + directionA)
+                .FaceTargetConstrained(positionA + directionA, up)
                 .GetMatrix();
 
             var positionB = path[i + 1];
             var directionB = path.GetForwardAlongBendToNextPosition(i + 1);
             var matrixB = new Transform(positionB, Quaternion.Identity, Vector3.Zero, 1.0f)
-                .FaceTarget(positionB + directionB)
+                .FaceTargetConstrained(positionB + directionB, up)
                 .GetMatrix();
 
-            for (var j = 0; j < loops; j++)
+            for (var j = 0; j < crossSection.Steps; j++)
             {
                 var topRight = Vector3.Transform(crossSection[j + 1].ToVector3(), matrixB);
                 var bottomRight = Vector3.Transform(crossSection[j + 1].ToVector3(), matrixA);

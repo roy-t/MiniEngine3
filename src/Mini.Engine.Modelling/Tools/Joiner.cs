@@ -8,10 +8,9 @@ public static class Joiner
         Debug.Assert(front.Length == back.Length);
         Debug.Assert(front.IsClosed == back.IsClosed);
 
-        var length = front.IsClosed ? front.Length : (front.Length - 1);
-        var quads = new Quad[length];
+        var quads = new Quad[front.Steps];
 
-        for (var i = 0; i < length; i++)
+        for (var i = 0; i < front.Steps; i++)
         {
             quads[i] = new Quad(back[i], back[i + 1], front[i + 1], front[i]);
         }

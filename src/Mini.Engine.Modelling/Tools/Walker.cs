@@ -6,10 +6,8 @@ public static class Walker
 {
     public static Transform[] Walk(Path3D layout, float stepSize)
     {
-        var length = layout.IsClosed ? layout.Length : layout.Length - 1;
-
         var totalLength = 0.0f;
-        for (var i = 0; i < length; i++)
+        for (var i = 0; i < layout.Steps; i++)
         {
             totalLength += Vector3.Distance(layout[i], layout[i + 1]);
         }
@@ -17,7 +15,7 @@ public static class Walker
         var transforms = new Transform[(int)(totalLength / stepSize)];
         var counter = 0;
         var accumulator = 0.0f;
-        for (var i = 0; i < length; i++)
+        for (var i = 0; i < layout.Steps; i++)
         {
             var start = layout[i];
             var end = layout[i + 1];

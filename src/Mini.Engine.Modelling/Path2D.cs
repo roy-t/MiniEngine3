@@ -2,26 +2,40 @@
 using System.Numerics;
 
 namespace Mini.Engine.Modelling;
-
 public record struct Path2D(bool IsClosed, params Vector2[] Positions)
 {
     public Vector2 this[int index]
     {
         get
         {
-            var i = this.IsClosed ? (index % this.Positions.Length) : index;
-            if (this.IsClosed && i < 0) { i += this.Length; }
-            return this.Positions[i];
+            this.AssertValidIndex(index);
+            var i = Math.Abs(index) % this.Length;
+            if (index < 0)
+            {
+                return this.Positions[^i];
+            }
+            else
+            {
+                return this.Positions[i];
+            }
         }
         set
         {
-            var i = this.IsClosed ? (index % this.Positions.Length) : index;
-            if (this.IsClosed && i < 0) { i += this.Length; }
-            this.Positions[i] = value;
+            this.AssertValidIndex(index);
+            var i = Math.Abs(index) % this.Length;
+            if (index < 0)
+            {
+                this.Positions[^i] = value;
+            }
+            else
+            {
+                this.Positions[i] = value;
+            }
         }
     }
 
     public int Length => this.Positions.Length;
+    public int Steps => this.IsClosed ? this.Length : this.Length - 1;
 
     public Vector2 GetForward(int index)
     {
@@ -73,7 +87,6 @@ public record struct Path2D(bool IsClosed, params Vector2[] Positions)
     {
         this.AssetValidPath();
         this.AssertValidIndex(index);
-
 
         if (this.IsClosed || index > 0)
         {

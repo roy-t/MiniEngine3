@@ -8,19 +8,34 @@ public record struct Path3D(bool IsClosed, params Vector3[] Positions)
     {
         get
         {
-            var i = this.IsClosed ? (index % this.Positions.Length) : index;
-            if (this.IsClosed && i < 0) { i += this.Length; }
-            return this.Positions[i];
+            this.AssertValidIndex(index);
+            var i = Math.Abs(index) % this.Length;
+            if (index < 0)
+            {
+                return this.Positions[^i];
+            }
+            else
+            {
+                return this.Positions[i];
+            }
         }
         set
         {
-            var i = this.IsClosed ? (index % this.Positions.Length) : index;
-            if (this.IsClosed && i < 0) { i += this.Length; }
-            this.Positions[i] = value;
+            this.AssertValidIndex(index);
+            var i = Math.Abs(index) % this.Length;
+            if (index < 0)
+            {
+                this.Positions[^i] = value;
+            }
+            else
+            {
+                this.Positions[i] = value;
+            }
         }
     }
 
     public int Length => this.Positions.Length;
+    public int Steps => this.IsClosed ? this.Length : this.Length - 1;
 
     public Vector3 GetForward(int index)
     {
@@ -72,8 +87,7 @@ public record struct Path3D(bool IsClosed, params Vector3[] Positions)
     {
         this.AssetValidPath();
         this.AssertValidIndex(index);
-
-
+       
         if (this.IsClosed || index > 0)
         {
             return Vector3.Normalize(this.GetForward(index - 1) + this.GetForward(index));
