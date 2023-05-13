@@ -4,7 +4,7 @@ using Mini.Engine.Graphics;
 namespace Mini.Engine.Modelling.Tools;
 public static class Walker
 {
-    public static Transform[] Walk(Path3D layout, float stepSize)
+    public static Transform[] Walk(Path3D layout, float stepSize, Vector3 up)
     {
         var totalLength = 0.0f;
         for (var i = 0; i < layout.Steps; i++)
@@ -15,22 +15,26 @@ public static class Walker
         var transforms = new Transform[(int)(totalLength / stepSize)];
         var counter = 0;
         var accumulator = 0.0f;
-        for (var i = 0; i < layout.Steps; i++)
-        {
-            var start = layout[i];
-            var end = layout[i + 1];
-            var normal = layout.GetForward(i);
 
-            accumulator += Vector3.Distance(start, end);
 
-            while (accumulator > stepSize && counter < transforms.Length)
-            {
-                accumulator -= stepSize;
+        // TODO: use Path3D.GetPositonAfter(XYZ) and Path3D.GetNormalAfter(XYZ);
 
-                start += normal * stepSize;
-                transforms[counter++] = new Transform(start, Quaternion.Identity, Vector3.Zero, 1.0f).FaceTarget(start + normal);
-            }
-        }
+        //for (var i = 0; i < layout.Steps; i++)
+        //{
+        //    var start = layout[i];
+        //    var end = layout[i + 1];
+        //    var normal = layout.GetForward(i);
+
+        //    accumulator += Vector3.Distance(start, end);
+
+        //    while (accumulator > stepSize && counter < transforms.Length)
+        //    {
+        //        accumulator -= stepSize;
+
+        //        start += normal * stepSize;
+        //        transforms[counter++] = new Transform(start, Quaternion.Identity, Vector3.Zero, 1.0f).FaceTargetConstrained(start + normal, up);
+        //    }
+        //}
 
         return transforms;
     }

@@ -103,7 +103,7 @@ internal class PrimitivePanel : IDieselPanel
         instances.InstanceCount = matrices.Length;
 
         ref var transform = ref creator.Create<TransformComponent>(entity);
-        transform.Current = Transform.Identity;//.AddRotation(Quaternion.CreateFromYawPitchRoll(7, 0, 0));
+        transform.Current = Transform.Identity;
         transform.Previous = transform.Current;
 
         ref var component = ref creator.Create<PrimitiveComponent>(entity);
@@ -132,7 +132,7 @@ internal class PrimitivePanel : IDieselPanel
         ref var component = ref creator.Create<PrimitiveComponent>(entity);
 
         component.Mesh = this.Builder.FromQuads("ties", quads);
-        component.Color = new Color4(1.0f, 0.0f, 0.0f, 1.0f);
+        component.Color = new Color4(0.4f, 0.4f, 0.4f, 1.0f);
     }
 
     private void CreateRailBallastInstances(Path3D trackLayout)

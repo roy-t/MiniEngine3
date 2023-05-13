@@ -96,6 +96,28 @@ public record struct Path3D(bool IsClosed, params Vector3[] Positions)
         return this.GetForward(index);
     }
 
+
+    private Vector3 GetPositionAfterDistance(float distance)
+    {
+        Debug.Assert(distance >= 0);
+
+       // TODO maybe get helper that gives you index and remainer?
+       // what about closed vs not closed, fixed by index guard?
+
+        // TODO: copy to path2D
+    }
+
+    private Vector3 GetNormalAfterDistance(float distance)
+    {
+        Debug.Assert(distance >= 0);
+
+        // TODO maybe get helper that gives you index and remainer?
+        // what about closed vs not closed, fixed by index guard?
+
+        // TODO: copy to path2D
+    }
+
+
     [Conditional("DEBUG")]
     private void AssertValidIndex(int index)
     {

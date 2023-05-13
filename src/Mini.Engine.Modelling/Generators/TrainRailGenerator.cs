@@ -20,18 +20,21 @@ public static class TrainRailGenerator
     private const float BALLAST_HEIGHT_BOTTOM = 0.0f;
 
     private const float RAIL_TIE_WIDTH = 2.0f;
+    private const float RAIL_TIE_WIDTH_BOTTOM = 2.2f;
     private const float RAIL_TIE_HEIGHT = 0.15f;
-    private const float RAIL_TIE_DEPTH = 0.2f;
-    private const float RAIL_TIE_SPACING = 0.3f + RAIL_TIE_DEPTH;
+    private const float RAIL_TIE_MID_HEIGHT = 0.05f;
+    private const float RAIL_TIE_DEPTH_TOP = 0.2f;
+    private const float RAIL_TIE_DEPTH_BOTTOM = 0.3f;
+    private const float RAIL_TIE_SPACING = 0.3f + RAIL_TIE_DEPTH_BOTTOM;
 
     public static Quad[] GenerateRails(Path3D trackLayout)
     {
         var crossSection = CreateSingleRailCrossSection();
 
-        var leftRailLayout = CreateSingleRailLayout(trackLayout, SINGLE_RAIL_OFFSET);
+        var leftRailLayout = CreateSingleRailLayout(trackLayout, 0.0f);
         var leftRail = Extruder.Extrude(crossSection, leftRailLayout);
 
-        var rightRailLayout = CreateSingleRailLayout(trackLayout, -SINGLE_RAIL_OFFSET);
+        var rightRailLayout = CreateSingleRailLayout(trackLayout, -0.0f);
         var rightRail = Extruder.Extrude(crossSection, rightRailLayout);
 
         var caps = CreateRailEndCaps(leftRailLayout, rightRailLayout);
@@ -43,7 +46,7 @@ public static class TrainRailGenerator
     {
         var crossSection = CreateBallastCrossSection();
         var ballast = Extruder.Extrude(crossSection, trackLayout);
-        
+
         var caps = CreateBallastEndCaps(trackLayout);
         return ArrayUtilities.Concat(ballast, caps);
     }
@@ -51,7 +54,7 @@ public static class TrainRailGenerator
     public static (Quad[], Matrix4x4[]) GenerateRailTies(Path3D trackLayout)
     {
         var quads = CreateSingleRailTie();
-        var transforms = Walker.Walk(trackLayout, RAIL_TIE_SPACING);
+        var transforms = Walker.Walk(trackLayout, RAIL_TIE_SPACING, Vector3.UnitY);
         var matrices = transforms.Select(t => t.GetMatrix()).ToArray();
 
         return (quads, matrices);
@@ -59,7 +62,7 @@ public static class TrainRailGenerator
 
     public static Path3D CreateTrackLayout()
     {
-        var layout = new Vector3[10];
+        var layout = new Vector3[100];
         var step = (MathF.PI * 2.0f) / layout.Length;
         for (var i = 0; i < layout.Length; i++)
         {
@@ -118,9 +121,9 @@ public static class TrainRailGenerator
 
     private static Quad CreateSingleRailEndCap(Vector3 position, Vector3 direction)
     {
-        var crossSection = CreateSingleRailCrossSection();        
+        var crossSection = CreateSingleRailCrossSection();
         var quad = Quad.SingleFromPath(crossSection);
-        
+
         var transform = new Transform(position, Quaternion.Identity, Vector3.Zero, 1.0f);
         transform = transform.FaceTargetConstrained(position + direction, Vector3.UnitY);
 
@@ -146,7 +149,7 @@ public static class TrainRailGenerator
         var end = CreateBallastEndCap(trackLayout[trackLayout.Length - 1], trackLayout.GetBackward(trackLayout.Length - 1));
 
 
-        return ArrayUtilities.Concat(start, end);        
+        return ArrayUtilities.Concat(start, end);
     }
 
     private static Quad[] CreateBallastEndCap(Vector3 position, Vector3 direction)
@@ -170,21 +173,38 @@ public static class TrainRailGenerator
     {
         var h = new Vector3(0, BALLAST_HEIGHT_TOP, 0);
 
-        var topRightA = new Vector3(RAIL_TIE_WIDTH / 2.0f, RAIL_TIE_HEIGHT, RAIL_TIE_DEPTH / 2.0f) + h;
-        var bottomRightA = new Vector3(RAIL_TIE_WIDTH / 2.0f, 0.0f, RAIL_TIE_DEPTH / 2.0f) + h;
-        var bottomLeftA = new Vector3(-RAIL_TIE_WIDTH / 2.0f, 0.0f, RAIL_TIE_DEPTH / 2.0f) + h;
-        var topLeftA = new Vector3(-RAIL_TIE_WIDTH / 2.0f, RAIL_TIE_HEIGHT, RAIL_TIE_DEPTH / 2.0f) + h;
+        var halfDepthTop = RAIL_TIE_DEPTH_TOP / 2.0f;
+        var halfDepthBottom = RAIL_TIE_DEPTH_BOTTOM / 2.0f;
+        var halfWidthTop = RAIL_TIE_WIDTH / 2.0f;
+        var halfWidthBottom = RAIL_TIE_WIDTH_BOTTOM / 2.0f;
 
-        var front = new Path3D(true, topRightA, bottomRightA, bottomLeftA, topLeftA);
+        var topRightA = new Vector3(halfWidthTop, RAIL_TIE_HEIGHT, halfDepthTop) + h;
+        var bottomRightA = new Vector3(halfWidthBottom, 0.0f, halfDepthBottom) + h;
+        var bottomMidA = new Vector3(0.0f, 0.0f, halfDepthBottom) + h;
+        var bottomLeftA = new Vector3(-halfWidthBottom, 0.0f, halfDepthBottom) + h;
+        var topLeftA = new Vector3(-halfWidthTop, RAIL_TIE_HEIGHT, halfDepthTop) + h;
+        var topMidA = new Vector3(0.0f, RAIL_TIE_MID_HEIGHT, halfDepthTop) + h;
 
-        var topRightB = new Vector3(RAIL_TIE_WIDTH / 2.0f, RAIL_TIE_HEIGHT, -RAIL_TIE_DEPTH / 2.0f) + h;
-        var bottomRightB = new Vector3(RAIL_TIE_WIDTH / 2.0f, 0.0f, -RAIL_TIE_DEPTH / 2.0f) + h;
-        var bottomLeftB = new Vector3(-RAIL_TIE_WIDTH / 2.0f, 0.0f, -RAIL_TIE_DEPTH / 2.0f) + h;
-        var topLeftB = new Vector3(-RAIL_TIE_WIDTH / 2.0f, RAIL_TIE_HEIGHT, -RAIL_TIE_DEPTH / 2.0f) + h;
+        var front = new Path3D(true, topRightA, bottomRightA, bottomMidA, bottomLeftA, topLeftA, topMidA);
 
-        var back = new Path3D(true, topRightB, bottomRightB, bottomLeftB, topLeftB);
+        var topRightB = new Vector3(halfWidthTop, RAIL_TIE_HEIGHT, -halfDepthTop) + h;
+        var bottomRightB = new Vector3(halfWidthBottom, 0.0f, -halfDepthBottom) + h;
+        var bottomMidB = new Vector3(0.0f, 0.0f, -halfDepthBottom) + h;
+        var bottomLeftB = new Vector3(-halfWidthBottom, 0.0f, -halfDepthBottom) + h;
+        var topLeftB = new Vector3(-halfWidthTop, RAIL_TIE_HEIGHT, -halfDepthTop) + h;
+        var topMidB = new Vector3(0.0f, RAIL_TIE_MID_HEIGHT, -halfDepthTop) + h;
 
-        return Joiner.Join(front, back);
+        var back = new Path3D(true, topRightB, bottomRightB, bottomMidB, bottomLeftB, topLeftB, topMidB);
+
+        var caps = new Quad[]
+        {
+            Quad.SingleFromPath(front, 0, 1, 2, 5),
+            Quad.SingleFromPath(front, 5, 2, 3, 4),
+            Quad.SingleFromPath(back, 5, 2, 1, 0),
+            Quad.SingleFromPath(back, 4, 3, 2, 5),
+        };
+
+        return ArrayUtilities.Concat(Joiner.Join(front, back), caps);
     }
 }
 
