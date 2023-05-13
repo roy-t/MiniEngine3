@@ -31,10 +31,10 @@ public static class TrainRailGenerator
     {
         var crossSection = CreateSingleRailCrossSection();
 
-        var leftRailLayout = CreateSingleRailLayout(trackLayout, 0.0f);
+        var leftRailLayout = CreateSingleRailLayout(trackLayout, SINGLE_RAIL_OFFSET);
         var leftRail = Extruder.Extrude(crossSection, leftRailLayout);
 
-        var rightRailLayout = CreateSingleRailLayout(trackLayout, -0.0f);
+        var rightRailLayout = CreateSingleRailLayout(trackLayout, -SINGLE_RAIL_OFFSET);
         var rightRail = Extruder.Extrude(crossSection, rightRailLayout);
 
         var caps = CreateRailEndCaps(leftRailLayout, rightRailLayout);
@@ -68,7 +68,7 @@ public static class TrainRailGenerator
         {
             layout[i] = new Vector3(MathF.Cos(step * i), 0, MathF.Sin(step * i)) * 5.0f;
         }
-
+        
         return new Path3D(true, layout);
     }
 

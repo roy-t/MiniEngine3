@@ -96,6 +96,43 @@ public record struct Path2D(bool IsClosed, params Vector2[] Positions)
         return this.GetForward(index);
     }
 
+    public Vector2 GetPositionAfterDistance(float distance)
+    {
+        (var index, var remainder) = this.GetIndexAfterDistance(distance);
+        return this[index] + (this.GetForward(index) * remainder);
+    }
+
+    public Vector2 GetForwardAfterDistance(float distance)
+    {
+        Debug.Assert(distance >= 0);
+
+        (var index, var _) = this.GetIndexAfterDistance(distance);
+        return this.GetForward(index);
+    }
+
+    public (int index, float remainder) GetIndexAfterDistance(float distance)
+    {
+        this.AssetValidPath();
+        Debug.Assert(distance >= 0);
+
+        var index = -1;
+        var accumulator = 0.0f;
+        var sectionDistance = 0.0f;
+
+        do
+        {
+            accumulator += sectionDistance;
+            index++;
+
+            var from = this[index];
+            var to = this[index + 1];
+            sectionDistance = Vector2.Distance(from, to);
+        } while (distance > (accumulator + sectionDistance));
+
+        return (index, distance - accumulator);
+    }
+
+
     [Conditional("DEBUG")]
     private void AssertValidIndex(int index)
     {

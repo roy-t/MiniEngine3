@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Numerics;
 
 namespace Mini.Engine.Modelling;
@@ -87,7 +88,7 @@ public record struct Path3D(bool IsClosed, params Vector3[] Positions)
     {
         this.AssetValidPath();
         this.AssertValidIndex(index);
-       
+
         if (this.IsClosed || index > 0)
         {
             return Vector3.Normalize(this.GetForward(index - 1) + this.GetForward(index));
@@ -96,25 +97,40 @@ public record struct Path3D(bool IsClosed, params Vector3[] Positions)
         return this.GetForward(index);
     }
 
-
-    private Vector3 GetPositionAfterDistance(float distance)
+    public Vector3 GetPositionAfterDistance(float distance)
     {
-        Debug.Assert(distance >= 0);
-
-       // TODO maybe get helper that gives you index and remainer?
-       // what about closed vs not closed, fixed by index guard?
-
-        // TODO: copy to path2D
+        (var index, var remainder) = this.GetIndexAfterDistance(distance);
+        return this[index] + (this.GetForward(index) * remainder);
     }
 
-    private Vector3 GetNormalAfterDistance(float distance)
+    public Vector3 GetForwardAfterDistance(float distance)
     {
         Debug.Assert(distance >= 0);
 
-        // TODO maybe get helper that gives you index and remainer?
-        // what about closed vs not closed, fixed by index guard?
+        (var index, var _) = this.GetIndexAfterDistance(distance);
+        return this.GetForward(index);
+    }
 
-        // TODO: copy to path2D
+    public (int index, float remainder) GetIndexAfterDistance(float distance)
+    {
+        this.AssetValidPath();
+        Debug.Assert(distance >= 0);
+
+        var index = -1;
+        var accumulator = 0.0f;
+        var sectionDistance = 0.0f;
+
+        do
+        {
+            accumulator += sectionDistance;
+            index++;
+
+            var from = this[index];
+            var to = this[index + 1];
+            sectionDistance = Vector3.Distance(from, to);
+        } while (distance > (accumulator + sectionDistance));
+
+        return (index, distance - accumulator);
     }
 
 

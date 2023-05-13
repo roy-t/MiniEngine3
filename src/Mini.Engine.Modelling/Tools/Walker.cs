@@ -13,28 +13,14 @@ public static class Walker
         }
 
         var transforms = new Transform[(int)(totalLength / stepSize)];
-        var counter = 0;
-        var accumulator = 0.0f;
 
+        for (var i = 0; i < transforms.Length; i++)
+        {
+            var position = layout.GetPositionAfterDistance(i * stepSize);
+            var normal = layout.GetForwardAfterDistance(i * stepSize);
 
-        // TODO: use Path3D.GetPositonAfter(XYZ) and Path3D.GetNormalAfter(XYZ);
-
-        //for (var i = 0; i < layout.Steps; i++)
-        //{
-        //    var start = layout[i];
-        //    var end = layout[i + 1];
-        //    var normal = layout.GetForward(i);
-
-        //    accumulator += Vector3.Distance(start, end);
-
-        //    while (accumulator > stepSize && counter < transforms.Length)
-        //    {
-        //        accumulator -= stepSize;
-
-        //        start += normal * stepSize;
-        //        transforms[counter++] = new Transform(start, Quaternion.Identity, Vector3.Zero, 1.0f).FaceTargetConstrained(start + normal, up);
-        //    }
-        //}
+            transforms[i] = new Transform(position, Quaternion.Identity, Vector3.Zero, 1.0f).FaceTargetConstrained(position + normal, up);
+        }
 
         return transforms;
     }
