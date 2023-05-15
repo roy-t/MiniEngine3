@@ -54,7 +54,7 @@ public static class TrainRailGenerator
     public static (Quad[], Matrix4x4[]) GenerateRailTies(Path3D trackLayout)
     {
         var quads = CreateSingleRailTie();
-        var transforms = Walker.Walk(trackLayout, RAIL_TIE_SPACING, Vector3.UnitY);
+        var transforms = Walker.WalkSpacedOut(trackLayout, RAIL_TIE_SPACING, Vector3.UnitY);
         var matrices = transforms.Select(t => t.GetMatrix()).ToArray();
 
         return (quads, matrices);
@@ -62,14 +62,17 @@ public static class TrainRailGenerator
 
     public static Path3D CreateTrackLayout()
     {
-        var layout = new Vector3[100];
-        var step = (MathF.PI * 2.0f) / layout.Length;
+        var closed = true;
+        var stepSizeModifier = closed ? 0.0f : 1.0f; // for closed make the step size so that one step is missed in the end
+
+        var layout = new Vector3[500];
+        var step = (MathF.PI * 2.0f) / (layout.Length - stepSizeModifier);
         for (var i = 0; i < layout.Length; i++)
         {
-            layout[i] = new Vector3(MathF.Cos(step * i), 0, MathF.Sin(step * i)) * 5.0f;
+            layout[i] = new Vector3(MathF.Cos(step * i), 0, MathF.Sin(step * i)) * 15.0f;
         }
         
-        return new Path3D(true, layout);
+        return new Path3D(closed, layout);
     }
 
     private static Path3D CreateSingleRailLayout(Path3D trackLayout, float offset)
