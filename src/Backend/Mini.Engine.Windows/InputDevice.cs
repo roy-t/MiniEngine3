@@ -32,7 +32,7 @@ public abstract class InputDevice
     internal int iterator;
 
     internal abstract void NextFrame();
-    internal abstract void NextEvent(RAWINPUT input);
+    internal abstract void NextEvent(RAWINPUT input, bool hasFocus);
 
     internal InputDevice(int size)
     {

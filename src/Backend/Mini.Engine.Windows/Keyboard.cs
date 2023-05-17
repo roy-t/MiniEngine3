@@ -68,7 +68,7 @@ public sealed class Keyboard : InputDevice
         Decay(this.States);
     }
 
-    internal override void NextEvent(RAWINPUT input)
+    internal override void NextEvent(RAWINPUT input, bool hasFocus)
     {
         var code = KeyboardDecoder.GetScanCode(input);
         var state = KeyboardDecoder.GetEvent(input);
@@ -77,13 +77,15 @@ public sealed class Keyboard : InputDevice
         {
             case KeyFlags.Make:
                 // To ignore repeated key inputs when a user holds a key
-                if (this.States[code] != InputState.Held)
+                // Only detect a key is pressed when we have focus
+                if (hasFocus && this.States[code] != InputState.Held)
                 {
                     this.States[code] = InputState.Pressed;
                 }
                 break;
             case KeyFlags.Break:
                 // To ignore repeated key inputs when a user holds a key
+                // Always detect when a key is released
                 if (this.States[code] != InputState.None)
                 {
                     this.States[code] = InputState.Released;

@@ -12,6 +12,8 @@ namespace Mini.Engine.Windows;
 
 public sealed class InputService
 {
+    private readonly record struct RawInputEvent(RAWINPUT Input, bool HasFocus);
+
     private const ushort HID_USAGE_PAGE_GENERIC = 0x01;
     private const ushort HID_USAGE_GENERIC_MOUSE = 0x02;
     private const ushort HID_USAGE_GENERIC_KEYBOARD = 0x06;
@@ -21,9 +23,9 @@ public sealed class InputService
     private static readonly uint RawInputSize = (uint)Marshal.SizeOf<RAWINPUT>();
     private static readonly uint RawInputHeaderSize = (uint)Marshal.SizeOf<RAWINPUTHEADER>();
 
-    private readonly ConcurrentQueue<RAWINPUT> EventQueue;
-    private readonly List<RAWINPUT> MouseEvents;
-    private readonly List<RAWINPUT> KeyboardEvents;
+    private readonly ConcurrentQueue<RawInputEvent> EventQueue;
+    private readonly List<RawInputEvent> MouseEvents;
+    private readonly List<RawInputEvent> KeyboardEvents;
     private readonly Win32Window Window;
 
     public InputService(Win32Window window)
@@ -37,9 +39,9 @@ public sealed class InputService
             throw new Exception("Could not register input devices");
         }
 
-        this.EventQueue = new ConcurrentQueue<RAWINPUT>();
-        this.MouseEvents = new List<RAWINPUT>(3);
-        this.KeyboardEvents = new List<RAWINPUT>(3);
+        this.EventQueue = new ConcurrentQueue<RawInputEvent>();
+        this.MouseEvents = new List<RawInputEvent>(3);
+        this.KeyboardEvents = new List<RawInputEvent>(3);
         this.Window = window;
     }
 
@@ -60,12 +62,12 @@ public sealed class InputService
 
         while (this.EventQueue.TryDequeue(out var input))
         {
-            if (input.header.dwType == RIM_TYPEMOUSE)
+            if (input.Input.header.dwType == RIM_TYPEMOUSE)
             {
                 this.MouseEvents.Add(input);
             }
 
-            if (input.header.dwType == RIM_TYPEKEYBOARD)
+            if (input.Input.header.dwType == RIM_TYPEKEYBOARD)
             {
                 this.KeyboardEvents.Add(input);
             }
@@ -79,17 +81,14 @@ public sealed class InputService
 
     private unsafe void ProcessMessage(UIntPtr _, IntPtr lParam)
     {
-        if (this.Window.HasFocus)
-        {
-            var size = RawInputSize;
-            var rawInput = new RAWINPUT();
-            GetRawInputData((HRAWINPUT)lParam, RAW_INPUT_DATA_COMMAND_FLAGS.RID_INPUT, &rawInput, ref size, RawInputHeaderSize);
+        var size = RawInputSize;
+        var rawInput = new RAWINPUT();
+        GetRawInputData((HRAWINPUT)lParam, RAW_INPUT_DATA_COMMAND_FLAGS.RID_INPUT, &rawInput, ref size, RawInputHeaderSize);
 
-            this.EventQueue.Enqueue(rawInput);
-        }
+        this.EventQueue.Enqueue(new RawInputEvent(rawInput, this.Window.HasFocus));
     }
 
-    private static bool ProcesEvents(InputDevice device, IReadOnlyList<RAWINPUT> events)
+    private static bool ProcesEvents(InputDevice device, IReadOnlyList<RawInputEvent> events)
     {
         if (device.iterator == -1)
         {
@@ -99,7 +98,8 @@ public sealed class InputService
 
         if (device.iterator < events.Count)
         {
-            device.NextEvent(events[device.iterator]);
+            var input = events[device.iterator];
+            device.NextEvent(input.Input, input.HasFocus);
             device.iterator++;
             return true;
         }

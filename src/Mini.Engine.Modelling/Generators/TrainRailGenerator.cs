@@ -63,16 +63,14 @@ public static class TrainRailGenerator
     public static Path3D CreateTrackLayout()
     {
         var closed = true;
-        var stepSizeModifier = closed ? 0.0f : 1.0f; // for closed make the step size so that one step is missed in the end
+        var radius = 25.0f;
+        var startAngle = 0.0f;
+        var endAngle = MathF.PI * 2.0f;
+        var points = 50;
+        var vertices = PathUtilities.CreateCurve(radius, startAngle, endAngle, points, closed).Select(v => new Vector3(v.X, 0, v.Y)).ToArray();
 
-        var layout = new Vector3[500];
-        var step = (MathF.PI * 2.0f) / (layout.Length - stepSizeModifier);
-        for (var i = 0; i < layout.Length; i++)
-        {
-            layout[i] = new Vector3(MathF.Cos(step * i), 0, MathF.Sin(step * i)) * 15.0f;
-        }
         
-        return new Path3D(closed, layout);
+        return new Path3D(closed, vertices);
     }
 
     private static Path3D CreateSingleRailLayout(Path3D trackLayout, float offset)
