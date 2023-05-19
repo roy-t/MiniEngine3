@@ -11,9 +11,15 @@ public sealed class PrimitiveMesh : IDisposable
 
     public readonly VertexBuffer<PrimitiveVertex> Vertices;
     public readonly int VertexCount;
+
     public readonly BoundingBox Bounds;
-    
+    public readonly MeshPart[] Parts;
+
     public PrimitiveMesh(Device device, ReadOnlyMemory<PrimitiveVertex> vertices, ReadOnlyMemory<int> indices, BoundingBox bounds, string name)
+        : this(device, vertices, indices, new MeshPart[] { new MeshPart(0, indices.Length) }, bounds, name) { }
+
+
+    public PrimitiveMesh(Device device, ReadOnlyMemory<PrimitiveVertex> vertices, ReadOnlyMemory<int> indices, ReadOnlyMemory<MeshPart> parts, BoundingBox bounds, string name)
     {
         this.Indices = new IndexBuffer<int>(device, name);
         this.IndexCount = indices.Length;
@@ -21,10 +27,11 @@ public sealed class PrimitiveMesh : IDisposable
         this.Vertices = new VertexBuffer<PrimitiveVertex>(device, name);
         this.VertexCount = vertices.Length;
 
-        this.Bounds = bounds;
-
         this.Vertices.MapData(device.ImmediateContext, vertices.Span);
         this.Indices.MapData(device.ImmediateContext, indices.Span);
+
+        this.Parts = parts.ToArray();
+        this.Bounds = bounds;
     }
 
     public void Dispose()

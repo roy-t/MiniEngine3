@@ -62,15 +62,26 @@ public static class TrainRailGenerator
 
     public static Path3D CreateTrackLayout()
     {
-        var closed = true;
+        var closed = false;
         var radius = 25.0f;
         var startAngle = 0.0f;
         var endAngle = MathF.PI * 2.0f;
         var points = 50;
         var vertices = PathUtilities.CreateCurve(radius, startAngle, endAngle, points, closed).Select(v => new Vector3(v.X, 0, v.Y)).ToArray();
 
-        
         return new Path3D(closed, vertices);
+    }
+
+    public static Path3D CreateTrackLayout2()
+    {
+        var closed = false;
+        var radius = 25.0f;
+        var points = 50;
+
+        var transitionCurveLength = MathF.PI * 0.5f * radius + 3;
+        var vertices2 = PathUtilities.CreateTransitionCurve(radius, transitionCurveLength, points).Select(v => new Vector3(v.X - 20.9f, 0, v.Y - 28)).ToArray();
+
+        return new Path3D(closed, vertices2);
     }
 
     private static Path3D CreateSingleRailLayout(Path3D trackLayout, float offset)

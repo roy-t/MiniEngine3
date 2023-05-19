@@ -9,11 +9,11 @@ using Vortice.Mathematics;
 namespace Mini.Engine.Modelling;
 
 [Service]
-public sealed class PrimitiveMeshBuilder
+public sealed class QuadBuilder
 {
     private readonly Device Device;
 
-    public PrimitiveMeshBuilder(Device device)
+    public QuadBuilder(Device device)
     {
         this.Device = device;
     }

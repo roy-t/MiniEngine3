@@ -19,13 +19,13 @@ internal class PrimitivePanel : IDieselPanel
     private readonly IComponentContainer<PrimitiveComponent> Container;
     private readonly ComponentSelector<PrimitiveComponent> Primitives;
     private readonly ECSAdministrator Administrator;
-    private readonly PrimitiveMeshBuilder Builder;
+    private readonly QuadBuilder Builder;
 
     public string Title => "Primitives";
 
     private bool shouldReload;
 
-    public PrimitivePanel(IComponentContainer<PrimitiveComponent> container, ECSAdministrator administrator, PrimitiveMeshBuilder builder)
+    public PrimitivePanel(IComponentContainer<PrimitiveComponent> container, ECSAdministrator administrator, QuadBuilder builder)
     {
         this.Container = container;
         this.Primitives = new ComponentSelector<PrimitiveComponent>("Primitives", container);
@@ -82,8 +82,11 @@ internal class PrimitivePanel : IDieselPanel
     private void CreatePrimitives()
     {
         var trackLayout = TrainRailGenerator.CreateTrackLayout();
-        
-        this.CreateRailPrimitiveInstances(trackLayout);
+
+        //this.CreateRailPrimitiveInstances(TrainRailGenerator.CreateTrackLayout2());
+
+
+        this.CreateRailPrimitiveInstances(trackLayout);        
         this.CreateRailTieInstances(trackLayout);
         this.CreateRailBallastInstances(trackLayout);        
     }
