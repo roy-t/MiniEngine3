@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.InteropServices;
 using Mini.Engine.Configuration;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
@@ -17,6 +18,48 @@ public sealed class QuadBuilder
     {
         this.Device = device;
     }
+
+    public ILifetime<PrimitiveMesh> FromQuads2(string name, params Quad[][] quads)
+    {
+        var builder = new PrimitiveMeshBuilder();
+        var indices = new List<int>();
+        var vertices = new List<PrimitiveVertex>();
+
+        for (var part = 0; part < quads.Length; part++)
+        {
+            var length = quads[part].Length;
+
+            indices.Clear();
+            indices.Capacity = Math.Max(indices.Capacity, length * 6);
+
+            vertices.Clear();
+            vertices.Capacity = Math.Max(vertices.Capacity, length * 4);
+
+            for (var q = 0; q < length; q++)
+            {
+                var quad = quads[part][q];
+
+                indices.Add((q * 4) + 0);
+                indices.Add((q * 4) + 1);
+                indices.Add((q * 4) + 2);
+                indices.Add((q * 4) + 2);
+                indices.Add((q * 4) + 3);
+                indices.Add((q * 4) + 0);
+
+                var normal = quad.GetNormal();
+                vertices.Add(new PrimitiveVertex(quad.A, normal));
+                vertices.Add(new PrimitiveVertex(quad.B, normal));
+                vertices.Add(new PrimitiveVertex(quad.C, normal));
+                vertices.Add(new PrimitiveVertex(quad.D, normal));
+            }
+
+            builder.Add(CollectionsMarshal.AsSpan(vertices), CollectionsMarshal.AsSpan(indices));
+        }
+
+        var mesh = builder.Build(this.Device, name);
+        return this.Device.Resources.Add(mesh);
+    }
+
 
     public ILifetime<PrimitiveMesh> FromQuads(string name, params Quad[] quads)
     {
