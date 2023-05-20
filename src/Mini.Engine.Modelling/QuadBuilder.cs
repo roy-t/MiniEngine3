@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
-using System.Runtime.InteropServices;
 using Mini.Engine.Configuration;
+using Mini.Engine.Core;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
@@ -19,21 +19,23 @@ public sealed class QuadBuilder
         this.Device = device;
     }
 
-    public ILifetime<PrimitiveMesh> FromQuads2(string name, params Quad[][] quads)
+    public ILifetime<PrimitiveMesh> FromQuads(string name, params Quad[][] quads)
     {
+        var colors = new Color4[] { Colors.Red, Colors.Green, Colors.Blue, Colors.Yellow };
+
         var builder = new PrimitiveMeshBuilder();
-        var indices = new List<int>();
-        var vertices = new List<PrimitiveVertex>();
+        var indices = new ArrayBuilder<int>(100);
+        var vertices = new ArrayBuilder<PrimitiveVertex>(50);
 
         for (var part = 0; part < quads.Length; part++)
         {
             var length = quads[part].Length;
 
             indices.Clear();
-            indices.Capacity = Math.Max(indices.Capacity, length * 6);
+            indices.EnsureCapacity(length * 6);
 
             vertices.Clear();
-            vertices.Capacity = Math.Max(vertices.Capacity, length * 4);
+            vertices.EnsureCapacity(length * 4);
 
             for (var q = 0; q < length; q++)
             {
@@ -53,46 +55,10 @@ public sealed class QuadBuilder
                 vertices.Add(new PrimitiveVertex(quad.D, normal));
             }
 
-            builder.Add(CollectionsMarshal.AsSpan(vertices), CollectionsMarshal.AsSpan(indices));
+            builder.Add(vertices.Build(), indices.Build(), colors[part]);
         }
 
         var mesh = builder.Build(this.Device, name);
-        return this.Device.Resources.Add(mesh);
-    }
-
-
-    public ILifetime<PrimitiveMesh> FromQuads(string name, params Quad[] quads)
-    {
-        var vertices = new PrimitiveVertex[quads.Length * 4];
-        var indices = new int[quads.Length * 6];
-
-        var nI = 0;
-        var nV = 0;
-
-        var bounds = BoundingBox.Empty;
-
-        for (var i = 0; i < quads.Length; i++)
-        {
-            var quad = quads[i];
-
-            indices[nI++] = nV + 0;
-            indices[nI++] = nV + 1;
-            indices[nI++] = nV + 2;
-
-            indices[nI++] = nV + 2;
-            indices[nI++] = nV + 3;
-            indices[nI++] = nV + 0;
-
-            var normal = quad.GetNormal();
-            vertices[nV++] = new PrimitiveVertex(quad.A, normal);
-            vertices[nV++] = new PrimitiveVertex(quad.B, normal);
-            vertices[nV++] = new PrimitiveVertex(quad.C, normal);
-            vertices[nV++] = new PrimitiveVertex(quad.D, normal);
-
-            bounds = BoundingBox.CreateMerged(bounds, BoundingBox.CreateFromPoints(new[] { quads[i].A, quads[i].B, quads[i].C, quads[i].D }));
-        }
-
-        var mesh = new PrimitiveMesh(this.Device, vertices, indices, bounds, name);
         return this.Device.Resources.Add(mesh);
     }
 

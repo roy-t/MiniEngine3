@@ -1,88 +1,57 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using Mini.Engine.Core;
 using Mini.Engine.DirectX;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Diesel;
 
+using MeshPart = Mini.Engine.Content.Shaders.Generated.Primitive.MeshPart;
+
 public sealed class PrimitiveMeshBuilder
 {
-    private PrimitiveVertex[] vertexArray;
-    private int[] indexArray;
-    private MeshPart[] partArray;
-
+    private readonly ArrayBuilder<PrimitiveVertex> Vertices;
+    private readonly ArrayBuilder<int> Indices;
+    private readonly ArrayBuilder<MeshPart> Parts;
     private BoundingBox bounds;
-
-    private int vertexCount;
-    private int indexCount;
-    private int partCount;
 
     public PrimitiveMeshBuilder(int vertexCapacity = 1000, int indexCapacity = 2000, int partCapacity = 10)
     {
-        this.vertexArray = new PrimitiveVertex[vertexCapacity];
-        this.indexArray = new int[indexCapacity];
-        this.partArray = new MeshPart[partCapacity];
-
-        this.vertexCount = 0;
-        this.indexCount = 0;
-        this.partCount = 0;
+        this.Vertices = new ArrayBuilder<PrimitiveVertex>(vertexCapacity);
+        this.Indices = new ArrayBuilder<int>(indexCapacity);
+        this.Parts = new ArrayBuilder<MeshPart>(partCapacity);
 
         this.bounds = BoundingBox.Empty;
     }
 
-    public void Add(ReadOnlySpan<PrimitiveVertex> vertices, ReadOnlySpan<int> indices)
+    public void Add(ReadOnlySpan<PrimitiveVertex> vertices, ReadOnlySpan<int> indices, Color4 color)
     {
-        this.EnsureCapacity(vertices.Length, indices.Length, 1);
+        this.Parts.Add(new MeshPart
+        {
+            Offset = (uint)this.Vertices.Length,
+            Length = (uint)vertices.Length,
+            Color = color
+        });
 
-        Add(vertices, this.vertexArray, ref this.vertexCount);
-        Add(indices, this.indexArray, ref this.indexCount);
+        this.Vertices.Add(vertices);
+        this.Indices.Add(indices);
 
-        this.partArray[this.partCount] = new MeshPart(this.partCount, indices.Length);
-        this.partCount++;
-
-        for(var i = 0; i < vertices.Length; i++)
+        for (var i = 0; i < vertices.Length; i++)
         {
             var min = Vector3.Min(this.bounds.Min, vertices[i].Position);
-            var max = Vector3.Min(this.bounds.Max, vertices[i].Position);            
+            var max = Vector3.Min(this.bounds.Max, vertices[i].Position);
             this.bounds = new BoundingBox(min, max);
         }
     }
 
     public PrimitiveMesh Build(Device device, string name)
     {
-        Debug.Assert(this.vertexCount > 0 && this.indexCount > 0 && this.partCount > 0 && this.bounds != BoundingBox.Empty);
+        Debug.Assert(this.Vertices.Length > 0 && this.Indices.Length > 0 && this.Parts.Length > 0 && this.bounds != BoundingBox.Empty);
 
-        var vertices = new ReadOnlyMemory<PrimitiveVertex>(this.vertexArray, 0, this.vertexCount);
-        var indices = new ReadOnlyMemory<int>(this.indexArray, 0, this.indexCount);
-        var parts = new ReadOnlyMemory<MeshPart>(this.partArray, 0, this.partCount);
+        var vertices = this.Vertices.Build();
+        var indices = this.Indices.Build();
+        var parts = this.Parts.Build();
 
         return new PrimitiveMesh(device, vertices, indices, parts, this.bounds, name);
-    }
-
-    private void EnsureCapacity(int vertexIncrease, int indexIncrease, int partIncrease)
-    {
-        EnsureCapacity(this.vertexCount, vertexIncrease, ref this.vertexArray);
-        EnsureCapacity(this.indexCount, indexIncrease, ref this.indexArray);
-        EnsureCapacity(this.partCount, partIncrease, ref this.partArray);
-    }
-
-    private static void EnsureCapacity<T>(int count, int increase, ref T[] array)
-    {
-        if (count + increase < array.Length)
-        {
-            return;
-        }
-
-        var targetSize = Math.Max(array.Length * 2, (count + increase) * 2);
-
-        Array.Resize<T>(ref array, targetSize);
-    }
-
-    private static void Add<T>(ReadOnlySpan<T> source, T[] destination, ref int currentCount)
-    {
-        var memory = new Span<T>(destination, currentCount, destination.Length);
-        source.CopyTo(memory);
-
-        currentCount += source.Length;
     }
 }

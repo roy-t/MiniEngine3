@@ -77,7 +77,7 @@ public sealed partial class HexagonSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(Hexagon.Roughness, material.Roughness);
         this.Context.PS.SetShaderResource(Hexagon.AmbientOcclusion, material.AmbientOcclusion);
 
-        this.Context.VS.SetInstanceBuffer(Hexagon.Instances, hexagons.InstanceBuffer);        
+        this.Context.VS.SetBuffer(Hexagon.Instances, hexagons.InstanceBuffer);        
 
         // Draw inner hexagon strip
         this.Context.VS.SetShader(this.Shader.VsHexagon);        

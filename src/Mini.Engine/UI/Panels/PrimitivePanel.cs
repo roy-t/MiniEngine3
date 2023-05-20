@@ -113,8 +113,8 @@ internal class PrimitivePanel : IDieselPanel
 
         var rails = TrainRailGenerator.GenerateRails(trackLayout);
 
-        component.Mesh = this.Builder.FromQuads2("rail", rails);
-        component.Color = new Color4(0.4f, 0.28f, 0.30f, 1.0f);
+        component.Mesh = this.Builder.FromQuads("rail", rails);
+        //component.Color = new Color4(0.4f, 0.28f, 0.30f, 1.0f);
     }
 
 
@@ -141,7 +141,7 @@ internal class PrimitivePanel : IDieselPanel
         var rails = TrainRailGenerator.GenerateRails(trackLayout);
 
         component.Mesh = this.Builder.FromQuads("rail", rails);
-        component.Color = new Color4(0.4f, 0.28f, 0.30f, 1.0f);
+        //component.Color = new Color4(0.4f, 0.28f, 0.30f, 1.0f);
     }
 
     private void CreateRailTieInstances(Path3D trackLayout)
@@ -149,7 +149,12 @@ internal class PrimitivePanel : IDieselPanel
         var entity = this.Administrator.Entities.Create();
         var creator = this.Administrator.Components;
 
-        var (quads, matrices) = TrainRailGenerator.GenerateRailTies(trackLayout);
+        var matrices = new Matrix4x4[]
+        {
+            Matrix4x4.Identity
+        };
+
+        var quads = TrainRailGenerator.GenerateRailTies(trackLayout);
 
         ref var instances = ref creator.Create<InstancesComponent>(entity);
         instances.InstanceBuffer = this.Builder.Instance("ties_instances", matrices);
@@ -162,7 +167,7 @@ internal class PrimitivePanel : IDieselPanel
         ref var component = ref creator.Create<PrimitiveComponent>(entity);
 
         component.Mesh = this.Builder.FromQuads("ties", quads);
-        component.Color = new Color4(0.4f, 0.4f, 0.4f, 1.0f);
+        //component.Color = new Color4(0.4f, 0.4f, 0.4f, 1.0f);
     }
 
     private void CreateRailBallastInstances(Path3D trackLayout)
@@ -188,6 +193,6 @@ internal class PrimitivePanel : IDieselPanel
         var ballast = TrainRailGenerator.GenerateBallast(trackLayout);
 
         component.Mesh = this.Builder.FromQuads("ballast", ballast);
-        component.Color = new Color4(0.33f, 0.27f, 0.25f, 1.0f);
+        //component.Color = new Color4(0.33f, 0.27f, 0.25f, 1.0f);
     }
 }

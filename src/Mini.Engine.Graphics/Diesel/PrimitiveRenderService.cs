@@ -30,7 +30,7 @@ public sealed class PrimitiveRenderService : IDisposable
 
         this.Shader = shader;
         this.User = shader.CreateUserFor<PrimitiveSystem>();
-        this.InputLayout = shader.CreateInputLayoutForVs(PrimitiveVertex.Elements);
+        this.InputLayout = shader.CreateInputLayoutForVsinstanced(PrimitiveVertex.Elements);
     }      
 
     public void Setup(DeviceContext context, RenderTarget albedo, DepthStencilBuffer depth, int x, int y, int width, int heigth)
@@ -52,9 +52,10 @@ public sealed class PrimitiveRenderService : IDisposable
 
         context.IA.SetVertexBuffer(mesh.Vertices);
         context.IA.SetIndexBuffer(mesh.Indices);
-        context.VS.SetInstanceBuffer(Shader.Instances, instances.InstanceBuffer);
-
-        this.User.MapConstants(context, world, viewProjection, cameraTransform.GetPosition(), primitive.Color);
+        context.VS.SetBuffer(Shader.Parts, mesh.Parts);
+        context.VS.SetBuffer(Shader.Instances, instances.InstanceBuffer);
+        
+        this.User.MapConstants(context, world, viewProjection, cameraTransform.GetPosition(), (uint)mesh.PartCount);
 
         context.DrawIndexedInstanced(mesh.IndexCount, instances.InstanceCount);
     }

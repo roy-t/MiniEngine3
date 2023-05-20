@@ -21,10 +21,16 @@ public sealed class VertexShaderContext : DeviceContextPart
         this.ID3D11DeviceContext.VSSetShader(resource);
     }
 
-    public void SetInstanceBuffer<T>(int slot, ILifetime<StructuredBuffer<T>> instanceBuffer)
+    public void SetBuffer<T>(int slot, StructuredBuffer<T> buffer)
+    where T : unmanaged
+    {
+        this.ID3D11DeviceContext.VSSetShaderResource(slot, buffer.GetShaderResourceView());
+    }
+
+
+    public void SetBuffer<T>(int slot, ILifetime<StructuredBuffer<T>> buffer)
         where T : unmanaged
     {
-        var resource = this.DeviceContext.Resources.Get(instanceBuffer);
-        this.ID3D11DeviceContext.VSSetShaderResource(slot, resource.GetShaderResourceView());
+        this.SetBuffer(slot, this.DeviceContext.Resources.Get(buffer));
     }
 }

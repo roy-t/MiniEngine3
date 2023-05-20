@@ -75,7 +75,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
         this.User.MapConstants(this.Context, previousViewProjection, viewProjection, cameraPosition, grassToSun, this.WindSystem.Direction, this.WindSystem.Accumulator, camera.PreviousJitter, camera.Jitter);
 
         this.Context.PS.SetShaderResource(Grass.Albedo, grassComponent.Texture);
-        this.Context.VS.SetInstanceBuffer(Grass.Instances, grassComponent.InstanceBuffer);
+        this.Context.VS.SetBuffer(Grass.Instances, grassComponent.InstanceBuffer);
         this.Context.DrawInstanced(7, grassComponent.Instances);
     }
 

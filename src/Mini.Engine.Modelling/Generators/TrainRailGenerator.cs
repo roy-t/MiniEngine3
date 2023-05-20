@@ -51,20 +51,30 @@ public static class TrainRailGenerator
         return ArrayUtilities.Concat(ballast, caps);
     }
 
-    public static (Quad[], Matrix4x4[]) GenerateRailTies(Path3D trackLayout)
+    public static Quad[] GenerateRailTies(Path3D trackLayout)
     {
         var quads = CreateSingleRailTie();
         var transforms = Walker.WalkSpacedOut(trackLayout, RAIL_TIE_SPACING, Vector3.UnitY);
         var matrices = transforms.Select(t => t.GetMatrix()).ToArray();
 
-        return (quads, matrices);
+        var array = new ArrayBuilder<Quad>(quads.Length * transforms.Length);
+
+        for (var i = 0; i < transforms.Length; i++)
+        {
+            for (var q = 0; q < quads.Length; q++)
+            {
+                array.Add(quads[q].CreateTransformed(in transforms[i]));
+            }
+        }
+
+        return array.Build().ToArray(); // Ewwwwwwwwww copy copy
     }
 
     public static Path3D CreateTrackLayout()
     {
-        var closed = false;
+        var closed = true;
         var radius = 25.0f;
-        var startAngle = 0.0f;
+        var startAngle = MathF.PI * 0.0f;
         var endAngle = MathF.PI * 2.0f;
         var points = 50;
         var vertices = PathUtilities.CreateCurve(radius, startAngle, endAngle, points, closed).Select(v => new Vector3(v.X, 0, v.Y)).ToArray();
@@ -72,16 +82,16 @@ public static class TrainRailGenerator
         return new Path3D(closed, vertices);
     }
 
-    public static Path3D CreateTrackLayout2()
+    public static Path3D CreateTransitionCurveLayout()
     {
         var closed = false;
         var radius = 25.0f;
         var points = 50;
 
-        var transitionCurveLength = MathF.PI * 0.5f * radius + 3;
-        var vertices2 = PathUtilities.CreateTransitionCurve(radius, transitionCurveLength, points).Select(v => new Vector3(v.X - 20.9f, 0, v.Y - 28)).ToArray();
+        var transitionCurveLength = MathF.PI * 0.5f * radius;
+        var vertices = PathUtilities.CreateTransitionCurve(radius, points).Select(v => new Vector3(v.X, 0, v.Y)).ToArray();
 
-        return new Path3D(closed, vertices2);
+        return new Path3D(closed, vertices);
     }
 
     private static Path3D CreateSingleRailLayout(Path3D trackLayout, float offset)

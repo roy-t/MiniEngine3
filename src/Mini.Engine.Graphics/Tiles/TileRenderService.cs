@@ -85,7 +85,7 @@ public sealed class TileRenderService : IDisposable
         context.PS.SetShaderResource(TileShader.Roughness, material.Roughness);
         context.PS.SetShaderResource(TileShader.AmbientOcclusion, material.AmbientOcclusion);
 
-        context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
+        context.VS.SetBuffer(TileShader.Instances, tile.InstanceBuffer);
         context.DrawInstanced(4, (int)(tile.Columns * tile.Rows));
     }
 
@@ -120,7 +120,7 @@ public sealed class TileRenderService : IDisposable
         context.PS.SetShaderResource(TileShader.Roughness, material.Roughness);
         context.PS.SetShaderResource(TileShader.AmbientOcclusion, material.AmbientOcclusion);
 
-        context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
+        context.VS.SetBuffer(TileShader.Instances, tile.InstanceBuffer);
         context.DrawInstanced(10, (int)(tile.Columns * tile.Rows));
     }
 
@@ -152,7 +152,7 @@ public sealed class TileRenderService : IDisposable
         this.User.MapConstants(context, previousWorld * previousViewProjection, world * viewProjection, world, cameraPosition, camera.PreviousJitter, camera.Jitter, tile.Columns, tile.Rows);
         this.User.MapOutlineConstants(context, 0, tile.Columns - 1, 0, tile.Rows -1, Colors.Black);
 
-        context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
+        context.VS.SetBuffer(TileShader.Instances, tile.InstanceBuffer);
         context.DrawInstanced(16, (int)(tile.Columns * tile.Rows));
     }
 
@@ -173,7 +173,7 @@ public sealed class TileRenderService : IDisposable
         var columns = (highlight.MaxColumn - highlight.MinColumn) + 1;
         var rows = (highlight.MaxRow - highlight.MinRow) + 1;
 
-        context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
+        context.VS.SetBuffer(TileShader.Instances, tile.InstanceBuffer);
         context.DrawInstanced(16, (int)(columns * rows));
     }
 
@@ -197,7 +197,7 @@ public sealed class TileRenderService : IDisposable
 
         this.User.MapConstants(context, Matrix4x4.Identity, worldViewProjection, Matrix4x4.Identity, Vector3.Zero, Vector2.Zero, Vector2.Zero, tile.Columns, tile.Rows);
 
-        context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
+        context.VS.SetBuffer(TileShader.Instances, tile.InstanceBuffer);
         context.DrawInstanced(4, (int)(tile.Columns * tile.Rows));
     }
 
@@ -221,7 +221,7 @@ public sealed class TileRenderService : IDisposable
 
         this.User.MapConstants(context, Matrix4x4.Identity, worldViewProjection, Matrix4x4.Identity, Vector3.Zero, Vector2.Zero, Vector2.Zero, tile.Columns, tile.Rows);
 
-        context.VS.SetInstanceBuffer(TileShader.Instances, tile.InstanceBuffer);
+        context.VS.SetBuffer(TileShader.Instances, tile.InstanceBuffer);
         context.DrawInstanced(10, (int)(tile.Columns * tile.Rows));
     }
 

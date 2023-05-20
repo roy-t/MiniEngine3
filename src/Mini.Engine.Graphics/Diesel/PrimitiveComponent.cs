@@ -7,5 +7,4 @@ namespace Mini.Engine.Graphics.Diesel;
 public struct PrimitiveComponent : IComponent
 {
     public ILifetime<PrimitiveMesh> Mesh;
-    public Color4 Color;
 }
