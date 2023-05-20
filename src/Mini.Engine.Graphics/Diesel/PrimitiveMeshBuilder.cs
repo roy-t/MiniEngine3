@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 using Mini.Engine.Core;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Vortice.Mathematics;
 
@@ -26,15 +27,22 @@ public sealed class PrimitiveMeshBuilder
 
     public void Add(ReadOnlySpan<PrimitiveVertex> vertices, ReadOnlySpan<int> indices, Color4 color)
     {
+        var vertexOffset = this.Vertices.Length;
+        
+        this.Vertices.Add(vertices);
+
+        for (var i = 0; i < indices.Length; i++)
+        {
+            this.Indices.Add(indices[i] + vertexOffset);
+        }
+
         this.Parts.Add(new MeshPart
         {
-            Offset = (uint)this.Vertices.Length,
+            Offset = (uint)vertexOffset,
             Length = (uint)vertices.Length,
             Color = color
         });
 
-        this.Vertices.Add(vertices);
-        this.Indices.Add(indices);
 
         for (var i = 0; i < vertices.Length; i++)
         {
@@ -44,7 +52,7 @@ public sealed class PrimitiveMeshBuilder
         }
     }
 
-    public PrimitiveMesh Build(Device device, string name)
+    public ILifetime<PrimitiveMesh> Build(Device device, string name)
     {
         Debug.Assert(this.Vertices.Length > 0 && this.Indices.Length > 0 && this.Parts.Length > 0 && this.bounds != BoundingBox.Empty);
 
@@ -52,6 +60,7 @@ public sealed class PrimitiveMeshBuilder
         var indices = this.Indices.Build();
         var parts = this.Parts.Build();
 
-        return new PrimitiveMesh(device, vertices, indices, parts, this.bounds, name);
+        var mesh = new PrimitiveMesh(device, vertices, indices, parts, this.bounds, name);
+        return device.Resources.Add(mesh);
     }
 }

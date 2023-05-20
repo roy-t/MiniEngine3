@@ -1,7 +1,9 @@
 ﻿using System.Numerics;
 using Mini.Engine.Core;
 using Mini.Engine.Graphics;
+using Mini.Engine.Graphics.Diesel;
 using Mini.Engine.Modelling.Tools;
+using Vortice.Mathematics;
 
 namespace Mini.Engine.Modelling.Generators;
 public static class TrainRailGenerator
@@ -27,50 +29,8 @@ public static class TrainRailGenerator
     private const float RAIL_TIE_DEPTH_BOTTOM = 0.3f;
     private const float RAIL_TIE_SPACING = 0.3f + RAIL_TIE_DEPTH_BOTTOM;
 
-    public static Quad[] GenerateRails(Path3D trackLayout)
-    {
-        var crossSection = CreateSingleRailCrossSection();
 
-        var leftRailLayout = CreateSingleRailLayout(trackLayout, SINGLE_RAIL_OFFSET);
-        var leftRail = Extruder.Extrude(crossSection, leftRailLayout);
-
-        var rightRailLayout = CreateSingleRailLayout(trackLayout, -SINGLE_RAIL_OFFSET);
-        var rightRail = Extruder.Extrude(crossSection, rightRailLayout);
-
-        var caps = CreateRailEndCaps(leftRailLayout, rightRailLayout);
-
-        return ArrayUtilities.Concat(leftRail, rightRail, caps);
-    }
-
-    public static Quad[] GenerateBallast(Path3D trackLayout)
-    {
-        var crossSection = CreateBallastCrossSection();
-        var ballast = Extruder.Extrude(crossSection, trackLayout);
-
-        var caps = CreateBallastEndCaps(trackLayout);
-        return ArrayUtilities.Concat(ballast, caps);
-    }
-
-    public static Quad[] GenerateRailTies(Path3D trackLayout)
-    {
-        var quads = CreateSingleRailTie();
-        var transforms = Walker.WalkSpacedOut(trackLayout, RAIL_TIE_SPACING, Vector3.UnitY);
-        var matrices = transforms.Select(t => t.GetMatrix()).ToArray();
-
-        var array = new ArrayBuilder<Quad>(quads.Length * transforms.Length);
-
-        for (var i = 0; i < transforms.Length; i++)
-        {
-            for (var q = 0; q < quads.Length; q++)
-            {
-                array.Add(quads[q].CreateTransformed(in transforms[i]));
-            }
-        }
-
-        return array.Build().ToArray(); // Ewwwwwwwwww copy copy
-    }
-
-    public static Path3D CreateTrackLayout()
+    public static Path3D CreateCircularTrackLayout()
     {
         var closed = true;
         var radius = 25.0f;
@@ -92,6 +52,73 @@ public static class TrainRailGenerator
         var vertices = PathUtilities.CreateTransitionCurve(radius, points).Select(v => new Vector3(v.X, 0, v.Y)).ToArray();
 
         return new Path3D(closed, vertices);
+    }
+
+    public static void GenerateTrack(PrimitiveMeshBuilder builder, Path3D trackLayout)
+    {
+        GenerateBallast(builder, trackLayout, new Color4(0.33f, 0.27f, 0.25f, 1.0f));
+        GenerateRailTies(builder, trackLayout, new Color4(0.4f, 0.4f, 0.4f, 1.0f));
+        GenerateRails(builder, trackLayout, new Color4(0.4f, 0.28f, 0.30f, 1.0f));
+    }
+
+    private static void GenerateRails(PrimitiveMeshBuilder builder, Path3D trackLayout, Color4 color)
+    {
+        var crossSection = CreateSingleRailCrossSection();
+        var leftRailLayout = CreateSingleRailLayout(trackLayout, SINGLE_RAIL_OFFSET);
+        var rightRailLayout = CreateSingleRailLayout(trackLayout, -SINGLE_RAIL_OFFSET);
+
+        var rails = new ArrayBuilder<Quad>((leftRailLayout.Steps * crossSection.Steps) + (rightRailLayout.Steps * crossSection.Steps));
+
+        rails.Add(Extruder.Extrude(crossSection, leftRailLayout));
+        rails.Add(Extruder.Extrude(crossSection, rightRailLayout));
+        rails.Add(CreateRailEndCaps(leftRailLayout, rightRailLayout));
+
+        var span = rails.Build();
+        var vertices = QuadBuilder.GetVertices(span);
+        var indices = QuadBuilder.GetIndices(span);
+
+        builder.Add(vertices, indices, color);
+    }
+
+    private static void GenerateBallast(PrimitiveMeshBuilder builder, Path3D trackLayout, Color4 color)
+    {        
+        var crossSection = CreateBallastCrossSection();
+
+        var ballast = new ArrayBuilder<Quad>(trackLayout.Steps * crossSection.Steps);
+        ballast.Add(Extruder.Extrude(crossSection, trackLayout));
+
+        var caps = CreateBallastEndCaps(trackLayout);
+        ballast.Add(caps);
+
+
+        var span = ballast.Build();
+        var vertices = QuadBuilder.GetVertices(span);
+        var indices = QuadBuilder.GetIndices(span);
+
+        builder.Add(vertices, indices, color);
+    }
+
+    private static void GenerateRailTies(PrimitiveMeshBuilder builder, Path3D trackLayout, Color4 color)
+    {
+        var tie = CreateSingleRailTie();
+        var transforms = Walker.WalkSpacedOut(trackLayout, RAIL_TIE_SPACING, Vector3.UnitY);
+        var matrices = transforms.Select(t => t.GetMatrix()).ToArray();
+
+        var ties = new ArrayBuilder<Quad>(tie.Length * transforms.Length);
+
+        for (var i = 0; i < transforms.Length; i++)
+        {
+            for (var q = 0; q < tie.Length; q++)
+            {
+                ties.Add(tie[q].CreateTransformed(in transforms[i]));
+            }
+        }
+
+        var span = ties.Build();
+        var vertices = QuadBuilder.GetVertices(span);
+        var indices = QuadBuilder.GetIndices(span);
+
+        builder.Add(vertices, indices, color);
     }
 
     private static Path3D CreateSingleRailLayout(Path3D trackLayout, float offset)

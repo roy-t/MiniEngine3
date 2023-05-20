@@ -58,8 +58,42 @@ public sealed class QuadBuilder
             builder.Add(vertices.Build(), indices.Build(), colors[part]);
         }
 
-        var mesh = builder.Build(this.Device, name);
-        return this.Device.Resources.Add(mesh);
+        return builder.Build(this.Device, name);        
+    }
+
+    public static ReadOnlySpan<PrimitiveVertex> GetVertices(ReadOnlySpan<Quad> quads)
+    {
+        var vertices = new ArrayBuilder<PrimitiveVertex>(quads.Length * 4);
+
+        for (var q = 0; q < quads.Length; q++)
+        {
+            var quad = quads[q];
+
+            var normal = quad.GetNormal();
+            vertices.Add(new PrimitiveVertex(quad.A, normal));
+            vertices.Add(new PrimitiveVertex(quad.B, normal));
+            vertices.Add(new PrimitiveVertex(quad.C, normal));
+            vertices.Add(new PrimitiveVertex(quad.D, normal));
+        }
+
+        return vertices.Build();
+    }
+
+    public static ReadOnlySpan<int> GetIndices(ReadOnlySpan<Quad> quads)
+    {
+        var indices = new ArrayBuilder<int>(quads.Length * 6);
+
+        for (var q = 0; q < quads.Length; q++)
+        {
+            indices.Add((q * 4) + 0);
+            indices.Add((q * 4) + 1);
+            indices.Add((q * 4) + 2);
+            indices.Add((q * 4) + 2);
+            indices.Add((q * 4) + 3);
+            indices.Add((q * 4) + 0);
+        }
+
+        return indices.Build();
     }
 
     public ILifetime<StructuredBuffer<Matrix4x4>> Instance(string name, params Matrix4x4[] instances)
