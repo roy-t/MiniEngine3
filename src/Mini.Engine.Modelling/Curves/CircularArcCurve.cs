@@ -10,19 +10,28 @@ namespace Mini.Engine.Modelling.Curves;
 /// <param name="StartAngle"></param>
 /// <param name="EndAngle"></param>
 /// <param name="Closed"></param>
-public sealed record class CircularArcCurve(float StartAngle, float EndAngle, bool Closed = false)
+public sealed record class CircularArcCurve(float StartAngle, float EndAngle, float Radius, bool Closed = false)
     : ICurve
 {
-    public Vector2 GetPosition(float u, float radius)
+    public Vector2 GetPosition(float u)
     {
         var delta = this.EndAngle - this.StartAngle;
         u *= delta;
-        return new Vector2(Cos(u + this.StartAngle), Sin(u + this.StartAngle)) * radius;
+        return new Vector2(Cos(u + this.StartAngle), Sin(u + this.StartAngle)) * this.Radius;
     }
 
-    public float ComputeLength(float radius)
+    public float ComputeLength()
+    {        
+        var delta = this.EndAngle - this.StartAngle;
+        return delta * this.Radius;
+    }
+
+    public Vector2 GetNormal(float u)
     {
         var delta = this.EndAngle - this.StartAngle;
-        return (2.0f * PI * radius) * delta;
+        u *= delta;
+
+        // Normalize to get rid of floating point inaccuracies
+        return Vector2.Normalize(new Vector2(-Sin(u + this.StartAngle), Cos(u + this.StartAngle)));
     }
 }

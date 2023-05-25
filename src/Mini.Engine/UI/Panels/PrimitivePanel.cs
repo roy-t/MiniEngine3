@@ -102,7 +102,7 @@ internal class PrimitivePanel : IDieselPanel
         };
 
         var builder = new PrimitiveMeshBuilder();
-        TrainRailGenerator.GenerateTrack(builder, trackLayout);        
+        TrainRailGenerator.CreateTurn(builder);        
 
         ref var instances = ref creator.Create<InstancesComponent>(entity);
         instances.InstanceBuffer = this.Builder.Instance($"{name}_instances", matrices);

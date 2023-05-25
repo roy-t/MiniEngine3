@@ -3,7 +3,8 @@
 namespace Mini.Engine.Modelling.Curves;
 public interface ICurve
 {
-    public Vector2 GetPosition(float u, float amplitude);
+    public Vector2 GetPosition(float u);
+    public Vector2 GetNormal(float u);
 
-    public float ComputeLength(float amplitude);
+    public float ComputeLength();
 }

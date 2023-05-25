@@ -2,6 +2,7 @@
 using System.Reflection.Metadata.Ecma335;
 using Mini.Engine.Core;
 using Mini.Engine.Graphics;
+using Mini.Engine.Modelling.Curves;
 
 namespace Mini.Engine.Modelling.Tools;
 public static class Extruder
@@ -36,7 +37,7 @@ public static class Extruder
         for (var i = 0; i < path.Steps; i++)
         {
             var positionA = path[i];
-            var directionA = path.GetForwardAlongBendToNextPosition(i); 
+            var directionA = path.GetForwardAlongBendToNextPosition(i);
             var matrixA = new Transform(positionA, Quaternion.Identity, Vector3.Zero, 1.0f)
                 .FaceTargetConstrained(positionA + directionA, up)
                 .GetMatrix();
@@ -60,44 +61,55 @@ public static class Extruder
 
 
         return quads;
+    }
 
-        //var loops = crossSection.IsClosed ? crossSection.Length + 1 : crossSection.Length;
-        //var steps = path.IsClosed ? path.Length + 1 : path.Length;
+    public static Quad[] Extrude(Path2D crossSection, ICurve curve, int points, Vector3 up, Vector3 offset)
+    {
+        if (crossSection.Length < 2)
+        {
+            throw new Exception("Invalid cross section");
+        }
 
-        //var positions = new Vector3[steps, loops];
+        if (points < 2)
+        {
+            throw new Exception("Invalid points");
+        }
 
-        //for (var i = 0; i < steps; i++)
-        //{
-        //    var position = path[i];
-        //    var face = position + path.GetForwardAlongBendToNextPosition(i);
-        //    var transform = new Transform(position, Quaternion.Identity, Vector3.Zero, 1.0f);
-        //    transform = transform.FaceTarget(face);
+        var steps = points - 1;
 
-        //    for (var j = 0; j < loops; j++)
-        //    {
-        //        var v2 = crossSection[j % crossSection.Length];
-        //        var v3 = new Vector3(v2.X, v2.Y, 0.0f);
-        //        positions[i, j] = Vector3.Transform(v3, transform.GetMatrix());
-        //    }
-        //}
+        var quads = new Quad[steps * crossSection.Steps];
 
-        //var quads = new Quad[(positions.GetLength(0) - 1) * (positions.GetLength(1) - 1)];
+        var counter = 0;
+        for (var i = 0; i < steps; i++)
+        {
+            var uC = (i + 0) / (float)steps;
+            var uN = (i + 1) / (float)steps;
 
-        //var q = 0;
-        //for (var i = 0; i < positions.GetLength(0) - 1; i++)
-        //{
-        //    for (var j = 0; j < positions.GetLength(1) - 1; j++)
-        //    {
-        //        var a = positions[i + 1, j + 1];
-        //        var b = positions[i + 0, j + 1];
-        //        var c = positions[i + 0, j + 0];
-        //        var d = positions[i + 1, j + 0];
+            var positionA = curve.GetPosition3D(uC);
+            var directionA = curve.GetNormal3D(uC);
+            var matrixA = new Transform(positionA, Quaternion.Identity, Vector3.Zero, 1.0f)
+                .FaceTargetConstrained(positionA + directionA, up)
+                .GetMatrix();
 
-        //        var quad = new Quad(a, b, c, d);
-        //        quads[q++] = quad;
-        //    }
-        //}
+            var positionB = curve.GetPosition3D(uN);
+            var directionB = curve.GetNormal3D(uN);
 
-        //return quads;
+            var matrixB = new Transform(positionB, Quaternion.Identity, Vector3.Zero, 1.0f)
+                .FaceTargetConstrained(positionB + directionB, up)
+                .GetMatrix();
+
+            for (var j = 0; j < crossSection.Steps; j++)
+            {
+                var topRight = Vector3.Transform(crossSection[j + 1].ToVector3() + offset, matrixB);
+                var bottomRight = Vector3.Transform(crossSection[j + 1].ToVector3() + offset, matrixA);
+                var bottomLeft = Vector3.Transform(crossSection[j].ToVector3() + offset, matrixA);
+                var topLeft = Vector3.Transform(crossSection[j].ToVector3() + offset, matrixB);
+
+                quads[counter++] = new Quad(topRight, bottomRight, bottomLeft, topLeft);
+            }
+        }
+
+
+        return quads;
     }
 }

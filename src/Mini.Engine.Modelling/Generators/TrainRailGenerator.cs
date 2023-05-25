@@ -30,7 +30,6 @@ public static class TrainRailGenerator
     private const float RAIL_TIE_DEPTH_BOTTOM = 0.3f;
     private const float RAIL_TIE_SPACING = 0.3f + RAIL_TIE_DEPTH_BOTTOM;
 
-
     public static Path3D CreateCircularTrackLayout()
     {
         var closed = false;
@@ -41,48 +40,39 @@ public static class TrainRailGenerator
         // var vertices = PathUtilities.CreateCurve(radius, startAngle, endAngle, points, closed).Select(v => new Vector3(v.X, 0, v.Y)).ToArray();
 
 
-        var curve = new CircularArcCurve(startAngle, endAngle, closed);
+        var curve = new CircularArcCurve(startAngle, endAngle, radius, closed);
         var vertices = Enumerable.Range(0, points)
-            .Select(i => curve.GetPosition(i / (float)(points -1.0f), radius))
+            .Select(i => curve.GetPosition(i / (float)(points - 1.0f)))
             .Select(v => new Vector3(v.X, 0.0f, v.Y))
             .ToArray();
 
         return new Path3D(closed, vertices);
     }
 
-    public static Path3D CreateTransitionCurveLayout()
-    {
-        var closed = false;
+    public static void CreateTurn(PrimitiveMeshBuilder builder)
+    {        
+        // in the future we can use a second curve to get the height
+        
         var radius = 25.0f;
         var points = 50;
 
-        var curve = PolynomialCurve.CreateTransitionCurve();
-        var vertices = Enumerable.Range(0, points)
-            .Select(i => curve.GetPosition(i / (float)(points - 1.0f), radius))
-            .Select(v => new Vector3(v.X, 0.0f, v.Y))
-            .ToArray();
+        var curve = new CircularArcCurve(0.0f, MathF.PI / 2.0f, radius);
+        //var curve = PolynomialCurve.CreateTransitionCurve(radius);
+        GenerateBallast(builder, curve, points, new Color4(0.33f, 0.27f, 0.25f, 1.0f));
+        GenerateRailTies(builder, curve, new Color4(0.4f, 0.4f, 0.4f, 1.0f));
+        GenerateRails(builder, curve, points, new Color4(0.4f, 0.28f, 0.30f, 1.0f));
 
-        return new Path3D(closed, vertices);
     }
 
-    public static void GenerateTrack(PrimitiveMeshBuilder builder, Path3D trackLayout)
-    {
-        GenerateBallast(builder, trackLayout, new Color4(0.33f, 0.27f, 0.25f, 1.0f));
-        GenerateRailTies(builder, trackLayout, new Color4(0.4f, 0.4f, 0.4f, 1.0f));
-        GenerateRails(builder, trackLayout, new Color4(0.4f, 0.28f, 0.30f, 1.0f));
-    }
-
-    private static void GenerateRails(PrimitiveMeshBuilder builder, Path3D trackLayout, Color4 color)
+    private static void GenerateRails(PrimitiveMeshBuilder builder, ICurve curve, int points, Color4 color)
     {
         var crossSection = CreateSingleRailCrossSection();
-        var leftRailLayout = CreateSingleRailLayout(trackLayout, SINGLE_RAIL_OFFSET);
-        var rightRailLayout = CreateSingleRailLayout(trackLayout, -SINGLE_RAIL_OFFSET);
 
-        var rails = new ArrayBuilder<Quad>((leftRailLayout.Steps * crossSection.Steps) + (rightRailLayout.Steps * crossSection.Steps));
+        var rails = new ArrayBuilder<Quad>(crossSection.Steps * (points - 1) * 2);
 
-        rails.Add(Extruder.Extrude(crossSection, leftRailLayout));
-        rails.Add(Extruder.Extrude(crossSection, rightRailLayout));
-        rails.Add(CreateRailEndCaps(leftRailLayout, rightRailLayout));
+        rails.Add(Extruder.Extrude(crossSection, curve, points, Vector3.UnitY, Vector3.UnitX * SINGLE_RAIL_OFFSET));
+        rails.Add(Extruder.Extrude(crossSection, curve, points, Vector3.UnitY, Vector3.UnitX * -SINGLE_RAIL_OFFSET));        
+        rails.Add(CreateRailEndCaps(curve, SINGLE_RAIL_OFFSET, -SINGLE_RAIL_OFFSET));
 
         var span = rails.Build();
         var vertices = QuadBuilder.GetVertices(span);
@@ -91,16 +81,16 @@ public static class TrainRailGenerator
         builder.Add(vertices, indices, color);
     }
 
-    private static void GenerateBallast(PrimitiveMeshBuilder builder, Path3D trackLayout, Color4 color)
-    {        
-        var crossSection = CreateBallastCrossSection();
+    private static void GenerateBallast(PrimitiveMeshBuilder builder, ICurve curve, int points, Color4 color)
+    {
+        var crossSection = CreateBallastCrossSection();        
 
-        var ballast = new ArrayBuilder<Quad>(trackLayout.Steps * crossSection.Steps);
-        ballast.Add(Extruder.Extrude(crossSection, trackLayout));
+        var ballast = new ArrayBuilder<Quad>((points - 1) * crossSection.Steps);
 
-        var caps = CreateBallastEndCaps(trackLayout);
+        ballast.Add(Extruder.Extrude(crossSection, curve, points, Vector3.UnitY, Vector3.Zero));
+
+        var caps = CreateBallastEndCaps(curve);
         ballast.Add(caps);
-
 
         var span = ballast.Build();
         var vertices = QuadBuilder.GetVertices(span);
@@ -109,10 +99,10 @@ public static class TrainRailGenerator
         builder.Add(vertices, indices, color);
     }
 
-    private static void GenerateRailTies(PrimitiveMeshBuilder builder, Path3D trackLayout, Color4 color)
+    private static void GenerateRailTies(PrimitiveMeshBuilder builder, ICurve curve, Color4 color)
     {
         var tie = CreateSingleRailTie();
-        var transforms = Walker.WalkSpacedOut(trackLayout, RAIL_TIE_SPACING, Vector3.UnitY);
+        var transforms = Walker.WalkSpacedOut(curve, RAIL_TIE_SPACING, Vector3.UnitY);
         var matrices = transforms.Select(t => t.GetMatrix()).ToArray();
 
         var ties = new ArrayBuilder<Quad>(tie.Length * transforms.Length);
@@ -132,27 +122,6 @@ public static class TrainRailGenerator
         builder.Add(vertices, indices, color);
     }
 
-    private static Path3D CreateSingleRailLayout(Path3D trackLayout, float offset)
-    {
-        if (trackLayout.Length < 2)
-        {
-            throw new Exception("Invalid track layout");
-        }
-
-        var railLayout = new Vector3[trackLayout.Length];
-
-        for (var i = 0; i < trackLayout.Length; i++)
-        {
-            var forward = trackLayout.GetForwardAlongBendToNextPosition(i);
-            var up = Vector3.UnitY;
-            var left = Vector3.Normalize(Vector3.Cross(up, forward));
-
-            railLayout[i] = trackLayout[i] + (left * offset);
-        }
-
-        return new Path3D(trackLayout.IsClosed, railLayout);
-    }
-
     private static Path2D CreateSingleRailCrossSection()
     {
         var topRight = new Vector2(SINGLE_RAIL_WIDTH_TOP / 2.0f, SINGLE_RAIL_HEIGTH);
@@ -165,15 +134,24 @@ public static class TrainRailGenerator
         return new Path2D(true, topRight + h, bottomRight + h, bottomLeft + h, topLeft + h);
     }
 
-    private static Quad[] CreateRailEndCaps(params Path3D[] railLayouts)
+    private static Quad[] CreateRailEndCaps(ICurve curve, params float[] offsets)
     {
-        var caps = new Quad[railLayouts.Length * 2];
+        var caps = new Quad[offsets.Length * 2];
 
-        for (var i = 0; i < railLayouts.Length; i++)
+        for (var i = 0; i < offsets.Length; i++)
         {
-            var layout = railLayouts[i];
-            caps[(i * 2) + 0] = CreateSingleRailEndCap(layout[0], layout.GetForward(0));
-            caps[(i * 2) + 1] = CreateSingleRailEndCap(layout[layout.Length - 1], layout.GetBackward(layout.Length - 1));
+            var offset = offsets[i];
+            
+            var n0 = curve.GetNormal3D(0);
+            var l0 = curve.GetLeft(0);
+            var p0 = curve.GetPosition3D(0) + (l0 * offset);
+            
+            var n1 = curve.GetNormal3D(1);
+            var l1 = curve.GetLeft(1);
+            var p1 = curve.GetPosition3D(1) + (l1 * offset);
+
+            caps[(i * 2) + 0] = CreateSingleRailEndCap(p0, n0);
+            caps[(i * 2) + 1] = CreateSingleRailEndCap(p1, -n1);
         }
 
         return caps;
@@ -203,11 +181,15 @@ public static class TrainRailGenerator
         return new Path2D(true, topRight, middleRight, bottomRight, bottomLeft, middleLeft, topLeft);
     }
 
-    private static Quad[] CreateBallastEndCaps(Path3D trackLayout)
+    private static Quad[] CreateBallastEndCaps(ICurve curve)
     {
-        var start = CreateBallastEndCap(trackLayout[0], trackLayout.GetForward(0));
-        var end = CreateBallastEndCap(trackLayout[trackLayout.Length - 1], trackLayout.GetBackward(trackLayout.Length - 1));
+        var p0 = curve.GetPosition3D(0);
+        var n0 = curve.GetNormal3D(0);
+        var start = CreateBallastEndCap(p0, n0);
 
+        var p1 = curve.GetPosition3D(1);
+        var n1 = curve.GetNormal3D(1);
+        var end = CreateBallastEndCap(p1, -n1);
 
         return ArrayUtilities.Concat(start, end);
     }
