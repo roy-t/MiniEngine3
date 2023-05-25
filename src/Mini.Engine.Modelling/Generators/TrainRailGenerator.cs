@@ -2,6 +2,7 @@
 using Mini.Engine.Core;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Diesel;
+using Mini.Engine.Modelling.Curves;
 using Mini.Engine.Modelling.Tools;
 using Vortice.Mathematics;
 
@@ -32,12 +33,19 @@ public static class TrainRailGenerator
 
     public static Path3D CreateCircularTrackLayout()
     {
-        var closed = true;
-        var radius = 25.0f;
+        var closed = false;
+        var radius = 30.0f;
         var startAngle = MathF.PI * 0.0f;
         var endAngle = MathF.PI * 2.0f;
         var points = 50;
-        var vertices = PathUtilities.CreateCurve(radius, startAngle, endAngle, points, closed).Select(v => new Vector3(v.X, 0, v.Y)).ToArray();
+        // var vertices = PathUtilities.CreateCurve(radius, startAngle, endAngle, points, closed).Select(v => new Vector3(v.X, 0, v.Y)).ToArray();
+
+
+        var curve = new CircularArcCurve(startAngle, endAngle, closed);
+        var vertices = Enumerable.Range(0, points)
+            .Select(i => curve.GetPosition(i / (float)(points -1.0f), radius))
+            .Select(v => new Vector3(v.X, 0.0f, v.Y))
+            .ToArray();
 
         return new Path3D(closed, vertices);
     }
@@ -48,8 +56,11 @@ public static class TrainRailGenerator
         var radius = 25.0f;
         var points = 50;
 
-        var transitionCurveLength = MathF.PI * 0.5f * radius;
-        var vertices = PathUtilities.CreateTransitionCurve(radius, points).Select(v => new Vector3(v.X, 0, v.Y)).ToArray();
+        var curve = PolynomialCurve.CreateTransitionCurve();
+        var vertices = Enumerable.Range(0, points)
+            .Select(i => curve.GetPosition(i / (float)(points - 1.0f), radius))
+            .Select(v => new Vector3(v.X, 0.0f, v.Y))
+            .ToArray();
 
         return new Path3D(closed, vertices);
     }

@@ -153,7 +153,7 @@ public sealed class TileRenderService : IDisposable
         this.User.MapOutlineConstants(context, 0, tile.Columns - 1, 0, tile.Rows -1, Colors.Black);
 
         context.VS.SetBuffer(TileShader.Instances, tile.InstanceBuffer);
-        context.DrawInstanced(16, (int)(tile.Columns * tile.Rows));
+        context.DrawInstanced(16, (int)(tile.Columns * tile.Rows));        
     }
 
     /// <summary>

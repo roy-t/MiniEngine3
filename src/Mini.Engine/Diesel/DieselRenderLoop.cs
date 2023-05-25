@@ -23,8 +23,9 @@ internal class DieselRenderLoop
     private readonly CameraService CameraService;
     private readonly CameraController CameraController;
     private readonly PrimitiveSystem PrimitiveSystem;
+    private readonly LineSystem LineSystem;
 
-    public DieselRenderLoop(Device device, MetricService metricService, PrimitiveSystem primitiveSystem, CameraController cameraController, CameraService cameraService)
+    public DieselRenderLoop(Device device, MetricService metricService, PrimitiveSystem primitiveSystem, LineSystem lineSystem, CameraController cameraController, CameraService cameraService)
     {
         this.Device = device;
         this.ImmediateContext = device.ImmediateContext;
@@ -36,6 +37,7 @@ internal class DieselRenderLoop
         this.CameraController = cameraController;
         this.CameraService = cameraService;
         this.PrimitiveSystem = primitiveSystem;
+        this.LineSystem = lineSystem;
     }
 
     public void Run(RenderTarget albedo, DepthStencilBuffer depth, int x, int y, int width, int heigth, float alpha, float elapsedRealWorldTime)
@@ -49,6 +51,7 @@ internal class DieselRenderLoop
         this.CameraController.Update(elapsedRealWorldTime, ref cameraTransform.Current);
 
         this.Enqueue(this.PrimitiveSystem.DrawPrimitives(albedo, depth, x, y, width, heigth, alpha));
+        this.Enqueue(this.LineSystem.DrawLines(albedo, depth, x, y, width, heigth, alpha));
 
         while (this.GpuWorkQueue.Any())
         {

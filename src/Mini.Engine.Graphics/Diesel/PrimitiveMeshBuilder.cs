@@ -47,12 +47,12 @@ public sealed class PrimitiveMeshBuilder
         for (var i = 0; i < vertices.Length; i++)
         {
             var min = Vector3.Min(this.bounds.Min, vertices[i].Position);
-            var max = Vector3.Min(this.bounds.Max, vertices[i].Position);
+            var max = Vector3.Max(this.bounds.Max, vertices[i].Position);
             this.bounds = new BoundingBox(min, max);
         }
     }
 
-    public ILifetime<PrimitiveMesh> Build(Device device, string name)
+    public ILifetime<PrimitiveMesh> Build(Device device, string name, out BoundingBox bounds)
     {
         Debug.Assert(this.Vertices.Length > 0 && this.Indices.Length > 0 && this.Parts.Length > 0 && this.bounds != BoundingBox.Empty);
 
@@ -61,6 +61,7 @@ public sealed class PrimitiveMeshBuilder
         var parts = this.Parts.Build();
 
         var mesh = new PrimitiveMesh(device, vertices, indices, parts, this.bounds, name);
+        bounds = this.bounds;
         return device.Resources.Add(mesh);
     }
 }

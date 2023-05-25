@@ -83,9 +83,10 @@ internal class PrimitivePanel : IDieselPanel
 
     private void CreatePrimitives()
     {
-        var trackLayout = TrainRailGenerator.CreateCircularTrackLayout();        
+        var trackLayout = TrainRailGenerator.CreateCircularTrackLayout();
+        //var trackLayout = TrainRailGenerator.CreateTransitionCurveLayout();
         this.CreateAll(trackLayout, "rail");
-    }
+    }    
 
     private void CreateAll(Path3D trackLayout, string name)
     {
@@ -94,7 +95,10 @@ internal class PrimitivePanel : IDieselPanel
 
         var matrices = new Matrix4x4[]
         {
-            Matrix4x4.Identity            
+            Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 0.0f, 0.0f, 0.0f),
+            //Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 0.5f, 0.0f, 0.0f),
+            //Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 1.0f, 0.0f, 0.0f),
+            //Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 1.5f, 0.0f, 0.0f),
         };
 
         var builder = new PrimitiveMeshBuilder();
@@ -108,8 +112,12 @@ internal class PrimitivePanel : IDieselPanel
         transform.Current = Transform.Identity;
         transform.Previous = transform.Current;
 
-        ref var component = ref creator.Create<PrimitiveComponent>(entity);
+        ref var component = ref creator.Create<PrimitiveComponent>(entity);        
+        component.Mesh = builder.Build(this.Device, name, out var bounds);
 
-        component.Mesh = builder.Build(this.Device, name);        
+        ref var line = ref creator.Create<LineComponent>(entity);
+        var mesh = new LineMesh(this.Device, $"{name}_line", trackLayout.ToArray(new Vector3(0.0f, bounds.Height, 0.0f)));
+        line.Mesh = this.Device.Resources.Add(mesh);
+        line.Color = Colors.Yellow;
     }  
 }

@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Net.Http.Headers;
 using System.Numerics;
 
 namespace Mini.Engine.Modelling;
@@ -37,6 +36,18 @@ public record struct Path3D(bool IsClosed, params Vector3[] Positions)
 
     public int Length => this.Positions.Length;
     public int Steps => this.IsClosed ? this.Length : this.Length - 1;
+
+    public Vector3[] ToArray(Vector3 offset)
+    {
+        var length = this.IsClosed ? this.Length + 1 : this.Length;
+        var array = new Vector3[length];
+        for(var i = 0; i < array.Length; i++)
+        {
+            array[i] = this[i] + offset;
+        }
+
+        return array;
+    }
 
     public Vector3 GetForward(int index)
     {
