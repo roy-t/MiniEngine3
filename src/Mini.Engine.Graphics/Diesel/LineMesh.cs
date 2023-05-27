@@ -12,7 +12,7 @@ public sealed class LineMesh : IDisposable
     public readonly VertexBuffer<Vector3> Vertices;
     public readonly int VertexCount;
 
-    public LineMesh(Device device, string name, params Vector3[] vertices)
+    public LineMesh(Device device, string name, ReadOnlySpan<Vector3> vertices)
     {
         Debug.Assert(vertices.Length > 1);
 

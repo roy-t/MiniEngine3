@@ -63,7 +63,7 @@ public static class Extruder
         return quads;
     }
 
-    public static Quad[] Extrude(Path2D crossSection, ICurve curve, int points, Vector3 up, Vector3 offset)
+    public static Quad[] Extrude(Path2D crossSection, ICurve curve, int points, Vector3 up)
     {
         if (crossSection.Length < 2)
         {
@@ -100,10 +100,10 @@ public static class Extruder
 
             for (var j = 0; j < crossSection.Steps; j++)
             {
-                var topRight = Vector3.Transform(crossSection[j + 1].ToVector3() + offset, matrixB);
-                var bottomRight = Vector3.Transform(crossSection[j + 1].ToVector3() + offset, matrixA);
-                var bottomLeft = Vector3.Transform(crossSection[j].ToVector3() + offset, matrixA);
-                var topLeft = Vector3.Transform(crossSection[j].ToVector3() + offset, matrixB);
+                var topRight = Vector3.Transform(crossSection[j + 1].ToVector3(), matrixB);
+                var bottomRight = Vector3.Transform(crossSection[j + 1].ToVector3(), matrixA);
+                var bottomLeft = Vector3.Transform(crossSection[j].ToVector3(), matrixA);
+                var topLeft = Vector3.Transform(crossSection[j].ToVector3(), matrixB);
 
                 quads[counter++] = new Quad(topRight, bottomRight, bottomLeft, topLeft);
             }

@@ -47,24 +47,9 @@ public sealed record class PolynomialCurve(float A, float B, float C, float D, f
         return new PolynomialCurve(-1.0f, 3.0f / 2.0f, 3.0f, -(5.0f / 2.0f), 1.0f, 0.0f, 0.0f, -1.0f, amplitude);
     }
 
-    // TODO: very naive, there must be a better way
+    // TODO: very naive, there is a better way for polynomials like this
     public float ComputeLength()
     {
-        const int steps = 1000;
-        
-        var distance = 0.0f;
-        var step = 1.0f / (steps - 1.0f);
-        for (var i = 0; i < (steps - 1); i++)
-        {
-
-            var a = this.GetPosition(step * (i + 0));
-            var b = this.GetPosition(step * (i + 1));
-
-            distance += Vector2.Distance(a, b);
-        }
-
-        return distance;
+        return this.ComputeLengthPiecewise();
     }
-
-
 }

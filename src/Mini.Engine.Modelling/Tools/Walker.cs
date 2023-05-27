@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using Mini.Engine.Graphics;
 using Mini.Engine.Modelling.Curves;
 
@@ -12,27 +11,21 @@ public static class Walker
     /// </summary>
     public static Transform[] WalkSpacedOut(ICurve curve, float minStepSize, Vector3 up)
     {
-        Debug.Assert(minStepSize > 0.0f);
-        
-        var curveLength = curve.ComputeLength();        
+        var length = curve.ComputeLength();
+        var shorten = minStepSize / length;
+        curve = curve.Range(shorten * 0.5f, 1.0f - shorten);
 
-        Debug.Assert(curveLength > minStepSize);
+        length = curve.ComputeLength();
+        var intervals = (int)(length / minStepSize);        
+        var remainder = length - (minStepSize * intervals);
+        var stepSize = minStepSize + (remainder / intervals);
+        var u = stepSize / length;
 
-        var totalLength = curveLength - minStepSize;
-        var startOffset = minStepSize * 0.5f;
-
-        var transforms = new Transform[(int)(totalLength / minStepSize) + 1];
-        
-        //// Even out the spacing between all items so that we get rid of the remainder
-        var remainder = totalLength % minStepSize;
-        var stepSize = minStepSize + (remainder / (transforms.Length - 1));
-
-        var scale = 1.0f / curveLength;
-
+        var transforms = new Transform[intervals + 1];
         for (var i = 0; i < transforms.Length; i++)
-        {     
-            var p = curve.GetPosition3D(((i * stepSize) + startOffset) * scale);            
-            var n = curve.GetNormal3D(((i * stepSize) + startOffset) * scale);
+        {
+            var p = curve.GetPosition3D(i * u);
+            var n = curve.GetNormal3D(i * u);
 
             transforms[i] = new Transform(p, Quaternion.Identity, Vector3.Zero, 1.0f).FaceTargetConstrained(p + n, up);
         }

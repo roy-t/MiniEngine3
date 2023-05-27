@@ -30,29 +30,8 @@ public static class TrainRailGenerator
     private const float RAIL_TIE_DEPTH_BOTTOM = 0.3f;
     private const float RAIL_TIE_SPACING = 0.3f + RAIL_TIE_DEPTH_BOTTOM;
 
-    public static Path3D CreateCircularTrackLayout()
-    {
-        var closed = false;
-        var radius = 30.0f;
-        var startAngle = MathF.PI * 0.0f;
-        var endAngle = MathF.PI * 2.0f;
-        var points = 50;
-        // var vertices = PathUtilities.CreateCurve(radius, startAngle, endAngle, points, closed).Select(v => new Vector3(v.X, 0, v.Y)).ToArray();
-
-
-        var curve = new CircularArcCurve(startAngle, endAngle, radius, closed);
-        var vertices = Enumerable.Range(0, points)
-            .Select(i => curve.GetPosition(i / (float)(points - 1.0f)))
-            .Select(v => new Vector3(v.X, 0.0f, v.Y))
-            .ToArray();
-
-        return new Path3D(closed, vertices);
-    }
-
-    public static void CreateTurn(PrimitiveMeshBuilder builder)
-    {        
-        // in the future we can use a second curve to get the height
-        
+    public static ICurve CreateTurn(PrimitiveMeshBuilder builder)
+    {               
         var radius = 25.0f;
         var points = 50;
 
@@ -62,6 +41,7 @@ public static class TrainRailGenerator
         GenerateRailTies(builder, curve, new Color4(0.4f, 0.4f, 0.4f, 1.0f));
         GenerateRails(builder, curve, points, new Color4(0.4f, 0.28f, 0.30f, 1.0f));
 
+        return curve;
     }
 
     private static void GenerateRails(PrimitiveMeshBuilder builder, ICurve curve, int points, Color4 color)
@@ -70,8 +50,8 @@ public static class TrainRailGenerator
 
         var rails = new ArrayBuilder<Quad>(crossSection.Steps * (points - 1) * 2);
 
-        rails.Add(Extruder.Extrude(crossSection, curve, points, Vector3.UnitY, Vector3.UnitX * SINGLE_RAIL_OFFSET));
-        rails.Add(Extruder.Extrude(crossSection, curve, points, Vector3.UnitY, Vector3.UnitX * -SINGLE_RAIL_OFFSET));        
+        rails.Add(Extruder.Extrude(crossSection, curve.OffsetLeft(SINGLE_RAIL_OFFSET), points, Vector3.UnitY));
+        rails.Add(Extruder.Extrude(crossSection, curve.OffsetRight(SINGLE_RAIL_OFFSET), points, Vector3.UnitY));        
         rails.Add(CreateRailEndCaps(curve, SINGLE_RAIL_OFFSET, -SINGLE_RAIL_OFFSET));
 
         var span = rails.Build();
@@ -87,7 +67,7 @@ public static class TrainRailGenerator
 
         var ballast = new ArrayBuilder<Quad>((points - 1) * crossSection.Steps);
 
-        ballast.Add(Extruder.Extrude(crossSection, curve, points, Vector3.UnitY, Vector3.Zero));
+        ballast.Add(Extruder.Extrude(crossSection, curve, points, Vector3.UnitY));
 
         var caps = CreateBallastEndCaps(curve);
         ballast.Add(caps);
@@ -143,11 +123,11 @@ public static class TrainRailGenerator
             var offset = offsets[i];
             
             var n0 = curve.GetNormal3D(0);
-            var l0 = curve.GetLeft(0);
+            var l0 = curve.GetLeft3D(0);
             var p0 = curve.GetPosition3D(0) + (l0 * offset);
             
             var n1 = curve.GetNormal3D(1);
-            var l1 = curve.GetLeft(1);
+            var l1 = curve.GetLeft3D(1);
             var p1 = curve.GetPosition3D(1) + (l1 * offset);
 
             caps[(i * 2) + 0] = CreateSingleRailEndCap(p0, n0);

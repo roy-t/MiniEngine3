@@ -4,34 +4,25 @@ using static System.MathF;
 
 namespace Mini.Engine.Modelling.Curves;
 
-/// <summary>
-/// A circular arc curve
-/// </summary>
-/// <param name="StartAngle"></param>
-/// <param name="EndAngle"></param>
-/// <param name="Closed"></param>
-public sealed record class CircularArcCurve(float StartAngle, float EndAngle, float Radius, bool Closed = false)
+public sealed record class CircularArcCurve(float Offset, float Length, float Radius)
     : ICurve
 {
     public Vector2 GetPosition(float u)
-    {
-        var delta = this.EndAngle - this.StartAngle;
-        u *= delta;
-        return new Vector2(Cos(u + this.StartAngle), Sin(u + this.StartAngle)) * this.Radius;
+    {        
+        u *= this.Length;
+        return new Vector2(Cos(u + this.Offset), Sin(u + this.Offset)) * this.Radius;
     }
 
     public float ComputeLength()
-    {        
-        var delta = this.EndAngle - this.StartAngle;
-        return delta * this.Radius;
+    {                
+        return this.Length * this.Radius;
     }
 
     public Vector2 GetNormal(float u)
     {
-        var delta = this.EndAngle - this.StartAngle;
-        u *= delta;
+        u *= this.Length;
 
         // Normalize to get rid of floating point inaccuracies
-        return Vector2.Normalize(new Vector2(-Sin(u + this.StartAngle), Cos(u + this.StartAngle)));
+        return Vector2.Normalize(new Vector2(-Sin(u + this.Offset), Cos(u + this.Offset)));
     }
 }

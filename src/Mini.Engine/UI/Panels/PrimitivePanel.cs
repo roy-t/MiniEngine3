@@ -8,6 +8,7 @@ using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Diesel;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Modelling;
+using Mini.Engine.Modelling.Curves;
 using Mini.Engine.Modelling.Generators;
 using Vortice.Mathematics;
 
@@ -83,12 +84,10 @@ internal class PrimitivePanel : IDieselPanel
 
     private void CreatePrimitives()
     {
-        var trackLayout = TrainRailGenerator.CreateCircularTrackLayout();
-        //var trackLayout = TrainRailGenerator.CreateTransitionCurveLayout();
-        this.CreateAll(trackLayout, "rail");
+        this.CreateAll("rail");
     }    
 
-    private void CreateAll(Path3D trackLayout, string name)
+    private void CreateAll(string name)
     {
         var entity = this.Administrator.Entities.Create();
         var creator = this.Administrator.Components;
@@ -96,13 +95,13 @@ internal class PrimitivePanel : IDieselPanel
         var matrices = new Matrix4x4[]
         {
             Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 0.0f, 0.0f, 0.0f),
-            //Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 0.5f, 0.0f, 0.0f),
-            //Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 1.0f, 0.0f, 0.0f),
-            //Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 1.5f, 0.0f, 0.0f),
+            Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 0.5f, 0.0f, 0.0f),
+            Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 1.0f, 0.0f, 0.0f),
+            Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 1.5f, 0.0f, 0.0f),
         };
 
         var builder = new PrimitiveMeshBuilder();
-        TrainRailGenerator.CreateTurn(builder);        
+        var curve = TrainRailGenerator.CreateTurn(builder);        
 
         ref var instances = ref creator.Create<InstancesComponent>(entity);
         instances.InstanceBuffer = this.Builder.Instance($"{name}_instances", matrices);
@@ -116,7 +115,8 @@ internal class PrimitivePanel : IDieselPanel
         component.Mesh = builder.Build(this.Device, name, out var bounds);
 
         ref var line = ref creator.Create<LineComponent>(entity);
-        var mesh = new LineMesh(this.Device, $"{name}_line", trackLayout.ToArray(new Vector3(0.0f, bounds.Height, 0.0f)));
+        var lineVertices = curve.GetPoints3D(50, new Vector3(0.0f, bounds.Height, 0.0f));
+        var mesh = new LineMesh(this.Device, $"{name}_line", lineVertices);
         line.Mesh = this.Device.Resources.Add(mesh);
         line.Color = Colors.Yellow;
     }  
