@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using Mini.Engine.Configuration;
 using Mini.Engine.Core;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
@@ -9,6 +10,14 @@ namespace Mini.Engine.Graphics.Diesel;
 
 using MeshPart = Mini.Engine.Content.Shaders.Generated.Primitive.MeshPart;
 
+public interface IPrimitiveMeshPartBuilder
+{
+    void AddIndex(int index);
+    int AddVertex(PrimitiveVertex vertex);
+    int AddVertex(Vector3 position, Vector3 normal);
+    void Complete(Color4 color);
+}
+
 public sealed class PrimitiveMeshBuilder
 {
     private readonly ArrayBuilder<PrimitiveVertex> Vertices;
@@ -16,7 +25,7 @@ public sealed class PrimitiveMeshBuilder
     private readonly ArrayBuilder<MeshPart> Parts;
     private BoundingBox bounds;
 
-    public PrimitiveMeshBuilder(int vertexCapacity = 1000, int indexCapacity = 2000, int partCapacity = 10)
+    public PrimitiveMeshBuilder(int vertexCapacity = 24, int indexCapacity = 36, int partCapacity = 1)
     {
         this.Vertices = new ArrayBuilder<PrimitiveVertex>(vertexCapacity);
         this.Indices = new ArrayBuilder<int>(indexCapacity);
@@ -28,28 +37,41 @@ public sealed class PrimitiveMeshBuilder
     public void Add(ReadOnlySpan<PrimitiveVertex> vertices, ReadOnlySpan<int> indices, Color4 color)
     {
         var vertexOffset = this.Vertices.Length;
-        
-        this.Vertices.Add(vertices);
-
-        for (var i = 0; i < indices.Length; i++)
-        {
-            this.Indices.Add(indices[i] + vertexOffset);
-        }
-
-        this.Parts.Add(new MeshPart
-        {
-            Offset = (uint)vertexOffset,
-            Length = (uint)vertices.Length,
-            Color = color
-        });
-
 
         for (var i = 0; i < vertices.Length; i++)
         {
-            var min = Vector3.Min(this.bounds.Min, vertices[i].Position);
-            var max = Vector3.Max(this.bounds.Max, vertices[i].Position);
-            this.bounds = new BoundingBox(min, max);
+            this.AddVertex(vertices[i]);
         }
+
+        for (var i = 0; i < indices.Length; i++)
+        {
+            this.AddIndex(indices[i], vertexOffset);
+        }
+
+        this.AddPart(vertexOffset, vertices.Length, color);
+    }
+
+    private void AddVertex(PrimitiveVertex vertex)
+    {
+        this.Vertices.Add(vertex);
+        var min = Vector3.Min(this.bounds.Min, vertex.Position);
+        var max = Vector3.Max(this.bounds.Max, vertex.Position);
+        this.bounds = new BoundingBox(min, max);
+    }
+
+    private void AddIndex(int index, int vertexOffset)
+    {
+        this.Indices.Add(index + vertexOffset);
+    }
+
+    private void AddPart(int vertexOffset, int vertexCount, Color4 color)
+    {
+        this.Parts.Add(new MeshPart
+        {
+            Offset = (uint)vertexOffset,
+            Length = (uint)vertexCount,
+            Color = color
+        });
     }
 
     public ILifetime<PrimitiveMesh> Build(Device device, string name, out BoundingBox bounds)
@@ -63,5 +85,45 @@ public sealed class PrimitiveMeshBuilder
         var mesh = new PrimitiveMesh(device, vertices, indices, parts, this.bounds, name);
         bounds = this.bounds;
         return device.Resources.Add(mesh);
+    }
+
+    public PrimitiveMeshPartBuilder StartPart()
+    {
+        return new PrimitiveMeshPartBuilder(this, this.Vertices.Length);
+    }
+
+    public sealed class PrimitiveMeshPartBuilder : IPrimitiveMeshPartBuilder
+    {
+        private readonly PrimitiveMeshBuilder Parent;
+        private readonly int VertexOffset;
+        private int length;
+
+        public PrimitiveMeshPartBuilder(PrimitiveMeshBuilder parent, int vertexOffset)
+        {
+            this.Parent = parent;
+            this.VertexOffset = vertexOffset;
+            this.length = 0;
+        }
+
+        public int AddVertex(Vector3 position, Vector3 normal)
+        {
+            return this.AddVertex(new PrimitiveVertex(position, normal));
+        }
+
+        public int AddVertex(PrimitiveVertex vertex)
+        {
+            this.Parent.AddVertex(vertex);
+            return this.length++;
+        }
+
+        public void AddIndex(int index)
+        {
+            this.Parent.AddIndex(index, this.VertexOffset);
+        }
+
+        public void Complete(Color4 color)
+        {
+            this.Parent.AddPart(this.VertexOffset, this.length, color);
+        }
     }
 }

@@ -2,11 +2,13 @@
 using System.Reflection.Metadata.Ecma335;
 using Mini.Engine.Core;
 using Mini.Engine.Graphics;
+using Mini.Engine.Graphics.Diesel;
 using Mini.Engine.Modelling.Curves;
 
 namespace Mini.Engine.Modelling.Tools;
 public static class Extruder
 {
+    [Obsolete]
     public static Quad[] Extrude(Path2D crossSection, float depth, bool closeShape = true)
     {
         var layout = new Path3D(closeShape, Vector3.Zero, Vector3.UnitZ * -depth);
@@ -14,11 +16,13 @@ public static class Extruder
     }
 
 
+    [Obsolete]
     public static Quad[] Extrude(Path2D crossSection, Path3D path)
     {
         return Extrude(crossSection, path, Vector3.UnitY);
     }
 
+    [Obsolete]
     public static Quad[] Extrude(Path2D crossSection, Path3D path, Vector3 up)
     {
         if (crossSection.Length < 2)
@@ -63,6 +67,7 @@ public static class Extruder
         return quads;
     }
 
+    [Obsolete]
     public static Quad[] Extrude(Path2D crossSection, ICurve curve, int points, Vector3 up)
     {
         if (crossSection.Length < 2)
@@ -111,5 +116,38 @@ public static class Extruder
 
 
         return quads;
+    }
+
+    public static void Extrude(IPrimitiveMeshPartBuilder builder, Path2D crossSection, ICurve curve, int points, Vector3 up)
+    {
+        if (crossSection.Length < 2)
+        {
+            throw new Exception("Invalid cross section");
+        }
+
+        if (points < 2)
+        {
+            throw new Exception("Invalid points");
+        }
+
+        var steps = points - 1;
+        for (var i = 0; i < steps; i++)
+        {
+            var uC = (i + 0) / (float)steps;            
+            var matrixA = curve.AlignTo(uC, up);
+
+            var uN = (i + 1) / (float)steps;
+            var matrixB = curve.AlignTo(uN, up);
+
+            for (var j = 0; j < crossSection.Steps; j++)
+            {
+                var topRight = Vector3.Transform(crossSection[j + 1].ToVector3(), matrixB);
+                var bottomRight = Vector3.Transform(crossSection[j + 1].ToVector3(), matrixA);
+                var bottomLeft = Vector3.Transform(crossSection[j].ToVector3(), matrixA);
+                var topLeft = Vector3.Transform(crossSection[j].ToVector3(), matrixB);
+
+                builder.AddQuad(topRight, bottomRight, bottomLeft, topLeft);
+            }
+        }
     }
 }

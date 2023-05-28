@@ -18,6 +18,7 @@ public sealed class QuadBuilder
         this.Device = device;
     }    
 
+
     public static ReadOnlySpan<PrimitiveVertex> GetVertices(ReadOnlySpan<Quad> quads)
     {
         var vertices = new ArrayBuilder<PrimitiveVertex>(quads.Length * 4);

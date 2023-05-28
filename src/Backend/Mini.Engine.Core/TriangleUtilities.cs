@@ -59,4 +59,32 @@ public static class TriangleUtilities
 
         return distances[0] + distances[1] > distances[2];
     }    
+
+    public static bool IsTriangleClockwise(Vector2 a, Vector2 b, Vector2 c)
+    {
+        double crossProduct = ((b.X - a.X) * (c.Y - a.Y)) - ((b.Y - a.Y) * (c.X - a.X));
+        return crossProduct < 0;
+    }
+
+    public static bool IsTriangleCounterClockwise(Vector2 a, Vector2 b, Vector2 c)
+    {
+        return !IsTriangleClockwise(a, b, c);
+    }
+
+    public static bool IsVertexInsideTriangle(Vector2 vertex, Vector2 a, Vector2 b, Vector2 c)
+    {
+        var d1 = GetSide(vertex, a, b);
+        var d2 = GetSide(vertex, b, c);
+        var d3 = GetSide(vertex, c, a);
+
+        var hasNegative = (d1 < 0) || (d2 < 0) || (d3 < 0);
+        var hasPositive = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+        return !(hasNegative && hasPositive);
+    }
+
+    private  static double GetSide(Vector2 a, Vector2 b, Vector2 c)
+    {
+        return ((b.X - a.X) * (c.Y - a.Y)) - ((b.Y - a.Y) * (c.X - a.X));
+    }
 }

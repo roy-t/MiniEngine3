@@ -9,13 +9,7 @@ public record struct Quad(Vector3 A, Vector3 B, Vector3 C, Vector3 D)
 {
     public Vector3 GetNormal()
     {
-        var normalA = TriangleUtilities.GetNormal(this.A, this.B, this.D);
-        var areaA = TriangleUtilities.GetArea(this.A, this.B, this.D);
-
-        var normalB = TriangleUtilities.GetNormal(this.B, this.C, this.D);
-        var areaB = TriangleUtilities.GetArea(this.B, this.C, this.D);
-
-        return Vector3.Normalize((normalA * areaA) + (normalB * areaB));
+        return QuadUtilities.GetNormal(this.A, this.B, this.C, this.D);
     }
 
     public Quad CreateTransformed(in Transform transform)

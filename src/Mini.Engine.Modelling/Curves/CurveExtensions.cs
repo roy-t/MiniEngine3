@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using Mini.Engine.Core;
+using Mini.Engine.Graphics;
 
 namespace Mini.Engine.Modelling.Curves;
 public static class CurveExtensions
@@ -43,6 +44,11 @@ public static class CurveExtensions
         return new RangeCurve(curve, start, length);
     }
 
+    public static ICurve Reverse(this ICurve curve)
+    {
+        return new ReverseCurve(curve);
+    }
+
     public static float ComputeLengthPiecewise(this ICurve curve, int pieces = 1000)
     {
         var distance = 0.0f;
@@ -81,5 +87,14 @@ public static class CurveExtensions
         }
 
         return vertices.Build();
+    }
+
+    public static Matrix4x4 AlignTo(this ICurve curve, float u, Vector3 up)
+    {
+        var position = curve.GetPosition3D(u);
+        var normal = curve.GetNormal3D(u);
+        return new Transform(position, Quaternion.Identity, Vector3.Zero, 1.0f)
+            .FaceTargetConstrained(position + normal, up)
+            .GetMatrix();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Configuration;
+using Mini.Engine.Diesel.Tracks;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
@@ -84,8 +85,40 @@ internal class PrimitivePanel : IDieselPanel
 
     private void CreatePrimitives()
     {
-        this.CreateAll("rail");
-    }    
+        //this.CreateAll("rail");
+
+        var turn = TrackPieces.Turn(this.Device);
+        CreateAll("turn", turn);
+    }
+
+    private void CreateAll(string name, TrackPiece piece)
+    {
+        var entity = this.Administrator.Entities.Create();
+        var creator = this.Administrator.Components;
+
+        var matrices = new Matrix4x4[]
+        {
+           Matrix4x4.Identity
+        };
+
+        
+        ref var instances = ref creator.Create<InstancesComponent>(entity);
+        instances.InstanceBuffer = this.Builder.Instance($"{name}_instances", matrices);
+        instances.InstanceCount = matrices.Length;
+
+        ref var transform = ref creator.Create<TransformComponent>(entity);
+        transform.Current = Transform.Identity;
+        transform.Previous = transform.Current;
+
+        ref var component = ref creator.Create<PrimitiveComponent>(entity);
+        component.Mesh = piece.Mesh;
+
+        ref var line = ref creator.Create<LineComponent>(entity);
+        var lineVertices = piece.Curve.GetPoints3D(50, new Vector3(0.0f, piece.Bounds.Max.Y, 0.0f));
+        var mesh = new LineMesh(this.Device, $"{name}_line", lineVertices);
+        line.Mesh = this.Device.Resources.Add(mesh);
+        line.Color = Colors.Yellow;
+    }
 
     private void CreateAll(string name)
     {
