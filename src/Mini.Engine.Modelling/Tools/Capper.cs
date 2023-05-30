@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using Mini.Engine.Graphics.Diesel;
 using Mini.Engine.Modelling.Curves;
+using Mini.Engine.Modelling.Paths;
 
 namespace Mini.Engine.Modelling.Tools;
 public static class Capper

@@ -3,6 +3,7 @@ using Mini.Engine.Core;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Diesel;
 using Mini.Engine.Modelling.Curves;
+using Mini.Engine.Modelling.Paths;
 using Mini.Engine.Modelling.Tools;
 using Vortice.Mathematics;
 

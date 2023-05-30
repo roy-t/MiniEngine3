@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 
-namespace Mini.Engine.Modelling;
-public record struct Path2D(bool IsClosed, params Vector2[] Positions)
+namespace Mini.Engine.Modelling.Paths;
+public record struct Path3D(bool IsClosed, params Vector3[] Positions)
 {
-    public Vector2 this[int index]
+    public Vector3 this[int index]
     {
         get
         {
@@ -37,17 +37,29 @@ public record struct Path2D(bool IsClosed, params Vector2[] Positions)
     public int Length => this.Positions.Length;
     public int Steps => this.IsClosed ? this.Length : this.Length - 1;
 
-    public Vector2 GetForward(int index)
+    public Vector3[] ToArray(Vector3 offset)
+    {
+        var length = this.IsClosed ? this.Length + 1 : this.Length;
+        var array = new Vector3[length];
+        for (var i = 0; i < array.Length; i++)
+        {
+            array[i] = this[i] + offset;
+        }
+
+        return array;
+    }
+
+    public Vector3 GetForward(int index)
     {
         this.AssetValidPath();
         this.AssertValidIndex(index);
 
-        if (this.IsClosed || (index + 1) < this.Length)
+        if (this.IsClosed || index + 1 < this.Length)
         {
             var from = this[index];
             var to = this[index + 1];
 
-            return Vector2.Normalize(to - from);
+            return Vector3.Normalize(to - from);
         }
         else
         {
@@ -56,11 +68,11 @@ public record struct Path2D(bool IsClosed, params Vector2[] Positions)
             var from = this[index - 1];
             var to = this[index];
 
-            return Vector2.Normalize(to - from);
+            return Vector3.Normalize(to - from);
         }
     }
 
-    public Vector2 GetBackward(int index)
+    public Vector3 GetBackward(int index)
     {
         this.AssetValidPath();
         this.AssertValidIndex(index);
@@ -70,7 +82,7 @@ public record struct Path2D(bool IsClosed, params Vector2[] Positions)
             var from = this[index];
             var to = this[index - 1];
 
-            return Vector2.Normalize(to - from);
+            return Vector3.Normalize(to - from);
         }
         else
         {
@@ -79,30 +91,30 @@ public record struct Path2D(bool IsClosed, params Vector2[] Positions)
             var from = this[index + 1];
             var to = this[index];
 
-            return Vector2.Normalize(to - from);
+            return Vector3.Normalize(to - from);
         }
     }
 
-    public Vector2 GetForwardAlongBendToNextPosition(int index)
+    public Vector3 GetForwardAlongBendToNextPosition(int index)
     {
         this.AssetValidPath();
         this.AssertValidIndex(index);
 
         if (this.IsClosed || index > 0)
         {
-            return Vector2.Normalize(this.GetForward(index - 1) + this.GetForward(index));
+            return Vector3.Normalize(this.GetForward(index - 1) + this.GetForward(index));
         }
 
         return this.GetForward(index);
     }
 
-    public Vector2 GetPositionAfterDistance(float distance)
+    public Vector3 GetPositionAfterDistance(float distance)
     {
         (var index, var remainder) = this.GetIndexAfterDistance(distance);
-        return this[index] + (this.GetForward(index) * remainder);
+        return this[index] + this.GetForward(index) * remainder;
     }
 
-    public Vector2 GetForwardAfterDistance(float distance)
+    public Vector3 GetForwardAfterDistance(float distance)
     {
         Debug.Assert(distance >= 0);
 
@@ -126,8 +138,8 @@ public record struct Path2D(bool IsClosed, params Vector2[] Positions)
 
             var from = this[index];
             var to = this[index + 1];
-            sectionDistance = Vector2.Distance(from, to);
-        } while (distance > (accumulator + sectionDistance));
+            sectionDistance = Vector3.Distance(from, to);
+        } while (distance > accumulator + sectionDistance);
 
         return (index, distance - accumulator);
     }

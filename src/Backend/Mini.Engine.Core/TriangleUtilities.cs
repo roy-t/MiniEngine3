@@ -62,13 +62,27 @@ public static class TriangleUtilities
 
     public static bool IsTriangleClockwise(Vector2 a, Vector2 b, Vector2 c)
     {
-        double crossProduct = ((b.X - a.X) * (c.Y - a.Y)) - ((b.Y - a.Y) * (c.X - a.X));
+        var crossProduct = ((b.X - a.X) * (c.Y - a.Y)) - ((b.Y - a.Y) * (c.X - a.X));
         return crossProduct < 0;
     }
 
     public static bool IsTriangleCounterClockwise(Vector2 a, Vector2 b, Vector2 c)
     {
         return !IsTriangleClockwise(a, b, c);
+    }
+    public static bool IsTriangleClockwise(Vector3 a, Vector3 b, Vector3 c)
+    {
+        // TODO: double check if this is correct!
+        var ab = new Vector3(b.X - a.X, b.Y - a.Y, b.Z - a.Z);
+        var ac = new Vector3(c.X - a.X, c.Y - a.Y, c.Z - a.Z);
+        var cross = Vector3.Cross(ab, ac);
+        
+        return cross.Z > 0;
+    }
+
+    public static bool IsTriangleCounterClockwise(Vector3 a, Vector3 b, Vector3 c)
+    {
+        return IsTriangleClockwise(a, b, c);
     }
 
     public static bool IsVertexInsideTriangle(Vector2 vertex, Vector2 a, Vector2 b, Vector2 c)
@@ -87,4 +101,6 @@ public static class TriangleUtilities
     {
         return ((b.X - a.X) * (c.Y - a.Y)) - ((b.Y - a.Y) * (c.X - a.X));
     }
+
+
 }

@@ -1,4 +1,6 @@
-﻿namespace Mini.Engine.Core;
+﻿using System.Numerics;
+
+namespace Mini.Engine.Core;
 public sealed class ArrayBuilder<T>
     where T : struct
 {
@@ -8,6 +10,26 @@ public sealed class ArrayBuilder<T>
     {
         this.array = new T[initialCapacity];
         this.Length = 0;
+    }
+
+    public T this[int index]
+    {
+        get
+        {
+            if (index >= this.Length)
+            {
+                throw new IndexOutOfRangeException();
+            }
+            return this.array[index];
+        }
+        set
+        {
+            if (index >= this.Length)
+            {
+                throw new IndexOutOfRangeException();
+            }
+            this.array[index] = value;
+        }
     }
 
     public int Length { get; private set; }

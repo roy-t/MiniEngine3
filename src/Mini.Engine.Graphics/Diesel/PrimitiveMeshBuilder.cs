@@ -96,13 +96,15 @@ public sealed class PrimitiveMeshBuilder
     {
         private readonly PrimitiveMeshBuilder Parent;
         private readonly int VertexOffset;
-        private int length;
+        private int vertexLength;
+        private int indexLength;
 
         public PrimitiveMeshPartBuilder(PrimitiveMeshBuilder parent, int vertexOffset)
         {
             this.Parent = parent;
             this.VertexOffset = vertexOffset;
-            this.length = 0;
+            this.vertexLength = 0;
+            this.indexLength = 0;
         }
 
         public int AddVertex(Vector3 position, Vector3 normal)
@@ -113,17 +115,58 @@ public sealed class PrimitiveMeshBuilder
         public int AddVertex(PrimitiveVertex vertex)
         {
             this.Parent.AddVertex(vertex);
-            return this.length++;
+            return this.vertexLength++;
         }
 
         public void AddIndex(int index)
         {
             this.Parent.AddIndex(index, this.VertexOffset);
+            this.indexLength++;
         }
 
         public void Complete(Color4 color)
         {
-            this.Parent.AddPart(this.VertexOffset, this.length, color);
+            this.Parent.AddPart(this.VertexOffset, this.vertexLength, color);
+        }
+
+        public void Layout(params Transform[] transforms)
+        {
+            Debug.Assert(transforms.Length > 0);
+
+            var startVertex = this.Parent.Vertices.Length - this.vertexLength;
+            var vLength = this.vertexLength;
+            var startIndex = this.Parent.Indices.Length - this.indexLength;
+            var iLength = this.indexLength;
+
+            for (var t = 1; t < transforms.Length; t++)
+            {
+                var matrix = transforms[t].GetMatrix();
+                var repeatOffset = t * vLength;
+
+                for (var i = 0; i < iLength; i++)
+                {
+                    this.AddIndex((this.Parent.Indices[startIndex + i] - this.VertexOffset) + repeatOffset);
+                }
+                
+                for (var v = 0; v < vLength; v++)
+                {
+                    var original = this.Parent.Vertices[startVertex + v];
+                    var position = Vector3.Transform(original.Position, matrix);
+                    var normal = Vector3.TransformNormal(original.Normal, matrix);
+
+                    this.AddVertex(new PrimitiveVertex(position, normal));
+                }
+            }
+
+            var firstMatrix = transforms[0].GetMatrix();
+            for (var v = 0; v < vLength; v++)
+            {
+                var original = this.Parent.Vertices[startVertex + v];
+                var position = Vector3.Transform(original.Position, firstMatrix);
+                var normal = Vector3.TransformNormal(original.Normal, firstMatrix);
+
+                this.Parent.Vertices[startVertex + v] = new PrimitiveVertex(position, normal);                
+            }
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Numerics;
 using Mini.Engine.Core;
 using Mini.Engine.Graphics;
+using Mini.Engine.Modelling.Paths;
 
 namespace Mini.Engine.Modelling;
 

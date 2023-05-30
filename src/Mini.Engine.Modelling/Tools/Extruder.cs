@@ -4,6 +4,7 @@ using Mini.Engine.Core;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Diesel;
 using Mini.Engine.Modelling.Curves;
+using Mini.Engine.Modelling.Paths;
 
 namespace Mini.Engine.Modelling.Tools;
 public static class Extruder

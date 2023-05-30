@@ -88,7 +88,7 @@ internal class PrimitivePanel : IDieselPanel
         //this.CreateAll("rail");
 
         var turn = TrackPieces.Turn(this.Device);
-        CreateAll("turn", turn);
+        this.CreateAll("turn", turn);
     }
 
     private void CreateAll(string name, TrackPiece piece)
