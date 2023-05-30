@@ -8,8 +8,7 @@ public class EarClipping
     private readonly record struct IndexedVertex2D(int Index, Vector2 Vertex);
 
     private readonly record struct IndexedVertex3D(int Index, Vector3 Vertex);
-
-    // TODO: continue implementation!
+    
     public static ReadOnlySpan<int> Triangulate(ReadOnlySpan<Vector3> polygon)
     {
         var indices = new ArrayBuilder<int>(polygon.Length * 2);
@@ -106,10 +105,11 @@ public class EarClipping
 
     private static bool IsEar(Vector3 v0, Vector3 v1, Vector3 v2, List<IndexedVertex3D> polygon)
     {
-        if (TriangleUtilities.IsTriangleCounterClockwise(v0, v1, v2))
-        {
-            return false;
-        }
+        // TODO: doesn't make sense in 3D? Works fine without? 
+        //if (TriangleUtilities.IsTriangleCounterClockwise(v0, v1, v2))
+        //{
+        //    return false;
+        //}
 
         foreach ((var _, var vertex) in polygon)
         {

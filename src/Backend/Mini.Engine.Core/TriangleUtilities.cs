@@ -58,7 +58,7 @@ public static class TriangleUtilities
         distances.Sort();
 
         return distances[0] + distances[1] > distances[2];
-    }    
+    }
 
     public static bool IsTriangleClockwise(Vector2 a, Vector2 b, Vector2 c)
     {
@@ -76,13 +76,13 @@ public static class TriangleUtilities
         var ab = new Vector3(b.X - a.X, b.Y - a.Y, b.Z - a.Z);
         var ac = new Vector3(c.X - a.X, c.Y - a.Y, c.Z - a.Z);
         var cross = Vector3.Cross(ab, ac);
-        
+
         return cross.Z > 0;
     }
 
     public static bool IsTriangleCounterClockwise(Vector3 a, Vector3 b, Vector3 c)
     {
-        return IsTriangleClockwise(a, b, c);
+        return !IsTriangleClockwise(a, b, c);
     }
 
     public static bool IsVertexInsideTriangle(Vector2 vertex, Vector2 a, Vector2 b, Vector2 c)
@@ -97,10 +97,44 @@ public static class TriangleUtilities
         return !(hasNegative && hasPositive);
     }
 
-    private  static double GetSide(Vector2 a, Vector2 b, Vector2 c)
+    private static double GetSide(Vector2 a, Vector2 b, Vector2 c)
     {
         return ((b.X - a.X) * (c.Y - a.Y)) - ((b.Y - a.Y) * (c.X - a.X));
     }
 
+    public static bool IsVertexInsideTriangle(Vector3 vertex, Vector3 a, Vector3 b, Vector3 c)
+    {
+        var barycentric = Barycentric(vertex, a, b, c);
 
+        var alpha = barycentric.X;
+        var beta = barycentric.Y;
+        var gamma = barycentric.Z;
+
+        return (0.0f <= alpha) && (alpha <= 1.0f) &&
+               (0.0f <= beta) && (beta <= 1.0f) &&
+               (0.0f <= gamma) && (gamma <= 1.0f);
+    }
+
+    /// <summary>
+    /// Compute barycentric coordinates (u, v, w) for the given vertex with respect to triangle (a, b, c)
+    /// </summary>    
+    public static Vector3 Barycentric(Vector3 vertex, Vector3 a, Vector3 b, Vector3 c)
+    {
+        // https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
+        var v0 = b - a;
+        var v1 = c - a;
+        var v2 = vertex - a;
+
+        var d00 = Vector3.Dot(v0, v0);
+        var d01 = Vector3.Dot(v0, v1);
+        var d11 = Vector3.Dot(v1, v1);
+        var d20 = Vector3.Dot(v2, v0);
+        var d21 = Vector3.Dot(v2, v1);
+        var denom = d00 * d11 - d01 * d01;
+        var v = (d11 * d20 - d01 * d21) / denom;
+        var w = (d00 * d21 - d01 * d20) / denom;
+        var u = 1.0f - v - w;
+
+        return new Vector3(u, v, w);
+    }
 }

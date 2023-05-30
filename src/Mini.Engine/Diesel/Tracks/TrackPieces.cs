@@ -3,6 +3,7 @@ using Mini.Engine.DirectX;
 using Mini.Engine.Graphics.Diesel;
 using Mini.Engine.Modelling.Curves;
 using Mini.Engine.Modelling.Tools;
+using Mini.Engine.Modelling.Paths;
 using static Mini.Engine.Diesel.Tracks.TrackParameters;
 
 namespace Mini.Engine.Diesel.Tracks;
@@ -15,7 +16,7 @@ public static class TrackPieces
 
         var builder = new PrimitiveMeshBuilder();
         var curve = new CircularArcCurve(0.0f, MathF.PI / 2.0f, radius);
-        
+
         BuildRails(points, builder, curve);
         BuildTies(builder, curve);
 
@@ -45,8 +46,10 @@ public static class TrackPieces
         var back = CrossSections.TieCrossSectionBack();
 
         Joiner.Join(partBuilder, front, back);
-        // TODO: triangulate front/back and fill, see Earclipper where I started on a 3D method!
+        Filler.Fill(partBuilder, front);
 
+        
+        Filler.Fill(partBuilder, back.Reverse());  // To avoid culling
 
         var transforms = Walker.WalkSpacedOut(curve, RAIL_TIE_SPACING, Vector3.UnitY);
 
