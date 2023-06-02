@@ -4,6 +4,7 @@
     <PackageReference Include="Vortice.Direct3D11" Version="2.4.2" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\External\LibGame\LibGame\LibGame.csproj" />
     <ProjectReference Include="..\Mini.Engine.Core\Mini.Engine.Core.csproj" />
     <ProjectReference Include="..\Mini.Engine.IO\Mini.Engine.IO.csproj" />
   </ItemGroup>

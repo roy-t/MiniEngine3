@@ -1,4 +1,6 @@
-﻿namespace Mini.Engine.Core;
+﻿using LibGame.Basics;
+
+namespace Mini.Engine.Core;
 public sealed class Grid<T>
 {
     private readonly T[] Items;

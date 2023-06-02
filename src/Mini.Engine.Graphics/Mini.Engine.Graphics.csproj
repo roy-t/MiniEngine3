@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.Windows\Mini.Engine.Windows.csproj" />
+    <ProjectReference Include="..\External\LibGame\LibGame\LibGame.csproj" />
     <ProjectReference Include="..\Generators\Mini.Engine.ECS.Generators.Shared\Mini.Engine.ECS.Generators.Shared.csproj" OutputItemType="Analyzer" />
     <ProjectReference Include="..\Generators\Mini.Engine.ECS.Generators\Mini.Engine.ECS.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Generators\Mini.Engine.Generators.Source\Mini.Engine.Generators.Source.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

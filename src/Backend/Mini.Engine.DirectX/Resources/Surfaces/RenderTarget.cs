@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Core;
+﻿using LibGame.Basics;
+using Mini.Engine.Core;
 using Vortice.Direct3D11;
 
 namespace Mini.Engine.DirectX.Resources.Surfaces;

@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Core;
+﻿using LibGame.Basics;
+using Mini.Engine.Core;
 using TileInstanceData = Mini.Engine.Content.Shaders.Generated.Tiles.InstanceData;
 
 namespace Mini.Engine.Graphics.Tiles;

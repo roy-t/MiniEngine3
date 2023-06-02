@@ -1,3 +1,6 @@
 [submodule "src/External/HlslParser"]
 	path = src/External/HlslParser
 	url = https://github.com/roy-t/HlslParser
+[submodule "src/External/LibGame"]
+	path = src/External/LibGame
+	url = https://github.com/roy-t/LibGame.git
