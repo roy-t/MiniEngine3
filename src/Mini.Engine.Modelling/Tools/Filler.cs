@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using LibGame.Geometry;
 using Mini.Engine.Core;
 using Mini.Engine.Graphics.Diesel;
 using Mini.Engine.Modelling.Paths;
@@ -14,7 +15,7 @@ public static class Filler
         Debug.Assert(path.Length >= 3);
 
         var indices = EarClipping.Triangulate(path.Positions);        
-        var normal = TriangleUtilities.GetNormal(path.Positions[indices[0]], path.Positions[indices[1]], path.Positions[indices[2]]);
+        var normal = Triangles.GetNormal(path.Positions[indices[0]], path.Positions[indices[1]], path.Positions[indices[2]]);
 
         var startIndex = int.MaxValue;
         for (var i = 0; i < path.Positions.Length; i++)

@@ -1,4 +1,4 @@
-﻿using LibGame.Basics;
+﻿using LibGame.Mathematics;
 using Mini.Engine.Core;
 using TileInstanceData = Mini.Engine.Content.Shaders.Generated.Tiles.InstanceData;
 

@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿using LibGame.Graphics;
+
+using static LibGame.Graphics.Colors;
 
 namespace Mini.Engine.Core;
 public sealed class Palette
@@ -18,12 +20,6 @@ public sealed class Palette
     {
         var index = this.Random.Next(this.ColorList.Length);
         return this.ColorList[index];
-    }
-
-    private static ColorRGB FromHex(string hex)
-    {
-        var c = ColorTranslator.FromHtml(hex);
-        return new ColorRGB(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f);
     }
 
     // Inspired by https://colorpalette.org/grass-green-lawn-color-palette/

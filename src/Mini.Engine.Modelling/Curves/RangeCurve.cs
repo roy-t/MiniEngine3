@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using Mini.Engine.Core;
+using LibGame.Mathematics;
 
 namespace Mini.Engine.Modelling.Curves;
 public sealed record class RangeCurve(ICurve Curve, float Start, float Length) : ICurve

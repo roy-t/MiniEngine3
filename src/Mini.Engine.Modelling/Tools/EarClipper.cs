@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using LibGame.Geometry;
 using Mini.Engine.Core;
 
 namespace Mini.Engine.Modelling.Tools;
@@ -84,7 +85,7 @@ public class EarClipping
 
     private static bool IsEar(Vector2 v0, Vector2 v1, Vector2 v2, List<IndexedVertex2D> polygon)
     {
-        if (TriangleUtilities.IsTriangleCounterClockwise(v0, v1, v2))
+        if (Triangles.IsTriangleCounterClockwise(v0, v1, v2))
         {
             return false;
         }
@@ -93,7 +94,7 @@ public class EarClipping
         {
             if (vertex != v0 && vertex != v1 && vertex != v2)
             {
-                if (TriangleUtilities.IsVertexInsideTriangle(vertex, v0, v1, v2))
+                if (Triangles.IsVertexInsideTriangle(vertex, v0, v1, v2))
                 {
                     return false;
                 }
@@ -115,7 +116,7 @@ public class EarClipping
         {
             if (vertex != v0 && vertex != v1 && vertex != v2)
             {
-                if (TriangleUtilities.IsVertexInsideTriangle(vertex, v0, v1, v2))
+                if (Triangles.IsVertexInsideTriangle(vertex, v0, v1, v2))
                 {
                     return false;
                 }

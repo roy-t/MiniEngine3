@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using LibGame.Basics;
+using LibGame.Mathematics;
 using Mini.Engine.Core;
 
 namespace Mini.Engine.Graphics;

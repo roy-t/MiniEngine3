@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using Mini.Engine.Core;
+using LibGame.Mathematics;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.Graphics.Cameras;

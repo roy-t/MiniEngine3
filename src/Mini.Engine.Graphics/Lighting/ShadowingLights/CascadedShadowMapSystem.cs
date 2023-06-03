@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using LibGame.Mathematics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Core;
 using Mini.Engine.Core.Lifetime;

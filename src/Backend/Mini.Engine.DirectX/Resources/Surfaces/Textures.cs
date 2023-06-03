@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Core;
+﻿using LibGame.Mathematics;
+using Mini.Engine.Core;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 

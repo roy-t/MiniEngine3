@@ -1,4 +1,4 @@
-﻿using LibGame.Basics;
+﻿using LibGame.Mathematics;
 
 namespace Mini.Engine.Core;
 public sealed class Grid<T>

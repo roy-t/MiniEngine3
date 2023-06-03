@@ -1,4 +1,4 @@
-﻿using LibGame.Basics;
+﻿using LibGame.Mathematics;
 using Mini.Engine.Core;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX.Contexts.States;

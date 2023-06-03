@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
-using LibGame.Basics;
+using LibGame.Mathematics;
+using LibGame.Graphics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Core;
 using Mini.Engine.Core.Lifetime;
@@ -58,7 +59,7 @@ public sealed class GrassGenerator
             var position = new Vector2(x + xOffset, y + yOffset);
             var rotation = random.NextSingle() * MathF.PI * 2;
             var clump = GrassClump.Default(position, GrassPalette.Pick(), rotation, random.InRange(0.75f, 1.75f));
-            clump.ApplyTint = (c, b, d) => ColorMath.Interpolate(c, b, d / maxCellDistance);
+            clump.ApplyTint = (c, b, d) => Colors.Interpolate(c, b, d / maxCellDistance);
             clump.ApplyScale = (c, b, d) => c + random.InRange(-0.2f, 0.2f);
             clump.ApplyPosition = (c, b, d) => Vector2.Lerp(c, b, Math.Min(1.0f, d / maxCellDistance * 1.75f));
             clump.ApplyRotation = (c, b, d) => Radians.Lerp(c, b, d / maxCellDistance);
