@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
 using LibGame.Mathematics;
+using LibGame.Physics;
 using Mini.Engine.Core;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Diesel;

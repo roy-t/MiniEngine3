@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Configuration;
+﻿using LibGame.Physics;
+using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;

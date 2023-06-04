@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using Mini.Engine.Graphics;
+using LibGame.Physics;
 using Mini.Engine.Modelling.Curves;
 
 namespace Mini.Engine.Modelling.Tools;

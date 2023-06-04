@@ -36,8 +36,8 @@ public struct Frustum
     public bool ContainsOrIntersects(BoundingBox box)
     {        
         for (var i = 0; i < PlanesInACube; i++)
-        {
-            ref var plane = ref this[i];
+        {            
+            ref var plane = ref this[i];            
             var intersection = box.Intersects(in plane);
 
             if (intersection == PlaneIntersectionType.Front)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LibGame.Physics;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;

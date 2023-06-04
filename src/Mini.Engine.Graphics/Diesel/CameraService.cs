@@ -5,6 +5,7 @@ using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Transforms;
 using System.Numerics;
+using LibGame.Physics;
 
 namespace Mini.Engine.Graphics.Diesel;
 

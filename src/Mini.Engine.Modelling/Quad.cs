@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 using LibGame.Geometry;
-using Mini.Engine.Core;
-using Mini.Engine.Graphics;
+using LibGame.Physics;
 using Mini.Engine.Modelling.Paths;
 
 namespace Mini.Engine.Modelling;
