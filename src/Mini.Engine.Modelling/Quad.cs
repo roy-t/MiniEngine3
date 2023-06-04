@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using LibGame.Geometry;
 using Mini.Engine.Core;
 using Mini.Engine.Graphics;
 using Mini.Engine.Modelling.Paths;
@@ -10,7 +11,7 @@ public record struct Quad(Vector3 A, Vector3 B, Vector3 C, Vector3 D)
 {
     public Vector3 GetNormal()
     {
-        return QuadUtilities.GetNormal(this.A, this.B, this.C, this.D);
+        return Quads.GetNormal(this.A, this.B, this.C, this.D);
     }
 
     public Quad CreateTransformed(in Transform transform)

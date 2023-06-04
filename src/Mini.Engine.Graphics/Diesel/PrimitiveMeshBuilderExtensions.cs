@@ -1,12 +1,12 @@
 ﻿using System.Numerics;
-using Mini.Engine.Core;
+using LibGame.Geometry;
 
 namespace Mini.Engine.Graphics.Diesel;
 public static class PrimitiveMeshBuilderExtensions
 {
     public static void AddQuad(this IPrimitiveMeshPartBuilder builder, Vector3 tr, Vector3 br, Vector3 bl, Vector3 tl)
     {
-        var normal = QuadUtilities.GetNormal(tr, br, bl, tl);
+        var normal = Quads.GetNormal(tr, br, bl, tl);
         var iTr = builder.AddVertex(new PrimitiveVertex(tr, normal));
         var iBr = builder.AddVertex(new PrimitiveVertex(br, normal));
         var iBl = builder.AddVertex(new PrimitiveVertex(bl, normal));

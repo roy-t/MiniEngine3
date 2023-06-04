@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
+using LibGame.Mathematics;
 using Mini.Engine.Core;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Diesel;
@@ -55,10 +56,10 @@ public static class Extruder
 
             for (var j = 0; j < crossSection.Steps; j++)
             {
-                var topRight = Vector3.Transform(crossSection[j + 1].ToVector3(), matrixB);
-                var bottomRight = Vector3.Transform(crossSection[j + 1].ToVector3(), matrixA);
-                var bottomLeft = Vector3.Transform(crossSection[j].ToVector3(), matrixA);
-                var topLeft = Vector3.Transform(crossSection[j].ToVector3(), matrixB);
+                var topRight = Vector3.Transform(crossSection[j + 1].WithZ(), matrixB);
+                var bottomRight = Vector3.Transform(crossSection[j + 1].WithZ(), matrixA);
+                var bottomLeft = Vector3.Transform(crossSection[j].WithZ(), matrixA);
+                var topLeft = Vector3.Transform(crossSection[j].WithZ(), matrixB);
 
                 quads[counter++] = new Quad(topRight, bottomRight, bottomLeft, topLeft);
             }
@@ -106,10 +107,10 @@ public static class Extruder
 
             for (var j = 0; j < crossSection.Steps; j++)
             {
-                var topRight = Vector3.Transform(crossSection[j + 1].ToVector3(), matrixB);
-                var bottomRight = Vector3.Transform(crossSection[j + 1].ToVector3(), matrixA);
-                var bottomLeft = Vector3.Transform(crossSection[j].ToVector3(), matrixA);
-                var topLeft = Vector3.Transform(crossSection[j].ToVector3(), matrixB);
+                var topRight = Vector3.Transform(crossSection[j + 1].WithZ(), matrixB);
+                var bottomRight = Vector3.Transform(crossSection[j + 1].WithZ(), matrixA);
+                var bottomLeft = Vector3.Transform(crossSection[j].WithZ(), matrixA);
+                var topLeft = Vector3.Transform(crossSection[j].WithZ(), matrixB);
 
                 quads[counter++] = new Quad(topRight, bottomRight, bottomLeft, topLeft);
             }
@@ -142,10 +143,10 @@ public static class Extruder
 
             for (var j = 0; j < crossSection.Steps; j++)
             {
-                var topRight = Vector3.Transform(crossSection[j + 1].ToVector3(), matrixB);
-                var bottomRight = Vector3.Transform(crossSection[j + 1].ToVector3(), matrixA);
-                var bottomLeft = Vector3.Transform(crossSection[j].ToVector3(), matrixA);
-                var topLeft = Vector3.Transform(crossSection[j].ToVector3(), matrixB);
+                var topRight = Vector3.Transform(crossSection[j + 1].WithZ(), matrixB);
+                var bottomRight = Vector3.Transform(crossSection[j + 1].WithZ(), matrixA);
+                var bottomLeft = Vector3.Transform(crossSection[j].WithZ(), matrixA);
+                var topLeft = Vector3.Transform(crossSection[j].WithZ(), matrixB);
 
                 builder.AddQuad(topRight, bottomRight, bottomLeft, topLeft);
             }

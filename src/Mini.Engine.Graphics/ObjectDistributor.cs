@@ -6,7 +6,7 @@ namespace Mini.Engine.Graphics;
 
 public sealed class ObjectDistributor
 {
-    private readonly VoseWeightedRandom Random;
+    private readonly WeightedRandom Random;
 
     private readonly int Length;
     private readonly int Stride;
@@ -28,7 +28,7 @@ public sealed class ObjectDistributor
             //}
         }
 
-        this.Random = new VoseWeightedRandom(new Random(seed), positiveWeights);
+        this.Random = new WeightedRandom(new Random(seed), positiveWeights);
         this.Length = weights.Length;
         this.Stride = stride;
     }
