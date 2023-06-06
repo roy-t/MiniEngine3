@@ -9,13 +9,13 @@ public sealed class LifetimeManager : IDisposable
     private record Frame(string Name, int Version);
 
     private readonly ILogger Logger;
-    private readonly StackPool Pool;
+    private readonly VersionedPool Pool;
     private readonly Stack<Frame> Frames;
 
     public LifetimeManager(ILogger logger)
     {
         this.Logger = logger.ForContext<LifetimeManager>();
-        this.Pool = new StackPool();
+        this.Pool = new VersionedPool();
         this.Frames = new Stack<Frame>();
     }
 
