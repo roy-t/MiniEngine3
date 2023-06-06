@@ -3,6 +3,7 @@ internal sealed class StackPool
 {
     private const int InitialCapacity = 100;
 
+    // TODO: use StructPool and ReferencePool here?
     private IDisposable?[] pool;
     private int[] versions;
 
