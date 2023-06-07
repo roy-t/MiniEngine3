@@ -16,7 +16,7 @@ public static class TrackPieces
 
         var builder = new PrimitiveMeshBuilder();
         var curve = new CircularArcCurve(0.0f, MathF.PI / 2.0f, radius);
-
+        
         BuildRails(points, builder, curve);
         BuildTies(builder, curve);
         BuildBallast(points, builder, curve);
@@ -31,10 +31,10 @@ public static class TrackPieces
         var partBuilder = builder.StartPart();
 
         var crossSection = CrossSections.RailCrossSection();
-        Extruder.Extrude(partBuilder, crossSection, curve.OffsetLeft(SINGLE_RAIL_OFFSET), points, Vector3.UnitY);
+        Extruder.ExtrudeSmooth(partBuilder, crossSection, curve.OffsetLeft(SINGLE_RAIL_OFFSET), points, Vector3.UnitY);
         Capper.Cap(partBuilder, curve.OffsetLeft(SINGLE_RAIL_OFFSET), crossSection);
 
-        Extruder.Extrude(partBuilder, crossSection, curve.OffsetRight(SINGLE_RAIL_OFFSET), points, Vector3.UnitY);
+        Extruder.ExtrudeSmooth(partBuilder, crossSection, curve.OffsetRight(SINGLE_RAIL_OFFSET), points, Vector3.UnitY);
         Capper.Cap(partBuilder, curve.OffsetRight(SINGLE_RAIL_OFFSET), crossSection);
         partBuilder.Complete(RAIL_COLOR);
     }
@@ -64,7 +64,7 @@ public static class TrackPieces
 
         var crossSection = CrossSections.BallastCrossSection();
 
-        Extruder.Extrude(partBuilder, crossSection, curve, points, Vector3.UnitY);
+        Extruder.ExtrudeSmooth(partBuilder, crossSection, curve, points, Vector3.UnitY);
         Capper.Cap(partBuilder, curve, crossSection);
 
         
