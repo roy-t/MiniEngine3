@@ -1,4 +1,6 @@
-﻿namespace Mini.Engine.ECS.Components;
+﻿using LibGame.Collections;
+
+namespace Mini.Engine.ECS.Components;
 
 public interface IComponentContainer
 {
@@ -39,47 +41,65 @@ public sealed class ComponentContainer<T> : IComponentContainer<T>
     public static readonly IQuery<T> AcceptCreated = new QueryLifCcycle<T>(LifeCycleState.Created);
 
     private const int InitialCapacity = 10;
-    private readonly ComponentPool<T> Pool;
-    private readonly ComponentTracker Tracker;
+
+    private readonly ComponentTracker ComponentTracker;
+    private readonly IndexTracker IndexTracker;
+    private readonly StructPool<Component<T>> Pool;
+
     private readonly ComponentBit Bit;
 
     public ComponentContainer(ComponentTracker tracker)
     {
-        this.Pool = new ComponentPool<T>(InitialCapacity);
+        this.Pool = new StructPool<Component<T>>(InitialCapacity);
+        this.IndexTracker = new IndexTracker(InitialCapacity);
+
         this.Bit = tracker.GetBit();
-        this.Tracker = tracker;
+        this.ComponentTracker = tracker;
     }
 
     public Type ComponentType => typeof(T);
 
-    public ref Component<T> this[Entity entity] => ref this.Pool[entity];
+    public ref Component<T> this[Entity entity]
+    {
+        get
+        {
+            var index = this.IndexTracker.GetReference(entity);
+            return ref this.Pool[index];
+        }
+    }
 
     public bool Contains(Entity entity)
     {
-        return this.Tracker.HasComponent(entity, this.Bit);
+        return this.ComponentTracker.HasComponent(entity, this.Bit);
     }
 
     public ref T Create(Entity entity)
     {
-        this.Tracker.SetComponent(entity, this.Bit);
-        return ref this.Pool.CreateFor(entity).Value;
+        this.ComponentTracker.SetComponent(entity, this.Bit);
+
+        var index = this.Pool.Add(ComponentInitializer, entity);
+        this.IndexTracker.InsertOrUpdate(entity, index);
+        return ref this.Pool[index].Value;
     }
 
     public void Remove(Entity entity)
     {
-        ref var entry = ref this.Pool[entity];
-        entry.LifeCycle = entry.LifeCycle.ToRemoved();        
+        var index = this.IndexTracker.GetReference(entity);
+        ref var entry = ref this.Pool[index];
+        entry.LifeCycle = entry.LifeCycle.ToRemoved();
     }
 
     public void UpdateLifeCycles()
     {
-        for (var i = 0; i < this.Pool.Count; i++)
+        foreach (ref var component in this.Pool)
         {
-            ref var component = ref this.Pool[i];
             if (component.LifeCycle.Current == LifeCycleState.Removed)
             {
-                this.Tracker.UnsetComponent(component.Entity, this.Bit);
-                this.Pool.Destroy(i);
+                this.ComponentTracker.UnsetComponent(component.Entity, this.Bit);
+                var index = this.IndexTracker.GetReference(component.Entity);
+                this.IndexTracker.Remove(component.Entity);
+
+                this.Pool.Remove(index);
             }
             else
             {
@@ -90,15 +110,14 @@ public sealed class ComponentContainer<T> : IComponentContainer<T>
 
     public ref Component<T> First(IQuery<T> query)
     {
-        for(var i = 0; i < this.Pool.Count; i++)
+        foreach (ref var component in this.Pool)
         {
-            ref var entry = ref this.Pool[i];
-            if (query.Accept(ref entry))
+            if (query.Accept(ref component))
             {
-                return ref entry;
+                return ref component;
             }
         }
-       
+
         throw new NotSupportedException("Container does not contain at least one element matching the query");
     }
 
@@ -140,5 +159,11 @@ public sealed class ComponentContainer<T> : IComponentContainer<T>
     public EntityIterator<T> IterateAllEntities()
     {
         return new EntityIterator<T>(this.Pool, AcceptAll);
+    }
+
+    private static void ComponentInitializer(ref Component<T> component, Entity entity)
+    {
+        component.Entity = entity;
+        component.LifeCycle = LifeCycle.Init();
     }
 }

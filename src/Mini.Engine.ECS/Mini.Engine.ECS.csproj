@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <ProjectReference Include="..\External\LibGame\LibGame\LibGame.csproj" />
     <ProjectReference Include="..\Generators\Mini.Engine.ECS.Generators.Shared\Mini.Engine.ECS.Generators.Shared.csproj" OutputItemType="Analyzer" />
     <ProjectReference Include="..\Mini.Engine.Configuration\Mini.Engine.Configuration.csproj" />
     <ProjectReference Include="..\Generators\Mini.Engine.ECS.Generators\Mini.Engine.ECS.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

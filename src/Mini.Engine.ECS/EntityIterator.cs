@@ -1,30 +1,26 @@
-﻿using Mini.Engine.ECS.Components;
+﻿using LibGame.Collections;
+using Mini.Engine.ECS.Components;
 
 namespace Mini.Engine.ECS;
 public struct EntityIterator<T>
     where T : struct, IComponent
 {
-    private readonly ComponentPool<T> Pool;
+    private readonly IStructEnumerator<Component<T>> Enumerator;
     private readonly IQuery<T> Query;
-    private int index;
 
-    public EntityIterator(ComponentPool<T> pool, IQuery<T> query)
+    public EntityIterator(StructPool<Component<T>> pool, IQuery<T> query)
     {
-        this.Pool = pool;
+        this.Enumerator = pool.GetEnumerator();
         this.Query = query;
-        this.index = -1;
     }
 
-    public Entity Current => this.Pool[this.index].Entity;
+    public Entity Current => this.Enumerator.Current.Entity;
 
     public bool MoveNext()
     {
-        while (this.index < this.Pool.Count - 1)
+        while (this.Enumerator.MoveNext())
         {
-            this.index++;
-
-            ref var entry = ref this.Pool[this.index];
-            if (this.Query.Accept(ref entry))
+            if (this.Query.Accept(ref this.Enumerator.Current))
             {
                 return true;
             }

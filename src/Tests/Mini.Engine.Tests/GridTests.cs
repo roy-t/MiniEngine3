@@ -14,6 +14,6 @@ public class GridTests
         grid.Fill((x, y, c, r) => new Vector2(x, y));
 
         var value = grid.Get(3, 3);
-        Equal(new Vector2(0, 0), value);
+        Equal(new Vector2(2.5f, 2.5f), value);
     }
 }

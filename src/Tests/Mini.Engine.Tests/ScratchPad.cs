@@ -18,7 +18,6 @@ public class ScratchPad
     }
 
     
-
     public struct FooStruct : IComponent
     {
         public int Bar;
@@ -27,23 +26,7 @@ public class ScratchPad
             this.Bar = value;
         }
     }
-
-
-    [Fact] public void Bar()
-    {
-        var values = new ComponentPool<FooStruct>(10);
-        var entity = new Entity(3);
-
-        ref var x = ref values.CreateFor(entity).Value;
-        x.Bar = 33;
-
-
-        ref var thing = ref values[entity];
-
-        Assert.Equal(33, thing.Value.Bar);
-
-    }
-
+    
 
     private static void Set(ref FooStruct value, int x)
     {
