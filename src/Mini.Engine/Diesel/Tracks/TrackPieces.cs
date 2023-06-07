@@ -12,13 +12,14 @@ public static class TrackPieces
     public static TrackPiece Turn(Device device)
     {
         const float radius = 25.0f;
-        const int points = 50;
+        const int points = 25;
 
         var builder = new PrimitiveMeshBuilder();
         var curve = new CircularArcCurve(0.0f, MathF.PI / 2.0f, radius);
 
         BuildRails(points, builder, curve);
         BuildTies(builder, curve);
+        BuildBallast(points, builder, curve);
 
         var primitive = builder.Build(device, "Turn", out var bounds);
 
@@ -46,9 +47,8 @@ public static class TrackPieces
         var back = CrossSections.TieCrossSectionBack();
 
         Joiner.Join(partBuilder, front, back);
-        Filler.Fill(partBuilder, front);
 
-        
+        Filler.Fill(partBuilder, front);        
         Filler.Fill(partBuilder, back.Reverse());  // To avoid culling
 
         var transforms = Walker.WalkSpacedOut(curve, RAIL_TIE_SPACING, Vector3.UnitY);
@@ -57,4 +57,18 @@ public static class TrackPieces
 
         partBuilder.Complete(RAIL_TIE_COLOR);
     }
+
+    private static void BuildBallast(int points, PrimitiveMeshBuilder builder, CircularArcCurve curve)
+    {
+        var partBuilder = builder.StartPart();
+
+        var crossSection = CrossSections.BallastCrossSection();
+
+        Extruder.Extrude(partBuilder, crossSection, curve, points, Vector3.UnitY);
+        Capper.Cap(partBuilder, curve, crossSection);
+
+        
+        partBuilder.Complete(BALLAST_COLOR);
+    }
+
 }

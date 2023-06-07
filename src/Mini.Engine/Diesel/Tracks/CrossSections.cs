@@ -17,6 +17,19 @@ public static class CrossSections
         return new Path2D(true, topRight + h, bottomRight + h, bottomLeft + h, topLeft + h);
     }
 
+    public static Path2D BallastCrossSection()
+    {
+        var topRight = new Vector2(BALLAST_WIDTH_TOP / 2.0f, BALLAST_HEIGHT_TOP);
+        var middleRight = new Vector2(BALLAST_WIDTH_MIDDLE / 2.0f, BALLAST_HEIGHT_MIDDLE);
+        var bottomRight = new Vector2(BALLAST_WIDTH_BOTTOM / 2.0f, BALLAST_HEIGHT_BOTTOM);
+
+        var bottomLeft = new Vector2(-BALLAST_WIDTH_BOTTOM / 2.0f, BALLAST_HEIGHT_BOTTOM);
+        var middleLeft = new Vector2(-BALLAST_WIDTH_MIDDLE / 2.0f, BALLAST_HEIGHT_MIDDLE);
+        var topLeft = new Vector2(-BALLAST_WIDTH_TOP / 2.0f, BALLAST_HEIGHT_TOP);
+
+        return new Path2D(true, topRight, middleRight, bottomRight, bottomLeft, middleLeft, topLeft);
+    }
+
     public static Path3D TieCrossSectionFront()
     {
         var path = TieCrossSectionArray();       

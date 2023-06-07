@@ -1,6 +1,5 @@
 ﻿namespace Mini.Engine.ECS.Components;
 
-// TODO: generify and move to LibGame?
 public sealed class IndexTracker
 {
     private static readonly Comparer<Record> OnEntityComparer = Comparer<Record>.Create((a, b) => a.Entity.CompareTo(b.Entity));

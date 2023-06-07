@@ -2,16 +2,15 @@
 using ImGuiNET;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.Diesel.Tracks;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
-using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Diesel;
 using Mini.Engine.Graphics.Transforms;
-using Mini.Engine.Modelling;
 using Mini.Engine.Modelling.Curves;
-using Mini.Engine.Modelling.Generators;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.UI.Panels;
@@ -23,19 +22,17 @@ internal class PrimitivePanel : IDieselPanel
     private readonly IComponentContainer<PrimitiveComponent> Container;
     private readonly ComponentSelector<PrimitiveComponent> Primitives;
     private readonly ECSAdministrator Administrator;
-    private readonly QuadBuilder Builder;
 
     public string Title => "Primitives";
 
     private bool shouldReload;
 
-    public PrimitivePanel(Device device, IComponentContainer<PrimitiveComponent> container, ECSAdministrator administrator, QuadBuilder builder)
+    public PrimitivePanel(Device device, IComponentContainer<PrimitiveComponent> container, ECSAdministrator administrator)
     {
         this.Device = device;
         this.Container = container;
         this.Primitives = new ComponentSelector<PrimitiveComponent>("Primitives", container);
         this.Administrator = administrator;
-        this.Builder = builder;
 
 #if DEBUG
         HotReloadManager.AddReloadCallback("Mini.Engine.Modelling", _ => this.shouldReload = true);
@@ -86,8 +83,6 @@ internal class PrimitivePanel : IDieselPanel
 
     private void CreatePrimitives()
     {
-        //this.CreateAll("rail");
-
         var turn = TrackPieces.Turn(this.Device);
         this.CreateAll("turn", turn);
     }
@@ -101,10 +96,9 @@ internal class PrimitivePanel : IDieselPanel
         {
            Matrix4x4.Identity
         };
-
         
         ref var instances = ref creator.Create<InstancesComponent>(entity);
-        instances.InstanceBuffer = this.Builder.Instance($"{name}_instances", matrices);
+        instances.InstanceBuffer = Instance($"{name}_instances", matrices);
         instances.InstanceCount = matrices.Length;
 
         ref var transform = ref creator.Create<TransformComponent>(entity);
@@ -121,37 +115,12 @@ internal class PrimitivePanel : IDieselPanel
         line.Color = Colors.Yellow;
     }
 
-    private void CreateAll(string name)
+
+    private ILifetime<StructuredBuffer<Matrix4x4>> Instance(string name, params Matrix4x4[] instances)
     {
-        var entity = this.Administrator.Entities.Create();
-        var creator = this.Administrator.Components;
+        var buffer = new StructuredBuffer<Matrix4x4>(this.Device, name);
+        buffer.MapData(this.Device.ImmediateContext, instances);
 
-        var matrices = new Matrix4x4[]
-        {
-            Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 0.0f, 0.0f, 0.0f),
-            Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 0.5f, 0.0f, 0.0f),
-            Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 1.0f, 0.0f, 0.0f),
-            Matrix4x4.CreateFromYawPitchRoll(MathF.PI * 1.5f, 0.0f, 0.0f),
-        };
-
-        var builder = new PrimitiveMeshBuilder();
-        var curve = TrainRailGenerator.CreateTurn(builder);        
-
-        ref var instances = ref creator.Create<InstancesComponent>(entity);
-        instances.InstanceBuffer = this.Builder.Instance($"{name}_instances", matrices);
-        instances.InstanceCount = matrices.Length;
-
-        ref var transform = ref creator.Create<TransformComponent>(entity);
-        transform.Current = Transform.Identity;
-        transform.Previous = transform.Current;
-
-        ref var component = ref creator.Create<PrimitiveComponent>(entity);        
-        component.Mesh = builder.Build(this.Device, name, out var bounds);
-
-        ref var line = ref creator.Create<LineComponent>(entity);
-        var lineVertices = curve.GetPoints3D(50, new Vector3(0.0f, bounds.Height, 0.0f));
-        var mesh = new LineMesh(this.Device, $"{name}_line", lineVertices);
-        line.Mesh = this.Device.Resources.Add(mesh);
-        line.Color = Colors.Yellow;
-    }  
+        return this.Device.Resources.Add(buffer);
+    }
 }
