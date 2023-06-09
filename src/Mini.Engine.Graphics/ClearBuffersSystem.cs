@@ -1,5 +1,6 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Vortice.Direct3D11;
@@ -25,24 +26,28 @@ public sealed partial class ClearBuffersSystem : ISystem
         this.FrameService = frameService;
     }
 
+    public static void Clear(DeviceContext context, FrameService frameService)
+    {
+        // GBuffer
+        context.Clear(frameService.GBuffer.Albedo, NeutralAlbedo);
+        context.Clear(frameService.GBuffer.Material, NeutralMaterial);
+        context.Clear(frameService.GBuffer.Normal, NeutralNormal);
+        context.Clear(frameService.GBuffer.Velocity, NeutralVelocity);
+
+        context.Clear(frameService.GBuffer.DepthStencilBuffer,
+             DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, 0.0f, 0);
+
+        // LBuffer
+        context.Clear(frameService.LBuffer.Light, NeutralLight);
+    }
+
     public void OnSet() { }
 
     [Process]
     public void Process()
     {
         var context = this.Device.ImmediateContext;
-
-        // GBuffer
-        context.Clear(this.FrameService.GBuffer.Albedo, NeutralAlbedo);
-        context.Clear(this.FrameService.GBuffer.Material, NeutralMaterial);
-        context.Clear(this.FrameService.GBuffer.Normal, NeutralNormal);
-        context.Clear(this.FrameService.GBuffer.Velocity, NeutralVelocity);
-
-        context.Clear(this.FrameService.GBuffer.DepthStencilBuffer,
-             DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, 0.0f, 0);
-
-        // LBuffer
-        context.Clear(this.FrameService.LBuffer.Light, NeutralLight);
+        Clear(context, this.FrameService);
     }
 
     public void OnUnSet() { }

@@ -3,6 +3,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
+using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
@@ -21,7 +22,11 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
     private readonly SunLight Shader;
     private readonly SunLight.User User;
 
-    public SunLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangle, SunLight shader)
+    private readonly IComponentContainer<SunLightComponent> SunLightContainer;
+    private readonly IComponentContainer<CascadedShadowMapComponent> CascadedShadowMapContainer;
+    private readonly IComponentContainer<TransformComponent> TransformContainer;
+
+    public SunLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangle, SunLight shader, IComponentContainer<SunLightComponent> sunLightContainer, IComponentContainer<CascadedShadowMapComponent> cascadedShadowMapContainer, IComponentContainer<TransformComponent> transformContainer)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<SunLightSystem>();
@@ -30,7 +35,33 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
 
         this.Shader = shader;
         this.User = shader.CreateUserFor<SunLightSystem>();
+        this.SunLightContainer = sunLightContainer;
+        this.CascadedShadowMapContainer = cascadedShadowMapContainer;
+        this.TransformContainer = transformContainer;
     }
+
+    public Task<CommandList> Render()
+    {
+        return Task.Run(() =>
+        {
+            this.OnSet();
+
+            foreach (ref var skybox in this.SunLightContainer.IterateAll())
+            {
+                var entity = skybox.Entity;
+                if (this.CascadedShadowMapContainer.Contains(entity) && this.TransformContainer.Contains(entity))
+                {
+                    ref var shadowMap = ref this.CascadedShadowMapContainer[entity];
+                    ref var transform = ref this.TransformContainer[entity];
+                    DrawSunLight(ref skybox.Value, ref shadowMap.Value, ref transform.Value);
+                }
+                
+            }
+
+            return this.Context.FinishCommandList();
+        });
+    }
+
 
     public void OnSet()
     {

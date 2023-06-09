@@ -25,6 +25,17 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
         this.Shader = shader;
     }
 
+    public Task<CommandList> Render()
+    {
+        return Task.Run(() =>
+        {
+            this.OnSet();
+            this.PostProcess();
+            return this.Context.FinishCommandList();
+        });
+    }
+
+
     public void OnSet()
     {
         ref var camera = ref this.FrameService.GetPrimaryCamera();

@@ -36,10 +36,13 @@ internal sealed class GameLoop : IGameLoop
     private readonly ParallelPipeline RenderPipeline;
     private readonly ParallelPipeline DebugPipeline;
 
+
+    private readonly RenderPipeline RenderPipelineV2;
+
     private bool enableUI;
     private readonly Stopwatch Stopwatch;
 
-    public GameLoop(Device device, EditorUserInterface userInterface, InputService inputService, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, UpdatePipelineBuilder updatePipelineBuilder, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, MetricService metricService)
+    public GameLoop(Device device, EditorUserInterface userInterface, InputService inputService, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, UpdatePipelineBuilder updatePipelineBuilder, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, MetricService metricService, RenderPipeline renderPipelineV2)
     {
         this.Device = device;
         this.UserInterface = userInterface;
@@ -68,6 +71,7 @@ internal sealed class GameLoop : IGameLoop
         this.MetricService = metricService;
 
         this.Stopwatch = new Stopwatch();
+        this.RenderPipelineV2 = renderPipelineV2;
     }
 
     public void Update(float elapsedSimulationTime, float elapsedRealWorldTime)
@@ -101,7 +105,8 @@ internal sealed class GameLoop : IGameLoop
         this.Stopwatch.Restart();
 
         this.FrameService.Alpha = alpha;
-        this.RenderPipeline.Frame();
+        //this.RenderPipeline.Frame();
+        this.RenderPipelineV2.Run(0, 0, this.Device.Width, this.Device.Height, alpha);
 
         this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.CurrentColor);
 

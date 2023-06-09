@@ -37,7 +37,7 @@ internal sealed class RenderPipelineBuilder
                 .InSequence()
                 .Produces("Initialization", "Camera")
                 .Build()
-            .System<Graphics.ClearBuffersSystem>()
+            .System<ClearBuffersSystem>()
                 .InSequence()
                 .Requires("Initialization", "Camera")
                 .Produces("Initialization", "GBuffer")

@@ -3,6 +3,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
+using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Cameras;
@@ -19,14 +20,33 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
     private readonly Skybox.User User;
     private readonly FrameService FrameService;
 
-    public SkyboxSystem(Device device, FrameService frameService, Skybox shader)
+    private readonly IComponentContainer<SkyboxComponent> SkyboxContainer;
+
+    public SkyboxSystem(Device device, FrameService frameService, Skybox shader, IComponentContainer<SkyboxComponent> componentContainer)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<SkyboxSystem>();
         this.Shader = shader;
         this.User = shader.CreateUserFor<SkyboxSystem>();
         this.FrameService = frameService;
+        this.SkyboxContainer = componentContainer;
     }
+
+    public Task<CommandList> Render()
+    {
+        return Task.Run(() =>
+        {
+            this.OnSet();
+
+            foreach (ref var skybox in this.SkyboxContainer.IterateAll())
+            {
+                DrawSkybox(ref skybox.Value);
+            }
+
+            return this.Context.FinishCommandList();
+        });
+    }
+
 
     public void OnSet()
     {

@@ -7,6 +7,7 @@ using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources.Surfaces;
+using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 
@@ -22,9 +23,11 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
     private readonly ImageBasedLight Shader;
     private readonly ImageBasedLight.User User;
 
+    private readonly IComponentContainer<SkyboxComponent> SkyboxContainer;
+
     private readonly ILifetime<ITexture> BrdfLut;
 
-    public ImageBasedLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangleShader, ImageBasedLight shader, ContentManager contentManager, BrdfLutProcessor generator)
+    public ImageBasedLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangleShader, ImageBasedLight shader, ContentManager contentManager, BrdfLutProcessor generator, IComponentContainer<SkyboxComponent> componentContainer)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<ImageBasedLightSystem>();
@@ -33,8 +36,25 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.Shader = shader;
         this.User = shader.CreateUserFor<ImageBasedLightSystem>();
 
-        this.BrdfLut = contentManager.Load(generator, new ContentId("brdflut.hdr"), TextureSettings.RenderData);            
+        this.BrdfLut = contentManager.Load(generator, new ContentId("brdflut.hdr"), TextureSettings.RenderData);
+        this.SkyboxContainer = componentContainer;
     }
+
+    public Task<CommandList> Render()
+    {
+        return Task.Run(() =>
+        {
+            this.OnSet();
+
+            foreach (ref var skybox in this.SkyboxContainer.IterateAll())
+            {
+                Render(ref skybox.Value);
+            }
+
+            return this.Context.FinishCommandList();
+        });
+    }
+
 
     public void OnSet()
     {

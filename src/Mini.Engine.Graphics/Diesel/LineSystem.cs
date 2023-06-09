@@ -41,7 +41,7 @@ public sealed partial class LineSystem : ISystem, IDisposable
     [Process(Query = ProcessQuery.None)]
     public void Draw()
     {
-        var task = this.DrawLines(0, 0, this.Device.Width, this.Device.Height, this.FrameService.Alpha);
+        var task = this.Render(0, 0, this.Device.Width, this.Device.Height, this.FrameService.Alpha);
         task.Wait();
 
         var commandList = task.Result;
@@ -49,7 +49,7 @@ public sealed partial class LineSystem : ISystem, IDisposable
         commandList.Dispose();
     }
 
-    private Task<CommandList> DrawLines(int x, int y, int width, int height, float alpha)
+    public Task<CommandList> Render(int x, int y, int width, int height, float alpha)
     {
         return Task.Run(() =>
         {

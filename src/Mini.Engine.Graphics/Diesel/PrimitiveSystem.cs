@@ -44,7 +44,7 @@ public sealed partial class PrimitiveSystem : ISystem,  IDisposable
     [Process(Query = ProcessQuery.None)]
     public void Draw()
     {
-        var task = this.DrawPrimitives(0, 0, this.Device.Width, this.Device.Height, this.FrameService.Alpha);
+        var task = this.Render(0, 0, this.Device.Width, this.Device.Height, this.FrameService.Alpha);
         task.Wait();
 
         var commandList = task.Result;
@@ -52,7 +52,7 @@ public sealed partial class PrimitiveSystem : ISystem,  IDisposable
         commandList.Dispose();
     }
 
-    private Task<CommandList> DrawPrimitives(int x, int y, int width, int heigth, float alpha)
+    public Task<CommandList> Render(int x, int y, int width, int heigth, float alpha)
     {
         return Task.Run(() =>
         {
