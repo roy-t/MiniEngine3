@@ -6,7 +6,7 @@ using Vortice.Mathematics;
 namespace Mini.Engine.UI.Panels;
 
 [Service]
-internal class HotReloadPanel : IEditorPanel, IDieselPanel
+internal class HotReloadPanel : IEditorPanel
 {
     public string Title => "Hot Reload";
 

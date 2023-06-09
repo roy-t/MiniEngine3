@@ -1,20 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using LibGame.Physics;
+﻿using LibGame.Physics;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Contexts.States;
-using Mini.Engine.DirectX.Resources.Models;
-using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Transforms;
-using Vortice.Direct3D11;
-using Vortice.DXGI;
 using Shader = Mini.Engine.Content.Shaders.Generated.Line;
 
 namespace Mini.Engine.Graphics.Diesel;
@@ -41,10 +32,8 @@ public sealed class LineRenderService : IDisposable
         this.InputLayout = shader.CreateInputLayoutForVs(LineMesh.Elements);
     }
 
-    public void Setup(DeviceContext context, RenderTarget albedo, DepthStencilBuffer depth, int x, int y, int width, int height)
+    public void Setup(DeviceContext context, int x, int y, int width, int height)
     {
-        context.OM.SetRenderTarget(albedo, depth);
-
         context.Setup(this.InputLayout, Vortice.Direct3D.PrimitiveTopology.LineStrip, this.Shader.Vs, this.Line, x, y, width, height, this.Shader.Ps, this.Opaque, this.ReverseZ);
 
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);

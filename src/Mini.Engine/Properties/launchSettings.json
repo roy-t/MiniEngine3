@@ -11,14 +11,6 @@
     "Editor - Single Frame": {
       "commandName": "Project",
       "commandLineArgs": "--gameLoop \"Mini.Engine.SingleFrameLoop\" --no-ui --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
-    },
-    "Diesel - Renderdoc": {
-      "commandName": "Project",
-      "commandLineArgs": "--renderdoc --gameLoop \"Mini.Engine.Diesel.DieselGameLoop\" --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
-    },
-    "Diesel - Logger": {
-      "commandName": "Project",
-      "commandLineArgs": "--gameLoop \"Mini.Engine.Diesel.DieselGameLoop\" --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
     }
   }
 }

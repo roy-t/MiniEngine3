@@ -5,7 +5,7 @@ using Mini.Engine.Debugging;
 namespace Mini.Engine.UI.Panels;
 
 [Service]
-internal sealed class PerformancePanel : IEditorPanel, IDieselPanel
+internal sealed class PerformancePanel : IEditorPanel
 {
     public string Title => "Performance";
 

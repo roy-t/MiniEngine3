@@ -16,7 +16,7 @@ using Vortice.Mathematics;
 namespace Mini.Engine.UI.Panels;
 
 [Service]
-internal class PrimitivePanel : IDieselPanel, IEditorPanel
+internal class PrimitivePanel : IEditorPanel
 {
     private readonly Device Device;
     private readonly IComponentContainer<PrimitiveComponent> Container;

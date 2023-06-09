@@ -9,7 +9,3 @@ public interface IPanel
 public interface IEditorPanel : IPanel
 {
 }
-
-public interface IDieselPanel : IPanel
-{
-}

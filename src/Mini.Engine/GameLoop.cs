@@ -1,6 +1,8 @@
-﻿using Mini.Engine.Configuration;
+﻿using System.Diagnostics;
+using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Core.Lifetime;
+using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
@@ -22,6 +24,7 @@ internal sealed class GameLoop : IGameLoop
     private readonly InputService InputService;
     private readonly Keyboard Keyboard;
 
+    private readonly MetricService MetricService;
     private readonly LifetimeManager LifetimeManager;
     private readonly EditorState EditorState;
     private readonly PresentationHelper Presenter;
@@ -34,8 +37,9 @@ internal sealed class GameLoop : IGameLoop
     private readonly ParallelPipeline DebugPipeline;
 
     private bool enableUI;
+    private readonly Stopwatch Stopwatch;
 
-    public GameLoop(Device device, EditorUserInterface userInterface, InputService inputService, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, UpdatePipelineBuilder updatePipelineBuilder, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content)
+    public GameLoop(Device device, EditorUserInterface userInterface, InputService inputService, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, UpdatePipelineBuilder updatePipelineBuilder, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, MetricService metricService)
     {
         this.Device = device;
         this.UserInterface = userInterface;
@@ -61,10 +65,15 @@ internal sealed class GameLoop : IGameLoop
         this.SceneManager.Set(this.EditorState.PreferredScene);
 
         this.enableUI = !StartupArguments.NoUi;
+        this.MetricService = metricService;
+
+        this.Stopwatch = new Stopwatch();
     }
 
     public void Update(float elapsedSimulationTime, float elapsedRealWorldTime)
     {
+        this.Stopwatch.Restart();
+
         this.FrameService.ElapsedGameTime = elapsedSimulationTime;
         this.FrameService.ElapsedRealWorldTime = elapsedRealWorldTime;
 
@@ -83,10 +92,14 @@ internal sealed class GameLoop : IGameLoop
                 this.enableUI = !this.enableUI;
             }
         }
+
+        this.MetricService.Update("GameLoop.Update.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
     }
 
     public void Draw(float alpha, float elapsedRealWorldTime)
     {
+        this.Stopwatch.Restart();
+
         this.FrameService.Alpha = alpha;
         this.RenderPipeline.Frame();
 
@@ -107,6 +120,8 @@ internal sealed class GameLoop : IGameLoop
         {
             this.UserInterface.Render();
         }
+
+        this.MetricService.Update("GameLoop.Draw.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
     }
 
     public void Resize(int width, int height)

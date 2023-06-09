@@ -1,7 +1,6 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
-using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
@@ -53,7 +52,7 @@ public sealed partial class PrimitiveSystem : ISystem,  IDisposable
         commandList.Dispose();
     }
 
-    public Task<CommandList> DrawPrimitives(int x, int y, int width, int heigth, float alpha)
+    private Task<CommandList> DrawPrimitives(int x, int y, int width, int heigth, float alpha)
     {
         return Task.Run(() =>
         {

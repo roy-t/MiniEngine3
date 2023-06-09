@@ -6,7 +6,7 @@ using Mini.Engine.DirectX;
 namespace Mini.Engine.UI.Menus;
 
 [Service]
-internal class DeviceMenu : IEditorMenu, IDieselMenu
+internal class DeviceMenu : IEditorMenu
 {
     private readonly Device Device;
     private readonly RenderDoc? RenderDoc;

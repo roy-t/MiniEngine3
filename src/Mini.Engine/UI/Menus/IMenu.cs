@@ -9,7 +9,3 @@ public interface IMenu
 public interface IEditorMenu : IMenu
 {
 }
-
-
-public interface IDieselMenu : IMenu
-{ }
