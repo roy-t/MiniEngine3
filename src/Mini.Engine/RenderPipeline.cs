@@ -56,6 +56,8 @@ internal sealed class RenderPipeline
         this.SkyboxSystem = skyboxSystem;
         this.LineSystem = lineSystem;
         this.PostProcessingSystem = postProcessingSystem;
+
+        // TODO: make it easier to reference systems instead of injecting just all of them
     }
 
     public void Run(in Rectangle viewport, in Rectangle scissor, float alpha)
@@ -80,15 +82,18 @@ internal sealed class RenderPipeline
     private void RunRenderStage(in Rectangle viewport, in Rectangle scissor, float alpha)
     {
         this.Enqueue(this.PrimitiveSystem.Render(viewport, scissor, alpha));
-        this.Enqueue(this.ImageBasedLightSystem.Render(viewport, scissor)); // TODO: system doesn't have output settings
-        this.Enqueue(this.SunLightSystem.Render(viewport, scissor));  // TODO: system doesn't have output settings
-        this.Enqueue(this.SkyboxSystem.Render(viewport, scissor));  // TODO: system doesn't have output settings
-        this.Enqueue(this.LineSystem.Render(viewport, scissor, alpha));        
+        this.Enqueue(this.ImageBasedLightSystem.Render(viewport, scissor));
+        this.Enqueue(this.SunLightSystem.Render(viewport, scissor));
+        this.Enqueue(this.SkyboxSystem.Render(viewport, scissor));
+        this.Enqueue(this.LineSystem.Render(viewport, scissor, alpha));
+
+        // TODO: continue rebuilding the render pipeline, some stuff has moved around a bit already so the old one might be broken!
+        // TODO: different scissors is nice, but what about different perspectives/camera's?
     }
 
     private void RunPostProcessStage(in Rectangle viewport, in Rectangle scissor)
     {
-        this.Enqueue(this.PostProcessingSystem.Render(viewport, scissor)); // TODO: system doesn't have output settings
+        this.Enqueue(this.PostProcessingSystem.Render(viewport, scissor));
     }
 
     private void ProcessQueue()

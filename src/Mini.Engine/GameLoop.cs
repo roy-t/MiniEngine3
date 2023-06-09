@@ -116,7 +116,7 @@ internal sealed class GameLoop : IGameLoop
         this.RenderPipelineV2.Run(in viewport, in scissor, alpha);
 
 
-        scissor = new Rectangle(100, (this.Device.Height / 2) + 25, this.Device.Width, (this.Device.Height / 2) - 50);
+        scissor = new Rectangle(300, (this.Device.Height / 2) + 25, this.Device.Width, (this.Device.Height / 2) - 50);
         this.RenderPipelineV2.Run(in viewport, in scissor, alpha);
 
         this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.CurrentColor);
