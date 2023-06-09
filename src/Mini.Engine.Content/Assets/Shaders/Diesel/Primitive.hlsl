@@ -1,4 +1,6 @@
 #include "../Includes/Gamma.hlsl"
+#include "../Includes/Normals.hlsl"
+#include "../Includes/Coordinates.hlsl"
 #include "../Lighting/Includes/Lights.hlsl"
 
 struct MeshPart
@@ -17,21 +19,34 @@ struct VS_INPUT
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
+    float4 previousPosition : POSITION0;
+    float4 currentPosition : POSITION1;
     float3 world : WORLD;
     float3 normal : NORMAL;
-    float4 Albedo : COLOR0;
+    float4 albedo : COLOR0;
 };
 
 struct OUTPUT
 {
-    float4 color : SV_Target0;
+    float4 albedo : SV_Target0;
+    float4 material : SV_Target1;
+    float4 normal : SV_Target2;
+    float2 velocity : SV_Target3;
 };
   
 cbuffer Constants : register(b0)
 {
-    float4x4 World;
+    float4x4 PreviousViewProjection;
     float4x4 ViewProjection;
+
+    float4x4 PreviousWorld;
+    float4x4 World;
+        
     float3 CameraPosition;
+    
+    float2 PreviousJitter;
+    float2 Jitter;
+    
     uint PartCount;
 };
     
@@ -43,13 +58,20 @@ PS_INPUT VSInstanced(VS_INPUT input, uint vertexId : SV_VertexID, uint instanceI
 {
     PS_INPUT output;
     
+    // TODO: assumes for TAA that instances don't move around
     float4x4 world = mul(World, Instances[instanceId]);
+    float4x4 previousWorld = mul(PreviousWorld, Instances[instanceId]);
+    
     float4x4 worldViewProjection = mul(ViewProjection, world);
+    float4x4 previousWorldViewProjection = mul(PreviousViewProjection, previousWorld);
     
     float3x3 rotation = (float3x3) world;
     float4 position = float4(input.position, 1.0);
 
     output.position = mul(worldViewProjection, position);
+    output.previousPosition = mul(previousWorldViewProjection, position);
+    output.currentPosition = output.position;
+    
     output.world = mul(world, position).xyz;
     output.normal = normalize(mul(rotation, input.normal));
     
@@ -57,7 +79,7 @@ PS_INPUT VSInstanced(VS_INPUT input, uint vertexId : SV_VertexID, uint instanceI
     {
         if (vertexId >= Parts[i].Offset)
         {
-            output.Albedo = Parts[i].Color;
+            output.albedo = Parts[i].Color;
         }
     }
 
@@ -67,43 +89,27 @@ PS_INPUT VSInstanced(VS_INPUT input, uint vertexId : SV_VertexID, uint instanceI
 #pragma PixelShader
 OUTPUT PS(PS_INPUT input)
 {
-    OUTPUT output;
-        
-    const float3 lights[] =
-    {
-        normalize(float3(0.5, -0.8, 0.0)),
-        normalize(float3(-0.5, -0.8, 0.0)),
-        normalize(float3(0.0, -0.8, 0.5)),
-        normalize(float3(0.0, -0.8, -0.5)),
-        normalize(float3(0.0, 1.0, 0.0)),
-    };
+    float4 albedo = ToLinear(input.albedo.rgba);
+    clip(albedo.a - 0.5f);
     
-    const float3 colors[] =
-    {
-        ToLinear(float3(1.0, 0.9, 0.9)),
-        ToLinear(float3(1.0, 0.9, 0.9)),
-        ToLinear(float3(0.9, 0.9, 1.0)),
-        ToLinear(float3(0.9, 0.9, 1.0)),
-        ToLinear(float3(0.7, 0.7, 0.7)),
-    };
-    
-    const float Strength = 1.0f;
-    float3 albedo = ToLinear(input.Albedo.xyz);
+    float3 V = normalize(CameraPosition - input.world);
     float3 normal = normalize(input.normal);
-    float3 position = input.world;
-    Mat mat;
-    mat.Metalicness = 0.0;
-    mat.Roughness = 0.4;
-    mat.AmbientOcclusion = 1.0;
-        
-    float3 accumulator = float3(0, 0, 0);
-        
-    for (uint i = 0; i < 5; i++)
-    {
-        float3 L = normalize(lights[i]);
-        accumulator += ComputeLight(albedo, normal, mat, position, CameraPosition, L, float4(1, 1, 1, 1.0f), Strength);
-    }
     
-    output.color = float4(accumulator, 1.0);
+    float metalicness = 0.0f;
+    float roughness = 0.4f;
+    float ambientOcclusion = 1.0f;
+    
+    input.previousPosition /= input.previousPosition.w;
+    input.currentPosition /= input.currentPosition.w;
+    float2 previousUv = ScreenToTexture(input.previousPosition.xy - PreviousJitter);
+    float2 currentUv = ScreenToTexture(input.currentPosition.xy - Jitter);
+        
+    OUTPUT output;
+    output.albedo = albedo;
+    output.material = float4(metalicness, roughness, ambientOcclusion, 1.0f);
+    output.normal = float4(PackNormal(normal), 1.0f);
+
+    output.velocity = previousUv - currentUv;
+
     return output;
 }

@@ -2,6 +2,7 @@
 using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Cameras;
+using Mini.Engine.Graphics.Diesel;
 using Mini.Engine.Graphics.Hexagons;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.PointLights;
@@ -36,7 +37,7 @@ internal sealed class RenderPipelineBuilder
                 .InSequence()
                 .Produces("Initialization", "Camera")
                 .Build()
-            .System<ClearBuffersSystem>()
+            .System<Graphics.ClearBuffersSystem>()
                 .InSequence()
                 .Requires("Initialization", "Camera")
                 .Produces("Initialization", "GBuffer")
@@ -45,6 +46,11 @@ internal sealed class RenderPipelineBuilder
                 .InSequence()
                 .Requires("Initialization", "GBuffer")
                 .Produces("Renderer", "Models")
+                .Build()
+            .System<PrimitiveSystem>()
+                .InSequence()
+                .Requires("Initialization", "GBuffer")
+                .Produces("Renderer", "Primitives")
                 .Build()
             .System<TerrainSystem>()
                 .InSequence()
@@ -92,6 +98,7 @@ internal sealed class RenderPipelineBuilder
             .System<ImageBasedLightSystem>()
                 .InSequence()
                 .Requires("Renderer", "Models")
+                .Requires("Renderer", "Primitives")
                 .Requires("Renderer", "Terrain")
                 .Requires("Renderer", "Hexagons")
                 .Requires("Renderer", "Tiles")
@@ -102,6 +109,7 @@ internal sealed class RenderPipelineBuilder
             .System<SunLightSystem>()
                 .InSequence()
                 .Requires("Renderer", "Models")
+                .Requires("Renderer", "Primitives")
                 .Requires("Renderer", "Terrain")
                 .Requires("Renderer", "Hexagons")
                 .Requires("Renderer", "Tiles")
@@ -113,6 +121,7 @@ internal sealed class RenderPipelineBuilder
             .System<SkyboxSystem>()
                 .InSequence()
                 .Requires("Renderer", "Models")
+                .Requires("Renderer", "Primitives")
                 .Requires("Renderer", "Terrain")
                 .Requires("Renderer", "Hexagons")
                 .Requires("Renderer", "Tiles")
@@ -126,6 +135,7 @@ internal sealed class RenderPipelineBuilder
             .System<TileOutlineSystem>()
                 .InSequence()
                 .Requires("Renderer", "Models")
+                .Requires("Renderer", "Primitives")
                 .Requires("Renderer", "Terrain")
                 .Requires("Renderer", "Hexagons")
                 .Requires("Renderer", "Tiles")

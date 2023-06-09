@@ -50,7 +50,7 @@ internal class DieselRenderLoop
         ref var cameraTransform = ref this.CameraService.GetPrimaryCameraTransform();
         this.CameraController.Update(elapsedRealWorldTime, ref cameraTransform.Current);
 
-        this.Enqueue(this.PrimitiveSystem.DrawPrimitives(albedo, depth, x, y, width, heigth, alpha));
+        //this.Enqueue(this.PrimitiveSystem.DrawPrimitives(albedo, depth, x, y, width, heigth, alpha));
         this.Enqueue(this.LineSystem.DrawLines(albedo, depth, x, y, width, heigth, alpha));
 
         while (this.GpuWorkQueue.Any())

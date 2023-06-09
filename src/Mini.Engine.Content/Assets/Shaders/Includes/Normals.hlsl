@@ -31,7 +31,7 @@ float3x3 CotangentFrame(float3 N, float3 p, float2 uv)
     float invmax = rsqrt(max(dot(T, T), dot(B, B)));
     return float3x3(T * invmax, B * invmax, N);
 }
-
+    
 float3 PerturbNormal(Texture2D tex, sampler samp, float3 normal, float3 view, float2 uv)
 {
     float3 map = UnpackNormal(tex.Sample(samp, uv).xyz);
