@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
@@ -60,9 +61,9 @@ public sealed class ModelRenderService : IDisposable
     /// <summary>
     /// Configures everything for rendering tiles, except for the output (render target)
     /// </summary>    
-    public void SetupModelRender(DeviceContext context, int x, int y, int width, int height)
+    public void SetupModelRender(DeviceContext context, in Rectangle viewport)
     {
-        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.CullCounterClockwise, x, y, width, height, this.Shader.Ps, this.Opaque, this.ReverseZ);
+        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.CullCounterClockwise, viewport, this.Shader.Ps, this.Opaque, this.ReverseZ);
 
         context.VS.SetConstantBuffer(Geometry.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetConstantBuffer(Geometry.ConstantsSlot, this.User.ConstantsBuffer);
@@ -116,9 +117,9 @@ public sealed class ModelRenderService : IDisposable
     /// <summary>
     /// Configures everything for rendering model depths, except for the output (render target)
     /// </summary> 
-    public void SetupModelDepthRender(DeviceContext context, int x, int y, int width, int height)
+    public void SetupModelDepthRender(DeviceContext context, in Rectangle viewport)
     {
-        context.Setup(this.ShadowMapInputLayout, PrimitiveTopology.TriangleList, this.ShadowMapShader.Vs, this.CullNoneNoDepthClip, x, y, width, height, this.ShadowMapShader.Ps, this.Opaque, this.Default);
+        context.Setup(this.ShadowMapInputLayout, PrimitiveTopology.TriangleList, this.ShadowMapShader.Vs, this.CullNoneNoDepthClip, in viewport, this.ShadowMapShader.Ps, this.Opaque, this.Default);
         context.VS.SetConstantBuffer(ShadowMap.ConstantsSlot, this.ShadowMapUser.ConstantsBuffer);
         context.PS.ClearShader();
     }
@@ -157,9 +158,9 @@ public sealed class ModelRenderService : IDisposable
     /// <summary>
     /// Calls SetupModelDepthRender and then draws all model components
     /// </summary>
-    public void SetupAndRenderAllModelDepths(DeviceContext context, int x, int y, int width, int height, in Frustum viewVolume, in Matrix4x4 viewProjection)
+    public void SetupAndRenderAllModelDepths(DeviceContext context, in Rectangle vieport, in Frustum viewVolume, in Matrix4x4 viewProjection)
     {
-        this.SetupModelDepthRender(context, x, y, width, height);
+        this.SetupModelDepthRender(context, in vieport);
 
         var iterator = this.Models.IterateAll();
         while (iterator.MoveNext())

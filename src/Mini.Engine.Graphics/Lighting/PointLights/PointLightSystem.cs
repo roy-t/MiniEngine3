@@ -41,7 +41,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
 
     public void OnSet()
     {
-        this.Context.Setup(this.InputLayout, this.Shader.Vs, this.Shader.Ps, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
+        this.Context.Setup(this.InputLayout, this.Shader.Vs, this.Device.Viewport, this.Shader.Ps, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
         this.Context.PS.SetSampler(PointLight.TextureSampler, this.Device.SamplerStates.LinearClamp);
@@ -52,7 +52,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
 
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;
-        
+
         var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform, camera.Jitter);
         Matrix4x4.Invert(viewProjection, out var inverseViewProjection);
         this.User.MapConstants(this.Context, inverseViewProjection, cameraTransform.GetPosition());

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
@@ -10,6 +11,7 @@ using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Transforms;
 using Vortice.Direct3D;
+using Vortice.Mathematics;
 using ShadowMap = Mini.Engine.Content.Shaders.Generated.ShadowMap;
 using Terrain = Mini.Engine.Content.Shaders.Generated.Terrain;
 
@@ -60,9 +62,9 @@ public sealed class TerrainRenderService : IDisposable
     /// <summary>
     /// Configures everything for rendering tiles, except for the output (render target)
     /// </summary>    
-    public void SetupTerrainRender(DeviceContext context, int x, int y, int width, int height)
+    public void SetupTerrainRender(DeviceContext context, in Rectangle viewport)
     {
-        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.CullCounterClockwise, x, y, width, height, this.Shader.Ps, this.Opaque, this.ReverseZ);
+        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.CullCounterClockwise, in viewport, this.Shader.Ps, this.Opaque, this.ReverseZ);
 
         context.VS.SetConstantBuffer(Terrain.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetConstantBuffer(Terrain.ConstantsSlot, this.User.ConstantsBuffer);
@@ -117,9 +119,9 @@ public sealed class TerrainRenderService : IDisposable
     /// <summary>
     /// Configures everything for rendering tile depths, except for the output (render target)
     /// </summary> 
-    public void SetupTerrainDepthRender(DeviceContext context, int x, int y, int width, int height)
+    public void SetupTerrainDepthRender(DeviceContext context, in Rectangle viewport)
     {
-        context.Setup(this.ShadowMapInputLayout, PrimitiveTopology.TriangleList, this.ShadowMapShader.Vs, this.CullNoneNoDepthClip, x, y, width, height, this.ShadowMapShader.Ps, this.Opaque, this.Default);
+        context.Setup(this.ShadowMapInputLayout, PrimitiveTopology.TriangleList, this.ShadowMapShader.Vs, this.CullNoneNoDepthClip, in viewport, this.ShadowMapShader.Ps, this.Opaque, this.Default);
         context.VS.SetConstantBuffer(ShadowMap.ConstantsSlot, this.ShadowMapUser.ConstantsBuffer);        
         context.PS.ClearShader();
     }
@@ -149,9 +151,9 @@ public sealed class TerrainRenderService : IDisposable
     /// <summary>
     /// Calls SetupTerrainDepthRender and then draws all terrain components
     /// </summary>
-    public void SetupAndRenderAllTerrainDepths(DeviceContext context, int x, int y, int width, int height, in Frustum viewVolume, in Matrix4x4 viewProjection)
+    public void SetupAndRenderAllTerrainDepths(DeviceContext context, in Rectangle viewport, in Frustum viewVolume, in Matrix4x4 viewProjection)
     {
-        this.SetupTerrainDepthRender(context, x, y, width, height);
+        this.SetupTerrainDepthRender(context, in viewport);
 
         var iterator = this.TerrainContainer.IterateAll();
         while (iterator.MoveNext())

@@ -106,7 +106,7 @@ internal sealed class GameLoop : IGameLoop
 
         this.FrameService.Alpha = alpha;
         //this.RenderPipeline.Frame();
-        this.RenderPipelineV2.Run(0, 0, this.Device.Width, this.Device.Height, alpha);
+        this.RenderPipelineV2.Run(this.Device.Viewport, alpha);
 
         this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.CurrentColor);
 

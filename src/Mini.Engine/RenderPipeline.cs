@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
@@ -57,12 +58,12 @@ internal sealed class RenderPipeline
         this.PostProcessingSystem = postProcessingSystem;
     }
 
-    public void Run(int x, int y, int width, int heigth, float alpha)
+    public void Run(Rectangle viewport, float alpha)
     {
         this.Stopwatch.Restart();
 
         this.RunInitializationStage();
-        this.RunRenderStage(x, y, width, heigth, alpha);
+        this.RunRenderStage(viewport, alpha);
         this.RunPostProcessStage();
 
         this.ProcessQueue();
@@ -77,13 +78,13 @@ internal sealed class RenderPipeline
         this.CameraSystem.Update();
     }
 
-    private void RunRenderStage(int x, int y, int width, int heigth, float alpha)
+    private void RunRenderStage(Rectangle viewport, float alpha)
     {
-        this.Enqueue(this.PrimitiveSystem.Render(x, y, width, heigth, alpha));
+        this.Enqueue(this.PrimitiveSystem.Render(viewport, alpha));
         this.Enqueue(this.ImageBasedLightSystem.Render()); // TODO: system doesn't have output settings
         this.Enqueue(this.SunLightSystem.Render());  // TODO: system doesn't have output settings
         this.Enqueue(this.SkyboxSystem.Render());  // TODO: system doesn't have output settings
-        this.Enqueue(this.LineSystem.Render(x, y, width, heigth, alpha));        
+        this.Enqueue(this.LineSystem.Render(viewport, alpha));        
     }
 
     private void RunPostProcessStage()

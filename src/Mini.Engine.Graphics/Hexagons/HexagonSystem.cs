@@ -42,7 +42,7 @@ public sealed partial class HexagonSystem : ISystem, IDisposable
 
         this.Context.RS.SetRasterizerState(this.Context.Device.RasterizerStates.Default);
         this.Context.RS.SetScissorRect(0, 0, this.Device.Width, this.Device.Height);
-        this.Context.RS.SetViewPort(0, 0, this.Device.Width, this.Device.Height);
+        this.Context.RS.SetViewport(0, 0, this.Device.Width, this.Device.Height);
 
         this.Context.PS.SetShader(this.Shader.Ps);
         this.Context.PS.SetSampler(Hexagon.TextureSampler, this.Device.SamplerStates.AnisotropicWrap);

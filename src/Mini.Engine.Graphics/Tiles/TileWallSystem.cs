@@ -27,7 +27,7 @@ public sealed partial class TileWallSystem : ISystem, IDisposable
 
     public void OnSet()
     {        
-        this.RenderService.SetupTileWallRender(this.Context, 0, 0, this.Device.Width, this.Device.Height);
+        this.RenderService.SetupTileWallRender(this.Context, this.Device.Viewport);
 
         var gBuffer = this.FrameService.GBuffer;
         this.Context.OM.SetRenderTargets(gBuffer.DepthStencilBuffer, gBuffer.Albedo, gBuffer.Material, gBuffer.Normal, gBuffer.Velocity);

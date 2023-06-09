@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Configuration;
+﻿using System.Drawing;
+using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Components;
@@ -41,19 +42,19 @@ public sealed partial class LineSystem : ISystem, IDisposable
     [Process(Query = ProcessQuery.None)]
     public void Draw()
     {
-        var task = this.Render(0, 0, this.Device.Width, this.Device.Height, this.FrameService.Alpha);
-        task.Wait();
+        //var task = this.Render(0, 0, this.Device.Width, this.Device.Height, this.FrameService.Alpha);
+        //task.Wait();
 
-        var commandList = task.Result;
-        this.Device.ImmediateContext.ExecuteCommandList(commandList);
-        commandList.Dispose();
+        //var commandList = task.Result;
+        //this.Device.ImmediateContext.ExecuteCommandList(commandList);
+        //commandList.Dispose();
     }
 
-    public Task<CommandList> Render(int x, int y, int width, int height, float alpha)
+    public Task<CommandList> Render(Rectangle viewport, float alpha)
     {
         return Task.Run(() =>
         {
-            this.RenderService.Setup(this.Context, x, y, width, height);
+            this.RenderService.Setup(this.Context, viewport);
             this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.LBuffer.Light);
 
             ref var camera = ref this.FrameService.GetPrimaryCamera();

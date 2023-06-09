@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using LibGame.Mathematics;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
@@ -97,11 +98,12 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
         this.Context.Clear(depthStencilBuffers, slice, DepthStencilClearFlags.Depth, 1.0f, 0);
 
         var viewVolume = new Frustum(viewProjection);
+        var viewport = new Rectangle(0, 0, resolution, resolution);
 
-        this.ModelRenderService.SetupAndRenderAllModelDepths(this.Context, 0, 0, resolution, resolution, in viewVolume, in viewProjection);
-        this.TerrainRenderService.SetupAndRenderAllTerrainDepths(this.Context, 0, 0, resolution, resolution, in viewVolume, in viewProjection);
-        this.TileRenderService.SetupAndRenderAllTileDepths(this.Context, 0, 0, resolution, resolution, in viewVolume, in viewProjection);
-        this.TileRenderService.SetupAndRenderAllTileWallDepths(this.Context, 0, 0, resolution, resolution, in viewVolume, in viewProjection);
+        this.ModelRenderService.SetupAndRenderAllModelDepths(this.Context, in viewport, in viewVolume, in viewProjection);
+        this.TerrainRenderService.SetupAndRenderAllTerrainDepths(this.Context, in viewport, in viewVolume, in viewProjection);
+        this.TileRenderService.SetupAndRenderAllTileDepths(this.Context, in viewport, in viewVolume, in viewProjection);
+        this.TileRenderService.SetupAndRenderAllTileWallDepths(this.Context, in viewport, in viewVolume, in viewProjection);
     }
 
     private static readonly Matrix4x4 TexScaleTransform = Matrix4x4.CreateScale(0.5f, -0.5f, 1.0f) * Matrix4x4.CreateTranslation(0.5f, 0.5f, 0.0f);

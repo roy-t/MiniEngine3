@@ -28,7 +28,7 @@ public sealed partial class TileOutlineSystem : ISystem, IDisposable
 
     public void OnSet()
     {
-        this.RenderService.SetupRenderTileOutline(this.Context, 0, 0, this.Device.Width, this.Device.Height);
+        this.RenderService.SetupRenderTileOutline(this.Context, this.Device.Viewport);
 
         var gBuffer = this.FrameService.GBuffer;
         var lBuffer = this.FrameService.LBuffer;

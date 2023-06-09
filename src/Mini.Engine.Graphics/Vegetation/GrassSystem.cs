@@ -48,7 +48,7 @@ public sealed partial class GrassSystem : ISystem, IDisposable
 
         this.Context.RS.SetRasterizerState(this.Context.Device.RasterizerStates.CullNone);
         this.Context.RS.SetScissorRect(0, 0, this.Device.Width, this.Device.Height);
-        this.Context.RS.SetViewPort(0, 0, this.Device.Width, this.Device.Height);
+        this.Context.RS.SetViewport(0, 0, this.Device.Width, this.Device.Height);
 
         this.Context.PS.SetShader(this.Shader.Ps);
         this.Context.PS.SetSampler(Grass.TextureSampler, this.Device.SamplerStates.LinearClamp); // Or anisotropic?

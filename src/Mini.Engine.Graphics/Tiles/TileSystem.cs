@@ -27,7 +27,7 @@ public sealed partial class TileSystem : ISystem, IDisposable
 
     public void OnSet()
     {        
-        this.RenderService.SetupTileRender(this.Context, 0, 0, this.Device.Width, this.Device.Height);
+        this.RenderService.SetupTileRender(this.Context, this.Device.Viewport);
 
         var gBuffer = this.FrameService.GBuffer;
         this.Context.OM.SetRenderTargets(gBuffer.DepthStencilBuffer, gBuffer.Albedo, gBuffer.Material, gBuffer.Normal, gBuffer.Velocity);

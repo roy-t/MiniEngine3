@@ -102,7 +102,7 @@ public sealed class CubeMapGenerator : IDisposable
 
             this.User.MapEnvironmentConstants(context, roughness);
 
-            context.RS.SetViewPort(0, 0, resolution >> slice, resolution >> slice);
+            context.RS.SetViewport(0, 0, resolution >> slice, resolution >> slice);
             context.PS.SetConstantBuffer(Shaders.CubeMapGenerator.EnvironmentConstantsSlot, this.User.EnvironmentConstantsBuffer);
 
             this.RenderFaces(texture, slice);

@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Drawing;
+using System.Runtime.CompilerServices;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Contexts.States;
@@ -39,8 +40,7 @@ public sealed class Device : IDisposable
     public Device(IntPtr windowHandle, int width, int height, LifetimeManager lifetimeManager)
     {
         this.WindowHandle = windowHandle;
-        this.Width = width;
-        this.Height = height;
+        this.Viewport = new Rectangle(0, 0, width, height);
 
 #nullable disable
         _ = D3D11CreateDevice(null, DriverType.Hardware, Flags, null, out var device, out var context);
@@ -74,8 +74,9 @@ public sealed class Device : IDisposable
 
     public ImmediateDeviceContext ImmediateContext { get; }
 
-    public int Width { get; private set; }
-    public int Height { get; private set; }
+    public Rectangle Viewport { get; private set; }
+    public int Width => this.Viewport.Width;
+    public int Height => this.Viewport.Height;
     public bool VSync { get; set; } = true;
 
     public SamplerStates SamplerStates { get; }
@@ -111,8 +112,7 @@ public sealed class Device : IDisposable
 
     public void Resize(int width, int height)
     {
-        this.Width = width;
-        this.Height = height;
+        this.Viewport = new Rectangle(0, 0, width, height);
 
         this.BackBufferView.Dispose();
         this.BackBuffer.Dispose();

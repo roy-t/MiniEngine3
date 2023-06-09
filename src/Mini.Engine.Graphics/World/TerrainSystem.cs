@@ -31,7 +31,7 @@ public sealed partial class TerrainSystem : ISystem, IDisposable
 
     public void OnSet()
     {
-        this.TerrainRenderService.SetupTerrainRender(this.Context, 0, 0, this.Device.Width, this.Device.Height);        
+        this.TerrainRenderService.SetupTerrainRender(this.Context, this.Device.Viewport);        
         this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal, this.FrameService.GBuffer.Velocity);
     }
 

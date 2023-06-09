@@ -133,7 +133,8 @@ internal sealed class ImGuiRenderer : IDisposable
 
     private void SetupRenderState(ImDrawDataPtr drawData, DeferredDeviceContext context)
     {
-        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.Device.RasterizerStates.CullNoneCounterClockwiseScissor, 0, 0, (int)drawData.DisplaySize.X, (int)drawData.DisplaySize.Y, this.Shader.Ps, this.Device.BlendStates.NonPreMultiplied, this.Device.DepthStencilStates.None);
+        var viewport = new System.Drawing.Rectangle(0, 0, (int)drawData.DisplaySize.X, (int)drawData.DisplaySize.Y);
+        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.Device.RasterizerStates.CullNoneCounterClockwiseScissor, in viewport, this.Shader.Ps, this.Device.BlendStates.NonPreMultiplied, this.Device.DepthStencilStates.None);
         context.OM.SetRenderTargetToBackBuffer();
 
         context.IA.SetVertexBuffer(this.VertexBuffer);

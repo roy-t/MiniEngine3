@@ -26,7 +26,7 @@ public sealed partial class ModelSystem : ISystem, IDisposable
 
     public void OnSet()
     {
-        this.ModelRenderService.SetupModelRender(this.Context, 0, 0, this.Device.Width, this.Device.Height);
+        this.ModelRenderService.SetupModelRender(this.Context, this.Device.Viewport);
         this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal, this.FrameService.GBuffer.Velocity);
     }
 

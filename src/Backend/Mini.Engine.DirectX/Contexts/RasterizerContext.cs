@@ -1,4 +1,5 @@
-﻿using Mini.Engine.DirectX.Contexts.States;
+﻿using System.Drawing;
+using Mini.Engine.DirectX.Contexts.States;
 
 namespace Mini.Engine.DirectX.Contexts;
 
@@ -17,8 +18,18 @@ public sealed class RasterizerContext : DeviceContextPart
         this.ID3D11DeviceContext.RSSetScissorRect(x, y, width, height);
     }
 
-    public void SetViewPort(float x, float y, float width, float height)
+    public void SetScissorRect(in Rectangle rectangle)
+    {
+        this.ID3D11DeviceContext.RSSetScissorRect(in rectangle);
+    }
+
+    public void SetViewport(float x, float y, float width, float height)
     {
         this.ID3D11DeviceContext.RSSetViewport(x, y, width, height);
+    }
+
+    public void SetViewport(in Rectangle rectangle, float minDepth = 0.0f, float maxDepth = 1.0f)
+    {
+        this.ID3D11DeviceContext.RSSetViewport(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, minDepth, maxDepth);
     }
 }

@@ -1,4 +1,5 @@
-﻿using LibGame.Physics;
+﻿using System.Drawing;
+using LibGame.Physics;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
@@ -32,9 +33,9 @@ public sealed class LineRenderService : IDisposable
         this.InputLayout = shader.CreateInputLayoutForVs(LineMesh.Elements);
     }
 
-    public void Setup(DeviceContext context, int x, int y, int width, int height)
+    public void Setup(DeviceContext context, in Rectangle viewport)
     {
-        context.Setup(this.InputLayout, Vortice.Direct3D.PrimitiveTopology.LineStrip, this.Shader.Vs, this.Line, x, y, width, height, this.Shader.Ps, this.Opaque, this.ReverseZ);
+        context.Setup(this.InputLayout, Vortice.Direct3D.PrimitiveTopology.LineStrip, this.Shader.Vs, this.Line, in viewport, this.Shader.Ps, this.Opaque, this.ReverseZ);
 
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
