@@ -9,9 +9,9 @@ public sealed record class RangeCurve(ICurve Curve, float Start, float Length) :
         return this.Curve.GetPosition(this.Rescale(u));
     }    
 
-    public Vector2 GetNormal(float u)
+    public Vector2 GetForward(float u)
     {
-        return this.Curve.GetNormal(this.Rescale(u));
+        return this.Curve.GetForward(this.Rescale(u));
     }
 
     public float ComputeLength()

@@ -25,7 +25,7 @@ public sealed record class PolynomialCurve(float A, float B, float C, float D, f
         return new Vector2(x, y) * this.Amplitude;
     }
 
-    public Vector2 GetNormal(float u)
+    public Vector2 GetForward(float u)
     {
         // The differentiation of the polynomial curve gives
         // b + 2cu + 3du^2,  f + 2gu + 3hu^2

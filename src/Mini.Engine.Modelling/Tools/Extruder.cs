@@ -21,42 +21,44 @@ public static class Extruder
         }
 
         var minIndex = int.MaxValue;
-        var steps = points - 1;
         for (var i = 0; i < points; i++)
         {
-            var u = i / (float)steps;
+            var u = i / (points - 1.0f);
             var matrix = curve.AlignTo(u, up);
 
-            for (var j = 0; j < crossSection.Length; j++)
+            for (var j = 0; j < crossSection.Steps; j++)
             {
-                Vector3 normal;
-                if ((j + 1) < crossSection.Length)
-                {
-                    normal = Vector3.TransformNormal(Lines.GetNormalFromLineSegement(crossSection[j], crossSection[j + 1]).WithZ(), matrix);
-                }
-                else
-                {
-                    normal = Vector3.TransformNormal(Lines.GetNormalFromLineSegement(crossSection[j - 1], crossSection[j]).WithZ(), matrix);
-                }
+                var a = crossSection[j + 0];
+                var b = crossSection[j + 1];
 
-                var vertex = Vector3.Transform(crossSection[j].WithZ(), matrix);
-                var index = builder.AddVertex(vertex, normal);
+                var normal = Vector3.TransformNormal(Lines.GetNormalFromLineSegement(a, b).WithZ(), matrix);
+
+                var vA = Vector3.Transform(a.WithZ(), matrix);
+                var vB = Vector3.Transform(b.WithZ(), matrix);
+
+                var index = builder.AddVertex(vA, normal);
+                minIndex = Math.Min(minIndex, index);
+
+                index = builder.AddVertex(vB, normal);
                 minIndex = Math.Min(minIndex, index);
             }
         }
 
-        for (var i = 0; i < steps; i++)
+        var verticesPerStep = 2;
+        var verticesPerLoop = crossSection.Steps * verticesPerStep;
+        for (var extrudeI = 0; extrudeI < points - 1; extrudeI++)
         {
-            var currentLoop = minIndex + (i * crossSection.Length);
-            var nextLoop = minIndex + ((i + 1) * crossSection.Length);
+            var cLoop = minIndex + ((extrudeI + 0) * verticesPerLoop);
+            var nLoop = minIndex + ((extrudeI + 1) * verticesPerLoop);
 
-            for (var j = 0; j < crossSection.Steps; j++)
+            for (var loopI = 0; loopI < crossSection.Steps; loopI++)
             {
-                var tl = nextLoop + j + 0;
-                var tr = nextLoop + ((j + 1) % crossSection.Steps);
+                var offset = loopI * verticesPerStep;
+                var tl = nLoop + offset + 0;
+                var tr = nLoop + ((offset + 1) % verticesPerLoop);
 
-                var bl = currentLoop + j + 0;
-                var br = currentLoop + ((j + 1) % crossSection.Steps); ;
+                var bl = cLoop + offset + 0;
+                var br = cLoop + ((offset + 1) % verticesPerLoop);
 
                 builder.AddIndex(tr);
                 builder.AddIndex(br);

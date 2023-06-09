@@ -11,9 +11,9 @@ public sealed record class OffsetCurve(ICurve Curve, float Offset) : ICurve
         return p + (l * this.Offset);
     }
 
-    public Vector2 GetNormal(float u)
+    public Vector2 GetForward(float u)
     {
-        return this.Curve.GetNormal(u);
+        return this.Curve.GetForward(u);
     }
 
     public float ComputeLength()

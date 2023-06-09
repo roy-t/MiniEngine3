@@ -14,13 +14,13 @@ public static class CurveExtensions
 
     public static Vector3 GetNormal3D(this ICurve curve, float u)
     {
-        var p = curve.GetNormal(u);
+        var p = curve.GetForward(u);
         return new Vector3(p.X, 0.0f, -p.Y);
     }
 
     public static Vector2 GetLeft(this ICurve curve, float u)
     {
-        var n = curve.GetNormal(u);
+        var n = curve.GetForward(u);
         return new Vector2(-n.Y, n.X);
     }
 

@@ -26,6 +26,21 @@ public static class TrackPieces
         return new TrackPiece(curve, primitive, bounds);
     }
 
+    public static TrackPiece Straight(Device device)
+    {
+        const int points = 2;
+        var builder = new PrimitiveMeshBuilder();
+        var curve = new StraightCurve(50.0f);
+
+        BuildRails(points, builder, curve);
+        BuildTies(builder, curve);
+        BuildBallast(points, builder, curve);
+
+        var primitive = builder.Build(device, "Turn", out var bounds);
+
+        return new TrackPiece(curve, primitive, bounds);
+    }
+
     private static void BuildRails(int points, PrimitiveMeshBuilder builder, ICurve curve)
     {
         var partBuilder = builder.StartPart();
@@ -58,7 +73,7 @@ public static class TrackPieces
         partBuilder.Complete(RAIL_TIE_COLOR);
     }
 
-    private static void BuildBallast(int points, PrimitiveMeshBuilder builder, CircularArcCurve curve)
+    private static void BuildBallast(int points, PrimitiveMeshBuilder builder, ICurve curve)
     {
         var partBuilder = builder.StartPart();
 

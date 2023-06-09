@@ -83,6 +83,9 @@ internal class PrimitivePanel : IDieselPanel, IEditorPanel
 
     private void CreatePrimitives()
     {
+        var straight = TrackPieces.Straight(this.Device);
+        this.CreateAll("straight", straight);
+
         var turn = TrackPieces.Turn(this.Device);
         this.CreateAll("turn", turn);
     }

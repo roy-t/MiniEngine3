@@ -18,7 +18,7 @@ public sealed record class CircularArcCurve(float Offset, float Length, float Ra
         return this.Length * this.Radius;
     }
 
-    public Vector2 GetNormal(float u)
+    public Vector2 GetForward(float u)
     {
         u *= this.Length;
 
