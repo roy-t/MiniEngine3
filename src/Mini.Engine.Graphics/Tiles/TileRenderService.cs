@@ -27,7 +27,7 @@ public sealed class TileRenderService : IDisposable
     private readonly DepthStencilState ReverseZ;
     private readonly DepthStencilState ReverseZReadOnly;
     private readonly DepthStencilState Default;
-    
+
     private readonly BlendState Opaque;
 
     private readonly SamplerState AnisotropicWrap;
@@ -44,7 +44,7 @@ public sealed class TileRenderService : IDisposable
         this.ReverseZ = device.DepthStencilStates.ReverseZ;
         this.ReverseZReadOnly = device.DepthStencilStates.ReverseZReadOnly;
         this.Default = device.DepthStencilStates.Default;
-        
+
         this.AnisotropicWrap = device.SamplerStates.AnisotropicWrap;
         this.Opaque = device.BlendStates.Opaque;
 
@@ -58,9 +58,9 @@ public sealed class TileRenderService : IDisposable
     /// <summary>
     /// Configures everything for rendering tiles, except for the output (render target)
     /// </summary>    
-    public void SetupTileRender(DeviceContext context, in Rectangle viewport)
+    public void SetupTileRender(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.Vs, this.CullCounterClockwise, in viewport, this.Shader.Ps, this.Opaque, this.ReverseZ);
+        context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.Vs, this.CullCounterClockwise, in viewport, in scissor, this.Shader.Ps, this.Opaque, this.ReverseZ);
         context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetSampler(TileShader.TextureSampler, this.AnisotropicWrap);
@@ -93,9 +93,9 @@ public sealed class TileRenderService : IDisposable
     /// <summary>
     /// Configures everything for rendering tile walls, except for the output (render target)
     /// </summary>    
-    public void SetupTileWallRender(DeviceContext context, in Rectangle viewport)
+    public void SetupTileWallRender(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.VsWall, this.CullCounterClockwise, in viewport, this.Shader.Ps, this.Opaque, this.ReverseZ);
+        context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.VsWall, this.CullCounterClockwise, in viewport, in scissor, this.Shader.Ps, this.Opaque, this.ReverseZ);
         context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetSampler(TileShader.TextureSampler, this.AnisotropicWrap);
@@ -128,9 +128,9 @@ public sealed class TileRenderService : IDisposable
     /// <summary>
     /// Configures everything for rendering tile outlines and highlights, except for the output (render target)
     /// </summary>    
-    public void SetupRenderTileOutline(DeviceContext context, in Rectangle viewport)
+    public void SetupRenderTileOutline(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(null, PrimitiveTopology.LineList, this.Shader.VsOutline, this.Line, in viewport, this.Shader.PsOutline, this.Opaque, this.ReverseZReadOnly);
+        context.Setup(null, PrimitiveTopology.LineList, this.Shader.VsOutline, this.Line, in viewport, in scissor, this.Shader.PsOutline, this.Opaque, this.ReverseZReadOnly);
 
         context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
         context.VS.SetConstantBuffer(TileShader.OutlineConstantsSlot, this.User.OutlineConstantsBuffer);
@@ -151,10 +151,10 @@ public sealed class TileRenderService : IDisposable
         var cameraPosition = cameraTransform.Current.GetPosition();
 
         this.User.MapConstants(context, previousWorld * previousViewProjection, world * viewProjection, world, cameraPosition, camera.PreviousJitter, camera.Jitter, tile.Columns, tile.Rows);
-        this.User.MapOutlineConstants(context, 0, tile.Columns - 1, 0, tile.Rows -1, Colors.Black);
+        this.User.MapOutlineConstants(context, 0, tile.Columns - 1, 0, tile.Rows - 1, Colors.Black);
 
         context.VS.SetBuffer(TileShader.Instances, tile.InstanceBuffer);
-        context.DrawInstanced(16, (int)(tile.Columns * tile.Rows));        
+        context.DrawInstanced(16, (int)(tile.Columns * tile.Rows));
     }
 
     /// <summary>
@@ -181,9 +181,9 @@ public sealed class TileRenderService : IDisposable
     /// <summary>
     /// Configures everything for rendering tile depths, except for the output (render target)
     /// </summary>   
-    public void SetupTileDepthRender(DeviceContext context, in Rectangle viewport)
+    public void SetupTileDepthRender(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.VsDepth, this.CullNoneNoDepthClip, in viewport, this.Shader.PsDepth, this.Opaque, this.Default);
+        context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.VsDepth, this.CullNoneNoDepthClip, in viewport, in scissor, this.Shader.PsDepth, this.Opaque, this.Default);
         context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.ClearShader();
     }
@@ -205,9 +205,9 @@ public sealed class TileRenderService : IDisposable
     /// <summary>
     /// Configures everything for rendering tile wall depths, except for the output (render target)
     /// </summary>   
-    public void SetupTileWallDepthRender(DeviceContext context, in Rectangle viewport)
+    public void SetupTileWallDepthRender(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.VsWallDepth, this.CullNoneNoDepthClip, in viewport, this.Shader.PsDepth, this.Opaque, this.Default);
+        context.Setup(null, PrimitiveTopology.TriangleStrip, this.Shader.VsWallDepth, this.CullNoneNoDepthClip, in viewport, in scissor, this.Shader.PsDepth, this.Opaque, this.Default);
         context.VS.SetConstantBuffer(TileShader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.ClearShader();
     }
@@ -229,26 +229,26 @@ public sealed class TileRenderService : IDisposable
     /// <summary>
     /// Calls SetupTileDepthRender and then draws all tile components
     /// </summary>
-    public void SetupAndRenderAllTileDepths(DeviceContext context, in Rectangle viewport, in Frustum viewVolume, in Matrix4x4 viewProjection)
+    public void SetupAndRenderAllTileDepths(DeviceContext context, in Rectangle viewport, in Rectangle scissor, in Frustum viewVolume, in Matrix4x4 viewProjection)
     {
-        this.SetupTileDepthRender(context, in viewport);
+        this.SetupTileDepthRender(context, in viewport, in scissor);
 
         var iterator = this.Tiles.IterateAll();
         while (iterator.MoveNext())
         {
             ref var tile = ref iterator.Current;
             ref var transform = ref this.Transforms[tile.Entity].Value;
-            this.RenderTileDepth(context, in tile.Value, in transform, in viewProjection);            
+            this.RenderTileDepth(context, in tile.Value, in transform, in viewProjection);
         }
     }
 
     /// <summary>
     /// Calls SetupTileWallDepthRender and then draws all tile components
     /// </summary>
-    public void SetupAndRenderAllTileWallDepths(DeviceContext context, in Rectangle viewport, in Frustum viewVolume, in Matrix4x4 viewProjection)
+    public void SetupAndRenderAllTileWallDepths(DeviceContext context, in Rectangle viewport, in Rectangle scissor, in Frustum viewVolume, in Matrix4x4 viewProjection)
     {
         // TODO: there's a bug where the tops of the walls don't self shadow!?
-        this.SetupTileWallDepthRender(context, in viewport);
+        this.SetupTileWallDepthRender(context, in viewport, in scissor);
 
         var iterator = this.Tiles.IterateAll();
         while (iterator.MoveNext())

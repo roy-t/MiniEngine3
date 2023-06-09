@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Configuration;
+﻿using System.Drawing;
+using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Generators.Shared;
@@ -28,7 +29,12 @@ public sealed partial class TileOutlineSystem : ISystem, IDisposable
 
     public void OnSet()
     {
-        this.RenderService.SetupRenderTileOutline(this.Context, this.Device.Viewport);
+        this.OnSet(this.Device.Viewport, this.Device.Viewport);
+    }
+
+    public void OnSet(in Rectangle viewport, in Rectangle scissor)
+    {
+        this.RenderService.SetupRenderTileOutline(this.Context, in viewport, in scissor);
 
         var gBuffer = this.FrameService.GBuffer;
         var lBuffer = this.FrameService.LBuffer;

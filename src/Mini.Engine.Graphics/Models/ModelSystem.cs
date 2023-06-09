@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
@@ -23,10 +24,14 @@ public sealed partial class ModelSystem : ISystem, IDisposable
         this.FrameService = frameService;
         this.ModelRenderService = modelRenderService;    
     }
-
     public void OnSet()
     {
-        this.ModelRenderService.SetupModelRender(this.Context, this.Device.Viewport);
+        this.OnSet(this.Device.Viewport, this.Device.Viewport);
+    }
+
+    public void OnSet(in Rectangle viewport, in Rectangle scissor)
+    {
+        this.ModelRenderService.SetupModelRender(this.Context, in viewport, in scissor);
         this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal, this.FrameService.GBuffer.Velocity);
     }
 

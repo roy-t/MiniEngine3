@@ -50,11 +50,11 @@ public sealed partial class LineSystem : ISystem, IDisposable
         //commandList.Dispose();
     }
 
-    public Task<CommandList> Render(Rectangle viewport, float alpha)
+    public Task<CommandList> Render(Rectangle viewport, Rectangle scissor, float alpha)
     {
         return Task.Run(() =>
         {
-            this.RenderService.Setup(this.Context, viewport);
+            this.RenderService.Setup(this.Context, viewport, scissor);
             this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.LBuffer.Light);
 
             ref var camera = ref this.FrameService.GetPrimaryCamera();

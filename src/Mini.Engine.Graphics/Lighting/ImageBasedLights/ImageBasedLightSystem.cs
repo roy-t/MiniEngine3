@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders.Generated;
@@ -40,11 +41,11 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.SkyboxContainer = componentContainer;
     }
 
-    public Task<CommandList> Render()
+    public Task<CommandList> Render(Rectangle viewport, Rectangle scissor)
     {
         return Task.Run(() =>
         {
-            this.OnSet();
+            this.OnSet(viewport, scissor);
 
             foreach (ref var skybox in this.SkyboxContainer.IterateAll())
             {
@@ -58,9 +59,14 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
 
     public void OnSet()
     {
+        this.OnSet(this.Device.Viewport, this.Device.Viewport);
+    }
+
+    public void OnSet(in Rectangle viewport, in Rectangle scissor)
+    {
         var blendState = this.Device.BlendStates.Additive;
         var depthStencilState = this.Device.DepthStencilStates.None;
-        this.Context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, this.Shader.Ps, blendState, depthStencilState);
+        this.Context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, in viewport, in scissor, this.Shader.Ps, blendState, depthStencilState);
 
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 

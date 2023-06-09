@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Core.Lifetime;
@@ -105,8 +106,18 @@ internal sealed class GameLoop : IGameLoop
         this.Stopwatch.Restart();
 
         this.FrameService.Alpha = alpha;
+        this.FrameService.PBuffer.Swap(ref this.FrameService.GetPrimaryCamera());
+        ClearBuffersSystem.Clear(this.Device.ImmediateContext, this.FrameService);
+
         //this.RenderPipeline.Frame();
-        this.RenderPipelineV2.Run(this.Device.Viewport, alpha);
+        //var viewport = this.Device.Viewport;
+        var viewport = this.Device.Viewport;
+        var scissor = new Rectangle(100, 0, this.Device.Width, (this.Device.Height / 2) - 25);
+        this.RenderPipelineV2.Run(in viewport, in scissor, alpha);
+
+
+        scissor = new Rectangle(100, (this.Device.Height / 2) + 25, this.Device.Width, (this.Device.Height / 2) - 50);
+        this.RenderPipelineV2.Run(in viewport, in scissor, alpha);
 
         this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.CurrentColor);
 

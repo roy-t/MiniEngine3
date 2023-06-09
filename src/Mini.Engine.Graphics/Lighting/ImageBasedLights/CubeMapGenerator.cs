@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using LibGame.Mathematics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Core;
@@ -46,6 +47,7 @@ public sealed class CubeMapGenerator : IDisposable
     {
         var eqTexture = this.Device.Resources.Get(equirectangular);
         var resolution = eqTexture.DimY / 2;
+        var output = new Rectangle(0, 0, resolution, resolution);
 
         var imageInfo = new ImageInfo(resolution, resolution, eqTexture.Format, eqTexture.Format.BytesPerPixel() * resolution, 6);
         var texture = new RenderTargetCube(this.Device, user + "Albedo", imageInfo, MipMapInfo.None());
@@ -54,7 +56,7 @@ public sealed class CubeMapGenerator : IDisposable
         var depth = this.Device.DepthStencilStates.None;
 
         var context = this.Device.ImmediateContext;
-        context.SetupFullScreenTriangle(this.Shader.Vs, resolution, resolution, this.Shader.AlbedoPs, blend, depth);
+        context.SetupFullScreenTriangle(this.Shader.Vs, in output, in output, this.Shader.AlbedoPs, blend, depth);
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, eqTexture);
 
@@ -66,13 +68,15 @@ public sealed class CubeMapGenerator : IDisposable
     public ILifetime<IRenderTargetCube> GenerateIrradiance(ILifetime<ISurface> equirectangular, string user, int resolution = IrradianceResolution)
     {
         var eqTexture = this.Device.Resources.Get(equirectangular);
+        var output = new Rectangle(0, 0, resolution, resolution);
+
         var imageInfo = new ImageInfo(resolution, resolution, eqTexture.Format, eqTexture.Format.BytesPerPixel() * resolution, 6);
         var texture = new RenderTargetCube(this.Device, user + "Irradiance", imageInfo, MipMapInfo.None());
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;
 
         var context = this.Device.ImmediateContext;
-        context.SetupFullScreenTriangle(this.Shader.Vs, resolution, resolution, this.Shader.IrradiancePs, blend, depth);
+        context.SetupFullScreenTriangle(this.Shader.Vs, in output, in output, this.Shader.IrradiancePs, blend, depth);
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, eqTexture);
 
@@ -84,6 +88,7 @@ public sealed class CubeMapGenerator : IDisposable
     public ILifetime<IRenderTargetCube> GenerateEnvironment(ILifetime<ISurface> equirectangular, string user, int resolution = EnvironmentResolution)
     {
         var eqTexture = this.Device.Resources.Get(equirectangular);
+        var output = new Rectangle(0, 0, resolution, resolution);
 
         var imageInfo = new ImageInfo(resolution, resolution, eqTexture.Format, eqTexture.Format.BytesPerPixel() * resolution, 6);
         var texture = new RenderTargetCube(this.Device, user + "Environment", imageInfo, MipMapInfo.Provided(Dimensions.MipSlices(resolution)));
@@ -91,7 +96,7 @@ public sealed class CubeMapGenerator : IDisposable
         var depth = this.Device.DepthStencilStates.None;
 
         var context = this.Device.ImmediateContext;
-        context.SetupFullScreenTriangle(this.Shader.Vs, resolution, resolution, this.Shader.EnvironmentPs, blend, depth);
+        context.SetupFullScreenTriangle(this.Shader.Vs, in output, in output, this.Shader.EnvironmentPs, blend, depth);
         context.PS.SetSampler(TextureSampler, this.Device.SamplerStates.LinearClamp);
         context.PS.SetShaderResource(Texture, eqTexture);
 

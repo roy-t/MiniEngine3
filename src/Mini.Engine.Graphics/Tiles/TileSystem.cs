@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Configuration;
+﻿using System.Drawing;
+using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Generators.Shared;
@@ -26,8 +27,13 @@ public sealed partial class TileSystem : ISystem, IDisposable
     }
 
     public void OnSet()
-    {        
-        this.RenderService.SetupTileRender(this.Context, this.Device.Viewport);
+    {
+        this.OnSet(this.Device.Viewport, this.Device.Viewport);
+    }
+
+    public void OnSet(in Rectangle viewport, in Rectangle scissor)
+    {
+        this.RenderService.SetupTileRender(this.Context, in viewport, in scissor);
 
         var gBuffer = this.FrameService.GBuffer;
         this.Context.OM.SetRenderTargets(gBuffer.DepthStencilBuffer, gBuffer.Albedo, gBuffer.Material, gBuffer.Normal, gBuffer.Velocity);

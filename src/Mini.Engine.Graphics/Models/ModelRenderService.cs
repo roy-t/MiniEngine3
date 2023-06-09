@@ -61,9 +61,9 @@ public sealed class ModelRenderService : IDisposable
     /// <summary>
     /// Configures everything for rendering tiles, except for the output (render target)
     /// </summary>    
-    public void SetupModelRender(DeviceContext context, in Rectangle viewport)
+    public void SetupModelRender(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.CullCounterClockwise, viewport, this.Shader.Ps, this.Opaque, this.ReverseZ);
+        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.CullCounterClockwise, in viewport, in scissor, this.Shader.Ps, this.Opaque, this.ReverseZ);
 
         context.VS.SetConstantBuffer(Geometry.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetConstantBuffer(Geometry.ConstantsSlot, this.User.ConstantsBuffer);
@@ -117,9 +117,9 @@ public sealed class ModelRenderService : IDisposable
     /// <summary>
     /// Configures everything for rendering model depths, except for the output (render target)
     /// </summary> 
-    public void SetupModelDepthRender(DeviceContext context, in Rectangle viewport)
+    public void SetupModelDepthRender(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(this.ShadowMapInputLayout, PrimitiveTopology.TriangleList, this.ShadowMapShader.Vs, this.CullNoneNoDepthClip, in viewport, this.ShadowMapShader.Ps, this.Opaque, this.Default);
+        context.Setup(this.ShadowMapInputLayout, PrimitiveTopology.TriangleList, this.ShadowMapShader.Vs, this.CullNoneNoDepthClip, in viewport, in scissor, this.ShadowMapShader.Ps, this.Opaque, this.Default);
         context.VS.SetConstantBuffer(ShadowMap.ConstantsSlot, this.ShadowMapUser.ConstantsBuffer);
         context.PS.ClearShader();
     }
@@ -158,9 +158,9 @@ public sealed class ModelRenderService : IDisposable
     /// <summary>
     /// Calls SetupModelDepthRender and then draws all model components
     /// </summary>
-    public void SetupAndRenderAllModelDepths(DeviceContext context, in Rectangle vieport, in Frustum viewVolume, in Matrix4x4 viewProjection)
+    public void SetupAndRenderAllModelDepths(DeviceContext context, in Rectangle vieport, in Rectangle scissor, in Frustum viewVolume, in Matrix4x4 viewProjection)
     {
-        this.SetupModelDepthRender(context, in vieport);
+        this.SetupModelDepthRender(context, in vieport, in scissor);
 
         var iterator = this.Models.IterateAll();
         while (iterator.MoveNext())

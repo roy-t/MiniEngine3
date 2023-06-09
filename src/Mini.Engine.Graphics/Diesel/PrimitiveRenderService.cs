@@ -35,9 +35,9 @@ public sealed class PrimitiveRenderService : IDisposable
         this.InputLayout = shader.CreateInputLayoutForVsinstanced(PrimitiveVertex.Elements);
     }      
 
-    public void Setup(DeviceContext context, in Rectangle viewport)
+    public void Setup(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(this.InputLayout, Vortice.Direct3D.PrimitiveTopology.TriangleList, this.Shader.Vsinstanced, this.CullCounterClockwise, in viewport, this.Shader.Ps, this.Opaque, this.ReverseZ);
+        context.Setup(this.InputLayout, Vortice.Direct3D.PrimitiveTopology.TriangleList, this.Shader.Vsinstanced, this.CullCounterClockwise, in viewport, in scissor, this.Shader.Ps, this.Opaque, this.ReverseZ);
 
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);

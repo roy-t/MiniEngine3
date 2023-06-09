@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Configuration;
+﻿using System.Drawing;
+using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
@@ -25,14 +26,15 @@ public class PresentationHelper
 
     public void Present(DeviceContext context, ISurface texture)
     {
-        this.Present(context, texture, 0, 0, context.Device.Width, context.Device.Height);
+        var output = this.Device.Viewport;
+        this.Present(context, texture, in output, in output);
     }
 
-    public void Present(DeviceContext context, ISurface texture, int x, int y, int width, int height)
+    public void Present(DeviceContext context, ISurface texture, in Rectangle viewport, in Rectangle scissor)
     {
         context.OM.SetRenderTargetToBackBuffer();
 
-        context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, x, y, width, height, this.TextureShader.Ps, this.Device.BlendStates.AlphaBlend, this.Device.DepthStencilStates.None);
+        context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, in viewport, in scissor, this.TextureShader.Ps, this.Device.BlendStates.AlphaBlend, this.Device.DepthStencilStates.None);
         context.PS.SetSampler(TextureShader.TextureSampler, this.Device.SamplerStates.LinearWrap);
         context.PS.SetShaderResource(TextureShader.Texture, texture);
         context.Draw(3);
@@ -40,14 +42,15 @@ public class PresentationHelper
 
     public void ToneMapAndPresent(DeviceContext context, ISurface texture)
     {
-        this.ToneMapAndPresent(context, texture, 0, 0, context.Device.Width, context.Device.Height);
+        var output = this.Device.Viewport;
+        this.ToneMapAndPresent(context, texture, in output, in output);
     }
 
-    public void ToneMapAndPresent(DeviceContext context, ISurface texture, int x, int y, int width, int height)
+    public void ToneMapAndPresent(DeviceContext context, ISurface texture, in Rectangle viewport, in Rectangle scissor)
     {
         context.OM.SetRenderTargetToBackBuffer();
 
-        context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, x, y, width, height, this.ToneMapShader.ToneMap, this.Device.BlendStates.AlphaBlend, this.Device.DepthStencilStates.None);
+        context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, in viewport, in scissor, this.ToneMapShader.ToneMap, this.Device.BlendStates.AlphaBlend, this.Device.DepthStencilStates.None);
         context.PS.SetSampler(ToneMapShader.TextureSampler, this.Device.SamplerStates.LinearWrap);
         context.PS.SetShaderResource(ToneMapShader.Texture, texture);
         context.Draw(3);

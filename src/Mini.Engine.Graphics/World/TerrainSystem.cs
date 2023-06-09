@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
@@ -31,7 +32,12 @@ public sealed partial class TerrainSystem : ISystem, IDisposable
 
     public void OnSet()
     {
-        this.TerrainRenderService.SetupTerrainRender(this.Context, this.Device.Viewport);        
+        this.OnSet(this.Device.Viewport, this.Device.Viewport);
+    }
+
+    public void OnSet(in Rectangle viewport, in Rectangle scissor)
+    {
+        this.TerrainRenderService.SetupTerrainRender(this.Context, in viewport, in scissor);
         this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal, this.FrameService.GBuffer.Velocity);
     }
 

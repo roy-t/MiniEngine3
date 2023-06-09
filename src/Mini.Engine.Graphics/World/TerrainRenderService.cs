@@ -62,9 +62,9 @@ public sealed class TerrainRenderService : IDisposable
     /// <summary>
     /// Configures everything for rendering tiles, except for the output (render target)
     /// </summary>    
-    public void SetupTerrainRender(DeviceContext context, in Rectangle viewport)
+    public void SetupTerrainRender(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.CullCounterClockwise, in viewport, this.Shader.Ps, this.Opaque, this.ReverseZ);
+        context.Setup(this.InputLayout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.CullCounterClockwise, in viewport, in scissor, this.Shader.Ps, this.Opaque, this.ReverseZ);
 
         context.VS.SetConstantBuffer(Terrain.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetConstantBuffer(Terrain.ConstantsSlot, this.User.ConstantsBuffer);
@@ -119,9 +119,9 @@ public sealed class TerrainRenderService : IDisposable
     /// <summary>
     /// Configures everything for rendering tile depths, except for the output (render target)
     /// </summary> 
-    public void SetupTerrainDepthRender(DeviceContext context, in Rectangle viewport)
+    public void SetupTerrainDepthRender(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(this.ShadowMapInputLayout, PrimitiveTopology.TriangleList, this.ShadowMapShader.Vs, this.CullNoneNoDepthClip, in viewport, this.ShadowMapShader.Ps, this.Opaque, this.Default);
+        context.Setup(this.ShadowMapInputLayout, PrimitiveTopology.TriangleList, this.ShadowMapShader.Vs, this.CullNoneNoDepthClip, in viewport, in scissor, this.ShadowMapShader.Ps, this.Opaque, this.Default);
         context.VS.SetConstantBuffer(ShadowMap.ConstantsSlot, this.ShadowMapUser.ConstantsBuffer);        
         context.PS.ClearShader();
     }
@@ -151,9 +151,9 @@ public sealed class TerrainRenderService : IDisposable
     /// <summary>
     /// Calls SetupTerrainDepthRender and then draws all terrain components
     /// </summary>
-    public void SetupAndRenderAllTerrainDepths(DeviceContext context, in Rectangle viewport, in Frustum viewVolume, in Matrix4x4 viewProjection)
+    public void SetupAndRenderAllTerrainDepths(DeviceContext context, in Rectangle viewport, in Rectangle scissor, in Frustum viewVolume, in Matrix4x4 viewProjection)
     {
-        this.SetupTerrainDepthRender(context, in viewport);
+        this.SetupTerrainDepthRender(context, in viewport, in scissor);
 
         var iterator = this.TerrainContainer.IterateAll();
         while (iterator.MoveNext())

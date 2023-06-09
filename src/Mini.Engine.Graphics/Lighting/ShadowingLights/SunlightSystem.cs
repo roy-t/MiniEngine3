@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
@@ -40,11 +41,11 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
         this.TransformContainer = transformContainer;
     }
 
-    public Task<CommandList> Render()
+    public Task<CommandList> Render(Rectangle viewport, Rectangle scissor)
     {
         return Task.Run(() =>
         {
-            this.OnSet();
+            this.OnSet(viewport, scissor);
 
             foreach (ref var skybox in this.SunLightContainer.IterateAll())
             {
@@ -62,10 +63,14 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
         });
     }
 
-
     public void OnSet()
     {
-        this.Context.SetupFullScreenTriangle(this.FullScreenTriangle.TextureVs, this.Shader.Ps, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
+        this.OnSet(this.Device.Viewport, this.Device.Viewport);
+    }
+
+    public void OnSet(in Rectangle viewport, in Rectangle scissor)
+    {
+        this.Context.SetupFullScreenTriangle(this.FullScreenTriangle.TextureVs, in viewport, in scissor, this.Shader.Ps, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
         this.Context.PS.SetSampler(SunLight.TextureSampler, this.Device.SamplerStates.LinearClamp);

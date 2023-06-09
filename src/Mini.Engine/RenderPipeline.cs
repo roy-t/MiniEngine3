@@ -58,13 +58,13 @@ internal sealed class RenderPipeline
         this.PostProcessingSystem = postProcessingSystem;
     }
 
-    public void Run(Rectangle viewport, float alpha)
+    public void Run(in Rectangle viewport, in Rectangle scissor, float alpha)
     {
         this.Stopwatch.Restart();
 
         this.RunInitializationStage();
-        this.RunRenderStage(viewport, alpha);
-        this.RunPostProcessStage();
+        this.RunRenderStage(in viewport, in scissor, alpha);
+        this.RunPostProcessStage(in viewport, in scissor);
 
         this.ProcessQueue();
 
@@ -73,23 +73,22 @@ internal sealed class RenderPipeline
 
 
     private void RunInitializationStage()
-    {
-        ClearBuffersSystem.Clear(this.Device.ImmediateContext, this.FrameService);
-        this.CameraSystem.Update();
+    {        
+        this.CameraSystem.Update(); // TODO: move out of this loop, as this loop can run multiple tmes for a single frame!
     }
 
-    private void RunRenderStage(Rectangle viewport, float alpha)
+    private void RunRenderStage(in Rectangle viewport, in Rectangle scissor, float alpha)
     {
-        this.Enqueue(this.PrimitiveSystem.Render(viewport, alpha));
-        this.Enqueue(this.ImageBasedLightSystem.Render()); // TODO: system doesn't have output settings
-        this.Enqueue(this.SunLightSystem.Render());  // TODO: system doesn't have output settings
-        this.Enqueue(this.SkyboxSystem.Render());  // TODO: system doesn't have output settings
-        this.Enqueue(this.LineSystem.Render(viewport, alpha));        
+        this.Enqueue(this.PrimitiveSystem.Render(viewport, scissor, alpha));
+        this.Enqueue(this.ImageBasedLightSystem.Render(viewport, scissor)); // TODO: system doesn't have output settings
+        this.Enqueue(this.SunLightSystem.Render(viewport, scissor));  // TODO: system doesn't have output settings
+        this.Enqueue(this.SkyboxSystem.Render(viewport, scissor));  // TODO: system doesn't have output settings
+        this.Enqueue(this.LineSystem.Render(viewport, scissor, alpha));        
     }
 
-    private void RunPostProcessStage()
+    private void RunPostProcessStage(in Rectangle viewport, in Rectangle scissor)
     {
-        this.Enqueue(this.PostProcessingSystem.Render()); // TODO: system doesn't have output settings
+        this.Enqueue(this.PostProcessingSystem.Render(viewport, scissor)); // TODO: system doesn't have output settings
     }
 
     private void ProcessQueue()

@@ -127,7 +127,7 @@ public abstract class DeviceContext : IDisposable
         this.ID3D11DeviceContext.ClearRenderTargetView(this.Device.BackBufferView, color);
     }
 
-    public void Setup(InputLayout? inputLayout, ILifetime<IVertexShader> vertex, in Rectangle viewport, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
+    public void Setup(InputLayout? inputLayout, ILifetime<IVertexShader> vertex, in Rectangle viewport, in Rectangle scissor, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
     {
         this.Setup
         (
@@ -136,13 +136,14 @@ public abstract class DeviceContext : IDisposable
             vertex,
             this.Device.RasterizerStates.Default,
             in viewport,
+            in scissor,
             pixel,
             blend,
             depth
         );
     }
 
-    public void Setup(InputLayout? layout, PrimitiveTopology primitive, ILifetime<IVertexShader> vertex, RasterizerState rasterizer, in Rectangle viewport, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
+    public void Setup(InputLayout? layout, PrimitiveTopology primitive, ILifetime<IVertexShader> vertex, RasterizerState rasterizer, in Rectangle viewport, in Rectangle scissor, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
     {
         this.IA.SetInputLayout(layout);
         this.IA.SetPrimitiveTopology(primitive);
@@ -150,26 +151,16 @@ public abstract class DeviceContext : IDisposable
         this.VS.SetShader(vertex);
 
         this.RS.SetRasterizerState(rasterizer);
-        this.RS.SetScissorRect(in viewport);
+        this.RS.SetScissorRect(in scissor);
         this.RS.SetViewport(in viewport);
 
         this.PS.SetShader(pixel);
 
         this.OM.SetBlendState(blend);
         this.OM.SetDepthStencilState(depth);
-    }
+    } 
 
-    public void SetupFullScreenTriangle(ILifetime<IVertexShader> vertex, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
-    {
-        this.SetupFullScreenTriangle(vertex, 0, 0, this.Device.Width, this.Device.Height, pixel, blend, depth);
-    }
-
-    public void SetupFullScreenTriangle(ILifetime<IVertexShader> vertex, int width, int height, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
-    {
-        this.SetupFullScreenTriangle(vertex, 0, 0, width, height, pixel, blend, depth);
-    }
-
-    public void SetupFullScreenTriangle(ILifetime<IVertexShader> vertex, int x, int y, int width, int height, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
+    public void SetupFullScreenTriangle(ILifetime<IVertexShader> vertex, in Rectangle viewport, in Rectangle scissor, ILifetime<IPixelShader> pixel, BlendState blend, DepthStencilState depth)
     {
         this.IA.ClearInputLayout();
         this.IA.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
@@ -177,8 +168,8 @@ public abstract class DeviceContext : IDisposable
         this.VS.SetShader(vertex);
 
         this.RS.SetRasterizerState(this.Device.RasterizerStates.CullNone);
-        this.RS.SetScissorRect(x, y, width, height);
-        this.RS.SetViewport(x, y, width, height);
+        this.RS.SetScissorRect(in scissor);
+        this.RS.SetViewport(in viewport);
 
         this.PS.SetShader(pixel);
 

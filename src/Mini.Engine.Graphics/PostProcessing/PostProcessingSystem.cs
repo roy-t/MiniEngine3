@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Configuration;
+﻿using System.Drawing;
+using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
@@ -25,11 +26,11 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
         this.Shader = shader;
     }
 
-    public Task<CommandList> Render()
+    public Task<CommandList> Render(Rectangle viewport, Rectangle scissor)
     {
         return Task.Run(() =>
         {
-            this.OnSet();
+            this.OnSet(viewport, scissor);
             this.PostProcess();
             return this.Context.FinishCommandList();
         });
@@ -38,8 +39,13 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
 
     public void OnSet()
     {
+        this.OnSet(this.Device.Viewport, this.Device.Viewport);
+    }
+
+    public void OnSet(in Rectangle viewport, in Rectangle scissor)
+    {
         ref var camera = ref this.FrameService.GetPrimaryCamera();
-        this.FrameService.PBuffer.Swap(ref camera);
+        
 
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;
@@ -52,7 +58,7 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
             _ => throw new NotImplementedException()
         };
 
-        this.Context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, shader, blend, depth);
+        this.Context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, in viewport, in scissor, shader, blend, depth);
 
         this.Context.PS.SetSampler(AntiAliasShader.TextureSampler, this.Device.SamplerStates.LinearClamp);
         this.Context.PS.SetShaderResource(AntiAliasShader.Color, this.FrameService.LBuffer.Light);

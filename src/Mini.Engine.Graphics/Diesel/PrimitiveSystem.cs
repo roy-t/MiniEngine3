@@ -53,11 +53,11 @@ public sealed partial class PrimitiveSystem : ISystem,  IDisposable
         //commandList.Dispose();
     }
 
-    public Task<CommandList> Render(Rectangle viewport, float alpha)
+    public Task<CommandList> Render(Rectangle viewport, Rectangle scissor, float alpha)
     {
         return Task.Run(() =>
         {
-            this.RenderService.Setup(this.Context, viewport);
+            this.RenderService.Setup(this.Context, viewport, scissor);
             this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal, this.FrameService.GBuffer.Velocity);
 
             ref var camera = ref this.FrameService.GetPrimaryCamera();

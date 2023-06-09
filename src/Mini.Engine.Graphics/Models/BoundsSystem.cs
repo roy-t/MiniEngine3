@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Configuration;
@@ -57,6 +58,11 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
 
     public void OnSet()
     {
+        this.OnSet(this.Device.Viewport, this.Device.Viewport);
+    }
+
+    public void OnSet(in Rectangle viewport, in Rectangle scissor)
+    {
         if (this.DebugFrameService.ShowBounds)
         {
             var context = this.Device.ImmediateContext;
@@ -67,7 +73,7 @@ public sealed partial class BoundsSystem : ISystem, IDisposable
             
             this.User.MapConstants(context, viewProjection, Vector4.One);
 
-            context.Setup(this.InputLayout, PrimitiveTopology.LineList, this.Shader.Vs, this.Device.RasterizerStates.CullNone, this.Device.Viewport, this.Shader.Ps, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
+            context.Setup(this.InputLayout, PrimitiveTopology.LineList, this.Shader.Vs, this.Device.RasterizerStates.CullNone, in viewport, in scissor, this.Shader.Ps, this.Device.BlendStates.Opaque, this.Device.DepthStencilStates.None);
             context.OM.SetRenderTarget(this.DebugFrameService.DebugOverlay);
 
             context.IA.SetVertexBuffer(this.VertexBuffer);

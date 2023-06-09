@@ -64,6 +64,7 @@ public sealed class RasterizerStates : IDisposable
 
     private static RasterizerState Create(ID3D11Device device, RasterizerDescription description, string name)
     {
+        description.ScissorEnable = true;
         var state = device.CreateRasterizerState(description);
         return new RasterizerState(state, name);
     }

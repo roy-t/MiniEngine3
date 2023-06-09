@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Shaders.Generated;
@@ -41,7 +42,12 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
 
     public void OnSet()
     {
-        this.Context.Setup(this.InputLayout, this.Shader.Vs, this.Device.Viewport, this.Shader.Ps, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
+        this.OnSet(this.Device.Viewport, this.Device.Viewport);
+    }
+
+    public void OnSet(in Rectangle viewport, in Rectangle scissor)
+    {
+        this.Context.Setup(this.InputLayout, this.Shader.Vs, in viewport, in scissor, this.Shader.Ps, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
         this.Context.PS.SetSampler(PointLight.TextureSampler, this.Device.SamplerStates.LinearClamp);
