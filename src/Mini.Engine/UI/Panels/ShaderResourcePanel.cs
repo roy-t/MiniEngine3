@@ -1,5 +1,4 @@
-﻿using ImGuiNET;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
 using Mini.Engine.Graphics;
 using Mini.Engine.UI.Components;
 
@@ -9,13 +8,11 @@ namespace Mini.Engine.UI.Panels;
 internal sealed class ShaderResourcePanel : IEditorPanel
 {
     private readonly FrameService FrameService;
-    private readonly DebugFrameService DebugFrameService;
     private readonly TextureSelector Selector;
 
-    public ShaderResourcePanel(FrameService frameService, DebugFrameService debugFrameService, UITextureRegistry registry)
+    public ShaderResourcePanel(FrameService frameService, UITextureRegistry registry)
     {
         this.FrameService = frameService;
-        this.DebugFrameService = debugFrameService;
         this.Selector = new TextureSelector(registry);
     }
 
@@ -32,7 +29,6 @@ internal sealed class ShaderResourcePanel : IEditorPanel
             this.Selector.Select(nameof(this.FrameService.PBuffer.PreviousColor), this.FrameService.PBuffer.PreviousColor);
             this.Selector.Select(nameof(this.FrameService.PBuffer.CurrentColor), this.FrameService.PBuffer.CurrentColor);            
             this.Selector.Select(nameof(this.FrameService.GBuffer.DepthStencilBuffer), this.FrameService.GBuffer.DepthStencilBuffer);
-            this.Selector.Select(nameof(this.DebugFrameService.DebugOverlay), this.DebugFrameService.DebugOverlay);
 
             this.Selector.End();
         }
@@ -45,8 +41,7 @@ internal sealed class ShaderResourcePanel : IEditorPanel
             this.FrameService.LBuffer.Light,
             this.FrameService.PBuffer.PreviousColor,
             this.FrameService.PBuffer.CurrentColor,
-            this.FrameService.GBuffer.DepthStencilBuffer,
-            this.DebugFrameService.DebugOverlay
+            this.FrameService.GBuffer.DepthStencilBuffer
         );
     }
 }

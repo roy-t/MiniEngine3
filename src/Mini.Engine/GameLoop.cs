@@ -1,11 +1,9 @@
 ﻿using System.Diagnostics;
-using System.Drawing;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
-using Mini.Engine.ECS.Pipeline;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.PostProcessing;
 using Mini.Engine.Scenes;
@@ -31,19 +29,15 @@ internal sealed class GameLoop : IGameLoop
     private readonly PresentationHelper Presenter;
     private readonly SceneManager SceneManager;
     private readonly FrameService FrameService;
-    private readonly DebugFrameService DebugFrameService;
     private readonly ContentManager Content;
-    private readonly ParallelPipeline UpdatePipeline;
-    private readonly ParallelPipeline RenderPipeline;
-    private readonly ParallelPipeline DebugPipeline;
 
-
-    private readonly RenderPipeline RenderPipelineV2;
+    private readonly RenderPipeline RenderPipeline;
+    private readonly UpdatePipeline UpdatePipeline;
 
     private bool enableUI;
     private readonly Stopwatch Stopwatch;
 
-    public GameLoop(Device device, EditorUserInterface userInterface, InputService inputService, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, DebugFrameService debugFrameService, UpdatePipelineBuilder updatePipelineBuilder, RenderPipelineBuilder renderBuilder, DebugPipelineBuilder debugBuilder, ContentManager content, MetricService metricService, RenderPipeline renderPipelineV2)
+    public GameLoop(Device device, EditorUserInterface userInterface, InputService inputService, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, ContentManager content, MetricService metricService, RenderPipeline renderPipelineV2, UpdatePipeline updatePipelineV2)
     {
         this.Device = device;
         this.UserInterface = userInterface;
@@ -55,13 +49,7 @@ internal sealed class GameLoop : IGameLoop
         this.Presenter = presenter;
         this.SceneManager = sceneManager;
         this.FrameService = frameService;
-        this.DebugFrameService = debugFrameService;
         this.Content = content;
-
-        this.LifetimeManager.PushFrame("Pipelines");
-        this.UpdatePipeline = updatePipelineBuilder.Build();
-        this.RenderPipeline = renderBuilder.Build();
-        this.DebugPipeline = debugBuilder.Build();
 
         this.LifetimeManager.PushFrame("Game");
 
@@ -72,7 +60,8 @@ internal sealed class GameLoop : IGameLoop
         this.MetricService = metricService;
 
         this.Stopwatch = new Stopwatch();
-        this.RenderPipelineV2 = renderPipelineV2;
+        this.RenderPipeline = renderPipelineV2;
+        this.UpdatePipeline = updatePipelineV2;
     }
 
     public void Update(float elapsedSimulationTime, float elapsedRealWorldTime)
@@ -88,7 +77,7 @@ internal sealed class GameLoop : IGameLoop
         this.Content.ReloadChangedContent();
         this.EditorState.Update();
 
-        this.UpdatePipeline.Frame();
+        this.UpdatePipeline.Run();
 
         while (this.InputService.ProcessEvents(this.Keyboard))
         {
@@ -108,29 +97,10 @@ internal sealed class GameLoop : IGameLoop
         this.FrameService.Alpha = alpha;
         this.FrameService.PBuffer.Swap(ref this.FrameService.GetPrimaryCamera());
         ClearBuffersSystem.Clear(this.Device.ImmediateContext, this.FrameService);
-
-        //this.RenderPipeline.Frame();
-        //var viewport = this.Device.Viewport;
-        var viewport = this.Device.Viewport;
-        var scissor = new Rectangle(100, 0, this.Device.Width, (this.Device.Height / 2) - 25);
-        this.RenderPipelineV2.Run(in viewport, in scissor, alpha);
-
-
-        scissor = new Rectangle(300, (this.Device.Height / 2) + 25, this.Device.Width, (this.Device.Height / 2) - 50);
-        this.RenderPipelineV2.Run(in viewport, in scissor, alpha);
-
-        this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.CurrentColor);
-
-        if (this.DebugFrameService.EnableDebugOverlay)
-        {
-            this.DebugPipeline.Frame();
-
-            if (this.DebugFrameService.RenderToViewport)
-            {
-                this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();
-                this.Presenter.Present(this.Device.ImmediateContext, this.DebugFrameService.DebugOverlay);
-            }
-        }
+        
+        var output = this.Device.Viewport;        
+        this.RenderPipeline.Run(in output, in output, alpha);
+        this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.CurrentColor);                
 
         if (this.enableUI)
         {
@@ -151,12 +121,6 @@ internal sealed class GameLoop : IGameLoop
         this.SceneManager.ClearScene();
 
         this.LifetimeManager.PopFrame(); // Game
-
-        this.UpdatePipeline.Dispose();
-        this.RenderPipeline.Dispose();
-        this.DebugPipeline.Dispose();
-
-        this.LifetimeManager.PopFrame(); // Pipelines
 
         this.EditorState.Save();
     }

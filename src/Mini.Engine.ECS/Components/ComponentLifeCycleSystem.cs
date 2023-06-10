@@ -24,7 +24,7 @@ public sealed partial class ComponentLifeCycleSystem : ISystem
     }
 
     [Process]
-    public void Process()
+    public void Run()
     {
         var containers = this.ContainerStore.GetAllContainers();
         for (var i = 0; i < containers.Count; i++)

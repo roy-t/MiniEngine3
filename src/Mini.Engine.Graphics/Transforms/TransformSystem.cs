@@ -1,35 +1,34 @@
-﻿using System.Numerics;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
+using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
-using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics.Transforms;
 
 [System]
 public sealed partial class TransformSystem : ISystem
 {
-    private readonly FrameService FrameService;
+    private readonly IComponentContainer<TransformComponent> Transforms;
 
-    public TransformSystem(FrameService frameService)
+    public TransformSystem(IComponentContainer<TransformComponent> transforms)
     {
-        this.FrameService = frameService;
+        this.Transforms = transforms;
     }
 
     public void OnSet() { }
+
+    public void Run()
+    {
+        foreach (ref var transform in this.Transforms.IterateAll())
+        {
+            transform.Value.Previous = transform.Value.Current;
+        }
+    }
 
     [Process(Query = ProcessQuery.All)]
     public void Process(ref TransformComponent component)
     {
         component.Previous = component.Current;
-    }
-
-    [Process(Query = ProcessQuery.All)]
-    public void Rotate(ref TransformComponent transform, ref MovementComponent movement)
-    {
-        var diff = this.FrameService.ElapsedGameTime * MathHelper.TwoPi * 0.055f;
-        var rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, diff);
-        //transform.Current = transform.Current.AddRotation(rotation);
     }
 
     public void OnUnSet() { }

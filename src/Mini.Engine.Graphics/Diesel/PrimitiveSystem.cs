@@ -12,7 +12,6 @@ namespace Mini.Engine.Graphics.Diesel;
 [Service]
 public sealed partial class PrimitiveSystem : ISystem,  IDisposable
 {
-    private readonly Device Device;
     private readonly DeferredDeviceContext Context;
     private readonly PrimitiveRenderService RenderService;
     private readonly FrameService FrameService;
@@ -23,7 +22,6 @@ public sealed partial class PrimitiveSystem : ISystem,  IDisposable
 
     public PrimitiveSystem(Device device, PrimitiveRenderService renderService, FrameService frameService, IComponentContainer<PrimitiveComponent> models, IComponentContainer<TransformComponent> transforms, IComponentContainer<InstancesComponent> instances)
     {
-        this.Device = device;
         this.Context = device.CreateDeferredContextFor<PrimitiveSystem>();
         this.RenderService = renderService;
         this.FrameService = frameService;

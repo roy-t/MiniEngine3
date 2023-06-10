@@ -17,7 +17,33 @@ public class ScratchPad
         Assert.Equal(input, output);
     }
 
-    
+
+    [Fact]
+    public void Bar()
+    {
+        var array = new A[10];
+
+        ref var a = ref array[3];
+        a.B.C.Value = 33;
+
+        Assert.Equal(33, array[3].B.C.Value);
+    }
+        
+    public struct A
+    {
+        public B B;
+    }
+
+    public struct B
+    {
+        public C C;
+    }
+
+    public struct C
+    {
+        public int Value;
+    }
+
     public struct FooStruct : IComponent
     {
         public int Bar;
