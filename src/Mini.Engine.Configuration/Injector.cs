@@ -77,12 +77,6 @@ public sealed class Injector : IDisposable
                     return true;
                 }
 
-                if (IsSystem(concreteType))
-                {
-                    this.Logger.Debug("Registered system {@system}", concreteType.FullName);
-                    return true;
-                }
-
                 if (IsContentType(concreteType))
                 {
                     this.Logger.Debug("Registered content {@content}", concreteType.FullName);
@@ -129,9 +123,6 @@ public sealed class Injector : IDisposable
 
     private static bool IsServiceType(Type type)
         => type.IsDefined(typeof(ServiceAttribute), true) && !type.IsAbstract;
-
-    private static bool IsSystem(Type type)
-        => type.IsDefined(typeof(SystemAttribute), true) && !type.IsAbstract;
 
     private static bool IsContentType(Type type)
         => type.IsDefined(typeof(ContentAttribute), true) && !type.IsAbstract;

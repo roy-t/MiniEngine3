@@ -33,12 +33,12 @@ public sealed class ComponentContainer<T> : IComponentContainer<T>
     where T : struct, IComponent
 {
     public static readonly IQuery<T> AcceptAll = new QueryAll<T>();
-    public static readonly IQuery<T> AcceptNew = new QueryLifCcycle<T>(LifeCycleState.New);
-    public static readonly IQuery<T> AcceptUnchanged = new QueryLifCcycle<T>(LifeCycleState.Unchanged);
-    public static readonly IQuery<T> AcceptChanged = new QueryLifCcycle<T>(LifeCycleState.Changed);
+    public static readonly IQuery<T> AcceptNew = new QueryLifeCycle<T>(LifeCycleState.New);
+    public static readonly IQuery<T> AcceptUnchanged = new QueryLifeCycle<T>(LifeCycleState.Unchanged);
+    public static readonly IQuery<T> AcceptChanged = new QueryLifeCycle<T>(LifeCycleState.Changed);
 
-    public static readonly IQuery<T> AcceptRemoved = new QueryLifCcycle<T>(LifeCycleState.Removed);
-    public static readonly IQuery<T> AcceptCreated = new QueryLifCcycle<T>(LifeCycleState.Created);
+    public static readonly IQuery<T> AcceptRemoved = new QueryLifeCycle<T>(LifeCycleState.Removed);
+    public static readonly IQuery<T> AcceptCreated = new QueryLifeCycle<T>(LifeCycleState.Created);
 
     private const int InitialCapacity = 10;
 

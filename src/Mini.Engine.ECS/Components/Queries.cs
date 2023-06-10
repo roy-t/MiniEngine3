@@ -18,13 +18,13 @@ public sealed class QueryAll<T>
     }
 }
 
-public sealed class QueryLifCcycle<T>
+public sealed class QueryLifeCycle<T>
     : IQuery<T>
     where T : struct, IComponent
 {
     private readonly LifeCycleState State;
 
-    public QueryLifCcycle(LifeCycleState state)
+    public QueryLifeCycle(LifeCycleState state)
     {
         this.State = state;
     }
