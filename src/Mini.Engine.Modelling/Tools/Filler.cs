@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using LibGame.Geometry;
 using Mini.Engine.Core;
-using Mini.Engine.Graphics.Diesel;
+using Mini.Engine.Graphics.Primitives;
 using Mini.Engine.Modelling.Paths;
 
 namespace Mini.Engine.Modelling.Tools;

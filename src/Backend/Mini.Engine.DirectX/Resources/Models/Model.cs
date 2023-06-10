@@ -4,11 +4,11 @@ using Vortice.Mathematics;
 
 namespace Mini.Engine.DirectX.Resources.Models;
 
-public sealed record Primitive(string Name, BoundingBox Bounds, int MaterialIndex, int IndexOffset, int IndexCount);
+public sealed record ModelPart(string Name, BoundingBox Bounds, int MaterialIndex, int IndexOffset, int IndexCount);
 
 public sealed class Model : IModel
 {
-    public Model(Device device, BoundingBox bounds, ReadOnlyMemory<ModelVertex> vertices, ReadOnlyMemory<int> indices, IReadOnlyList<Primitive> primitives, IReadOnlyList<ILifetime<IMaterial>> materials, string name)
+    public Model(Device device, BoundingBox bounds, ReadOnlyMemory<ModelVertex> vertices, ReadOnlyMemory<int> indices, IReadOnlyList<ModelPart> primitives, IReadOnlyList<ILifetime<IMaterial>> materials, string name)
     {
         this.Indices = new IndexBuffer<int>(device, name);
         this.Vertices = new VertexBuffer<ModelVertex>(device, name);
@@ -23,7 +23,7 @@ public sealed class Model : IModel
     public VertexBuffer<ModelVertex> Vertices { get; }
     public IndexBuffer<int> Indices { get; }
     public BoundingBox Bounds { get; set; } 
-    public IReadOnlyList<Primitive> Primitives { get; }
+    public IReadOnlyList<ModelPart> Primitives { get; }
     public IReadOnlyList<ILifetime<IMaterial>> Materials { get; }
 
     public void Dispose()

@@ -46,9 +46,9 @@ public static partial class SphereGenerator
         (var indices, var vertices) = Generate(subdivisions);
 
         var bounds = new BoundingBox(-Vector3.One, Vector3.One);
-        var primitives = new Primitive[]
+        var primitives = new ModelPart[]
         {
-            new Primitive("Sphere", bounds, 0, 0, indices.Length)
+            new ModelPart("Sphere", bounds, 0, 0, indices.Length)
         };
 
         var materials = new ILifetime<IMaterial>[] { material };

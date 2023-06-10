@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using Mini.Engine.Graphics.Diesel;
+using Mini.Engine.Graphics.Primitives;
 using Mini.Engine.Modelling.Paths;
 
 namespace Mini.Engine.Modelling.Tools;

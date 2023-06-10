@@ -53,7 +53,7 @@ internal static class SerializationExtensions
         return vertices;
     }
 
-    public static void Write(this ContentWriter writer, Primitive primitive)
+    public static void Write(this ContentWriter writer, ModelPart primitive)
     {
         writer.Writer.Write(primitive.Name);
         writer.Write(primitive.Bounds);
@@ -62,9 +62,9 @@ internal static class SerializationExtensions
         writer.Writer.Write(primitive.IndexCount);
     }
 
-    public static Primitive ReadPrimitive(this ContentReader reader)
+    public static ModelPart ReadPrimitive(this ContentReader reader)
     {
-        return new Primitive
+        return new ModelPart
         (
             reader.Reader.ReadString(),
             reader.ReadBoundingBox(),
@@ -74,7 +74,7 @@ internal static class SerializationExtensions
         );
     }
 
-    public static void Write(this ContentWriter writer, Primitive[] primitives)
+    public static void Write(this ContentWriter writer, ModelPart[] primitives)
     {
         writer.Writer.Write(primitives.Length);
         foreach (var primitive in primitives)
@@ -83,9 +83,9 @@ internal static class SerializationExtensions
         }
     }
 
-    public static IReadOnlyList<Primitive> ReadPrimitives(this ContentReader reader)
+    public static IReadOnlyList<ModelPart> ReadPrimitives(this ContentReader reader)
     {
-        var primitives = new Primitive[reader.Reader.ReadInt32()];
+        var primitives = new ModelPart[reader.Reader.ReadInt32()];
         for (var i = 0; i < primitives.Length; i++)
         {
             primitives[i] = reader.ReadPrimitive();

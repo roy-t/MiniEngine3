@@ -7,7 +7,6 @@ using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Entities;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Lighting;
-using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.PostProcessing;
 using Mini.Engine.Graphics.Transforms;
 

@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Numerics;
+using LibGame.Graphics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;

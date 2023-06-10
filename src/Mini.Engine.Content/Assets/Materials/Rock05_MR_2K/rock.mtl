@@ -1,5 +1,0 @@
-newmtl rock
-	map_Kd Rock05_2K_BaseColor.png
-	map_bump Rock05_2K_Normal.png
-	map_Ns Rock05_2K_Roughness.png
-	map_Ke Rock05_2K_AO.png

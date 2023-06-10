@@ -29,7 +29,7 @@ public sealed class ModelContent : IModel, IContent<IModel, ModelSettings>
     public ModelSettings Settings { get; }
     public ISet<string> Dependencies { get; }
 
-    public IReadOnlyList<Primitive> Primitives => this.original.Primitives;
+    public IReadOnlyList<ModelPart> Primitives => this.original.Primitives;
     public IReadOnlyList<ILifetime<IMaterial>> Materials => this.original.Materials;
     public VertexBuffer<ModelVertex> Vertices => this.original.Vertices;
     public IndexBuffer<int> Indices => this.original.Indices;

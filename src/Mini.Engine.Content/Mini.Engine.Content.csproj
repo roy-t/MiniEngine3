@@ -1,11 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <ItemGroup>
-    <None Remove="Assets\Shaders\Diesel\Line.hlsl" />
-    <None Remove="Assets\Shaders\Hexagons\Hexagon.hlsl" />
     <None Remove="Assets\Shaders\Includes\FXAA.hlsl" />
     <None Remove="Assets\Shaders\Includes\TAA.hlsl" />
     <None Remove="Assets\Shaders\Lighting\BrdfLutCompute.hlsl" />
-    <None Remove="Assets\Shaders\Tiles\Tiles.hlsl" />
   </ItemGroup> 
   <ItemGroup>
     <ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
@@ -19,8 +16,7 @@
   <!-- Input for the source generator needs to be added as the 'AdditionalFiles' type-->
   <ItemGroup>
     <AdditionalFiles Include="Assets\.contentroot" />
-    <AdditionalFiles Include="Assets\Shaders\Diesel\Line.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\Hexagons\Hexagon.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Line.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\TAA.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\FXAA.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Easings.hlsl" />
@@ -28,19 +24,13 @@
     <AdditionalFiles Include="Assets\Shaders\AntiAliasShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\BrdfLutCompute.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\TextureShader.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\Tiles\Tiles.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\World\HydraulicErosion.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\World\Includes\Wind.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\World\Includes\Utilities.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\World\Grass.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\World\Terrain.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Indexes.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\CubeMapGenerator.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\ImageBasedLight.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\Includes\Shadows.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\SunLight.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Lighting\ShadowMap.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\World\Includes\SimplexNoise.hlsl" />
+    <AdditionalFiles Include="Assets\Shaders\Includes\SimplexNoise.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Skybox.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\GBuffer.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\Includes\Coordinates.hlsl" />
@@ -56,12 +46,14 @@
     <AdditionalFiles Include="Assets\Shaders\ToneMapShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\ColorShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\UserInterface.hlsl" />
-    <AdditionalFiles Include="Assets\Shaders\World\HeightMap.hlsl" />
-	<AdditionalFiles Include="Assets\Shaders\Diesel\Primitive.hlsl" />
+	<AdditionalFiles Include="Assets\Shaders\Primitive.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.12.0" />
     <PackageReference Include="StbImageSharp" Version="2.27.13" />
     <PackageReference Include="SuperCompressed" Version="1.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Assets\Materials\" />
   </ItemGroup>
 </Project>

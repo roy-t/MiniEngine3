@@ -47,9 +47,9 @@ public static class CubeGenerator
         (var indices, var vertices) = Generate();
 
         var bounds = new BoundingBox(-Vector3.One, Vector3.One);
-        var primitives = new Primitive[]
+        var primitives = new ModelPart[]
         {
-            new Primitive("Cube", bounds, 0, 0, indices.Length)
+            new ModelPart("Cube", bounds, 0, 0, indices.Length)
         };
 
         var materials = new ILifetime<IMaterial>[] { material };

@@ -64,7 +64,7 @@ internal sealed class WavefrontModelParser
 
         var vertices = new List<ModelVertex>(state.Positions.Count);
         var indices = new List<int>(state.Faces.Count * 3);
-        var primitives = new List<Primitive>(state.Groups.Count);
+        var primitives = new List<ModelPart>(state.Groups.Count);
         var faces = new List<int[]>(state.Faces.Count);
 
         var indexLookUp = new Dictionary<ModelVertex, int>(new ModelVertexComparer());
@@ -147,7 +147,7 @@ internal sealed class WavefrontModelParser
             var indexCount = indices.Count - startIndex;
 
             var primitiveBounds = ComputeBounds(indices, vertices, startIndex, indexCount);
-            primitives.Add(new Primitive(group.Name, primitiveBounds, materialIndex, startIndex, indexCount));
+            primitives.Add(new ModelPart(group.Name, primitiveBounds, materialIndex, startIndex, indexCount));
         }
 
         var modelBounds = ComputeBounds(primitives);
@@ -164,7 +164,7 @@ internal sealed class WavefrontModelParser
         return BoundingBox.CreateFromPoints(positions);
     }
 
-    private static BoundingBox ComputeBounds(IReadOnlyList<Primitive> primitives)
+    private static BoundingBox ComputeBounds(IReadOnlyList<ModelPart> primitives)
     {
         var bounds = primitives[0].Bounds;
         for (var i = 1; i < primitives.Count; i++)

@@ -7,7 +7,7 @@ using Mini.Engine.IO;
 namespace Mini.Engine.Content.Models;
 internal sealed class WaveFrontModelProcessor : ContentProcessor<IModel, ModelContent, ModelSettings>
 {
-    private const int ProcessorVersion = 1;
+    private const int ProcessorVersion = 2;
     private static readonly Guid ProcessorType = new("{A855A352-8403-4B09-A87B-648F4901962E}");
     private readonly WavefrontModelParser Parser;
     private readonly Device Device;

@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace Mini.Engine.Core;
+﻿namespace Mini.Engine.Core;
 public sealed class ArrayBuilder<T>
     where T : struct
 {

@@ -5,10 +5,11 @@ using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.Graphics;
-using Mini.Engine.Graphics.Diesel;
+using Mini.Engine.Graphics.Primitives;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.PointLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
+using Mini.Engine.Graphics.Lines;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.PostProcessing;
 
