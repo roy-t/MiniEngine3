@@ -7,6 +7,7 @@ using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Diesel;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
+using Mini.Engine.Graphics.Lighting.PointLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.PostProcessing;
@@ -17,8 +18,11 @@ namespace Mini.Engine;
 internal sealed record class RenderSystems
 (    
     PrimitiveSystem Primitive,
+    ModelSystem Model,
     ImageBasedLightSystem ImageBasedLight,
     SunLightSystem SunLight,
+    CascadedShadowMapSystem CascadedShadowMap,
+    PointLightSystem PointLight,
     SkyboxSystem Skybox,
     LineSystem Line,
     PostProcessingSystem PostProcessing
@@ -48,26 +52,46 @@ internal sealed class RenderPipeline
     {
         this.Stopwatch.Restart();
 
-        this.RunRenderStage(in viewport, in scissor, alpha);
-        this.RunPostProcessStage(in viewport, in scissor);
+        // We create draw commands in parallel and then draw in sequence.
+        // But even then we need to be careful as some systems base their draw commands
+        // on outputs of other systems. Ideally this isn't the case and these updates
+        // happen only in the update loop, while the draw loop is read only.
+        // But for now, this isnt' the case, especially with the
+        // CascadedShadowMap and the Sunlight systems. So we run in separate stages
+        // that complete their draw before the next stage starts
 
-        this.ProcessQueue();
+        this.RunGeometryStage(in viewport, in scissor, alpha);
+        this.RunLightStage(in viewport, in scissor, alpha);        
+        this.RunPostProcessStage(in viewport, in scissor);
 
         this.MetricService.Update("RenderPipeline.Run.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
     }
 
-    private void RunRenderStage(in Rectangle viewport, in Rectangle scissor, float alpha)
+    private void RunGeometryStage(in Rectangle viewport, in Rectangle scissor, float alpha)
     {
         this.Enqueue(this.Systems.Primitive.Render(viewport, scissor, alpha));
+        this.Enqueue(this.Systems.Model.Render(viewport, scissor, alpha));
+
+        this.Enqueue(this.Systems.CascadedShadowMap.Render(viewport, scissor, alpha));
+        this.ProcessQueue();
+    }
+
+    private void RunLightStage(in Rectangle viewport, in Rectangle scissor, float alpha)
+    {
+        this.Enqueue(this.Systems.PointLight.Render(viewport, scissor, alpha));
         this.Enqueue(this.Systems.ImageBasedLight.Render(viewport, scissor));
         this.Enqueue(this.Systems.SunLight.Render(viewport, scissor));
         this.Enqueue(this.Systems.Skybox.Render(viewport, scissor));
         this.Enqueue(this.Systems.Line.Render(viewport, scissor, alpha));
+
+        this.ProcessQueue();
     }
 
     private void RunPostProcessStage(in Rectangle viewport, in Rectangle scissor)
     {
         this.Enqueue(this.Systems.PostProcessing.Render(viewport, scissor));
+
+        this.ProcessQueue();
     }
 
     private void ProcessQueue()

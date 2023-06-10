@@ -7,6 +7,7 @@ using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources.Models;
+using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Models.Generators;
@@ -27,7 +28,11 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
     private readonly InputLayout InputLayout;
     private readonly IModel Sphere;
 
-    public PointLightSystem(Device device, ContentManager content, FrameService frameService, PointLight shader)
+
+    private readonly IComponentContainer<PointLightComponent> Lights;
+    private readonly IComponentContainer<TransformComponent> Transforms;
+
+    public PointLightSystem(Device device, ContentManager content, FrameService frameService, PointLight shader, IComponentContainer<PointLightComponent> lights, IComponentContainer<TransformComponent> transforms)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<PointLightSystem>();
@@ -38,7 +43,30 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
 
         var material = content.LoadDefaultMaterial();
         this.Sphere = SphereGenerator.Generate(device, 3, material, "PointLight");
+        this.Lights = lights;
+        this.Transforms = transforms;
     }
+
+
+    public Task<CommandList> Render(Rectangle viewport, Rectangle scissor, float alpha)
+    {
+        return Task.Run(() =>
+        {
+            this.OnSet(viewport, scissor);
+
+            foreach (ref var light in this.Lights.IterateAll())
+            {
+                if (this.Transforms.Contains(light.Entity))
+                {
+                    ref var transform = ref this.Transforms[light.Entity];
+                    this.DrawPointLight(ref light.Value, ref transform.Value);
+                }
+            }
+
+            return this.Context.FinishCommandList();
+        });
+    }
+
 
     public void OnSet()
     {

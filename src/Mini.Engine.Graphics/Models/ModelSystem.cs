@@ -3,6 +3,7 @@ using System.Drawing;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
+using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
@@ -16,14 +17,40 @@ public sealed partial class ModelSystem : ISystem, IDisposable
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
     private readonly ModelRenderService ModelRenderService;
-    
-    public ModelSystem(Device device, FrameService frameService, ModelRenderService modelRenderService)
+
+    private readonly IComponentContainer<ModelComponent> Models;
+    private readonly IComponentContainer<TransformComponent> Transforms;
+
+    public ModelSystem(Device device, FrameService frameService, ModelRenderService modelRenderService, IComponentContainer<ModelComponent> models, IComponentContainer<TransformComponent> transforms)
     {
         this.Device = device;
         this.Context = device.CreateDeferredContextFor<ModelSystem>();
         this.FrameService = frameService;
-        this.ModelRenderService = modelRenderService;    
+        this.ModelRenderService = modelRenderService;
+        this.Models = models;
+        this.Transforms = transforms;
     }
+
+
+    public Task<CommandList> Render(Rectangle viewport, Rectangle scissor, float alpha)
+    {
+        return Task.Run(() =>
+        {
+            this.OnSet(viewport, scissor);
+
+            foreach (ref var model in this.Models.IterateAll())
+            {
+                if (this.Transforms.Contains(model.Entity))
+                {
+                    ref var transform = ref this.Transforms[model.Entity];
+                    this.DrawModel(ref model.Value, ref transform.Value);
+                }
+            }
+
+            return this.Context.FinishCommandList();
+        });
+    }
+
     public void OnSet()
     {
         this.OnSet(this.Device.Viewport, this.Device.Viewport);
@@ -40,9 +67,9 @@ public sealed partial class ModelSystem : ISystem, IDisposable
     {
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
-        this.ModelRenderService.RenderModel(this.Context, in component, in transform, in camera, in cameraTransform);        
+        this.ModelRenderService.RenderModel(this.Context, in component, in transform, in camera, in cameraTransform);
     }
- 
+
     public void OnUnSet()
     {
         using var commandList = this.Context.FinishCommandList();

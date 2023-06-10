@@ -3,11 +3,11 @@ using System.Numerics;
 using LibGame.Mathematics;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Core;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources.Surfaces;
+using Mini.Engine.ECS.Components;
 using Mini.Engine.ECS.Generators.Shared;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Cameras;
@@ -22,7 +22,6 @@ namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 [Service]
 public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
 {
-    private readonly Device Device;
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
     private readonly ModelRenderService ModelRenderService;
@@ -30,17 +29,40 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
     private readonly TileRenderService TileRenderService;
     private readonly LightFrustum Frustum;
 
-    public CascadedShadowMapSystem(Device device, FrameService frameService, ModelRenderService modelRenderService, TerrainRenderService terrainRenderService, TileRenderService tileRenderService)
+    private readonly IComponentContainer<CascadedShadowMapComponent> ShadowMaps;
+    private readonly IComponentContainer<TransformComponent> Transforms;
+
+    public CascadedShadowMapSystem(Device device, FrameService frameService, ModelRenderService modelRenderService, TerrainRenderService terrainRenderService, TileRenderService tileRenderService, IComponentContainer<CascadedShadowMapComponent> shadowMaps, IComponentContainer<TransformComponent> transforms)
     {
-        this.Device = device;
         this.Context = device.CreateDeferredContextFor<CascadedShadowMapSystem>();
         this.FrameService = frameService;
         this.ModelRenderService = modelRenderService;
         this.TerrainRenderService = terrainRenderService;
         this.TileRenderService = tileRenderService;
 
-        this.Frustum = new LightFrustum();        
+        this.Frustum = new LightFrustum();
+        this.ShadowMaps = shadowMaps;
+        this.Transforms = transforms;
     }
+
+
+    public Task<CommandList> Render(Rectangle viewport, Rectangle scissor, float alpha)
+    {
+        return Task.Run(() =>
+        {            
+            foreach (ref var shadowMap in this.ShadowMaps.IterateAll())
+            {
+                if (this.Transforms.Contains(shadowMap.Entity))
+                {
+                    ref var transform = ref this.Transforms[shadowMap.Entity];
+                    this.DrawCascades(ref shadowMap.Value, ref transform.Value);
+                }
+            }
+
+            return this.Context.FinishCommandList();
+        });
+    }
+
 
     public void OnSet()
     {
@@ -101,9 +123,9 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
         var output = new Rectangle(0, 0, resolution, resolution);
 
         this.ModelRenderService.SetupAndRenderAllModelDepths(this.Context, in output, in output, in viewVolume, in viewProjection);
-        this.TerrainRenderService.SetupAndRenderAllTerrainDepths(this.Context, in output, in output, in viewVolume, in viewProjection);
-        this.TileRenderService.SetupAndRenderAllTileDepths(this.Context, in output, in output, in viewVolume, in viewProjection);
-        this.TileRenderService.SetupAndRenderAllTileWallDepths(this.Context, in output, in output, in viewVolume, in viewProjection);
+        //this.TerrainRenderService.SetupAndRenderAllTerrainDepths(this.Context, in output, in output, in viewVolume, in viewProjection);
+        //this.TileRenderService.SetupAndRenderAllTileDepths(this.Context, in output, in output, in viewVolume, in viewProjection);
+        //this.TileRenderService.SetupAndRenderAllTileWallDepths(this.Context, in output, in output, in viewVolume, in viewProjection);
     }
 
     private static readonly Matrix4x4 TexScaleTransform = Matrix4x4.CreateScale(0.5f, -0.5f, 1.0f) * Matrix4x4.CreateTranslation(0.5f, 0.5f, 0.0f);
@@ -170,8 +192,8 @@ public sealed partial class CascadedShadowMapSystem : ISystem, IDisposable
 
     public void OnUnSet()
     {
-        using var commandList = this.Context.FinishCommandList();
-        this.Device.ImmediateContext.ExecuteCommandList(commandList);
+        //using var commandList = this.Context.FinishCommandList();
+        //this.Device.ImmediateContext.ExecuteCommandList(commandList);
     }
 
     public void Dispose()
