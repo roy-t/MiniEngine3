@@ -9,13 +9,11 @@ using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS.Components;
-using Mini.Engine.ECS.Generators.Shared;
-using Mini.Engine.ECS.Systems;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 [Service]
-public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
+public sealed class ImageBasedLightSystem : IDisposable
 {
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
@@ -45,7 +43,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
     {
         return Task.Run(() =>
         {
-            this.OnSet(viewport, scissor);
+            this.Setup(viewport, scissor);
 
             foreach (ref var skybox in this.SkyboxContainer.IterateAll())
             {
@@ -56,13 +54,7 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         });
     }
 
-
-    public void OnSet()
-    {
-        this.OnSet(this.Device.Viewport, this.Device.Viewport);
-    }
-
-    public void OnSet(in Rectangle viewport, in Rectangle scissor)
+    private void Setup(in Rectangle viewport, in Rectangle scissor)
     {
         var blendState = this.Device.BlendStates.Additive;
         var depthStencilState = this.Device.DepthStencilStates.None;
@@ -89,8 +81,8 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.Context.PS.SetConstantBuffer(ImageBasedLight.PerLightConstantsSlot, this.User.PerLightConstantsBuffer);
     }
 
-    [Process(Query = ProcessQuery.All)]
-    public void Render(ref SkyboxComponent skybox)
+
+    private void Render(ref SkyboxComponent skybox)
     {
         this.User.MapPerLightConstants(this.Context, skybox.EnvironmentLevels, skybox.Strength);
 
@@ -98,12 +90,6 @@ public sealed partial class ImageBasedLightSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(ImageBasedLight.Environment, skybox.Environment);
 
         this.Context.Draw(3);
-    }
-
-    public void OnUnSet()
-    {
-        using var commandList = this.Context.FinishCommandList();
-        this.Device.ImmediateContext.ExecuteCommandList(commandList);
     }
 
     public void Dispose()

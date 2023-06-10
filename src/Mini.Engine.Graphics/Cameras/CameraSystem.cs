@@ -1,11 +1,9 @@
 ﻿using Mini.Engine.Configuration;
-using Mini.Engine.ECS.Generators.Shared;
-using Mini.Engine.ECS.Systems;
 
 namespace Mini.Engine.Graphics.Cameras;
 
 [Service]
-public sealed partial class CameraSystem : ISystem
+public sealed class CameraSystem
 {
     private readonly CameraController CameraController;
     private readonly FrameService FrameService;
@@ -16,9 +14,6 @@ public sealed partial class CameraSystem : ISystem
         this.FrameService = frameService;
     }
 
-    public void OnSet() { }
-
-    [Process]
     public void Update()
     {
         var elapsed = this.FrameService.ElapsedRealWorldTime;
@@ -26,6 +21,4 @@ public sealed partial class CameraSystem : ISystem
 
         this.CameraController.Update(elapsed, ref cameraTransform.Current);
     }
-
-    public void OnUnSet() { }
 }

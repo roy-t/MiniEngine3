@@ -7,6 +7,7 @@ namespace Mini.Engine.Configuration;
 /// </summary>
 /// <seealso cref="Injector"/>
 [AttributeUsage(AttributeTargets.Class)]
+[Obsolete("Use ServiceAttribute")]
 public sealed class SystemAttribute : InjectableAttribute
 {
 }

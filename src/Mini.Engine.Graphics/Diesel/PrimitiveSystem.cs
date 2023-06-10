@@ -3,14 +3,12 @@ using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Components;
-using Mini.Engine.ECS.Generators.Shared;
-using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine.Graphics.Diesel;
 
 [Service]
-public sealed partial class PrimitiveSystem : ISystem,  IDisposable
+public sealed class PrimitiveSystem : IDisposable
 {
     private readonly DeferredDeviceContext Context;
     private readonly PrimitiveRenderService RenderService;
@@ -28,27 +26,6 @@ public sealed partial class PrimitiveSystem : ISystem,  IDisposable
         this.Primitives = models;
         this.Transforms = transforms;
         this.Instances = instances;
-    }
-
-    public void OnSet()
-    {
-        
-    }
-
-    public void OnUnSet()
-    {
-        //
-    }
-
-    [Process(Query = ProcessQuery.None)]
-    public void Draw()
-    {
-        //var task = this.Render(0, 0, this.Device.Width, this.Device.Height, this.FrameService.Alpha);
-        //task.Wait();
-
-        //var commandList = task.Result;
-        //this.Device.ImmediateContext.ExecuteCommandList(commandList);
-        //commandList.Dispose();
     }
 
     public Task<CommandList> Render(Rectangle viewport, Rectangle scissor, float alpha)

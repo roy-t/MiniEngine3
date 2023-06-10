@@ -53,16 +53,14 @@ internal sealed class RenderPipeline
         this.Stopwatch.Restart();
 
         // We create draw commands in parallel and then draw in sequence.
-        // But even then we need to be careful as some systems base their draw commands
-        // on outputs of other systems. Ideally this isn't the case and these updates
-        // happen only in the update loop, while the draw loop is read only.
-        // But for now, this isnt' the case, especially with the
-        // CascadedShadowMap and the Sunlight systems. So we run in separate stages
-        // that complete their draw before the next stage starts
+        // To make sure this works well systems should not modify their components
+        // while preparing a command list, as this could create dependencies between systems
 
         this.RunGeometryStage(in viewport, in scissor, alpha);
         this.RunLightStage(in viewport, in scissor, alpha);        
         this.RunPostProcessStage(in viewport, in scissor);
+
+        this.ProcessQueue();
 
         this.MetricService.Update("RenderPipeline.Run.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
     }
@@ -71,27 +69,22 @@ internal sealed class RenderPipeline
     {
         this.Enqueue(this.Systems.Primitive.Render(viewport, scissor, alpha));
         this.Enqueue(this.Systems.Model.Render(viewport, scissor, alpha));
-
-        this.Enqueue(this.Systems.CascadedShadowMap.Render(alpha));
-        //this.ProcessQueue();
     }
 
     private void RunLightStage(in Rectangle viewport, in Rectangle scissor, float alpha)
     {
+        this.Enqueue(this.Systems.CascadedShadowMap.Render(alpha));
+
         this.Enqueue(this.Systems.PointLight.Render(viewport, scissor, alpha));
         this.Enqueue(this.Systems.ImageBasedLight.Render(viewport, scissor));
         this.Enqueue(this.Systems.SunLight.Render(viewport, scissor));
         this.Enqueue(this.Systems.Skybox.Render(viewport, scissor));
         this.Enqueue(this.Systems.Line.Render(viewport, scissor, alpha));
-
-        //this.ProcessQueue();
     }
 
     private void RunPostProcessStage(in Rectangle viewport, in Rectangle scissor)
     {
-        this.Enqueue(this.Systems.PostProcessing.Render(viewport, scissor));
-
-        this.ProcessQueue();
+        this.Enqueue(this.Systems.PostProcessing.Render(viewport, scissor));        
     }
 
     private void ProcessQueue()

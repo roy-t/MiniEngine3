@@ -5,14 +5,12 @@ using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Components;
-using Mini.Engine.ECS.Generators.Shared;
-using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 
 [Service]
-public sealed partial class SunLightSystem : ISystem, IDisposable
+public sealed class SunLightSystem : IDisposable
 {
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
@@ -45,7 +43,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
     {
         return Task.Run(() =>
         {
-            this.OnSet(viewport, scissor);
+            this.Setup(viewport, scissor);
 
             foreach (ref var skybox in this.SunLightContainer.IterateAll())
             {
@@ -54,21 +52,16 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
                 {
                     ref var shadowMap = ref this.CascadedShadowMapContainer[entity];
                     ref var transform = ref this.TransformContainer[entity];
-                    DrawSunLight(ref skybox.Value, ref shadowMap.Value, ref transform.Value);
+                    this.DrawSunLight(ref skybox.Value, ref shadowMap.Value, ref transform.Value);
                 }
-                
+
             }
 
             return this.Context.FinishCommandList();
         });
     }
 
-    public void OnSet()
-    {
-        this.OnSet(this.Device.Viewport, this.Device.Viewport);
-    }
-
-    public void OnSet(in Rectangle viewport, in Rectangle scissor)
+    private void Setup(in Rectangle viewport, in Rectangle scissor)
     {
         this.Context.SetupFullScreenTriangle(this.FullScreenTriangle.TextureVs, in viewport, in scissor, this.Shader.Ps, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
@@ -84,11 +77,10 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
         this.Context.PS.SetConstantBuffer(SunLight.ConstantsSlot, this.User.ConstantsBuffer);
     }
 
-    [Process(Query = ProcessQuery.All)]
-    public void DrawSunLight(ref SunLightComponent sunlight, ref CascadedShadowMapComponent shadowMap, ref TransformComponent viewPoint)
+    private void DrawSunLight(ref SunLightComponent sunlight, ref CascadedShadowMapComponent shadowMap, ref TransformComponent viewPoint)
     {
         ref var camera = ref this.FrameService.GetPrimaryCamera();
-        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;        
+        ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;
         var viewProjection = camera.Camera.GetInfiniteReversedZViewProjection(in cameraTransform, camera.Jitter);
         Matrix4x4.Invert(viewProjection, out var inverse);
 
@@ -96,7 +88,7 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
         {
             Offsets = shadowMap.Offsets,
             Scales = shadowMap.Scales,
-            Splits = Pack(shadowMap.Splits),
+            Splits = shadowMap.Splits,
             ShadowMatrix = shadowMap.GlobalShadowMatrix
         };
 
@@ -105,17 +97,6 @@ public sealed partial class SunLightSystem : ISystem, IDisposable
         this.Context.PS.SetShaderResource(SunLight.ShadowMap, shadowMap.DepthBuffers);
 
         this.Context.Draw(3);
-    }   
-
-    private static Vector4 Pack(Vector4 vectors)
-    {
-        return new Vector4(vectors.X , vectors.Y, vectors.Z, vectors.W);
-    }
-
-    public void OnUnSet()
-    {
-        using var commandList = this.Context.FinishCommandList();
-        this.Device.ImmediateContext.ExecuteCommandList(commandList);
     }
 
     public void Dispose()

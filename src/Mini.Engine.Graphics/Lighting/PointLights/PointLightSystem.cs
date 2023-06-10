@@ -16,7 +16,7 @@ using Mini.Engine.Graphics.Transforms;
 namespace Mini.Engine.Graphics.Lighting.PointLights;
 
 [Service]
-public sealed partial class PointLightSystem : ISystem, IDisposable
+public sealed class PointLightSystem : IDisposable
 {
     private const float MinimumLightInfluence = 0.001f;
 
@@ -52,7 +52,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
     {
         return Task.Run(() =>
         {
-            this.OnSet(viewport, scissor);
+            this.Setup(viewport, scissor);
 
             foreach (ref var light in this.Lights.IterateAll())
             {
@@ -67,13 +67,7 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
         });
     }
 
-
-    public void OnSet()
-    {
-        this.OnSet(this.Device.Viewport, this.Device.Viewport);
-    }
-
-    public void OnSet(in Rectangle viewport, in Rectangle scissor)
+    private void Setup(in Rectangle viewport, in Rectangle scissor)
     {
         this.Context.Setup(this.InputLayout, this.Shader.Vs, in viewport, in scissor, this.Shader.Ps, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
@@ -95,9 +89,8 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
         this.Context.VS.SetConstantBuffer(PointLight.PerLightConstantsSlot, this.User.PerLightConstantsBuffer);
         this.Context.PS.SetConstantBuffer(PointLight.PerLightConstantsSlot, this.User.PerLightConstantsBuffer);
     }
-
-    [Process(Query = ProcessQuery.All)]
-    public void DrawPointLight(ref PointLightComponent component, ref TransformComponent transform)
+    
+    private void DrawPointLight(ref PointLightComponent component, ref TransformComponent transform)
     {
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;
@@ -125,12 +118,6 @@ public sealed partial class PointLightSystem : ISystem, IDisposable
         this.Context.IA.SetIndexBuffer(this.Sphere.Indices);
 
         this.Context.DrawIndexed(this.Sphere.Primitives[0].IndexCount, this.Sphere.Primitives[0].IndexOffset, 0);
-    }
-
-    public void OnUnSet()
-    {
-        using var commandList = this.Context.FinishCommandList();
-        this.Device.ImmediateContext.ExecuteCommandList(commandList);
     }
 
     public void Dispose()

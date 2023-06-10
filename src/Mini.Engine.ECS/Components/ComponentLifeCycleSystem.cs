@@ -1,11 +1,9 @@
 ﻿using Mini.Engine.Configuration;
-using Mini.Engine.ECS.Generators.Shared;
-using Mini.Engine.ECS.Systems;
 
 namespace Mini.Engine.ECS.Components;
 
-[System]
-public sealed partial class ComponentLifeCycleSystem : ISystem
+[Service]
+public sealed class ComponentLifeCycleSystem
 {
     private readonly ContainerStore ContainerStore;
 
@@ -13,17 +11,7 @@ public sealed partial class ComponentLifeCycleSystem : ISystem
     {
         this.ContainerStore = containerStore;
     }
-
-    public void OnSet()
-    {
-    }
-
-    public void OnUnSet()
-    {
-
-    }
-
-    [Process]
+  
     public void Run()
     {
         var containers = this.ContainerStore.GetAllContainers();

@@ -5,15 +5,13 @@ using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Components;
-using Mini.Engine.ECS.Generators.Shared;
-using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 namespace Mini.Engine.Graphics;
 
 [Service]
-public sealed partial class SkyboxSystem : ISystem, IDisposable
+public sealed class SkyboxSystem : IDisposable
 {
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
@@ -37,24 +35,18 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
     {
         return Task.Run(() =>
         {
-            this.OnSet(viewport, scissor);
+            this.Setup(viewport, scissor);
 
             foreach (ref var skybox in this.SkyboxContainer.IterateAll())
             {
-                DrawSkybox(ref skybox.Value);
+                this.DrawSkybox(ref skybox.Value);
             }
 
             return this.Context.FinishCommandList();
         });
     }
 
-
-    public void OnSet()
-    {
-        this.OnSet(this.Device.Viewport, this.Device.Viewport);
-    }
-
-    public void OnSet(in Rectangle viewport, in Rectangle scissor)
+    private void Setup(in Rectangle viewport, in Rectangle scissor)
     {
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.ReverseZReadOnly;
@@ -65,13 +57,12 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
         this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.LBuffer.Light);
     }
 
-    [Process(Query = ProcessQuery.All)]
-    public void DrawSkybox(ref SkyboxComponent skybox)
-    {        
+    private void DrawSkybox(ref SkyboxComponent skybox)
+    {
         ref var camera = ref this.FrameService.GetPrimaryCamera().Camera;
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;
-       
-        var view = Matrix4x4.CreateLookAt(Vector3.Zero, cameraTransform.GetForward(), cameraTransform.GetUp());        
+
+        var view = Matrix4x4.CreateLookAt(Vector3.Zero, cameraTransform.GetForward(), cameraTransform.GetUp());
         var projection = ProjectionMatrix.InfiniteReversedZ(0.1f, MathF.PI / 2.0f, camera.AspectRatio);
         var worldViewProjection = view * projection;
         Matrix4x4.Invert(worldViewProjection, out var inverse);
@@ -80,12 +71,6 @@ public sealed partial class SkyboxSystem : ISystem, IDisposable
 
         this.Context.PS.SetShaderResource(Skybox.CubeMap, skybox.Albedo);
         this.Context.Draw(3);
-    }
-
-    public void OnUnSet()
-    {
-        using var commandList = this.Context.FinishCommandList();
-        this.Device.ImmediateContext.ExecuteCommandList(commandList);
     }
 
     public void Dispose()

@@ -3,13 +3,11 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
-using Mini.Engine.ECS.Generators.Shared;
-using Mini.Engine.ECS.Systems;
 
 namespace Mini.Engine.Graphics.PostProcessing;
 
 [Service]
-public sealed partial class PostProcessingSystem : ISystem, IDisposable
+public sealed class PostProcessingSystem : IDisposable
 {
     private readonly Device Device;
     private readonly DeferredDeviceContext Context;
@@ -30,22 +28,16 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
     {
         return Task.Run(() =>
         {
-            this.OnSet(viewport, scissor);
+            this.Setup(viewport, scissor);
             this.PostProcess();
             return this.Context.FinishCommandList();
         });
     }
 
-
-    public void OnSet()
-    {
-        this.OnSet(this.Device.Viewport, this.Device.Viewport);
-    }
-
-    public void OnSet(in Rectangle viewport, in Rectangle scissor)
+    private void Setup(in Rectangle viewport, in Rectangle scissor)
     {
         ref var camera = ref this.FrameService.GetPrimaryCamera();
-        
+
 
         var blend = this.Device.BlendStates.Opaque;
         var depth = this.Device.DepthStencilStates.None;
@@ -69,16 +61,9 @@ public sealed partial class PostProcessingSystem : ISystem, IDisposable
         this.Context.OM.SetRenderTarget(this.FrameService.PBuffer.CurrentColor);
     }
 
-    [Process(Query = ProcessQuery.None)]
-    public void PostProcess()
+    private void PostProcess()
     {
         this.Context.Draw(3);
-    }
-
-    public void OnUnSet()
-    {
-        using var commandList = this.Context.FinishCommandList();
-        this.Device.ImmediateContext.ExecuteCommandList(commandList);
     }
 
     public void Dispose()
