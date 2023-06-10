@@ -3,6 +3,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Cameras;
+using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine;
@@ -12,7 +13,8 @@ internal sealed record class UpdateSystems
 (
     CameraSystem Camera,
     ComponentLifeCycleSystem ComponentLifeCycle,
-    TransformSystem Transform
+    TransformSystem Transform,
+    CascadedShadowMapSystem CascadedShadowMap
 );
 
 [Service]
@@ -36,6 +38,7 @@ internal sealed class UpdatePipeline
         this.Systems.ComponentLifeCycle.Run();
         this.Systems.Transform.Run();
         this.Systems.Camera.Update();
+        this.Systems.CascadedShadowMap.Update();
 
         this.MetricService.Update("UpdatePipeline.Run.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
     }

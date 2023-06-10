@@ -72,8 +72,8 @@ internal sealed class RenderPipeline
         this.Enqueue(this.Systems.Primitive.Render(viewport, scissor, alpha));
         this.Enqueue(this.Systems.Model.Render(viewport, scissor, alpha));
 
-        this.Enqueue(this.Systems.CascadedShadowMap.Render(viewport, scissor, alpha));
-        this.ProcessQueue();
+        this.Enqueue(this.Systems.CascadedShadowMap.Render(alpha));
+        //this.ProcessQueue();
     }
 
     private void RunLightStage(in Rectangle viewport, in Rectangle scissor, float alpha)
@@ -84,7 +84,7 @@ internal sealed class RenderPipeline
         this.Enqueue(this.Systems.Skybox.Render(viewport, scissor));
         this.Enqueue(this.Systems.Line.Render(viewport, scissor, alpha));
 
-        this.ProcessQueue();
+        //this.ProcessQueue();
     }
 
     private void RunPostProcessStage(in Rectangle viewport, in Rectangle scissor)
