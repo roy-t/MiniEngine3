@@ -6,7 +6,6 @@ using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Components;
-using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 namespace Mini.Engine.Graphics;
@@ -38,9 +37,9 @@ public sealed class SkyboxSystem : IDisposable
         {
             this.Setup(viewport, scissor);
 
-            foreach (ref var skybox in this.SkyboxContainer.IterateAll())
+            foreach (ref var component in this.SkyboxContainer.IterateAll())
             {
-                this.DrawSkybox(ref skybox.Value);
+                this.DrawSkybox(in component.Value);
             }
 
             return this.Context.FinishCommandList();
@@ -58,7 +57,7 @@ public sealed class SkyboxSystem : IDisposable
         this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.LBuffer.Light);
     }
 
-    private void DrawSkybox(ref SkyboxComponent skybox)
+    private void DrawSkybox(in SkyboxComponent skybox)
     {
         ref var camera = ref this.FrameService.GetPrimaryCamera().Camera;
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;

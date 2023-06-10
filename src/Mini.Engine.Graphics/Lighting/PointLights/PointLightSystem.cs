@@ -28,7 +28,6 @@ public sealed class PointLightSystem : IDisposable
     private readonly InputLayout InputLayout;
     private readonly IModel Sphere;
 
-
     private readonly IComponentContainer<PointLightComponent> Lights;
     private readonly IComponentContainer<TransformComponent> Transforms;
 
@@ -54,12 +53,15 @@ public sealed class PointLightSystem : IDisposable
         {
             this.Setup(viewport, scissor);
 
-            foreach (ref var light in this.Lights.IterateAll())
+            foreach (ref var component in this.Lights.IterateAll())
             {
-                if (this.Transforms.Contains(light.Entity))
+                var entity = component.Entity;
+                if (entity.HasComponents(this.Transforms))
                 {
-                    ref var transform = ref this.Transforms[light.Entity];
-                    this.DrawPointLight(ref light.Value, ref transform.Value);
+                    ref var light = ref component.Value;
+                    ref var transform = ref this.Transforms[component.Entity].Value;
+
+                    this.DrawPointLight(in light, in transform);
                 }
             }
 
@@ -90,7 +92,7 @@ public sealed class PointLightSystem : IDisposable
         this.Context.PS.SetConstantBuffer(PointLight.PerLightConstantsSlot, this.User.PerLightConstantsBuffer);
     }
     
-    private void DrawPointLight(ref PointLightComponent component, ref TransformComponent transform)
+    private void DrawPointLight(in PointLightComponent component, in TransformComponent transform)
     {
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;

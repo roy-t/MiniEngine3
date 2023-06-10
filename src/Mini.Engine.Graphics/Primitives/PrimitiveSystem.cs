@@ -38,14 +38,16 @@ public sealed class PrimitiveSystem : IDisposable
             ref var camera = ref this.FrameService.GetPrimaryCamera();
             ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
-            foreach (ref var primitive in this.Primitives.IterateAll())
+            foreach (ref var component in this.Primitives.IterateAll())
             {
-                if (this.Instances.Contains(primitive.Entity) && this.Transforms.Contains(primitive.Entity))
+                var entity = component.Entity;
+                if (entity.HasComponents(this.Instances, this.Transforms))
                 {
-                    ref var instances = ref this.Instances[primitive.Entity].Value;
-                    ref var transform = ref this.Transforms[primitive.Entity].Value;
+                    ref var primitive = ref component.Value;
+                    ref var instances = ref this.Instances[entity].Value;
+                    ref var transform = ref this.Transforms[entity].Value;
 
-                    this.RenderService.Render(this.Context, in camera, in cameraTransform, in primitive.Value, in instances, in transform);
+                    this.RenderService.Render((DeviceContext)this.Context, in camera, in cameraTransform, in primitive, in instances, in transform);
                 }
             }
 

@@ -1,9 +1,10 @@
-﻿using Mini.Engine.Core;
-using Mini.Engine.ECS;
-using Mini.Engine.ECS.Components;
+﻿using System.Numerics;
 using Xunit;
+using static Xunit.Assert;
+
 namespace Mini.Engine.Tests;
-public class ScratchPad
+
+public static class ScratchPad
 {
 
 }

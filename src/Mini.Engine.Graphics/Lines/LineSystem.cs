@@ -35,13 +35,15 @@ public sealed class LineSystem : IDisposable
             ref var camera = ref this.FrameService.GetPrimaryCamera();
             ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
 
-            foreach (ref var line in this.Lines.IterateAll())
+            foreach (ref var component in this.Lines.IterateAll())
             {
-                if (this.Transforms.Contains(line.Entity))
+                var entity = component.Entity;
+                if (entity.HasComponent(this.Transforms))
                 {
-                    ref var transform = ref this.Transforms[line.Entity].Value;
+                    ref var line = ref component.Value;
+                    ref var transform = ref this.Transforms[component.Entity].Value;
 
-                    this.RenderService.Render(this.Context, in camera.Camera, in cameraTransform.Current, in line.Value, in transform);
+                    this.RenderService.Render(this.Context, in camera.Camera, in cameraTransform.Current, in line, in transform);
                 }
             }
 

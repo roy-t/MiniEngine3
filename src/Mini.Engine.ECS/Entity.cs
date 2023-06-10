@@ -1,14 +1,33 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Mini.Engine.ECS.Components;
 
 namespace Mini.Engine.ECS;
 
-public struct Entity : IEquatable<Entity>, IComparable, IComparable<Entity>
+public readonly struct Entity : IEquatable<Entity>, IComparable, IComparable<Entity>
 {
     public readonly int Id;
 
     public Entity(int id)
     {
         this.Id = id;
+    }
+
+    public bool HasComponent(IComponentContainer container)
+    {
+        return container.Contains(this);
+    }
+
+    public bool HasComponents(params IComponentContainer[] containers)
+    {
+        for (var i = 0; i < containers.Length; i++)
+        {
+            if (!containers[i].Contains(this))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public override string ToString()

@@ -45,14 +45,16 @@ public sealed class SunLightSystem : IDisposable
         {
             this.Setup(viewport, scissor);
 
-            foreach (ref var skybox in this.SunLightContainer.IterateAll())
+            foreach (ref var component in this.SunLightContainer.IterateAll())
             {
-                var entity = skybox.Entity;
-                if (this.CascadedShadowMapContainer.Contains(entity) && this.TransformContainer.Contains(entity))
+                var entity = component.Entity;
+                if (entity.HasComponents(this.CascadedShadowMapContainer, this.TransformContainer))
                 {
-                    ref var shadowMap = ref this.CascadedShadowMapContainer[entity];
-                    ref var transform = ref this.TransformContainer[entity];
-                    this.DrawSunLight(ref skybox.Value, ref shadowMap.Value, ref transform.Value);
+                    ref var sunLight = ref component.Value;
+                    ref var shadowMap = ref this.CascadedShadowMapContainer[entity].Value;
+                    ref var transform = ref this.TransformContainer[entity].Value;
+
+                    this.DrawSunLight(in sunLight, in shadowMap, in transform);
                 }
 
             }
@@ -77,7 +79,7 @@ public sealed class SunLightSystem : IDisposable
         this.Context.PS.SetConstantBuffer(SunLight.ConstantsSlot, this.User.ConstantsBuffer);
     }
 
-    private void DrawSunLight(ref SunLightComponent sunlight, ref CascadedShadowMapComponent shadowMap, ref TransformComponent viewPoint)
+    private void DrawSunLight(in SunLightComponent sunlight, in CascadedShadowMapComponent shadowMap, in TransformComponent viewPoint)
     {
         ref var camera = ref this.FrameService.GetPrimaryCamera();
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;

@@ -7,6 +7,7 @@ using Mini.Engine.Content.Textures;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
+using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS.Components;
 
@@ -15,7 +16,10 @@ namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 [Service]
 public sealed class ImageBasedLightSystem : IDisposable
 {
-    private readonly Device Device;
+    private readonly BlendState BlendState;
+    private readonly DepthStencilState DepthStencilState;
+    private readonly SamplerState SamplerState;
+
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
     private readonly FullScreenTriangle FullScreenTriangleShader;
@@ -28,7 +32,10 @@ public sealed class ImageBasedLightSystem : IDisposable
 
     public ImageBasedLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangleShader, ImageBasedLight shader, ContentManager contentManager, BrdfLutProcessor generator, IComponentContainer<SkyboxComponent> componentContainer)
     {
-        this.Device = device;
+        this.BlendState = device.BlendStates.Additive;
+        this.DepthStencilState = device.DepthStencilStates.None;
+        this.SamplerState = device.SamplerStates.LinearClamp;
+
         this.Context = device.CreateDeferredContextFor<ImageBasedLightSystem>();
         this.FrameService = frameService;
         this.FullScreenTriangleShader = fullScreenTriangleShader;
@@ -45,9 +52,9 @@ public sealed class ImageBasedLightSystem : IDisposable
         {
             this.Setup(viewport, scissor);
 
-            foreach (ref var skybox in this.SkyboxContainer.IterateAll())
+            foreach (ref var component in this.SkyboxContainer.IterateAll())
             {
-                Render(ref skybox.Value);
+                this.Render(in component.Value);
             }
 
             return this.Context.FinishCommandList();
@@ -55,14 +62,12 @@ public sealed class ImageBasedLightSystem : IDisposable
     }
 
     private void Setup(in Rectangle viewport, in Rectangle scissor)
-    {
-        var blendState = this.Device.BlendStates.Additive;
-        var depthStencilState = this.Device.DepthStencilStates.None;
-        this.Context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, in viewport, in scissor, this.Shader.Ps, blendState, depthStencilState);
+    {        
+        this.Context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, in viewport, in scissor, this.Shader.Ps, this.BlendState, this.DepthStencilState);
 
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
-        this.Context.PS.SetSampler(0, this.Device.SamplerStates.LinearClamp);
+        this.Context.PS.SetSampler(0, this.SamplerState);
         this.Context.PS.SetShaderResource(ImageBasedLight.Albedo, this.FrameService.GBuffer.Albedo);
         this.Context.PS.SetShaderResource(ImageBasedLight.Normal, this.FrameService.GBuffer.Normal);
         this.Context.PS.SetShaderResource(ImageBasedLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
@@ -81,8 +86,7 @@ public sealed class ImageBasedLightSystem : IDisposable
         this.Context.PS.SetConstantBuffer(ImageBasedLight.PerLightConstantsSlot, this.User.PerLightConstantsBuffer);
     }
 
-
-    private void Render(ref SkyboxComponent skybox)
+    private void Render(in SkyboxComponent skybox)
     {
         this.User.MapPerLightConstants(this.Context, skybox.EnvironmentLevels, skybox.Strength);
 

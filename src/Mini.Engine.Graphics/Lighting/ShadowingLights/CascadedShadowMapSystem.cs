@@ -39,12 +39,14 @@ public sealed class CascadedShadowMapSystem : IDisposable
     {
         return Task.Run(() =>
         {
-            foreach (ref var shadowMap in this.ShadowMaps.IterateAll())
+            foreach (ref var component in this.ShadowMaps.IterateAll())
             {
-                if (this.Transforms.Contains(shadowMap.Entity))
+                var entity = component.Entity;
+                if (entity.HasComponent(this.Transforms))
                 {
-                    ref var transform = ref this.Transforms[shadowMap.Entity];
-                    this.DrawCascades(ref shadowMap.Value, ref transform.Value);
+                    ref var shadowMap = ref component.Value;
+                    ref var transform = ref this.Transforms[component.Entity].Value;
+                    this.DrawCascades(in shadowMap, in transform);
                 }
             }
 
@@ -74,10 +76,10 @@ public sealed class CascadedShadowMapSystem : IDisposable
 
         var clipDistance = camera.FarPlane - camera.NearPlane;
 
-        (var s0, var o0, var x0) = this.UpdateShadowMap(ref shadowMap, 0.0f, shadowMap.Cascades.X, clipDistance, camera, cameraTransform, surfaceToLight);
-        (var s1, var o1, var x1) = this.UpdateShadowMap(ref shadowMap, shadowMap.Cascades.X, shadowMap.Cascades.Y, clipDistance, camera, cameraTransform, surfaceToLight);
-        (var s2, var o2, var x2) = this.UpdateShadowMap(ref shadowMap, shadowMap.Cascades.Y, shadowMap.Cascades.Z, clipDistance, camera, cameraTransform, surfaceToLight);
-        (var s3, var o3, var x3) = this.UpdateShadowMap(ref shadowMap, shadowMap.Cascades.Z, shadowMap.Cascades.W, clipDistance, camera, cameraTransform, surfaceToLight);
+        (var s0, var o0, var x0) = this.UpdateShadowMap(ref shadowMap, 0.0f, shadowMap.Cascades.X, clipDistance, in camera, in cameraTransform, surfaceToLight);
+        (var s1, var o1, var x1) = this.UpdateShadowMap(ref shadowMap, shadowMap.Cascades.X, shadowMap.Cascades.Y, clipDistance, in camera, in cameraTransform, surfaceToLight);
+        (var s2, var o2, var x2) = this.UpdateShadowMap(ref shadowMap, shadowMap.Cascades.Y, shadowMap.Cascades.Z, clipDistance, in camera, in cameraTransform, surfaceToLight);
+        (var s3, var o3, var x3) = this.UpdateShadowMap(ref shadowMap, shadowMap.Cascades.Z, shadowMap.Cascades.W, clipDistance, in camera, in cameraTransform, surfaceToLight);
 
         shadowMap.Splits.X = s0;
         shadowMap.Splits.Y = s1;
@@ -88,7 +90,7 @@ public sealed class CascadedShadowMapSystem : IDisposable
         shadowMap.Scales = Matrices.CreateColumnMajor(x0, x1, x2, x3);
     }
 
-    private void DrawCascades(ref CascadedShadowMapComponent shadowMap, ref TransformComponent viewPoint)
+    private void DrawCascades(in CascadedShadowMapComponent shadowMap, in TransformComponent viewPoint)
     {
         ref var camera = ref this.FrameService.GetPrimaryCamera().Camera;
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;
@@ -96,13 +98,13 @@ public sealed class CascadedShadowMapSystem : IDisposable
 
         this.Frustum.TransformToCameraFrustumInWorldSpace(in camera, in cameraTransform);
 
-        this.RenderShadowMap(ref shadowMap, 0.0f, shadowMap.Cascades.X, camera, cameraTransform, surfaceToLight, 0);
-        this.RenderShadowMap(ref shadowMap, shadowMap.Cascades.X, shadowMap.Cascades.Y, camera, cameraTransform, surfaceToLight, 1);
-        this.RenderShadowMap(ref shadowMap, shadowMap.Cascades.Y, shadowMap.Cascades.Z, camera, cameraTransform, surfaceToLight, 2);
-        this.RenderShadowMap(ref shadowMap, shadowMap.Cascades.Z, shadowMap.Cascades.W, camera, cameraTransform, surfaceToLight, 3);
+        this.RenderShadowMap(in shadowMap, 0.0f, shadowMap.Cascades.X, in camera, in cameraTransform, surfaceToLight, 0);
+        this.RenderShadowMap(in shadowMap, shadowMap.Cascades.X, shadowMap.Cascades.Y, in camera, in cameraTransform, surfaceToLight, 1);
+        this.RenderShadowMap(in shadowMap, shadowMap.Cascades.Y, shadowMap.Cascades.Z, in camera, in cameraTransform, surfaceToLight, 2);
+        this.RenderShadowMap(in shadowMap, shadowMap.Cascades.Z, shadowMap.Cascades.W, in camera, in cameraTransform, surfaceToLight, 3);
     }
 
-    private (float split, Vector4 offset, Vector4 scale) UpdateShadowMap(ref CascadedShadowMapComponent shadowMap, float nearZ, float farZ, float clipDistance, PerspectiveCamera view, Transform viewTransform, Vector3 surfaceToLight)
+    private (float split, Vector4 offset, Vector4 scale) UpdateShadowMap(ref CascadedShadowMapComponent shadowMap, float nearZ, float farZ, float clipDistance, in PerspectiveCamera view, in Transform viewTransform, Vector3 surfaceToLight)
     {
         this.Frustum.TransformToCameraFrustumInWorldSpace(in view, in viewTransform);
         this.Frustum.Slice(nearZ, farZ);
@@ -116,7 +118,7 @@ public sealed class CascadedShadowMapSystem : IDisposable
         return (view.NearPlane + (farZ * clipDistance), new Vector4(-nearCorner, 0.0f), new Vector4(Vector3.One / (farCorner - nearCorner), 1.0f));
     }
 
-    private void RenderShadowMap(ref CascadedShadowMapComponent shadowMap, float nearZ, float farZ, PerspectiveCamera view, Transform viewTransform, Vector3 surfaceToLight, int slice)
+    private void RenderShadowMap(in CascadedShadowMapComponent shadowMap, float nearZ, float farZ, in PerspectiveCamera view, in Transform viewTransform, Vector3 surfaceToLight, int slice)
     {
         this.Frustum.TransformToCameraFrustumInWorldSpace(in view, in viewTransform);
         this.Frustum.Slice(nearZ, farZ);
