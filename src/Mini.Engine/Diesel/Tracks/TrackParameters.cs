@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vortice.Mathematics;
+﻿using Vortice.Mathematics;
 
 namespace Mini.Engine.Diesel.Tracks;
 public static class TrackParameters
 {
     public static Color4 RAIL_COLOR = new Color4(0.4f, 0.28f, 0.30f, 1.0f);
     public static Color4 RAIL_TIE_COLOR = new Color4(0.4f, 0.4f, 0.4f, 1.0f);
-    public static Color4 BALLAST_COLOR = new Color4(0.33f, 0.27f, 0.25f, 1.0f);
+    public static Color4 BALLAST_COLOR = new Color4(0.33f, 0.27f, 0.25f, 1.0f);    
 
     public const float SINGLE_RAIL_WIDTH_TOP = 0.1f;
     public const float SINGLE_RAIL_WIDTH_BOTTOM = 0.2f;

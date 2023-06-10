@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 using LibGame.Physics;
-using Mini.Engine.Configuration;
 using Mini.Engine.Core;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
@@ -16,11 +15,14 @@ public interface IPrimitiveMeshPartBuilder
     void AddIndex(int index);
     int AddVertex(PrimitiveVertex vertex);
     int AddVertex(Vector3 position, Vector3 normal);
-    void Complete(Color4 color);
+    void Complete(Color4 albedo, float metalicness, float rougness);
 }
 
 public sealed class PrimitiveMeshBuilder
 {
+    private const float DefaultMetalicness = 0.0f;
+    private const float DefaultRoughness = 0.4f;
+
     private readonly ArrayBuilder<PrimitiveVertex> Vertices;
     private readonly ArrayBuilder<int> Indices;
     private readonly ArrayBuilder<MeshPart> Parts;
@@ -35,7 +37,7 @@ public sealed class PrimitiveMeshBuilder
         this.bounds = BoundingBox.Empty;
     }
 
-    public void Add(ReadOnlySpan<PrimitiveVertex> vertices, ReadOnlySpan<int> indices, Color4 color)
+    public void Add(ReadOnlySpan<PrimitiveVertex> vertices, ReadOnlySpan<int> indices, Color4 albedo, float metalicness = DefaultMetalicness, float rougness = DefaultRoughness)
     {
         var vertexOffset = this.Vertices.Length;
 
@@ -49,7 +51,7 @@ public sealed class PrimitiveMeshBuilder
             this.AddIndex(indices[i], vertexOffset);
         }
 
-        this.AddPart(vertexOffset, vertices.Length, color);
+        this.AddPart(vertexOffset, vertices.Length, albedo, metalicness, rougness);
     }
 
     private void AddVertex(PrimitiveVertex vertex)
@@ -65,13 +67,15 @@ public sealed class PrimitiveMeshBuilder
         this.Indices.Add(index + vertexOffset);
     }
 
-    private void AddPart(int vertexOffset, int vertexCount, Color4 color)
+    private void AddPart(int vertexOffset, int vertexCount, Color4 albedo, float metalicness, float roughness)
     {
         this.Parts.Add(new MeshPart
         {
             Offset = (uint)vertexOffset,
             Length = (uint)vertexCount,
-            Color = color
+            Albedo = albedo,
+            Metalicness = metalicness,
+            Roughness = roughness
         });
     }
 
@@ -125,9 +129,9 @@ public sealed class PrimitiveMeshBuilder
             this.indexLength++;
         }
 
-        public void Complete(Color4 color)
+        public void Complete(Color4 albedo, float metalicness = DefaultMetalicness, float rougness = DefaultRoughness)
         {
-            this.Parent.AddPart(this.VertexOffset, this.vertexLength, color);
+            this.Parent.AddPart(this.VertexOffset, this.vertexLength, albedo, metalicness, rougness);
         }
 
         public void Layout(params Transform[] transforms)
@@ -148,7 +152,7 @@ public sealed class PrimitiveMeshBuilder
                 {
                     this.AddIndex((this.Parent.Indices[startIndex + i] - this.VertexOffset) + repeatOffset);
                 }
-                
+
                 for (var v = 0; v < vLength; v++)
                 {
                     var original = this.Parent.Vertices[startVertex + v];
@@ -166,7 +170,7 @@ public sealed class PrimitiveMeshBuilder
                 var position = Vector3.Transform(original.Position, firstMatrix);
                 var normal = Vector3.TransformNormal(original.Normal, firstMatrix);
 
-                this.Parent.Vertices[startVertex + v] = new PrimitiveVertex(position, normal);                
+                this.Parent.Vertices[startVertex + v] = new PrimitiveVertex(position, normal);
             }
         }
     }

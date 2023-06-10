@@ -20,10 +20,6 @@ public sealed class PrimitiveMesh : IDisposable
 
     public readonly BoundingBox Bounds;
 
-    public PrimitiveMesh(Device device, ReadOnlySpan<PrimitiveVertex> vertices, ReadOnlySpan<int> indices, Color4 color, BoundingBox bounds, string name)
-        : this(device, vertices, indices, new MeshPart[] { new MeshPart { Offset = 0, Length = (uint)indices.Length, Color = color } }, bounds, name) { }
-
-
     public PrimitiveMesh(Device device, ReadOnlySpan<PrimitiveVertex> vertices, ReadOnlySpan<int> indices, ReadOnlySpan<MeshPart> parts, BoundingBox bounds, string name)
     {
         this.Indices = new IndexBuffer<int>(device, name);

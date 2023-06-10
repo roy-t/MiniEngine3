@@ -61,6 +61,9 @@ public sealed class SponzaScene : IScene
                 ref var transform = ref creator.Create<TransformComponent>(world);
                 transform.Current = transform.Current
                     .SetScale(0.05f);
+
+                ref var caster = ref creator.Create<ShadowCasterComponent>(world);
+                caster.Importance = float.MaxValue;
             }),
             new LoadAction("Lighting", () =>
             {

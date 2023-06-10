@@ -51,7 +51,7 @@ public static class TrackPieces
 
         Extruder.ExtrudeSmooth(partBuilder, crossSection, curve.OffsetRight(SINGLE_RAIL_OFFSET), points, Vector3.UnitY);
         Capper.Cap(partBuilder, curve.OffsetRight(SINGLE_RAIL_OFFSET), crossSection);
-        partBuilder.Complete(RAIL_COLOR);
+        partBuilder.Complete(RAIL_COLOR, 0.5f, 0.1f);
     }
 
     private static void BuildTies(PrimitiveMeshBuilder builder, ICurve curve)
@@ -70,7 +70,7 @@ public static class TrackPieces
 
         partBuilder.Layout(transforms);
 
-        partBuilder.Complete(RAIL_TIE_COLOR);
+        partBuilder.Complete(RAIL_TIE_COLOR, 0.1f, 0.5f);
     }
 
     private static void BuildBallast(int points, PrimitiveMeshBuilder builder, ICurve curve)
@@ -83,7 +83,7 @@ public static class TrackPieces
         Capper.Cap(partBuilder, curve, crossSection);
 
         
-        partBuilder.Complete(BALLAST_COLOR);
+        partBuilder.Complete(BALLAST_COLOR, 0.0f, 1.0f);
     }
 
 }

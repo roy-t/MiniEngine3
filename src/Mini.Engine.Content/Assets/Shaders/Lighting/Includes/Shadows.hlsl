@@ -2,7 +2,7 @@
 #define __SHADOWS
 
 static const float BlendThreshold = 0.3f;
-static const float Bias = 0.001f; // Bias to prevent shadow acne
+static const float Bias = 0.0025f; // Bias to prevent shadow acne
 static const uint NumCascades = 4;
 
 struct ShadowProperties
@@ -125,7 +125,26 @@ float ComputeLightFactorInternal(float3 worldPosition, float depth, bool filter,
         float lerpAmt = smoothstep(0.0f, BlendThreshold, splitDist);
         shadowVisibility = lerp(nextSplitVisibility, shadowVisibility, lerpAmt);
     }
-
+    
+    // Uncomment to visualize cascades as shades of gray, 
+    /*
+    if (cascadeIndex == 0)
+    {
+        return 0.0f;
+    }
+    if (cascadeIndex == 1)
+    {
+        return 0.25f;
+    }
+    if (cascadeIndex == 2)
+    {
+        return 0.5f;
+    }
+    if (cascadeIndex == 3)
+    {
+        return 1.0f;
+    }
+    */
     return shadowVisibility;
 }
 

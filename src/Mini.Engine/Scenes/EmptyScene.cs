@@ -59,7 +59,7 @@ public sealed class EmptyScene : IScene
 
                 var resolution = 2048;
                 var buffer = new DepthStencilBuffer(this.Device, "SunLight", DepthStencilFormat.D32_Float, resolution, resolution, 4);
-                var bufferResource = this.LifetimeManager.Add(buffer);                
+                var bufferResource = this.LifetimeManager.Add(buffer);
                 shadowMap.Init(bufferResource, resolution, Cascades[0], Cascades[1], Cascades[2], Cascades[3]);
 
                 ref var transform = ref creator.Create<TransformComponent>(sun);
@@ -74,7 +74,7 @@ public sealed class EmptyScene : IScene
                 var albedo = this.CubeMapGenerator.GenerateAlbedo(texture, sky.ToString());
                 var irradiance = this.CubeMapGenerator.GenerateIrradiance(texture, sky.ToString());
                 var environment = this.CubeMapGenerator.GenerateEnvironment(texture, sky.ToString());
-       
+
                 var levels = this.Device.Resources.Get(environment).MipMapLevels;
 
                 ref var skybox = ref creator.Create<SkyboxComponent>(sky);

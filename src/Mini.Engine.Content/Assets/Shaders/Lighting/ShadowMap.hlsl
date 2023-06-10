@@ -32,6 +32,7 @@ PS_INPUT VS(VS_INPUT input)
     return output;
 }
 
+// Unused for cascaded shadow maps, where only the depth stencil is used
 #pragma PixelShader
 float PS(PS_INPUT input) : SV_TARGET
 {

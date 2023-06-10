@@ -47,7 +47,7 @@ public sealed class PrimitiveSystem : IDisposable
                     ref var instances = ref this.Instances[entity].Value;
                     ref var transform = ref this.Transforms[entity].Value;
 
-                    this.RenderService.Render((DeviceContext)this.Context, in camera, in cameraTransform, in primitive, in instances, in transform);
+                    this.RenderService.Render(this.Context, in camera, in cameraTransform, in primitive, in instances, in transform);
                 }
             }
 

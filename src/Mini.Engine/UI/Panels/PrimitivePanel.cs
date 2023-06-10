@@ -13,6 +13,7 @@ using Mini.Engine.Graphics.Lines;
 using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Modelling.Curves;
 using Vortice.Mathematics;
+using Mini.Engine.Graphics.Lighting.ShadowingLights;
 
 namespace Mini.Engine.UI.Panels;
 
@@ -98,11 +99,12 @@ internal class PrimitivePanel : IEditorPanel
 
         var matrices = new Matrix4x4[]
         {
-           Matrix4x4.Identity
+           Matrix4x4.Identity,
+           Matrix4x4.CreateTranslation(new Vector3(10, 5, 0))
         };
-        
+
         ref var instances = ref creator.Create<InstancesComponent>(entity);
-        instances.InstanceBuffer = Instance($"{name}_instances", matrices);
+        instances.InstanceBuffer = this.Instance($"{name}_instances", matrices);
         instances.InstanceCount = matrices.Length;
 
         ref var transform = ref creator.Create<TransformComponent>(entity);
@@ -111,6 +113,9 @@ internal class PrimitivePanel : IEditorPanel
 
         ref var component = ref creator.Create<PrimitiveComponent>(entity);
         component.Mesh = piece.Mesh;
+
+        ref var shadowCaster = ref creator.Create<ShadowCasterComponent>(entity);
+        shadowCaster.Importance = 0.0f;
 
         ref var line = ref creator.Create<LineComponent>(entity);
         var lineVertices = piece.Curve.GetPoints3D(50, new Vector3(0.0f, piece.Bounds.Max.Y, 0.0f));

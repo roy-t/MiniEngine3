@@ -8,6 +8,7 @@ using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Cameras;
+using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Transforms;
 using Vortice.Direct3D;
 
@@ -21,6 +22,7 @@ public sealed class ModelRenderService : IDisposable
 {
     private readonly IComponentContainer<TransformComponent> Transforms;
     private readonly IComponentContainer<ModelComponent> Models;
+    private readonly IComponentContainer<ShadowCasterComponent> ShadowCasters;
 
     private readonly Geometry Shader;
     private readonly Geometry.User User;
@@ -37,7 +39,7 @@ public sealed class ModelRenderService : IDisposable
     private readonly BlendState Opaque;
     private readonly SamplerState AnisotropicWrap;
 
-    public ModelRenderService(Device device, Geometry shader, ShadowMap shadowMapShader, IComponentContainer<TransformComponent> transforms, IComponentContainer<ModelComponent> models)
+    public ModelRenderService(Device device, Geometry shader, ShadowMap shadowMapShader, IComponentContainer<TransformComponent> transforms, IComponentContainer<ModelComponent> models, IComponentContainer<ShadowCasterComponent> shadowCaster)
     {
         this.Transforms = transforms;
         this.Models = models;
@@ -56,6 +58,7 @@ public sealed class ModelRenderService : IDisposable
         this.ReverseZ = device.DepthStencilStates.ReverseZ;
         this.AnisotropicWrap = device.SamplerStates.AnisotropicWrap;
         this.Opaque = device.BlendStates.Opaque;
+        this.ShadowCasters = shadowCaster;
     }
 
     /// <summary>
@@ -158,16 +161,23 @@ public sealed class ModelRenderService : IDisposable
     /// <summary>
     /// Calls SetupModelDepthRender and then draws all model components
     /// </summary>
-    public void SetupAndRenderAllModelDepths(DeviceContext context, in Rectangle vieport, in Rectangle scissor, in Frustum viewVolume, in Matrix4x4 viewProjection)
+    public void SetupAndRenderAllModelDepths(DeviceContext context, float importanceThreshold, in Rectangle viewport, in Rectangle scissor, in Frustum viewVolume, in Matrix4x4 viewProjection)
     {
-        this.SetupModelDepthRender(context, in vieport, in scissor);
+        this.SetupModelDepthRender(context, in viewport, in scissor);
 
-        var iterator = this.Models.IterateAll();
-        while (iterator.MoveNext())
+        foreach (ref var component in this.Models.IterateAll())
         {
-            ref var model = ref iterator.Current;
-            ref var transform = ref this.Transforms[model.Entity].Value;
-            this.RenderModelDepth(context, in model.Value, in transform, in viewVolume, in viewProjection);
+            var entity = component.Entity;
+            if (entity.HasComponents(this.ShadowCasters, this.Transforms))
+            {
+                ref var model = ref component.Value;
+                ref var transform = ref this.Transforms[entity].Value;
+                ref var shadowCaster = ref this.ShadowCasters[entity].Value;
+                if (shadowCaster.Importance >= importanceThreshold)
+                {
+                    this.RenderModelDepth(context, in model, in transform, in viewVolume, in viewProjection);
+                }
+            }
         }
     }
 

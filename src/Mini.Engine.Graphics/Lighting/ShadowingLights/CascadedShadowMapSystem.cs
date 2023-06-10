@@ -8,6 +8,7 @@ using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Models;
+using Mini.Engine.Graphics.Primitives;
 using Mini.Engine.Graphics.Transforms;
 using Vortice.Direct3D11;
 
@@ -19,17 +20,18 @@ public sealed class CascadedShadowMapSystem : IDisposable
     private readonly DeferredDeviceContext Context;
     private readonly FrameService FrameService;
     private readonly ModelRenderService ModelRenderService;
+    private readonly PrimitiveRenderService PrimitiveRenderService;
     private readonly LightFrustum Frustum;
 
     private readonly IComponentContainer<CascadedShadowMapComponent> ShadowMaps;
     private readonly IComponentContainer<TransformComponent> Transforms;
 
-    public CascadedShadowMapSystem(Device device, FrameService frameService, ModelRenderService modelRenderService, IComponentContainer<CascadedShadowMapComponent> shadowMaps, IComponentContainer<TransformComponent> transforms)
+    public CascadedShadowMapSystem(Device device, FrameService frameService, ModelRenderService modelRenderService, PrimitiveRenderService primitiveRenderService, IComponentContainer<CascadedShadowMapComponent> shadowMaps, IComponentContainer<TransformComponent> transforms)
     {
         this.Context = device.CreateDeferredContextFor<CascadedShadowMapSystem>();
         this.FrameService = frameService;
         this.ModelRenderService = modelRenderService;
-
+        this.PrimitiveRenderService = primitiveRenderService;
         this.Frustum = new LightFrustum();
         this.ShadowMaps = shadowMaps;
         this.Transforms = transforms;
@@ -75,6 +77,11 @@ public sealed class CascadedShadowMapSystem : IDisposable
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform().Current;
 
         var clipDistance = camera.FarPlane - camera.NearPlane;
+
+        shadowMap.Cascades.X = 0.075f;
+        shadowMap.Cascades.Y = 0.15f;
+        shadowMap.Cascades.Z = 0.30f;
+        shadowMap.Cascades.W = 1.00f;
 
         (var s0, var o0, var x0) = this.UpdateShadowMap(ref shadowMap, 0.0f, shadowMap.Cascades.X, clipDistance, in camera, in cameraTransform, surfaceToLight);
         (var s1, var o1, var x1) = this.UpdateShadowMap(ref shadowMap, shadowMap.Cascades.X, shadowMap.Cascades.Y, clipDistance, in camera, in cameraTransform, surfaceToLight);
@@ -131,7 +138,8 @@ public sealed class CascadedShadowMapSystem : IDisposable
         var viewVolume = new Frustum(viewProjection);
         var output = new Rectangle(0, 0, shadowMap.Resolution, shadowMap.Resolution);
 
-        this.ModelRenderService.SetupAndRenderAllModelDepths(this.Context, in output, in output, in viewVolume, in viewProjection);
+        this.ModelRenderService.SetupAndRenderAllModelDepths(this.Context, float.MinValue, in output, in output, in viewVolume, in viewProjection);
+        this.PrimitiveRenderService.SetupAndRenderAllPrimitiveDepths(this.Context, float.MinValue, in output, in output, in viewVolume, in viewProjection);
     }
 
     private static readonly Matrix4x4 TexScaleTransform = Matrix4x4.CreateScale(0.5f, -0.5f, 1.0f) * Matrix4x4.CreateTranslation(0.5f, 0.5f, 0.0f);
