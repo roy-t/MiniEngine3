@@ -90,23 +90,23 @@ internal class PrimitivePanel : IEditorPanel
         var straight = TrackPieces.Straight(this.Device);
         this.CreateVisuals(straight, "straight");
 
-        var turn = TrackPieces.Turn(this.Device);
-        this.CreateVisuals(turn, "turn");
+        //var turn = TrackPieces.Turn(this.Device);
+        //this.CreateVisuals(turn, "turn");
 
-        var flatcar = TrainPieces.Flatcar(this.Device);
+        var flatcar = TrainCars.Flatcar(this.Device);
         this.CreateVisuals(flatcar, "flatcar");
     }
 
-    private void CreateVisuals(TrainPiece piece, string name)
+    private void CreateVisuals(TrainCar car, string name)
     {
         var entity = this.Administrator.Entities.Create();
-        this.CreateVisuals(entity, piece.Mesh, name);
+        this.CreateVisuals(entity, car.Mesh, name, car.Offset.GetMatrix());
     }
 
     private void CreateVisuals(TrackPiece piece, string name)
     {        
         var entity = this.Administrator.Entities.Create();
-        this.CreateVisuals(entity, piece.Mesh, name);
+        this.CreateVisuals(entity, piece.Mesh, name, Matrix4x4.Identity);
         this.CreateVisuals(entity, piece.Curve, piece.Bounds, name);
     }
 
@@ -121,14 +121,9 @@ internal class PrimitivePanel : IEditorPanel
         line.Color = Colors.Yellow;
     }
 
-    private void CreateVisuals(Entity entity, ILifetime<PrimitiveMesh> mesh, string name)
+    private void CreateVisuals(Entity entity, ILifetime<PrimitiveMesh> mesh, string name, params Matrix4x4[] matrices)
     {
-        var creator = this.Administrator.Components;
-
-        var matrices = new Matrix4x4[]
-        {
-           Matrix4x4.Identity           
-        };
+        var creator = this.Administrator.Components;    
 
         ref var instances = ref creator.Create<InstancesComponent>(entity);
         instances.InstanceBuffer = this.Instance($"{name}_instances", matrices);

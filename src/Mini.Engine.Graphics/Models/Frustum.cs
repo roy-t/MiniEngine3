@@ -33,7 +33,7 @@ public struct Frustum
         get => ref Unsafe.AsRef<Plane>(Unsafe.Add<Plane>(Unsafe.AsPointer(ref this.P0), index));
     }
 
-    public readonly bool ContainsOrIntersects(BoundingBox box)
+    public bool ContainsOrIntersects(BoundingBox box)
     {        
         for (var i = 0; i < PlanesInACube; i++)
         {            
@@ -49,7 +49,7 @@ public struct Frustum
         return true;
     }
 
-    public readonly bool ContainsOrIntersects(BoundingSphere sphere)
+    public bool ContainsOrIntersects(BoundingSphere sphere)
     {     
         for (var i = 0; i < PlanesInACube; i++)
         {

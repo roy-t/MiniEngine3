@@ -173,5 +173,10 @@ public sealed class PrimitiveMeshBuilder
                 this.Parent.Vertices[startVertex + v] = new PrimitiveVertex(position, normal);
             }
         }
+
+        public void Transform(Transform transform)
+        {
+            this.Layout(transform);
+        }
     }
 }

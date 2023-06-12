@@ -9,17 +9,16 @@ using static Mini.Engine.Diesel.Tracks.TrackParameters;
 namespace Mini.Engine.Diesel.Tracks;
 public static class TrackPieces
 {
+    // TODO: a lof of invisible geometry is generated like bottoms and behinds
+
     public static TrackPiece Turn(Device device)
     {
-        const float radius = 25.0f;
-        const int points = 25;
-
         var builder = new PrimitiveMeshBuilder();
-        var curve = new CircularArcCurve(0.0f, MathF.PI / 2.0f, radius);
+        var curve = new CircularArcCurve(0.0f, MathF.PI / 2.0f, TURN_RADIUS);
         
-        BuildRails(points, builder, curve);
+        BuildRails(TURN_VERTICES, builder, curve);
         BuildTies(builder, curve);
-        BuildBallast(points, builder, curve);
+        BuildBallast(TURN_VERTICES, builder, curve);
 
         var primitive = builder.Build(device, "Turn", out var bounds);
 
@@ -30,7 +29,7 @@ public static class TrackPieces
     {
         const int points = 2;
         var builder = new PrimitiveMeshBuilder();
-        var curve = new StraightCurve(50.0f);
+        var curve = new StraightCurve(new Vector2(0, -STRAIGHT_LENGTH * 0.5f), Vector2.UnitY, STRAIGHT_LENGTH);
 
         BuildRails(points, builder, curve);
         BuildTies(builder, curve);
@@ -51,7 +50,7 @@ public static class TrackPieces
 
         Extruder.ExtrudeSmooth(partBuilder, crossSection, curve.OffsetRight(SINGLE_RAIL_OFFSET), points, Vector3.UnitY);
         Capper.Cap(partBuilder, curve.OffsetRight(SINGLE_RAIL_OFFSET), crossSection);
-        partBuilder.Complete(RAIL_COLOR, 0.5f, 0.1f);
+        partBuilder.Complete(RAIL_COLOR, RAIL_METALICNESS, RAIL_ROUGHNESS);
     }
 
     private static void BuildTies(PrimitiveMeshBuilder builder, ICurve curve)
@@ -70,7 +69,7 @@ public static class TrackPieces
 
         partBuilder.Layout(transforms);
 
-        partBuilder.Complete(RAIL_TIE_COLOR, 0.1f, 0.5f);
+        partBuilder.Complete(RAIL_TIE_COLOR, RAIL_TIE_METALICNESS, RAIL_TIE_ROUGHNESS);
     }
 
     private static void BuildBallast(int points, PrimitiveMeshBuilder builder, ICurve curve)
@@ -83,7 +82,7 @@ public static class TrackPieces
         Capper.Cap(partBuilder, curve, crossSection);
 
         
-        partBuilder.Complete(BALLAST_COLOR, 0.0f, 1.0f);
+        partBuilder.Complete(BALLAST_COLOR, BALLAST_METALICNESS, BALLAST_ROUGHNESS);
     }
 
 }
