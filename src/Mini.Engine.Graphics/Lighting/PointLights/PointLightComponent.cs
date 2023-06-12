@@ -7,6 +7,4 @@ public struct PointLightComponent : IComponent
 {
     public float Strength;
     public Vector4 Color;
-
-    public void Destroy() {  }
 }

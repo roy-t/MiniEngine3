@@ -12,12 +12,12 @@ public readonly struct Entity : IEquatable<Entity>, IComparable, IComparable<Ent
         this.Id = id;
     }
 
-    public bool HasComponent(IComponentContainer container)
+    public readonly bool HasComponent(IComponentContainer container)
     {
         return container.Contains(this);
     }
 
-    public bool HasComponents(params IComponentContainer[] containers)
+    public readonly bool HasComponents(params IComponentContainer[] containers)
     {
         for (var i = 0; i < containers.Length; i++)
         {
@@ -30,22 +30,22 @@ public readonly struct Entity : IEquatable<Entity>, IComparable, IComparable<Ent
         return true;
     }
 
-    public override string ToString()
+    public readonly override string ToString()
     {
         return this.Id.ToString();
     }
 
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         return this.Id.GetHashCode();
     }
 
-    public int CompareTo(Entity other)
+    public readonly int CompareTo(Entity other)
     {
         return this.Id.CompareTo(other.Id);
     }
 
-    public int CompareTo(object? obj)
+    public readonly int CompareTo(object? obj)
     {
         if (obj is Entity entity)
         {
@@ -54,12 +54,12 @@ public readonly struct Entity : IEquatable<Entity>, IComparable, IComparable<Ent
         return -1;
     }
 
-    public bool Equals(Entity other)
+    public readonly bool Equals(Entity other)
     {
         return this.Id == other.Id;
     }
 
-    public override bool Equals([NotNullWhen(true)] object? obj)
+    public readonly override bool Equals([NotNullWhen(true)] object? obj)
     {
         return obj is Entity entity && this.Equals(entity);
     }

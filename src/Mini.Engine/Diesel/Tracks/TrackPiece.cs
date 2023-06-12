@@ -6,10 +6,10 @@ using Vortice.Mathematics;
 namespace Mini.Engine.Diesel.Tracks;
 public sealed class TrackPiece
 {    
-    public TrackPiece(ICurve curve, ILifetime<PrimitiveMesh> primitive, BoundingBox bounds)
+    public TrackPiece(ICurve curve, ILifetime<PrimitiveMesh> mesh, BoundingBox bounds)
     {
         this.Curve = curve;
-        this.Mesh = primitive;
+        this.Mesh = mesh;
         this.Bounds = bounds;
     }
 

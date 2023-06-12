@@ -2,7 +2,7 @@
 using Mini.Engine.ECS.Components;
 
 namespace Mini.Engine.ECS;
-public struct EntityIterator<T>
+public readonly struct EntityIterator<T>
     where T : struct, IComponent
 {
     private readonly IStructEnumerator<Component<T>> Enumerator;
@@ -14,9 +14,9 @@ public struct EntityIterator<T>
         this.Query = query;
     }
 
-    public Entity Current => this.Enumerator.Current.Entity;
+    public readonly Entity Current => this.Enumerator.Current.Entity;
 
-    public bool MoveNext()
+    public readonly bool MoveNext()
     {
         while (this.Enumerator.MoveNext())
         {
@@ -29,7 +29,7 @@ public struct EntityIterator<T>
         return false;
     }
 
-    public EntityIterator<T> GetEnumerator()
+    public readonly EntityIterator<T> GetEnumerator()
     {
         return this;
     }

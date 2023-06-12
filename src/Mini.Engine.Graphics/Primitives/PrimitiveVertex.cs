@@ -23,7 +23,7 @@ public struct PrimitiveVertex
             new InputElementDescription("NORMAL", 0, Format.R32G32B32_Float, 3 * sizeof(float), 0, InputClassification.PerVertexData, 0)
     };
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return $"P: {this.Position}, N: {this.Normal}";
     }

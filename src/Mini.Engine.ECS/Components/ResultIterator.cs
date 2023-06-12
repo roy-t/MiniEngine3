@@ -2,7 +2,7 @@
 
 namespace Mini.Engine.ECS.Components;
 
-public struct ResultIterator<T>
+public readonly struct ResultIterator<T>
     where T : struct, IComponent
 {
     private readonly IStructEnumerator<Component<T>> Enumerator;
@@ -14,9 +14,9 @@ public struct ResultIterator<T>
         this.Query = query;
     }
 
-    public ref Component<T> Current => ref this.Enumerator.Current;
+    public readonly ref Component<T> Current => ref this.Enumerator.Current;
 
-    public bool MoveNext()
+    public readonly bool MoveNext()
     {
         while (this.Enumerator.MoveNext())
         {
@@ -30,7 +30,7 @@ public struct ResultIterator<T>
         return false;
     }
 
-    public ResultIterator<T> GetEnumerator()
+    public readonly ResultIterator<T> GetEnumerator()
     {
         return this;
     }

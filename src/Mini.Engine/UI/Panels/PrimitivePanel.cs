@@ -14,6 +14,7 @@ using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Modelling.Curves;
 using Vortice.Mathematics;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
+using Mini.Engine.Diesel.Trains;
 
 namespace Mini.Engine.UI.Panels;
 
@@ -38,6 +39,7 @@ internal class PrimitivePanel : IEditorPanel
 
 #if DEBUG
         HotReloadManager.AddReloadCallback("Mini.Engine.Modelling", _ => this.shouldReload = true);
+        HotReloadManager.AddReloadCallback("Mini.Engine.Diesel", _ => this.shouldReload = true);
         HotReloadManager.AddReloadCallback("Mini.Engine.UI.Panels.PrimitivePanel", _ => this.shouldReload = true);
 #endif
     }
@@ -86,21 +88,46 @@ internal class PrimitivePanel : IEditorPanel
     private void CreatePrimitives()
     {
         var straight = TrackPieces.Straight(this.Device);
-        this.CreateAll("straight", straight);
+        this.CreateVisuals(straight, "straight");
 
         var turn = TrackPieces.Turn(this.Device);
-        this.CreateAll("turn", turn);
+        this.CreateVisuals(turn, "turn");
+
+        var flatcar = TrainPieces.Flatcar(this.Device);
+        this.CreateVisuals(flatcar, "flatcar");
     }
 
-    private void CreateAll(string name, TrackPiece piece)
+    private void CreateVisuals(TrainPiece piece, string name)
     {
         var entity = this.Administrator.Entities.Create();
+        this.CreateVisuals(entity, piece.Mesh, name);
+    }
+
+    private void CreateVisuals(TrackPiece piece, string name)
+    {        
+        var entity = this.Administrator.Entities.Create();
+        this.CreateVisuals(entity, piece.Mesh, name);
+        this.CreateVisuals(entity, piece.Curve, piece.Bounds, name);
+    }
+
+    private void CreateVisuals(Entity entity, ICurve curve, BoundingBox bounds, string name)
+    {
+        var creator = this.Administrator.Components;
+
+        ref var line = ref creator.Create<LineComponent>(entity);
+        var lineVertices = curve.GetPoints3D(50, new Vector3(0.0f, bounds.Max.Y, 0.0f));
+        var mesh = new LineMesh(this.Device, $"{name}_line", lineVertices);
+        line.Mesh = this.Device.Resources.Add(mesh);
+        line.Color = Colors.Yellow;
+    }
+
+    private void CreateVisuals(Entity entity, ILifetime<PrimitiveMesh> mesh, string name)
+    {
         var creator = this.Administrator.Components;
 
         var matrices = new Matrix4x4[]
         {
-           Matrix4x4.Identity,
-           Matrix4x4.CreateTranslation(new Vector3(10, 5, 0))
+           Matrix4x4.Identity           
         };
 
         ref var instances = ref creator.Create<InstancesComponent>(entity);
@@ -112,18 +139,11 @@ internal class PrimitivePanel : IEditorPanel
         transform.Previous = transform.Current;
 
         ref var component = ref creator.Create<PrimitiveComponent>(entity);
-        component.Mesh = piece.Mesh;
+        component.Mesh = mesh;
 
         ref var shadowCaster = ref creator.Create<ShadowCasterComponent>(entity);
         shadowCaster.Importance = 0.0f;
-
-        ref var line = ref creator.Create<LineComponent>(entity);
-        var lineVertices = piece.Curve.GetPoints3D(50, new Vector3(0.0f, piece.Bounds.Max.Y, 0.0f));
-        var mesh = new LineMesh(this.Device, $"{name}_line", lineVertices);
-        line.Mesh = this.Device.Resources.Add(mesh);
-        line.Color = Colors.Yellow;
     }
-
 
     private ILifetime<StructuredBuffer<Matrix4x4>> Instance(string name, params Matrix4x4[] instances)
     {
