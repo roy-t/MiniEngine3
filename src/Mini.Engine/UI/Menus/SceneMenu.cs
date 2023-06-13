@@ -7,32 +7,55 @@ namespace Mini.Engine.UI.Menus;
 [Service]
 internal sealed class SceneMenu : IEditorMenu
 {
-    private readonly SceneManager SceneManager;    
-    private int currentItem;
-    
+    private readonly SkyboxManager SkyboxManager;
+    private readonly string[] Selections;
 
-    public SceneMenu(SceneManager sceneManager)
+    private readonly SceneManager SceneManager;
+    private int currentItem;
+
+    public SceneMenu(SceneManager sceneManager, SkyboxManager skyboxManager)
     {
-        this.SceneManager = sceneManager;        
+        this.SceneManager = sceneManager;
+        this.SkyboxManager = skyboxManager;
+        this.Selections = new string[]
+        {
+            @"Skyboxes\circus.hdr",
+            @"Skyboxes\hilly_terrain.hdr",
+            @"Skyboxes\industrial.hdr",
+            @"Skyboxes\testgrid.jpg",
+        };
     }
 
     public string Title => "Scenes";
 
     public void Update(float elapsed)
     {
-        if (ImGui.BeginListBox("Scenes"))
+        if (ImGui.BeginMenu("Scene"))
         {
             for (var i = 0; i < this.SceneManager.Scenes.Count; i++)
             {
-                var isSelected = i == this.currentItem;
-                if (ImGui.Selectable(this.SceneManager.Scenes[i].Title, isSelected))
+                var isEnabled = i != this.SceneManager.ActiveScene;
+                if (ImGui.MenuItem(this.SceneManager.Scenes[i].Title, isEnabled))
                 {
                     this.currentItem = i;
                     this.SceneManager.Set(this.currentItem);
                 }
             }
-            
-            ImGui.EndListBox();
+
+            ImGui.EndMenu();
+        }
+
+        if (ImGui.BeginMenu("Skybox"))
+        {
+            foreach (var selection in this.Selections)
+            {
+                if (ImGui.MenuItem(selection))
+                {
+                    this.SkyboxManager.SetSkybox(selection);
+                }
+            }
+
+            ImGui.EndMenu();
         }
     }
 }

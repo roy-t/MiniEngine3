@@ -89,7 +89,7 @@ PS_INPUT VSInstanced(VS_INPUT input, uint vertexId : SV_VertexID, uint instanceI
     {
         if (vertexId >= Parts[i].Offset)
         {
-            output.albedo = Parts[i].Albedo;
+            output.albedo = ToLinear(Parts[i].Albedo);
             output.metalicness = Parts[i].Metalicness;
             output.roughness = Parts[i].Roughness;
         }
@@ -101,7 +101,7 @@ PS_INPUT VSInstanced(VS_INPUT input, uint vertexId : SV_VertexID, uint instanceI
 #pragma PixelShader
 OUTPUT PS(PS_INPUT input)
 {
-    float4 albedo = ToLinear(input.albedo.rgba);
+    float4 albedo = input.albedo;
     clip(albedo.a - 0.5f);
     
     float3 V = normalize(CameraPosition - input.world);

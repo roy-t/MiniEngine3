@@ -7,7 +7,7 @@ using Mini.Engine.Graphics;
 namespace Mini.Engine.UI.Menus;
 
 [Service]
-internal class CameraMenu : IEditorMenu
+internal sealed class CameraMenu : IEditorMenu
 {
     private readonly FrameService FrameService;
     private readonly float[] DistanceOptions;

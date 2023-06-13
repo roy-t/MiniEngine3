@@ -13,7 +13,7 @@ internal class ContentLoader
     private readonly LifetimeManager LifetimeManager;
     private readonly IVirtualFileSystem FileSystem;
     private readonly HotReloader HotReloader;
-    
+
 
     public ContentLoader(ILogger logger, LifetimeManager lifetimeManager, IVirtualFileSystem fileSystem)
     {
@@ -22,9 +22,9 @@ internal class ContentLoader
         this.LifetimeManager = lifetimeManager;
         this.FileSystem = fileSystem;
         this.HotReloader = new HotReloader(lifetimeManager, logger, fileSystem);
-    }   
+    }
 
-    public ILifetime<TContent> Load<TContent, TWrapped, TSettings>(IContentProcessor<TContent, TWrapped, TSettings> processor, ContentId id, TSettings settings)
+    public ILifetime<TContent> Load<TContent, TWrapped, TSettings>(IContentProcessor<TContent, TWrapped, TSettings> processor, ContentId id, TSettings settings, bool rebuildOnFailure = true)
         where TContent : IDisposable
         where TWrapped : IContent, TContent
     {
@@ -41,8 +41,13 @@ internal class ContentLoader
             return resource;
         }
 
-        this.GenerateSerializedContent(processor, id, settings);
-        return this.Load(processor, id, settings);
+        if (rebuildOnFailure)
+        {
+            this.GenerateSerializedContent(processor, id, settings);
+            return this.Load(processor, id, settings, false);
+        }
+
+        throw new Exception("Failed to load serialized content");
     }
 
     private bool TryLoadSerializedContent<TContent, TWrapped, TSettings>(IContentProcessor<TContent, TWrapped, TSettings> processor, ContentId id, [NotNullWhen(true)] out ContentHeader? header, [NotNullWhen(true)] out TContent? content)
@@ -63,7 +68,7 @@ internal class ContentLoader
                     return true;
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 this.Logger.Warning(e, "Clould not load file {@file}, rebuilding", path);
             }
@@ -79,7 +84,7 @@ internal class ContentLoader
         where TWrapped : IContent, TContent
     {
 #if DEBUG
-        var wrapped = processor.Wrap(id, content, settings, header.Dependencies);        
+        var wrapped = processor.Wrap(id, content, settings, header.Dependencies);
         content = wrapped;
 #endif
         return content;
@@ -111,7 +116,7 @@ internal class ContentLoader
     {
         this.HotReloader.ReloadChangedContent();
     }
-    
+
     public void AddReloadCallback(ContentId id, Action callback)
     {
         this.HotReloader.AddReloadCallback(id, callback);

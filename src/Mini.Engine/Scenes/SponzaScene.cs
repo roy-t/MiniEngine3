@@ -2,12 +2,10 @@
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.Content.Models;
-using Mini.Engine.Content.Textures;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS;
-using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.PointLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Models;
@@ -31,15 +29,15 @@ public sealed class SponzaScene : IScene
     private readonly Device Device;
     private readonly ContentManager Content;
     private readonly ECSAdministrator Administrator;
-    private readonly CubeMapGenerator CubeMapGenerator;
+    private readonly SkyboxManager SkyboxManager;
 
-    public SponzaScene(LifetimeManager lifetimeManager, Device device, ContentManager content, ECSAdministrator administrator, CubeMapGenerator cubeMapGenerator)
+    public SponzaScene(LifetimeManager lifetimeManager, Device device, ContentManager content, ECSAdministrator administrator, SkyboxManager skyboxManager)
     {
         this.LifetimeManager = lifetimeManager;
         this.Device = device;
         this.Content = content;
         this.Administrator = administrator;
-        this.CubeMapGenerator = cubeMapGenerator;
+        this.SkyboxManager = skyboxManager;
     }
 
     public string Title => "Sponza";
@@ -98,16 +96,7 @@ public sealed class SponzaScene : IScene
             }),
             new LoadAction("Skybox", () =>
             {
-                var sky = this.Administrator.Entities.Create();
-                var texture = this.Content.LoadTexture(@"Skyboxes\circus.hdr", TextureSettings.RenderData);
-                var albedo = this.CubeMapGenerator.GenerateAlbedo(texture, sky.ToString());
-                var irradiance = this.CubeMapGenerator.GenerateIrradiance(texture, sky.ToString());
-                var environment = this.CubeMapGenerator.GenerateEnvironment(texture, sky.ToString());
-
-                var levels = this.Device.Resources.Get(environment).MipMapLevels;
-
-                ref var skybox = ref creator.Create<SkyboxComponent>(sky);
-                skybox.Init(albedo, irradiance, environment, levels, 0.1f);
+                this.SkyboxManager.SetCircusSkybox();
             })
         };
     }

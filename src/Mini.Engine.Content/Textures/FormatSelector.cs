@@ -63,6 +63,11 @@ internal static class FormatSelector
             {
                 return Format.BC7_UNorm;
             }
+
+            if (sourceFormat == TranscodeFormats.RGBA32)
+            {
+                return Format.B8G8R8A8_UNorm;
+            }
         }
         else
         {

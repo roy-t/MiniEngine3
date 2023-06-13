@@ -8,6 +8,7 @@ public interface IComponentContainer
     public bool Contains(Entity entity);
     void Remove(Entity entity);
     void UpdateLifeCycles();
+    bool IsEmpty { get; }
 }
 
 public interface IComponentContainer<T> : IComponentContainer
@@ -56,6 +57,8 @@ public sealed class ComponentContainer<T> : IComponentContainer<T>
         this.Bit = tracker.GetBit();
         this.ComponentTracker = tracker;
     }
+
+    public bool IsEmpty => this.Pool.IsEmpty;
 
     public Type ComponentType => typeof(T);
 

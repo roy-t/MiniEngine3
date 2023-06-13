@@ -21,41 +21,61 @@ public static class TrainCars
 
         var primitive = builder.Build(device, "Flatcar", out var bounds);
 
-        
+
         return new TrainCar(primitive, bounds, Transform.Identity);
     }
 
     private static void BuildWheel(PrimitiveMeshBuilder builder)
     {
         var partBuilder = builder.StartPart();
+      
+        BuildSide(partBuilder, 1.0f);
+        BuildSide(partBuilder, -1.0f);
         
-        BuildWheel(partBuilder, INNER_WHEEL_RADIUS, new Vector2(0, TrackParameters.SINGLE_RAIL_OFFSET - WHEEL_THICKNESS));
-        BuildWheel(partBuilder, OUTER_WHEEL_RADIUS, new Vector2(0, TrackParameters.SINGLE_RAIL_OFFSET));
-
-        BuildWheel(partBuilder, INNER_WHEEL_RADIUS, -new Vector2(0, TrackParameters.SINGLE_RAIL_OFFSET - WHEEL_THICKNESS));
-        BuildWheel(partBuilder, OUTER_WHEEL_RADIUS, -new Vector2(0, TrackParameters.SINGLE_RAIL_OFFSET));
-
-        //curve = new StraightCurve(new Vector2(2.0f, 0), Vector2.UnitY, WHEEL_THICKNESS);
-        //innerWheel = CrossSections.OuterWheel();
-        //BuildWheel(partBuilder, innerWheel, curve);
-
-        partBuilder.Transform(LEFT_WHEEL_TRANSFORM);
-
+        partBuilder.Transform(WHEEL_TRANSFORM);
         partBuilder.Complete(BOGIE_COLOR, BOGIE_METALICNESS, BOGIE_ROUGHNESS);
     }
 
-    private static void BuildWheel(PrimitiveMeshBuilder.PrimitiveMeshPartBuilder partBuilder, float radius, Vector2 offset)
+    private static void BuildSide(PrimitiveMeshBuilder.PrimitiveMeshPartBuilder partBuilder, float direction)
     {
-        var curve = new StraightCurve(new Vector2(offset.X, offset.Y - (WHEEL_THICKNESS * 0.5f)) , Vector2.UnitY, WHEEL_THICKNESS);
-        var crossSection = CrossSections.Circle(radius, WHEEL_VERTICES);
+        var plateOffset = direction * (TrackParameters.SINGLE_RAIL_OFFSET + OUTER_WHEEL_THICKNESS);
 
-        crossSection = new Path2D(crossSection.IsClosed, crossSection.Positions.Reverse().ToArray());
+        BuildWheelAndAxle(partBuilder, direction, WHEEL_SPACING * 0.5f);
+        BuildWheelAndAxle(partBuilder, direction, WHEEL_SPACING * -0.5f);
+        BuildPlate(partBuilder, OUTER_WHEEL_THICKNESS, new Vector2(0.0f, plateOffset));
+    }
+
+    private static void BuildWheelAndAxle(PrimitiveMeshBuilder.PrimitiveMeshPartBuilder partBuilder, float direction, float forward)
+    {        
+        var center = new Vector2(forward, direction * TrackParameters.SINGLE_RAIL_OFFSET);
+        var inner = center + new Vector2(0.0f, -direction * ((OUTER_WHEEL_THICKNESS * 0.5f) + (INNER_WHEEL_THICKNESS * 0.5f)));        
+        var outer = center + new Vector2(0.0f, +direction * ((OUTER_WHEEL_THICKNESS * 0.5f) + (INNER_WHEEL_THICKNESS * 0.5f) + OUTER_WHEEL_THICKNESS));
+
+        BuildWheel(partBuilder, INNER_WHEEL_RADIUS, INNER_WHEEL_THICKNESS, inner);
+        BuildWheel(partBuilder, OUTER_WHEEL_RADIUS, OUTER_WHEEL_THICKNESS, center);        
+        BuildWheel(partBuilder, AXLE_RADIUS, INNER_WHEEL_THICKNESS, outer);
+    }
+
+    private static void BuildWheel(PrimitiveMeshBuilder.PrimitiveMeshPartBuilder partBuilder, float radius, float length, Vector2 offset)
+    {
+        var crossSection = CrossSections.Circle(radius, WHEEL_VERTICES);
+        JoinEnds(partBuilder, crossSection, offset, length);
+    }
+
+    private static void BuildPlate(PrimitiveMeshBuilder.PrimitiveMeshPartBuilder partBuilder, float length, Vector2 offset)
+    {
+        var crossSection = CrossSections.Plate();
+        JoinEnds(partBuilder, crossSection, offset, length);
+    }
+
+    private static void JoinEnds(PrimitiveMeshBuilder.PrimitiveMeshPartBuilder partBuilder, Path2D crossSection, Vector2 offset, float length)
+    {
+        var curve = new StraightCurve(new Vector2(offset.X, offset.Y - (length * 0.5f)), Vector2.UnitY, length);
 
         Extruder.Extrude(partBuilder, crossSection, curve, 2, Vector3.UnitY);
 
-        // TODO: make it possible to transform a path so that we can also include the X component of offset to add the 3rd and 4th wheel!
-        Filler.Fill(partBuilder, crossSection.ToPath3D(curve.GetPosition3D(0).Z));
-        Filler.Fill(partBuilder, crossSection.ToPath3D(curve.GetPosition3D(1).Z).Reverse());
+        Filler.Fill(partBuilder, crossSection.ToPath3D().Transform(Matrix4x4.CreateTranslation(curve.GetPosition3D(0))));
+        Filler.Fill(partBuilder, crossSection.ToPath3D().Transform(Matrix4x4.CreateTranslation(curve.GetPosition3D(1))).Reverse());
     }
 }
 

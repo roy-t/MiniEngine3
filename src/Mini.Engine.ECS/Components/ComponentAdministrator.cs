@@ -20,6 +20,13 @@ public sealed class ComponentAdministrator
         var container = this.ContainerStore.GetContainer<T>();
         return ref container.Create(entity);
     }
+
+    public bool HasComponent<T>(Entity entity)
+        where T : struct, IComponent
+    {
+        var store = this.ContainerStore.GetContainer<T>();
+        return entity.HasComponent(store);
+    }
  
     public ref Component<T> GetComponent<T>(Entity entity)
         where T : struct, IComponent

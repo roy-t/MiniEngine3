@@ -40,7 +40,7 @@ public sealed class BrdfLutProcessor : ContentProcessor<ITexture, TextureContent
 
     protected override void WriteSettings(ContentId id, TextureSettings _, ContentWriter writer)
     {
-        var settings = new TextureSettings(SuperCompressed.Mode.Linear, false);
+        var settings = new TextureSettings(SuperCompressed.Mode.Linear, false, false);
         writer.Write(settings);
     }
 

@@ -7,17 +7,20 @@ namespace Mini.Engine.Diesel.Trains;
 public static class TrainParameters
 {
 
-    public static int WHEEL_VERTICES => 10;
+    public static int WHEEL_VERTICES => 20;
     public static float INNER_WHEEL_RADIUS => 1.1f / 2.0f;
     public static float OUTER_WHEEL_RADIUS => 0.9f / 2.0f;
-    public static float WHEEL_THICKNESS => 0.1f;
+    public static float INNER_WHEEL_THICKNESS => 0.05f;
+    public static float OUTER_WHEEL_THICKNESS => 0.15f;
+    public static float AXLE_RADIUS => 0.125f;
+    public static float WHEEL_SPACING => 1.4f;
 
-    public static Color4 BOGIE_COLOR => new(0.2f, 0.2f, 0.2f);
-    public static float BOGIE_METALICNESS => 0.9f;
-    public static float BOGIE_ROUGHNESS => 0.5f;
+    public static Color4 BOGIE_COLOR => new(112, 96, 88);
+    public static float BOGIE_METALICNESS => 0.6f;
+    public static float BOGIE_ROUGHNESS => 0.1f;
     
 
-    public static Transform LEFT_WHEEL_TRANSFORM
+    public static Transform WHEEL_TRANSFORM
     {
         get
         {            

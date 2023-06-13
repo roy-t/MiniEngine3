@@ -4,12 +4,12 @@ namespace Mini.Engine.Diesel.Tracks;
 public static class TrackParameters
 {
     public static Color4 RAIL_COLOR => new(0.4f, 0.28f, 0.30f, 1.0f);
-    public static float RAIL_METALICNESS => 0.5f;
-    public static float RAIL_ROUGHNESS => 0.1f;
+    public static float RAIL_METALICNESS => 0.6f;
+    public static float RAIL_ROUGHNESS => 0.05f;
 
     public static Color4 RAIL_TIE_COLOR => new(0.4f, 0.4f, 0.4f, 1.0f);
     public static float RAIL_TIE_METALICNESS => 0.1f;
-    public static float RAIL_TIE_ROUGHNESS => 0.5f;
+    public static float RAIL_TIE_ROUGHNESS => 0.8f;
 
     public static Color4 BALLAST_COLOR => new(0.33f, 0.27f, 0.25f, 1.0f);
     public static float BALLAST_METALICNESS => 0.0f;

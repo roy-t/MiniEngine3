@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using LibGame.Mathematics;
-using Mini.Engine.Core;
 
 namespace Mini.Engine.Modelling.Paths;
 public static class PathExtensions
@@ -15,6 +14,17 @@ public static class PathExtensions
         var positions = new Vector3[original.Positions.Length];
         Array.Copy(original.Positions, positions, positions.Length);
         Array.Reverse(positions);
+        return new Path3D(original.IsClosed, positions);
+    }
+
+    public static Path3D Transform(this Path3D original, in Matrix4x4 matrix)
+    {
+        var positions = new Vector3[original.Positions.Length];
+        for (var i = 0; i < original.Positions.Length; i++)
+        {
+            positions[i] = Vector3.Transform(original.Positions[i], matrix);
+        }
+
         return new Path3D(original.IsClosed, positions);
     }
 }

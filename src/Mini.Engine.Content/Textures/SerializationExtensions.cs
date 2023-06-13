@@ -8,13 +8,15 @@ public static class SerializationExtensions
     {
         writer.Write((int)settings.Mode);
         writer.Write(settings.ShouldMipMap);
+        writer.Write(settings.ForceUncompressed);
     }
 
     public static TextureSettings ReadTextureSettings(this ContentReader reader)
     {
         var mode = (Mode)reader.ReadInt();
         var shouldMipMap = reader.ReadBool();
+        var forceUncompressed = reader.ReadBool();
 
-        return new TextureSettings(mode, shouldMipMap);
+        return new TextureSettings(mode, shouldMipMap, forceUncompressed);
     }
 }

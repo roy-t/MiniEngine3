@@ -8,7 +8,7 @@ namespace Mini.Engine.Content.Textures;
 
 internal sealed class SdrTextureProcessor : ContentProcessor<ITexture, TextureContent, TextureSettings>
 {
-    private const int ProcessorVersion = 6;
+    private const int ProcessorVersion = 7;
     private static readonly Guid ProcessorType = new("{7AED564E-32B4-4F20-B14A-2D209F0BABBD}");
 
     private readonly Device Device;
@@ -39,7 +39,13 @@ internal sealed class SdrTextureProcessor : ContentProcessor<ITexture, TextureCo
 
     protected override ITexture ReadBody(ContentId id, TextureSettings settings, ContentReader reader)
     {
-        return SdrTextureReader.Read(this.Device, id, reader, settings, TranscodeFormats.BC7_RGBA);
+        var preferredFormat = TranscodeFormats.BC7_RGBA;
+        if (settings.ForceUncompressed)
+        {
+            preferredFormat = TranscodeFormats.RGBA32;
+        }
+
+        return SdrTextureReader.Read(this.Device, id, reader, settings, preferredFormat);
     }
 
     public override TextureContent Wrap(ContentId id, ITexture content, TextureSettings settings, ISet<string> dependencies)
