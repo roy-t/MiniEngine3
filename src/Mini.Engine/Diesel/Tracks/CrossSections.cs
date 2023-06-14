@@ -14,7 +14,7 @@ public static class CrossSections
 
         var h = new Vector2(0, BALLAST_HEIGHT_TOP);
 
-        return new Path2D(true, topRight + h, bottomRight + h, bottomLeft + h, topLeft + h);
+        return new Path2D(false, bottomLeft + h, topLeft + h, topRight + h, bottomRight + h);
     }
 
     public static Path2D BallastCrossSection()
@@ -27,7 +27,7 @@ public static class CrossSections
         var middleLeft = new Vector2(-BALLAST_WIDTH_MIDDLE / 2.0f, BALLAST_HEIGHT_MIDDLE);
         var topLeft = new Vector2(-BALLAST_WIDTH_TOP / 2.0f, BALLAST_HEIGHT_TOP);
 
-        return new Path2D(true, topRight, middleRight, bottomRight, bottomLeft, middleLeft, topLeft);
+        return new Path2D(false, bottomLeft, middleLeft, topLeft, topRight, middleRight, bottomRight);
     }
 
     public static Path3D TieCrossSectionFront()
@@ -36,6 +36,7 @@ public static class CrossSections
         return new Path3D(true, path);
     }
 
+    // TODO: can we make these bottoms invisible?
     public static Path3D TieCrossSectionBack()
     {
         var path = TieCrossSectionArray();

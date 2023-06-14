@@ -7,8 +7,10 @@ namespace Mini.Engine.Diesel.Trains;
 public static class CrossSections
 {
 
-    public static Path2D Circle(float r, int length)
+    public static Path2D Wheel(float r, int length)
     {
+        // TODO: check out how much of the bottom part of the wheel we can ignore
+        // because it is invisible from the regular camera positions
         var vertices = new Vector2[length];
         
         for (var i = 0; i < vertices.Length; i++)
@@ -32,15 +34,15 @@ public static class CrossSections
         var maxX = (WHEEL_SPACING * +0.5f) + INNER_WHEEL_RADIUS * 0.8f;
 
         var vertices = new Vector2[]
-        {
-            new Vector2(maxX, maxY),
-            new Vector2(maxX, midY),
-            new Vector2(rmiX, minY),
+        {            
             new Vector2(lmiX, minY),
             new Vector2(minX, midY),
             new Vector2(minX, maxY),
+            new Vector2(maxX, maxY),
+            new Vector2(maxX, midY),
+            new Vector2(rmiX, minY),
         };
 
-        return new Path2D(true, vertices);
+        return new Path2D(false, vertices);
     }
 }
