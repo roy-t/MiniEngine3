@@ -51,7 +51,7 @@ internal sealed class GameLoop : IGameLoop
         this.FrameService = frameService;
         this.Content = content;
 
-        this.LifetimeManager.PushFrame("Game");
+        this.LifetimeManager.PushFrame(nameof(GameLoop));
 
         this.EditorState.Restore();
         this.SceneManager.Set(this.EditorState.PreferredScene);
@@ -118,10 +118,6 @@ internal sealed class GameLoop : IGameLoop
 
     public void Dispose()
     {
-        this.SceneManager.ClearScene();
-
-        this.LifetimeManager.PopFrame(); // Game
-
         this.EditorState.Save();
     }
 }

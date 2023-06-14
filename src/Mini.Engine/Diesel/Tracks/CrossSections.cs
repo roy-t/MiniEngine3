@@ -33,10 +33,9 @@ public static class CrossSections
     public static Path3D TieCrossSectionFront()
     {
         var path = TieCrossSectionArray();       
-        return new Path3D(true, path);
+        return new Path3D(false, path);
     }
 
-    // TODO: can we make these bottoms invisible?
     public static Path3D TieCrossSectionBack()
     {
         var path = TieCrossSectionArray();
@@ -47,7 +46,7 @@ public static class CrossSections
             path[i] = new Vector3(vertex.X, vertex.Y, -vertex.Z);
         }
 
-        return new Path3D(true, path);
+        return new Path3D(false, path);
     }
 
     private static Vector3[] TieCrossSectionArray()
@@ -60,13 +59,12 @@ public static class CrossSections
         var halfWidthBottom = RAIL_TIE_WIDTH_BOTTOM / 2.0f;
 
         var front = new Vector3[]
-        {
-            new Vector3(halfWidthTop, RAIL_TIE_HEIGHT, halfDepthTop) + h,
-            new Vector3(halfWidthBottom, 0.0f, halfDepthBottom) + h,
-            new Vector3(0.0f, 0.0f, halfDepthBottom) + h,
+        {            
             new Vector3(-halfWidthBottom, 0.0f, halfDepthBottom) + h,
             new Vector3(-halfWidthTop, RAIL_TIE_HEIGHT, halfDepthTop) + h,
             new Vector3(0.0f, RAIL_TIE_MID_HEIGHT, halfDepthTop) + h,
+            new Vector3(halfWidthTop, RAIL_TIE_HEIGHT, halfDepthTop) + h,
+            new Vector3(halfWidthBottom, 0.0f, halfDepthBottom) + h
         };
 
         return front;

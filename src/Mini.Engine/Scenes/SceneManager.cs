@@ -49,7 +49,7 @@ internal sealed class SceneManager
         if (this.activeScene >= 0)
         {
             this.Administrator.RemoveAll();
-            this.LifetimeManager.PopFrame();
+            this.LifetimeManager.PopFrame(this.Scenes[this.activeScene].Title);
         }
     }
 
@@ -60,7 +60,7 @@ internal sealed class SceneManager
         this.activeScene = index;
         var title = this.Scenes[this.activeScene].Title;
 
-        this.LifetimeManager.PushFrame($"Scene: {title}");
+        this.LifetimeManager.PushFrame(title);
         var actions = this.Scenes[this.activeScene].Load();        
         this.LoadingScreen.Load(actions, title);
 

@@ -1,4 +1,5 @@
 ﻿using Mini.Engine.Configuration;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.ECS.Components;
 
 namespace Mini.Engine;

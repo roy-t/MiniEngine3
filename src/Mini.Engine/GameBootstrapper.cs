@@ -14,7 +14,7 @@ namespace Mini.Engine;
 // TODO: this class is getting quite long with a lot of mixed reponsibilities
 public sealed class GameBootstrapper
 {
-    private static readonly ushort Escape = InputService.GetScanCode(VK_ESCAPE);    
+    private static readonly ushort Escape = InputService.GetScanCode(VK_ESCAPE);
 
     private readonly LifetimeManager LifetimeManager;
     private readonly Win32Window Window;
@@ -26,7 +26,7 @@ public sealed class GameBootstrapper
     private IGameLoop gameLoop;
 
     private readonly InputService InputService;
-    private readonly Keyboard Keyboard;    
+    private readonly Keyboard Keyboard;
 
     private int width;
     private int height;
@@ -47,7 +47,7 @@ public sealed class GameBootstrapper
         this.LifetimeManager = new LifetimeManager(this.Logger);
         this.LifetimeManager.PushFrame(nameof(GameBootstrapper));
 
-        this.Device = new Device(this.Window.Handle, this.width, this.height, this.LifetimeManager);        
+        this.Device = new Device(this.Window.Handle, this.width, this.height, this.LifetimeManager);
         this.InputService = new InputService(this.Window);
         this.Keyboard = new Keyboard();
         this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
@@ -71,11 +71,11 @@ public sealed class GameBootstrapper
 
     [MemberNotNull(nameof(gameLoop), nameof(metrics))]
     private void RunLoadingScreenAndLoad(Type gameLoopType, Services services)
-    {        
+    {
         var loadingScreen = services.Resolve<LoadingScreen>();
         var initializationOrder = InjectableDependencies.CreateInitializationOrder(gameLoopType);
         var serviceActions = initializationOrder.Select(t => new LoadAction(t.Name, () => services.Resolve(t)));
-        
+
         IGameLoop? gameLoop = null;
         MetricService? metrics = null;
 
@@ -85,7 +85,7 @@ public sealed class GameBootstrapper
             new LoadAction(nameof(MetricService), () => metrics = services.Resolve<MetricService>())
         };
 
-        loadingScreen.Load(actions, "gameloop");        
+        loadingScreen.Load(actions, "gameloop");
 
         this.gameLoop = gameLoop!;
         this.metrics = metrics!;
@@ -93,7 +93,7 @@ public sealed class GameBootstrapper
 
     public void Run()
     {
-        var stopwatch = new Stopwatch();        
+        var stopwatch = new Stopwatch();
         const double dt = 1.0 / 60.0; // constant tick rate of simulation
 
         // update immediately
@@ -145,12 +145,14 @@ public sealed class GameBootstrapper
 
             this.metrics.Update("GameBootstrapper.Run.Millis", (float)stopwatch.Elapsed.TotalMilliseconds);
             this.metrics.UpdateBuiltInGauges();
-        }     
+        }
+
+        this.LifetimeManager.Clear();
     }
 
     private void ResizeDeviceResources()
     {
-        this.Device.Resize(this.width, this.height);        
+        this.Device.Resize(this.width, this.height);
         this.gameLoop.Resize(this.width, this.height);
     }
 
@@ -165,7 +167,7 @@ public sealed class GameBootstrapper
                 this.Logger.Information("Started RenderDoc");
             }
             else
-            {                
+            {
                 this.Logger.Warning("Could not start RenderDoc");
             }
         }

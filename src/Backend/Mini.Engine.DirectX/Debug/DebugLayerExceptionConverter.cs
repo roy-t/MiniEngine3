@@ -56,6 +56,7 @@ internal sealed class DebugLayerExceptionConverter
 
         if (exceptions.Count > 1)
         {
+            // TODO: somehow the primitive system sometimes keeps a context or shader resource view or something alive, not sure why its not disposed
             throw new AggregateException(exceptions);
         }
     }

@@ -2,6 +2,7 @@
 
 namespace Mini.Engine.Core.Lifetime;
 
+
 public sealed class LifetimeManager : IDisposable
 {
     private int version = 0;
@@ -18,6 +19,8 @@ public sealed class LifetimeManager : IDisposable
         this.Pool = new VersionedPool();
         this.Frames = new Stack<Frame>();
     }
+
+    public int FrameCount => this.Frames.Count;
 
     public ILifetime<T> Add<T>(T disposable)
         where T : IDisposable
@@ -41,26 +44,39 @@ public sealed class LifetimeManager : IDisposable
         return (T)this.Pool[lifetime];
     }
 
-    public void PushFrame(string name)
+    public void PushFrame(string id)
     {
-        this.Logger.Information("Pushing lifetime frame {@frame}", name);
+        this.Logger.Information("Pushing lifetime frame {@frame}", id);
         this.version++;
-        this.Frames.Push(new Frame(name, this.version));
+        this.Frames.Push(new Frame(id, this.version));
     }
 
-    public void PopFrame()
-    {        
+    public void PopFrame(string id)
+    {
         var frame = this.Frames.Pop();
+        if (frame.Name != id)
+        {
+            throw new Exception($"Unexpected frame, expected: {id} actual: {frame.Name}");
+        }
         this.Logger.Information("Disposing lifetime frame {@frame} v{@index}", frame.Name, frame.Version);
 
         this.Pool.DisposeAll(frame.Version);
     }
 
+    public void Clear()
+    {
+        while(this.Frames.Count > 0)
+        {
+            var name = this.Frames.Peek().Name;
+            this.PopFrame(name);
+        }
+    }
+
     public void Dispose()
     {
-        while (this.Frames.Count > 0)
+        if (this.Frames.Count > 0)
         {
-            this.PopFrame();
+            throw new Exception("All frames should have been disposed before LifetimeManager is disposed");
         }
     }
 }

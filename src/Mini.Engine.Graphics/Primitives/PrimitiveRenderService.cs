@@ -11,7 +11,7 @@ using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Transforms;
 using Vortice.Direct3D;
-using Vortice.Mathematics;
+
 using Shader = Mini.Engine.Content.Shaders.Generated.Primitive;
 
 namespace Mini.Engine.Graphics.Primitives;
@@ -81,7 +81,7 @@ public sealed class PrimitiveRenderService : IDisposable
 
         this.User.MapConstants(context, previousViewProjection, viewProjection, previousWorld, world, cameraPosition, cameraComponent.PreviousJitter, cameraComponent.Jitter, (uint)mesh.PartCount);
 
-        context.DrawIndexedInstanced(mesh.IndexCount, instancesComponent.InstanceCount);
+        context.DrawIndexedInstanced(mesh.IndexCount, instancesComponent.InstanceCount);        
     }
 
     public void SetupAndRenderAllPrimitiveDepths(DeviceContext context, float importanceThreshold, in Rectangle viewport, in Rectangle scissor, in Frustum viewVolume, in Matrix4x4 viewProjection)
