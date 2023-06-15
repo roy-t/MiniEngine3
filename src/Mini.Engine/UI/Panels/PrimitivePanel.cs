@@ -126,8 +126,7 @@ internal class PrimitivePanel : IEditorPanel
         var creator = this.Administrator.Components;    
 
         ref var instances = ref creator.Create<InstancesComponent>(entity);
-        instances.InstanceBuffer = this.Instance($"{name}_instances", matrices);
-        instances.InstanceCount = matrices.Length;
+        instances.Init(this.Device, $"{name}_instances", matrices);        
 
         ref var transform = ref creator.Create<TransformComponent>(entity);
         transform.Current = Transform.Identity;
@@ -140,11 +139,5 @@ internal class PrimitivePanel : IEditorPanel
         shadowCaster.Importance = 0.0f;
     }
 
-    private ILifetime<StructuredBuffer<Matrix4x4>> Instance(string name, params Matrix4x4[] instances)
-    {
-        var buffer = new StructuredBuffer<Matrix4x4>(this.Device, name);
-        buffer.MapData(this.Device.ImmediateContext, instances);
-
-        return this.Device.Resources.Add(buffer);
-    }
+   
 }

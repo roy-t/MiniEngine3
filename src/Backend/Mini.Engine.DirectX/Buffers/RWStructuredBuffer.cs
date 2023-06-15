@@ -7,10 +7,6 @@ namespace Mini.Engine.DirectX.Buffers;
 public sealed class RWStructuredBuffer<T> : StructuredBuffer<T>
     where T : unmanaged
 {
-    private int firstElement;
-    private int length;
-    private ID3D11UnorderedAccessView? uav;
-
     public RWStructuredBuffer(Device device, string user, int elements)
         : base(device, user, "RW")
     {
@@ -52,40 +48,40 @@ public sealed class RWStructuredBuffer<T> : StructuredBuffer<T>
         ctx.Unmap(deviceBuffer.Buffer);
     }
 
-    internal ID3D11UnorderedAccessView GetUnorderedAccessView()
+    public UnorderedAccessView<T> CreateUnorderedAccessView()
     {
-        return this.GetUnorderedAccessView(0, this.Length);
+        return this.CreateUnorderedAccessView(0, this.Length);
     }
 
-    // TODO: do we really need to cache these?
-    internal ID3D11UnorderedAccessView GetUnorderedAccessView(int firstElement, int length)
+    public UnorderedAccessView<T> CreateUnorderedAccessView(int firstElement, int length)
     {
-        if (this.firstElement != firstElement || this.length != length || this.uav == null)
+        var uav = this.CreateUAV(firstElement, length);
+        return new UnorderedAccessView<T>(uav);
+    }
+
+    private ID3D11UnorderedAccessView CreateUAV(int firstElement, int length)
+    {
+        var bufferDescription = new BufferUnorderedAccessView()
         {
-            var bufferDescription = new BufferUnorderedAccessView()
-            {
-                FirstElement = firstElement,
-                NumElements = length,
-                Flags = BufferUnorderedAccessViewFlags.None
-            };
+            FirstElement = firstElement,
+            NumElements = length,
+            Flags = BufferUnorderedAccessViewFlags.None
+        };
 
-            var description = new UnorderedAccessViewDescription()
-            {
-                Buffer = bufferDescription,
-                Format = Format.Unknown,
-                ViewDimension = UnorderedAccessViewDimension.Buffer
-            };
+        var description = new UnorderedAccessViewDescription()
+        {
+            Buffer = bufferDescription,
+            Format = Format.Unknown,
+            ViewDimension = UnorderedAccessViewDimension.Buffer
+        };
 
-            this.uav?.Dispose();
-            this.uav = this.Device.CreateUnorderedAccessView(this.Buffer, description);
+        
+        var uav = this.Device.CreateUnorderedAccessView(this.Buffer, description);
+        uav.DebugName = this.Name + $"_UAV_{Guid.NewGuid()}";
 
-            this.firstElement = firstElement;
-            this.length = length;
-        }
-
-        return this.uav;
+        return uav;
     }
-
+  
     protected override ID3D11Buffer CreateBuffer(int sizeInBytes)
     {
         var structuredBufferDesc = new BufferDescription
@@ -103,7 +99,6 @@ public sealed class RWStructuredBuffer<T> : StructuredBuffer<T>
 
     public override void Dispose()
     {
-        this.uav?.Dispose();
         base.Dispose();
     }
 }

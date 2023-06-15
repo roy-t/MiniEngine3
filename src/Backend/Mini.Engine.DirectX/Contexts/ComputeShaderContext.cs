@@ -39,16 +39,10 @@ public sealed class ComputeShaderContext : DeviceContextPart
         this.ID3D11DeviceContext.CSSetShaderResource(slot, texture.ShaderResourceView);
     }
 
-    public void SetShaderResource<T>(int slot, StructuredBuffer<T> buffer)
+    public void SetShaderResource<T>(int slot, ShaderResourceView<T> view)
         where T : unmanaged
-    {
-        this.ID3D11DeviceContext.CSSetShaderResource(slot, buffer.GetShaderResourceView());
-    }
-
-    public void SetShaderResource<T>(int slot, StructuredBuffer<T> buffer, int firstElement, int length)
-        where T : unmanaged
-    {
-        this.ID3D11DeviceContext.CSSetShaderResource(slot, buffer.GetShaderResourceView(firstElement, length));
+    {        
+        this.ID3D11DeviceContext.CSSetShaderResource(slot, view.View);
     }
 
     public void SetConstantBuffer<T>(int slot, ConstantBuffer<T> buffer)
@@ -72,17 +66,11 @@ public sealed class ComputeShaderContext : DeviceContextPart
         this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, texture.UnorderedAccessViews[mipMapSlice]);
     }
 
-    public void SetUnorderedAccessView<T>(int slot, RWStructuredBuffer<T> buffer)
+    public void SetUnorderedAccessView<T>(int slot, UnorderedAccessView<T> view)
         where T : unmanaged
     {
-        this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, buffer.GetUnorderedAccessView());
-    }
-
-    public void SetUnorderedAccessView<T>(int slot, RWStructuredBuffer<T> buffer, int firstElement, int length)
-        where T : unmanaged
-    {
-        this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, buffer.GetUnorderedAccessView(firstElement, length));
-    }
+        this.ID3D11DeviceContext.CSSetUnorderedAccessView(slot, view.View);
+    }    
 
     public void Dispatch(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ)
     {

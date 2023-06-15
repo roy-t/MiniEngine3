@@ -16,6 +16,7 @@ public sealed class PrimitiveMesh : IDisposable
     public readonly int VertexCount;
 
     public readonly StructuredBuffer<MeshPart> Parts;
+    public readonly ShaderResourceView<MeshPart> PartsView;
     public readonly int PartCount;
 
     public readonly BoundingBox Bounds;
@@ -34,6 +35,8 @@ public sealed class PrimitiveMesh : IDisposable
         this.Parts.MapData(device.ImmediateContext, parts);
         this.PartCount = parts.Length;
 
+        this.PartsView = this.Parts.CreateShaderResourceView();
+
         this.Bounds = bounds;
     }
 
@@ -42,5 +45,6 @@ public sealed class PrimitiveMesh : IDisposable
         this.Vertices.Dispose();
         this.Indices.Dispose();
         this.Parts.Dispose();
+        this.PartsView.Dispose();
     }
 }

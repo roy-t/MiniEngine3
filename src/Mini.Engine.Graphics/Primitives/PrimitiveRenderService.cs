@@ -76,8 +76,8 @@ public sealed class PrimitiveRenderService : IDisposable
 
         context.IA.SetVertexBuffer(mesh.Vertices);
         context.IA.SetIndexBuffer(mesh.Indices);
-        context.VS.SetBuffer(Shader.Parts, mesh.Parts);
-        context.VS.SetBuffer(Shader.Instances, instancesComponent.InstanceBuffer);
+        context.VS.SetBuffer(Shader.Parts, mesh.PartsView);
+        context.VS.SetBuffer(Shader.Instances, instancesComponent.InstanceBufferView);
 
         this.User.MapConstants(context, previousViewProjection, viewProjection, previousWorld, world, cameraPosition, cameraComponent.PreviousJitter, cameraComponent.Jitter, (uint)mesh.PartCount);
 
@@ -112,7 +112,7 @@ public sealed class PrimitiveRenderService : IDisposable
 
         context.IA.SetVertexBuffer(mesh.Vertices);
         context.IA.SetIndexBuffer(mesh.Indices);
-        context.VS.SetBuffer(Shader.Instances, instancesComponent.InstanceBuffer);
+        context.VS.SetBuffer(Shader.Instances, instancesComponent.InstanceBufferView);
 
         this.User.MapDepthConstants(context, viewProjection, world);
 

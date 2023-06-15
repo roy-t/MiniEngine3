@@ -18,9 +18,9 @@ internal sealed class DebugLayerExceptionConverter
     }
 
     public void Register(IDXGIInfoQueue infoQueue, Guid producer)
-    {        
+    {
         this.Providers.Add(new DxgiDebugMessageProvider(infoQueue, producer));
-    }
+    }    
 
     public void CheckExceptions()
     {
@@ -47,6 +47,11 @@ internal sealed class DebugLayerExceptionConverter
                 }
 
             }
+        }
+
+        if (exceptions.Any())
+        {
+            File.WriteAllLines("DebugLayerLog.txt", buffer.Select(m => m.ToString()));
         }
 
         if (exceptions.Count == 1)

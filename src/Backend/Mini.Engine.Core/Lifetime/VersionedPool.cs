@@ -39,7 +39,7 @@ internal sealed class VersionedPool
 
     public void DisposeAll(int version)
     {
-        for(var i = 0; i < this.Records.Capacity; i++)
+        for (var i = this.Records.Capacity - 1; i >= 0; i--)
         {
             if (this.Records.IsOccupied(i))
             {
@@ -50,6 +50,6 @@ internal sealed class VersionedPool
                     this.Records.Remove(i);
                 }
             }
-        }        
-    }  
+        }
+    }
 }

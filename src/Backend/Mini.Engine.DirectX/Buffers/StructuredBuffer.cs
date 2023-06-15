@@ -6,51 +6,46 @@ namespace Mini.Engine.DirectX.Buffers;
 public class StructuredBuffer<T> : DeviceBuffer<T>
     where T : unmanaged
 {
-    private int firstElement;
-    private int length;
-    private ID3D11ShaderResourceView? srv;
-
-
     protected StructuredBuffer(Device device, string user, string abbreviation)
         : base(device, user, abbreviation)
     {
-        this.EnsureCapacity(1);
+        this.EnsureCapacity(1);        
     }
 
     public StructuredBuffer(Device device, string user)
         : this(device, user, "R") { }
 
-    internal ID3D11ShaderResourceView GetShaderResourceView()
+
+    public ShaderResourceView<T> CreateShaderResourceView()
     {
-        return this.GetShaderResourceView(0, this.Length);
+        return this.CreateShaderResourceView(0, this.Length);
     }
 
-    // TODO: do we really need to cache these?
-    internal ID3D11ShaderResourceView GetShaderResourceView(int firstElement, int length)
+    public ShaderResourceView<T> CreateShaderResourceView(int firstElement, int length)
     {
-        if (this.firstElement != firstElement || this.length != length || this.srv == null)
+        var srv = this.CreateSRV(firstElement, length);
+        return new ShaderResourceView<T>(srv);
+    }
+
+    private ID3D11ShaderResourceView CreateSRV(int firstElement, int length)
+    {
+        var bufferDescription = new BufferShaderResourceView()
         {
-            var bufferDescription = new BufferShaderResourceView()
-            {
-                FirstElement = firstElement,
-                NumElements = length
-            };
+            FirstElement = firstElement,
+            NumElements = length
+        };
 
-            var description = new ShaderResourceViewDescription()
-            {
-                Buffer = bufferDescription,
-                Format = Format.Unknown,
-                ViewDimension = Vortice.Direct3D.ShaderResourceViewDimension.Buffer
-            };
+        var description = new ShaderResourceViewDescription()
+        {
+            Buffer = bufferDescription,
+            Format = Format.Unknown,
+            ViewDimension = Vortice.Direct3D.ShaderResourceViewDimension.Buffer
+        };
 
-            this.srv?.Dispose();
-            this.srv = this.Device.CreateShaderResourceView(this.Buffer, description);
+        var srv = this.Device.CreateShaderResourceView(this.Buffer, description);
+        srv.DebugName = this.Name + $"_SRV_{Guid.NewGuid()}";
 
-            this.firstElement = firstElement;
-            this.length = length;
-        }
-
-        return this.srv;
+        return srv;
     }
 
     protected override ID3D11Buffer CreateBuffer(int sizeInBytes)
@@ -69,8 +64,7 @@ public class StructuredBuffer<T> : DeviceBuffer<T>
     }
 
     public override void Dispose()
-    {
-        this.srv?.Dispose();
+    {        
         base.Dispose();
         GC.SuppressFinalize(this);
     }
