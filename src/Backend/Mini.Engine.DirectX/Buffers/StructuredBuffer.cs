@@ -18,7 +18,10 @@ public class StructuredBuffer<T> : DeviceBuffer<T>
 
     public ShaderResourceView<T> CreateShaderResourceView()
     {
-        return this.CreateShaderResourceView(0, this.Length);
+        var srv = this.Device.CreateShaderResourceView(this.Buffer, null);
+        srv.DebugName = this.Name + $"_SRV_{Guid.NewGuid()}";
+
+        return new ShaderResourceView<T>(srv);
     }
 
     public ShaderResourceView<T> CreateShaderResourceView(int firstElement, int length)
@@ -42,7 +45,7 @@ public class StructuredBuffer<T> : DeviceBuffer<T>
             ViewDimension = Vortice.Direct3D.ShaderResourceViewDimension.Buffer
         };
 
-        var srv = this.Device.CreateShaderResourceView(this.Buffer, description);
+        var srv = this.Device.CreateShaderResourceView(this.Buffer, description);        
         srv.DebugName = this.Name + $"_SRV_{Guid.NewGuid()}";
 
         return srv;

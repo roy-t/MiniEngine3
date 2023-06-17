@@ -34,7 +34,7 @@ public sealed class RWStructuredBuffer<T> : StructuredBuffer<T>
     {
         var ctx = context.ID3D11DeviceContext;
 
-        var source = ctx.Map(this.Buffer, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);        
+        var source = ctx.Map(this.Buffer, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);
         var target = ctx.Map(deviceBuffer.Buffer, 0, MapMode.WriteDiscard, Vortice.Direct3D11.MapFlags.None);
 
         ctx.Flush();
@@ -50,7 +50,10 @@ public sealed class RWStructuredBuffer<T> : StructuredBuffer<T>
 
     public UnorderedAccessView<T> CreateUnorderedAccessView()
     {
-        return this.CreateUnorderedAccessView(0, this.Length);
+        var uav = this.Device.CreateUnorderedAccessView(this.Buffer, null);
+        uav.DebugName = this.Name + $"_UAV_{Guid.NewGuid()}";
+
+        return new UnorderedAccessView<T>(uav);
     }
 
     public UnorderedAccessView<T> CreateUnorderedAccessView(int firstElement, int length)
@@ -75,13 +78,13 @@ public sealed class RWStructuredBuffer<T> : StructuredBuffer<T>
             ViewDimension = UnorderedAccessViewDimension.Buffer
         };
 
-        
+
         var uav = this.Device.CreateUnorderedAccessView(this.Buffer, description);
         uav.DebugName = this.Name + $"_UAV_{Guid.NewGuid()}";
 
         return uav;
     }
-  
+
     protected override ID3D11Buffer CreateBuffer(int sizeInBytes)
     {
         var structuredBufferDesc = new BufferDescription

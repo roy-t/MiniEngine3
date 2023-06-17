@@ -12,7 +12,7 @@ public struct InstancesComponent : IComponent
     public ILifetime<ShaderResourceView<Matrix4x4>> InstanceBufferView;
     public int InstanceCount;
 
-    public void Init(Device device, string name, params Matrix4x4[] instances)
+    public void Init(Device device, string name, ReadOnlySpan<Matrix4x4> instances)
     {
         var buffer = new StructuredBuffer<Matrix4x4>(device, name);
         buffer.MapData(device.ImmediateContext, instances);
