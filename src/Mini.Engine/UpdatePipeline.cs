@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
+using Mini.Engine.Diesel.Tracks;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
@@ -14,7 +15,8 @@ internal sealed record class UpdateSystems
     CameraSystem Camera,
     ComponentLifeCycleSystem ComponentLifeCycle,
     TransformSystem Transform,
-    CascadedShadowMapSystem CascadedShadowMap
+    CascadedShadowMapSystem CascadedShadowMap,
+    TrackManager TrackManager
 );
 
 [Service]
@@ -44,23 +46,25 @@ internal sealed class UpdatePipeline
         this.Systems.Camera.Update();
         this.Systems.CascadedShadowMap.Update();
 
+        this.Systems.TrackManager.Update();
+
         // TODO: add more systems that can run in parallel
-        this.ProcessQueue();
+        //this.ProcessQueue();
 
         this.MetricService.Update("UpdatePipeline.Run.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
     }
 
-    private void ProcessQueue()
-    {
-        while (this.WorkQueue.Any())
-        {
-            var task = this.WorkQueue.Dequeue();
-            task.Wait();            
-        }
-    }
+    //private void ProcessQueue()
+    //{
+    //    while (this.WorkQueue.Any())
+    //    {
+    //        var task = this.WorkQueue.Dequeue();
+    //        task.Wait();            
+    //    }
+    //}
 
-    private void Enqueue(Task task)
-    {
-        this.WorkQueue.Enqueue(task);
-    }
+    //private void Enqueue(Task task)
+    //{
+    //    this.WorkQueue.Enqueue(task);
+    //}
 }

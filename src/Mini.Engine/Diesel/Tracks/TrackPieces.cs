@@ -5,16 +5,15 @@ using Mini.Engine.Modelling.Curves;
 using Mini.Engine.Modelling.Tools;
 using Mini.Engine.Modelling.Paths;
 using static Mini.Engine.Diesel.Tracks.TrackParameters;
+using Mini.Engine.ECS;
 
 namespace Mini.Engine.Diesel.Tracks;
 public static class TrackPieces
 {
-    // TODO: a lof of invisible geometry is generated like bottoms and behinds
-
-    public static TrackPiece Turn(Device device)
+    public static TrackPiece Turn(Device device, Entity entity)
     {
         var builder = new PrimitiveMeshBuilder();
-        var curve = new CircularArcCurve(0.0f, MathF.PI / 2.0f, TURN_RADIUS);
+        var curve = new CircularArcCurve(0.0f, MathF.PI / 2.0f, TURN_RADIUS).Translate(new Vector2(-TURN_RADIUS, -TURN_RADIUS));
         
         BuildRails(TURN_VERTICES, builder, curve);
         BuildTies(builder, curve);
@@ -22,10 +21,10 @@ public static class TrackPieces
 
         var primitive = builder.Build(device, "Turn", out var bounds);
 
-        return new TrackPiece(curve, primitive, bounds);
+        return new TrackPiece(entity, nameof(Turn), curve, primitive, bounds);
     }
 
-    public static TrackPiece Straight(Device device)
+    public static TrackPiece Straight(Device device, Entity entity)
     {
         const int points = 2;
         var builder = new PrimitiveMeshBuilder();
@@ -37,7 +36,7 @@ public static class TrackPieces
 
         var primitive = builder.Build(device, "Turn", out var bounds);
 
-        return new TrackPiece(curve, primitive, bounds);
+        return new TrackPiece(entity, nameof(Straight), curve, primitive, bounds);
     }
 
     private static void BuildRails(int points, PrimitiveMeshBuilder builder, ICurve curve)

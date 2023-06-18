@@ -50,6 +50,11 @@ public static class CurveExtensions
         return new ReverseCurve(curve);
     }
 
+    public static ICurve Translate(this ICurve curve, Vector2 translation)
+    {
+        return new TranslateCurve(curve, translation);
+    }
+
     public static float ComputeLengthPiecewise(this ICurve curve, int pieces = 1000)
     {
         var distance = 0.0f;

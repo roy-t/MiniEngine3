@@ -14,63 +14,104 @@ namespace Mini.Engine.Diesel.Tracks;
 [Service]
 public sealed class TrackManager
 {
-    private sealed record class TrackPieceLayout(Entity Entity, TrackPiece TrackPiece, List<Matrix4x4> Positions, bool IsDirty);
+    private const int BufferCapacityIncrement = 100;
 
     private readonly Device Device;
     private readonly ECSAdministrator Administrator;
-    private readonly IComponentContainer<PrimitiveComponent> Primitives;
-    private readonly IComponentContainer<ShadowCasterComponent> Shadows;
-    private readonly IComponentContainer<TransformComponent> Transforms;
     private readonly IComponentContainer<InstancesComponent> Instances;
 
-    private readonly List<TrackPieceLayout> Layouts;
+    private readonly List<TrackPiece> Pieces;
 
-    public TrackManager(Device device, ECSAdministrator administrator, IComponentContainer<PrimitiveComponent> primitives, IComponentContainer<ShadowCasterComponent> shadows, IComponentContainer<InstancesComponent> instances)
+    private readonly TrackPiece Straight;
+    private readonly TrackPiece Turn;
+
+    public TrackManager(Device device, ECSAdministrator administrator, IComponentContainer<InstancesComponent> instances)
     {
         this.Device = device;
         this.Administrator = administrator;
-        this.Primitives = primitives;
-        this.Shadows = shadows;
         this.Instances = instances;
 
-        this.Layouts = new List<TrackPieceLayout>();
+        var entities = this.Administrator.Entities;
+
+        this.Straight = TrackPieces.Straight(device, entities.Create());
+        this.Turn = TrackPieces.Turn(device, entities.Create());
+
+        this.Pieces = new List<TrackPiece>()
+        {
+            this.Straight,
+            this.Turn
+        };
+
+        foreach (var trackPiece in this.Pieces)
+        {
+            this.CreateComponents(trackPiece);
+        }
     }
 
     public void Update()
     {
         var context = this.Device.ImmediateContext;
 
-        foreach (var layout in this.Layouts)
+        foreach (var piece in this.Pieces)
         {
-            if (layout.IsDirty)
+            if (piece.IsDirty)
             {
-                var entity = layout.Entity;
+                var entity = piece.Entity;
                 if (!this.Instances.Contains(entity))
                 {
                     var components = this.Administrator.Components;
                     ref var instances = ref components.Create<InstancesComponent>(entity);
-                    instances.Init(this.Device, layout.TrackPiece.Name, CollectionsMarshal.AsSpan(layout.Positions));
+                    instances.Init(this.Device, piece.Name, CollectionsMarshal.AsSpan(piece.Instances), BufferCapacityIncrement);
                 }
                 else
                 {
-                    ref var instances = ref this.Instances[layout.Entity].Value;
+                    ref var instances = ref this.Instances[piece.Entity].Value;
                     var buffer = context.Resources.Get(instances.InstanceBuffer);
-                    buffer.MapData(context, CollectionsMarshal.AsSpan(layout.Positions));
+                    if (buffer.Capacity < piece.Instances.Count)
+                    {
+                        buffer.EnsureCapacity(buffer.Capacity + BufferCapacityIncrement);
+                    }
+                    buffer.MapData(context, CollectionsMarshal.AsSpan(piece.Instances));
+                    instances.InstanceCount = piece.Instances.Count;
+                    //var view = context.Resources.Get(instances.InstanceBufferView);
+                    //view.Dispose();
+                    //instances.InstanceBufferView = context.Resources.Add(buffer.CreateShaderResourceView());
                 }
 
-                layout.IsDirty = false;
+                piece.IsDirty = false;
             }
         }
     }
 
-    // TODO: add a way to add an individual item to a Layout
-
-    private void AddLayout(TrackPiece trackPiece)
+    public void Clear()
     {
-        var entities = this.Administrator.Entities;
-        var components = this.Administrator.Components;
+        foreach(var piece in this.Pieces)
+        {
+            piece.Instances.Clear();
+            piece.IsDirty = true;
+        }
+    }
 
-        var entity = entities.Create();
+    public void AddStraight(Matrix4x4 offset)
+    {
+        AddInstance(this.Straight, offset);
+    }
+
+    public void AddTurn(Matrix4x4 offset)
+    {
+        AddInstance(this.Turn, offset);
+    }
+
+    private static void AddInstance(TrackPiece trackPiece, Matrix4x4 offset)
+    {
+        trackPiece.Instances.Add(offset);
+        trackPiece.IsDirty = true;
+    }
+
+    private void CreateComponents(TrackPiece trackPiece)
+    {
+        var components = this.Administrator.Components;
+        var entity = trackPiece.Entity;
 
         ref var transform = ref components.Create<TransformComponent>(entity);
         transform.Current = Transform.Identity;

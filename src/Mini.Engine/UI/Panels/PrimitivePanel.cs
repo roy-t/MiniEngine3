@@ -6,7 +6,6 @@ using Mini.Engine.Core.Lifetime;
 using Mini.Engine.Diesel.Tracks;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
-using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Primitives;
 using Mini.Engine.Graphics.Lines;
 using Mini.Engine.Graphics.Transforms;
@@ -18,23 +17,20 @@ using Mini.Engine.Diesel.Trains;
 namespace Mini.Engine.UI.Panels;
 
 [Service]
-internal class PrimitivePanel : IEditorPanel
+internal sealed class PrimitivePanel : IEditorPanel
 {
-    private readonly Device Device;
-    private readonly IComponentContainer<PrimitiveComponent> Container;
-    private readonly ComponentSelector<PrimitiveComponent> Primitives;
-    private readonly ECSAdministrator Administrator;
+    private readonly TrackManager TrackManager;
 
     public string Title => "Primitives";
 
     private bool shouldReload;
 
-    public PrimitivePanel(Device device, IComponentContainer<PrimitiveComponent> container, ECSAdministrator administrator)
+    private Vector3 Offset;
+    private float Angle;
+
+    public PrimitivePanel(TrackManager trackManager)
     {
-        this.Device = device;
-        this.Container = container;
-        this.Primitives = new ComponentSelector<PrimitiveComponent>("Primitives", container);
-        this.Administrator = administrator;
+        this.TrackManager = trackManager;
 
 #if DEBUG
         HotReloadManager.AddReloadCallback("Mini.Engine.Modelling", _ => this.shouldReload = true);
@@ -45,98 +41,37 @@ internal class PrimitivePanel : IEditorPanel
 
     public void Update(float elapsed)
     {
-        this.Primitives.Update();
-        if (ImGui.Button("Add"))
-        {
-            this.CreatePrimitives();
+        // TODO: use transform with offset center to place these things as
+        // using a normal rotation matrix will just do it from the center
+        var transform = Transform.Identity;
+
+        var rotation = Matrix4x4.CreateRotationY(this.Angle);
+        var translation = Matrix4x4.CreateTranslation(this.Offset);
+
+        if (ImGui.Button("Forward"))
+        {            
+            this.TrackManager.AddStraight(translation * rotation);
+            this.Offset +=  Vector3.Transform(new Vector3(0, 0, -TrackParameters.STRAIGHT_LENGTH), rotation);
         }
 
-        if (this.Primitives.HasComponent())
-        {
-            ImGui.SameLine();
-            if (ImGui.Button("Remove"))
-            {
-                ref var component = ref this.Primitives.Get();
-                this.Administrator.Components.MarkForRemoval(component.Entity);
-            }
-
-            ImGui.SameLine();
-            if (ImGui.Button("Clear"))
-            {
-                this.ClearPrimitives();
-            }
+        if (ImGui.Button("Turn Left"))
+        {            
+            this.TrackManager.AddTurn(translation * rotation);
+            this.Offset += new Vector3(-TrackParameters.TURN_RADIUS, 0, -TrackParameters.TURN_RADIUS);
+            //this.Angle += MathF.PI * 0.5f;
         }
 
-        if (this.shouldReload)
+        if (ImGui.Button("Clear"))
         {
-            this.ClearPrimitives();
-
-            this.shouldReload = false;
-            this.CreatePrimitives();
+            this.TrackManager.Clear();
+            this.Offset = Vector3.Zero;
+            this.Angle = 0.0f;
         }
+        
+        //if (this.shouldReload)
+        //{
+        //  create some default track
+        //}
     }
-
-    private void ClearPrimitives()
-    {
-        foreach (var entity in this.Container.IterateAllEntities())
-        {
-            this.Administrator.Components.MarkForRemoval(entity);
-        }
-    }
-
-    private void CreatePrimitives()
-    {
-        var straight = TrackPieces.Straight(this.Device);
-        this.CreateVisuals(straight, "straight");
-
-        //var turn = TrackPieces.Turn(this.Device);
-        //this.CreateVisuals(turn, "turn");
-
-        var flatcar = TrainCars.Flatcar(this.Device);
-        this.CreateVisuals(flatcar, "flatcar");
-    }
-
-    private void CreateVisuals(TrainCar car, string name)
-    {
-        var entity = this.Administrator.Entities.Create();
-        this.CreateVisuals(entity, car.Mesh, name, car.Offset.GetMatrix());
-    }
-
-    private void CreateVisuals(TrackPiece piece, string name)
-    {        
-        var entity = this.Administrator.Entities.Create();
-        this.CreateVisuals(entity, piece.Mesh, name, Matrix4x4.Identity);
-        this.CreateVisuals(entity, piece.Curve, piece.Bounds, name);
-    }
-
-    private void CreateVisuals(Entity entity, ICurve curve, BoundingBox bounds, string name)
-    {
-        var creator = this.Administrator.Components;
-
-        ref var line = ref creator.Create<LineComponent>(entity);
-        var lineVertices = curve.GetPoints3D(50, new Vector3(0.0f, bounds.Max.Y, 0.0f));
-        var mesh = new LineMesh(this.Device, $"{name}_line", lineVertices);
-        line.Mesh = this.Device.Resources.Add(mesh);
-        line.Color = Colors.Yellow;
-    }
-
-    private void CreateVisuals(Entity entity, ILifetime<PrimitiveMesh> mesh, string name, params Matrix4x4[] matrices)
-    {
-        var creator = this.Administrator.Components;    
-
-        ref var instances = ref creator.Create<InstancesComponent>(entity);
-        instances.Init(this.Device, $"{name}_instances", matrices);        
-
-        ref var transform = ref creator.Create<TransformComponent>(entity);
-        transform.Current = Transform.Identity;
-        transform.Previous = transform.Current;
-
-        ref var component = ref creator.Create<PrimitiveComponent>(entity);
-        component.Mesh = mesh;
-
-        ref var shadowCaster = ref creator.Create<ShadowCasterComponent>(entity);
-        shadowCaster.Importance = 0.0f;
-    }
-
    
 }

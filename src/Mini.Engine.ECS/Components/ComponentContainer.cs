@@ -1,4 +1,5 @@
-﻿using LibGame.Collections;
+﻿using System.Diagnostics;
+using LibGame.Collections;
 
 namespace Mini.Engine.ECS.Components;
 
@@ -78,6 +79,8 @@ public sealed class ComponentContainer<T> : IComponentContainer<T>
 
     public ref T Create(Entity entity)
     {
+        Debug.Assert(entity.Id > 0);
+
         this.ComponentTracker.SetComponent(entity, this.Bit);
 
         var index = this.Pool.Add(ComponentInitializer, entity);
