@@ -13,7 +13,7 @@ public static class TrackPieces
     public static TrackPiece Turn(Device device, Entity entity)
     {
         var builder = new PrimitiveMeshBuilder();
-        var curve = new CircularArcCurve(0.0f, MathF.PI / 2.0f, TURN_RADIUS).Translate(new Vector2(-TURN_RADIUS, -TURN_RADIUS));
+        var curve = new CircularArcCurve(0.0f, MathF.PI / 2.0f, TURN_RADIUS);
         
         BuildRails(TURN_VERTICES, builder, curve);
         BuildTies(builder, curve);

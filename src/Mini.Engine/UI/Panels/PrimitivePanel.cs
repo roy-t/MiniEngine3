@@ -13,6 +13,7 @@ using Mini.Engine.Modelling.Curves;
 using Vortice.Mathematics;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Diesel.Trains;
+using LibGame.Mathematics;
 
 namespace Mini.Engine.UI.Panels;
 
@@ -41,24 +42,30 @@ internal sealed class PrimitivePanel : IEditorPanel
 
     public void Update(float elapsed)
     {
-        // TODO: use transform with offset center to place these things as
-        // using a normal rotation matrix will just do it from the center
-        var transform = Transform.Identity;
-
-        var rotation = Matrix4x4.CreateRotationY(this.Angle);
-        var translation = Matrix4x4.CreateTranslation(this.Offset);
-
+        // TODO: the info the get the start and end and correct rotation
+        // should probably be stored somewhere else
+        // ideally you could select a piece of track, and then choose an entry/exit and then add another valid piece to it
         if (ImGui.Button("Forward"))
-        {            
-            this.TrackManager.AddStraight(translation * rotation);
-            this.Offset +=  Vector3.Transform(new Vector3(0, 0, -TrackParameters.STRAIGHT_LENGTH), rotation);
+        {
+            var transform = new Transform(this.Offset, Quaternion.CreateFromYawPitchRoll(this.Angle, 0.0f, 0.0f), new Vector3(0.0f, 0.0f, TrackParameters.STRAIGHT_LENGTH * 0.5f), 1.0f);
+            this.TrackManager.AddStraight(transform.GetMatrix());            
+            this.Offset += Vector3.Transform(new Vector3(0, 0, -TrackParameters.STRAIGHT_LENGTH), transform.GetRotation());
         }
 
         if (ImGui.Button("Turn Left"))
-        {            
-            this.TrackManager.AddTurn(translation * rotation);
-            this.Offset += new Vector3(-TrackParameters.TURN_RADIUS, 0, -TrackParameters.TURN_RADIUS);
-            //this.Angle += MathF.PI * 0.5f;
+        {
+            var transform = new Transform(this.Offset, Quaternion.CreateFromYawPitchRoll(this.Angle, 0.0f, 0.0f), new Vector3(TrackParameters.TURN_RADIUS, 0.0f, 0.0f), 1.0f);
+            this.TrackManager.AddTurn(transform.GetMatrix());
+            this.Offset += Vector3.Transform(new Vector3(-TrackParameters.TURN_RADIUS, 0, -TrackParameters.TURN_RADIUS), transform.GetRotation());
+            this.Angle = Radians.WrapRadians(this.Angle + (MathF.PI * 0.5f));
+        }
+
+        if (ImGui.Button("Turn Right"))
+        {
+            var transform = new Transform(this.Offset, Quaternion.CreateFromYawPitchRoll(this.Angle + (MathF.PI * 0.5f), 0.0f, 0.0f), new Vector3(0.0f, 0.0f, -TrackParameters.TURN_RADIUS), 1.0f);
+            this.TrackManager.AddTurn(transform.GetMatrix());
+            this.Offset += Vector3.Transform(new Vector3(TrackParameters.TURN_RADIUS, 0, -TrackParameters.TURN_RADIUS), Quaternion.CreateFromYawPitchRoll(this.Angle, 0.0f, 0.0f));
+            this.Angle = Radians.WrapRadians(this.Angle - (MathF.PI * 0.5f));
         }
 
         if (ImGui.Button("Clear"))
