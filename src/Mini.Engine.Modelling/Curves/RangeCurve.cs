@@ -4,12 +4,12 @@ using LibGame.Mathematics;
 namespace Mini.Engine.Modelling.Curves;
 public sealed record class RangeCurve(ICurve Curve, float Start, float Length) : ICurve
 {
-    public Vector2 GetPosition(float u)
+    public Vector3 GetPosition(float u)
     {
         return this.Curve.GetPosition(this.Rescale(u));
     }    
 
-    public Vector2 GetForward(float u)
+    public Vector3 GetForward(float u)
     {
         return this.Curve.GetForward(this.Rescale(u));
     }

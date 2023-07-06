@@ -24,8 +24,8 @@ public static class Walker
         var transforms = new Transform[intervals + 1];
         for (var i = 0; i < transforms.Length; i++)
         {
-            var p = curve.GetPosition3D(i * u);
-            var n = curve.GetNormal3D(i * u);
+            var p = curve.GetPosition(i * u);
+            var n = curve.GetForward(i * u);
 
             transforms[i] = new Transform(p, Quaternion.Identity, Vector3.Zero, 1.0f).FaceTargetConstrained(p + n, up);
         }

@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace Mini.Engine.Modelling.Curves;
 
-public sealed class CurveIterator : IEnumerable<Vector2>, IEnumerator<Vector2>
+public sealed class CurveIterator : IEnumerable<Vector3>, IEnumerator<Vector3>
 {
     private readonly ICurve Curve;
     private readonly int Points;
@@ -19,7 +19,7 @@ public sealed class CurveIterator : IEnumerable<Vector2>, IEnumerator<Vector2>
         this.index = -1;        
     }
 
-    public Vector2 Current => this.Curve.GetPosition(this.index * this.Step);
+    public Vector3 Current => this.Curve.GetPosition(this.index * this.Step);
         
     object IEnumerator.Current => this.Current;    
     
@@ -34,7 +34,7 @@ public sealed class CurveIterator : IEnumerable<Vector2>, IEnumerator<Vector2>
         this.index = -1;
     }
 
-    public IEnumerator<Vector2> GetEnumerator()
+    public IEnumerator<Vector3> GetEnumerator()
     {
         return this;
     }

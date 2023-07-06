@@ -68,17 +68,17 @@ public static class TrainCars
 
     private static void ExtrudeAndCapOuterEnd(PrimitiveMeshBuilder.PrimitiveMeshPartBuilder partBuilder, Path2D crossSection, Vector2 offset, float length, float direction)
     {
-        var curve = new StraightCurve(new Vector2(offset.X, offset.Y - (length * 0.5f)), Vector2.UnitY, length);
+        var curve = new StraightCurve(new Vector3(offset.X, 0.0f, -(offset.Y - (length * 0.5f))), new Vector3(0, 0, -1), length);
 
         Extruder.Extrude(partBuilder, crossSection, curve, 2, Vector3.UnitY);
 
         if (direction < 0)
         {
-            Filler.Fill(partBuilder, crossSection.ToPath3D().Transform(Matrix4x4.CreateTranslation(curve.GetPosition3D(0))));
+            Filler.Fill(partBuilder, crossSection.ToPath3D().Transform(Matrix4x4.CreateTranslation(curve.GetPosition(0))));
         }
         else
         {
-            Filler.Fill(partBuilder, crossSection.ToPath3D().Transform(Matrix4x4.CreateTranslation(curve.GetPosition3D(1))).Reverse());
+            Filler.Fill(partBuilder, crossSection.ToPath3D().Transform(Matrix4x4.CreateTranslation(curve.GetPosition(1))).Reverse());
         }
     }
 }

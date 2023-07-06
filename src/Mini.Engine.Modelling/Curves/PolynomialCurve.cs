@@ -6,12 +6,12 @@ using static System.MathF;
 namespace Mini.Engine.Modelling.Curves;
 
 /// <summary>
-/// A polynomial curve: (x,y) = (a + bu + cu^2 + du^3, e + fu + gu^2 + hu^3)
+/// A polynomial curve: (x, 0, z) = (a + bu + cu^2 + du^3, e + fu + gu^2 + hu^3)
 /// </summary>
 public sealed record class PolynomialCurve(float A, float B, float C, float D, float E, float F, float G, float H, float Amplitude)
     : ICurve
 {
-    public Vector2 GetPosition(float u)
+    public Vector3 GetPosition(float u)
     {
         Debug.Assert(u >= 0.0f && u <= 1.0f);
         Debug.Assert(this.Amplitude > 0.0f);
@@ -20,12 +20,12 @@ public sealed record class PolynomialCurve(float A, float B, float C, float D, f
         var u3 = Pow(u, 3.0f);
 
         var x = this.A + (this.B * u) + (this.C * u2) + (this.D * u3);
-        var y = this.E + (this.F * u) + (this.G * u2) + (this.H * u3);
+        var z = this.E + (this.F * u) + (this.G * u2) + (this.H * u3);
 
-        return new Vector2(x, y) * this.Amplitude;
+        return new Vector3(x,.0f, z) * this.Amplitude;
     }
 
-    public Vector2 GetForward(float u)
+    public Vector3 GetForward(float u)
     {
         // The differentiation of the polynomial curve gives
         // b + 2cu + 3du^2,  f + 2gu + 3hu^2
@@ -36,10 +36,10 @@ public sealed record class PolynomialCurve(float A, float B, float C, float D, f
         var u2 = Pow(u, 2.0f);
 
         var x = this.B + (2.0f * this.C * u) + (3.0f * this.D * u2);
-        var y = this.F + (2.0f * this.G * u) + (3.0f * this.H * u2);
+        var z = this.F + (2.0f * this.G * u) + (3.0f * this.H * u2);
 
         // Normalize to get rid of floating point inaccuracies
-        return Vector2.Normalize(new Vector2(x, y));
+        return Vector3.Normalize(new Vector3(x, 0.0f, z));
     }
 
     public static PolynomialCurve CreateTransitionCurve(float amplitude)

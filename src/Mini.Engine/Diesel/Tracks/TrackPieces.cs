@@ -28,7 +28,7 @@ public static class TrackPieces
     {
         const int points = 2;
         var builder = new PrimitiveMeshBuilder();
-        var curve = new StraightCurve(new Vector2(0, -STRAIGHT_LENGTH * 0.5f), Vector2.UnitY, STRAIGHT_LENGTH);
+        var curve = new StraightCurve(new Vector3(0.0f, 0.0f, -STRAIGHT_LENGTH * 0.5f), new Vector3(0.0f, 0.0f, -1.0f), STRAIGHT_LENGTH);
 
         BuildRails(points, builder, curve);
         BuildTies(builder, curve);

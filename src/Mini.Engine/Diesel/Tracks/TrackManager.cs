@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
+using Mini.Engine.Diesel.Trains;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
@@ -22,8 +23,8 @@ public sealed class TrackManager
 
     private readonly List<TrackPiece> Pieces;
 
-    private readonly TrackPiece Straight;
-    private readonly TrackPiece Turn;
+    public readonly TrackPiece Straight;
+    public readonly TrackPiece Turn;
 
     public TrackManager(Device device, ECSAdministrator administrator, IComponentContainer<InstancesComponent> instances)
     {
@@ -122,5 +123,20 @@ public sealed class TrackManager
 
         ref var shadows = ref components.Create<ShadowCasterComponent>(entity);
         shadows.Importance = 0.0f; // TODO: figure out which parts do and do not need a shadow
+    }
+
+    internal void Just()
+    {
+        this.Clear();
+        this.Pieces.Clear();
+
+        var entity = this.Administrator.Entities.Create();
+        var car = TrainCars.Flatcar(this.Device);
+
+
+        var piece = new TrackPiece(entity, "name", null!, car.Mesh, car.Bounds);
+        this.CreateComponents(piece);
+        this.Pieces.Add(piece);
+        AddInstance(piece, Matrix4x4.Identity);
     }
 }

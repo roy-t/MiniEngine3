@@ -1,33 +1,14 @@
 ﻿using System.Numerics;
 using LibGame.Physics;
 using Mini.Engine.Core;
-using Mini.Engine.Graphics;
 
 namespace Mini.Engine.Modelling.Curves;
 public static class CurveExtensions
 {
-    public static Vector3 GetPosition3D(this ICurve curve, float u)
+    public static Vector3 GetLeft(this ICurve curve, float u)
     {
-        var p = curve.GetPosition(u);
-        return new Vector3(p.X, 0.0f, -p.Y);
-    }
-
-    public static Vector3 GetNormal3D(this ICurve curve, float u)
-    {
-        var p = curve.GetForward(u);
-        return new Vector3(p.X, 0.0f, -p.Y);
-    }
-
-    public static Vector2 GetLeft(this ICurve curve, float u)
-    {
-        var n = curve.GetForward(u);
-        return new Vector2(-n.Y, n.X);
-    }
-
-    public static Vector3 GetLeft3D(this ICurve curve, float u)
-    {
-        var n = curve.GetNormal3D(u);
-        return Vector3.Normalize(Vector3.Cross(Vector3.UnitY, n));
+        var forward = curve.GetForward(u);
+        return Vector3.Normalize(Vector3.Cross(Vector3.UnitY, forward));
     }
 
     public static ICurve OffsetLeft(this ICurve curve, float offset)
@@ -50,7 +31,7 @@ public static class CurveExtensions
         return new ReverseCurve(curve);
     }
 
-    public static ICurve Translate(this ICurve curve, Vector2 translation)
+    public static ICurve Translate(this ICurve curve, Vector3 translation)
     {
         return new TranslateCurve(curve, translation);
     }
@@ -65,25 +46,13 @@ public static class CurveExtensions
             var a = curve.GetPosition(step * (i + 0));
             var b = curve.GetPosition(step * (i + 1));
 
-            distance += Vector2.Distance(a, b);
+            distance += Vector3.Distance(a, b);
         }
 
         return distance;
     }
 
-    public static IReadOnlyList<Vector2> GetPoints(this ICurve curve, int points, Vector2 offset)
-    {
-        var vertices = new List<Vector2>(points);
-        var enumerator = new CurveIterator(curve, points);
-        foreach (var position in enumerator)
-        {
-            vertices.Add(position + offset);
-        }
-
-        return vertices;
-    }
-
-    public static ReadOnlySpan<Vector3> GetPoints3D(this ICurve curve, int points, Vector3 offset)
+    public static ReadOnlySpan<Vector3> GetPoints(this ICurve curve, int points, Vector3 offset)
     {
         var vertices = new ArrayBuilder<Vector3>(points);
         var enumerator = new CurveIterator(curve, points);
@@ -97,10 +66,10 @@ public static class CurveExtensions
 
     public static Matrix4x4 AlignTo(this ICurve curve, float u, Vector3 up)
     {
-        var position = curve.GetPosition3D(u);
-        var normal = curve.GetNormal3D(u);
+        var position = curve.GetPosition(u);
+        var forward = curve.GetForward(u);
         return new Transform(position, Quaternion.Identity, Vector3.Zero, 1.0f)
-            .FaceTargetConstrained(position + normal, up)
+            .FaceTargetConstrained(position + forward, up)
             .GetMatrix();
     }
 }
