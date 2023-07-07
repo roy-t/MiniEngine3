@@ -1,5 +1,7 @@
 ﻿using System.Numerics;
 using LibGame.Mathematics;
+using LibGame.Physics;
+using Mini.Engine.Configuration;
 using Mini.Engine.Modelling.Curves;
 using Vortice.Mathematics;
 
@@ -9,22 +11,25 @@ public readonly record struct TrackCurveInstanceId(int TrackId, int CurveId);
 public readonly record struct Connection(int TrackIdFrom, int CurveIdFrom, int UFrom, int TrackIdTo, int CurveIdTo, int UTo);
 public readonly record struct Orientation(Vector3 Offset, float Yaw);
 
+public readonly record struct CurvePlacement(int Id, Transform Transform, Vector3 StartPosition, Vector3 StartForward, Vector3 EndPosition, Vector3 EndForward);
+
+[Service]
 public sealed class TrackComputer
 {
-    private const float SNAP_DISTANCE = 0.05f;
-
-    public static Orientation PlaceCurve(Vector3 position, Vector3 forward, ICurve curve, float u)
+    public CurvePlacement PlaceCurve(Vector3 position, Vector3 forward, ICurve curve)
     {
-        var nextPosition = curve.GetPosition(u);
-        var nextForward = curve.GetForward(u);
-
-        var nextYaw = Radians.YawFromVector(nextForward);
         var yaw = Radians.YawFromVector(forward);
+        var nextYaw = Radians.YawFromVector(curve.GetForward(0.0f));
+        var difference = Radians.DistanceRadians(nextYaw, yaw);
 
-        var distance = Radians.DistanceRadians(yaw, nextYaw);
+        var rotation = Quaternion.CreateFromYawPitchRoll(difference, 0.0f, 0.0f);
+        var origin = curve.GetPosition(0.0f);
+        var transform = new Transform(position, rotation, origin, 1.0f);
 
-        var offset = new Vector3(position.X - nextPosition.X, 0.0f, position.Y - nextPosition.Y);
-        return new Orientation(offset, distance);
+        var endPosition = position + Vector3.Transform(curve.GetPosition(1.0f) - curve.GetPosition(0.0f), transform.GetRotation());
+        var endForward = Vector3.Normalize(Vector3.Transform(curve.GetForward(1.0f), transform.GetRotation()));
+
+        return new CurvePlacement(0, transform, position, forward, endPosition, endForward);
     }
 
     public TrackCurveInstanceId AddInstance(in Orientation orientation, ICurve curve)

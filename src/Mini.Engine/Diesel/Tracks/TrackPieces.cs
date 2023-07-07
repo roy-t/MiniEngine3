@@ -1,42 +1,44 @@
 ﻿using System.Numerics;
 using Mini.Engine.DirectX;
+using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Primitives;
 using Mini.Engine.Modelling.Curves;
-using Mini.Engine.Modelling.Tools;
 using Mini.Engine.Modelling.Paths;
+using Mini.Engine.Modelling.Tools;
 using static Mini.Engine.Diesel.Tracks.TrackParameters;
-using Mini.Engine.ECS;
 
 namespace Mini.Engine.Diesel.Tracks;
 public static class TrackPieces
 {
-    public static TrackPiece Turn(Device device, Entity entity)
+    public static TrackPiece LeftTurn(Device device, Entity entity)
     {
-        var builder = new PrimitiveMeshBuilder();
         var curve = new CircularArcCurve(0.0f, MathF.PI / 2.0f, TURN_RADIUS);
-        
-        BuildRails(TURN_VERTICES, builder, curve);
-        BuildTies(builder, curve);
-        BuildBallast(TURN_VERTICES, builder, curve);
+        return FromCurve(device, entity, curve, TURN_VERTICES, nameof(LeftTurn));
+    }
 
-        var primitive = builder.Build(device, "Turn", out var bounds);
-
-        return new TrackPiece(entity, nameof(Turn), curve, primitive, bounds);
+    public static TrackPiece RightTurn(Device device, Entity entity)
+    {
+        var curve = new CircularArcCurve(0.0f, MathF.PI / 2.0f, TURN_RADIUS).Reverse();
+        return FromCurve(device, entity, curve, TURN_VERTICES, nameof(RightTurn));
     }
 
     public static TrackPiece Straight(Device device, Entity entity)
     {
-        const int points = 2;
+        var curve = new StraightCurve(new Vector3(0.0f, 0.0f, STRAIGHT_LENGTH * 0.5f), new Vector3(0.0f, 0.0f, -1.0f), STRAIGHT_LENGTH);
+        return FromCurve(device, entity, curve, 2, nameof(Straight));
+    }
+
+    private static TrackPiece FromCurve(Device device, Entity entity, ICurve curve, int points, string name)
+    {
         var builder = new PrimitiveMeshBuilder();
-        var curve = new StraightCurve(new Vector3(0.0f, 0.0f, -STRAIGHT_LENGTH * 0.5f), new Vector3(0.0f, 0.0f, -1.0f), STRAIGHT_LENGTH);
 
         BuildRails(points, builder, curve);
         BuildTies(builder, curve);
         BuildBallast(points, builder, curve);
 
-        var primitive = builder.Build(device, "Turn", out var bounds);
+        var primitive = builder.Build(device, name, out var bounds);
 
-        return new TrackPiece(entity, nameof(Straight), curve, primitive, bounds);
+        return new TrackPiece(entity, name, curve, primitive, bounds);
     }
 
     private static void BuildRails(int points, PrimitiveMeshBuilder builder, ICurve curve)
@@ -61,7 +63,7 @@ public static class TrackPieces
 
         Joiner.Join(partBuilder, front, back);
 
-        Filler.Fill(partBuilder, front);        
+        Filler.Fill(partBuilder, front);
         Filler.Fill(partBuilder, back.Reverse());  // To avoid culling
 
         var transforms = Walker.WalkSpacedOut(curve, RAIL_TIE_SPACING, Vector3.UnitY);
@@ -80,7 +82,7 @@ public static class TrackPieces
         Extruder.ExtrudeSmooth(partBuilder, crossSection, curve, points, Vector3.UnitY);
         Capper.Cap(partBuilder, curve, crossSection);
 
-        
+
         partBuilder.Complete(BALLAST_COLOR, BALLAST_METALICNESS, BALLAST_ROUGHNESS);
     }
 

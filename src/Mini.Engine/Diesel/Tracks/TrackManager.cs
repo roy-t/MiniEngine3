@@ -1,8 +1,6 @@
 ﻿using System.Numerics;
-using System.Runtime.InteropServices;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Diesel.Trains;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
@@ -24,7 +22,8 @@ public sealed class TrackManager
     private readonly List<TrackPiece> Pieces;
 
     public readonly TrackPiece Straight;
-    public readonly TrackPiece Turn;
+    public readonly TrackPiece LeftTurn;
+    public readonly TrackPiece RightTurn;
 
     public TrackManager(Device device, ECSAdministrator administrator, IComponentContainer<InstancesComponent> instances)
     {
@@ -35,18 +34,31 @@ public sealed class TrackManager
         var entities = this.Administrator.Entities;
 
         this.Straight = TrackPieces.Straight(device, entities.Create());
-        this.Turn = TrackPieces.Turn(device, entities.Create());
+        this.LeftTurn = TrackPieces.LeftTurn(device, entities.Create());
+        this.RightTurn = TrackPieces.RightTurn(device, entities.Create());
 
         this.Pieces = new List<TrackPiece>()
         {
             this.Straight,
-            this.Turn
+            this.LeftTurn,
+            this.RightTurn,
         };
 
         foreach (var trackPiece in this.Pieces)
         {
             this.CreateComponents(trackPiece);
         }
+    }
+
+    private static ReadOnlySpan<Matrix4x4> CreateTransformArray(TrackPiece trackPiece)
+    {
+        var transforms = new Matrix4x4[trackPiece.Instances.Count];
+        for (var i = 0; i < transforms.Length; i++)
+        {
+            transforms[i] = trackPiece.Instances[i].Transform;
+        }
+
+        return transforms;
     }
 
     public void Update()
@@ -62,7 +74,8 @@ public sealed class TrackManager
                 {
                     var components = this.Administrator.Components;
                     ref var instances = ref components.Create<InstancesComponent>(entity);
-                    instances.Init(this.Device, piece.Name, CollectionsMarshal.AsSpan(piece.Instances), BufferCapacityIncrement);
+                    var transforms = CreateTransformArray(piece);
+                    instances.Init(this.Device, piece.Name, transforms, BufferCapacityIncrement);
                 }
                 else
                 {
@@ -72,11 +85,9 @@ public sealed class TrackManager
                     {
                         buffer.EnsureCapacity(buffer.Capacity + BufferCapacityIncrement);
                     }
-                    buffer.MapData(context, CollectionsMarshal.AsSpan(piece.Instances));
+                    var transforms = CreateTransformArray(piece);
+                    buffer.MapData(context, transforms);
                     instances.InstanceCount = piece.Instances.Count;
-                    //var view = context.Resources.Get(instances.InstanceBufferView);
-                    //view.Dispose();
-                    //instances.InstanceBufferView = context.Resources.Add(buffer.CreateShaderResourceView());
                 }
 
                 piece.IsDirty = false;
@@ -86,26 +97,31 @@ public sealed class TrackManager
 
     public void Clear()
     {
-        foreach(var piece in this.Pieces)
+        foreach (var piece in this.Pieces)
         {
             piece.Instances.Clear();
             piece.IsDirty = true;
         }
     }
 
-    public void AddStraight(Matrix4x4 offset)
+    public void AddStraight(int trackId, Matrix4x4 offset)
     {
-        AddInstance(this.Straight, offset);
+        AddInstance(this.Straight, trackId, offset);
     }
 
-    public void AddTurn(Matrix4x4 offset)
+    public void AddLeftTurn(int trackId, Matrix4x4 offset)
     {
-        AddInstance(this.Turn, offset);
+        AddInstance(this.LeftTurn, trackId, offset);
     }
 
-    private static void AddInstance(TrackPiece trackPiece, Matrix4x4 offset)
+    public void AddRightTurn(int trackId, Matrix4x4 offset)
     {
-        trackPiece.Instances.Add(offset);
+        AddInstance(this.RightTurn, trackId, offset);
+    }
+
+    private static void AddInstance(TrackPiece trackPiece, int trackId, Matrix4x4 offset)
+    {
+        trackPiece.Instances.Add(new TrackInstance(offset, trackId));
         trackPiece.IsDirty = true;
     }
 
@@ -123,20 +139,5 @@ public sealed class TrackManager
 
         ref var shadows = ref components.Create<ShadowCasterComponent>(entity);
         shadows.Importance = 0.0f; // TODO: figure out which parts do and do not need a shadow
-    }
-
-    internal void Just()
-    {
-        this.Clear();
-        this.Pieces.Clear();
-
-        var entity = this.Administrator.Entities.Create();
-        var car = TrainCars.Flatcar(this.Device);
-
-
-        var piece = new TrackPiece(entity, "name", null!, car.Mesh, car.Bounds);
-        this.CreateComponents(piece);
-        this.Pieces.Add(piece);
-        AddInstance(piece, Matrix4x4.Identity);
     }
 }

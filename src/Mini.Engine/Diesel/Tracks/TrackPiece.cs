@@ -6,6 +6,9 @@ using Mini.Engine.Modelling.Curves;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Diesel.Tracks;
+
+public readonly record struct TrackInstance(Matrix4x4 Transform, int Id);
+
 public sealed class TrackPiece
 {
     public TrackPiece(Entity entity, string name, ICurve curve, ILifetime<PrimitiveMesh> mesh, BoundingBox bounds)
@@ -15,7 +18,7 @@ public sealed class TrackPiece
         this.Curve = curve;
         this.Mesh = mesh;
         this.Bounds = bounds;
-        this.Instances = new List<Matrix4x4>();
+        this.Instances = new List<TrackInstance>();
         this.IsDirty = false;
     }
 
@@ -25,7 +28,7 @@ public sealed class TrackPiece
     public ILifetime<PrimitiveMesh> Mesh { get; }
     public BoundingBox Bounds { get; }
 
-    public List<Matrix4x4> Instances { get; }
+    public List<TrackInstance> Instances { get; }
 
     public bool IsDirty { get; set; }
 }
