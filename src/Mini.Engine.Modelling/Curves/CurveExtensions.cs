@@ -5,6 +5,9 @@ using Mini.Engine.Core;
 namespace Mini.Engine.Modelling.Curves;
 public static class CurveExtensions
 {
+    public const float CurveStart = 0.0f;
+    public const float CurveEnd = 1.0f;
+    
     public static Vector3 GetLeft(this ICurve curve, float u)
     {
         var forward = curve.GetForward(u);
@@ -71,5 +74,18 @@ public static class CurveExtensions
         return new Transform(position, Quaternion.Identity, Vector3.Zero, 1.0f)
             .FaceTargetConstrained(position + forward, up)
             .GetMatrix();
+    }
+
+    public static (Vector3 Position, Vector3 Normal) GetWorldOrientation(this ICurve curve, float u, Transform transform)
+    {
+        return GetWorldOrientation(curve, u, transform.GetMatrix());
+    }
+
+    public static (Vector3 Position, Vector3 Normal) GetWorldOrientation(this ICurve curve, float u, Matrix4x4 world)
+    {
+        var position = Vector3.Transform(curve.GetPosition(u), world);
+        var forward = Vector3.TransformNormal(curve.GetForward(u), world);
+
+        return (position, forward);
     }
 }

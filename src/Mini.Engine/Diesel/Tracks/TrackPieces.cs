@@ -9,26 +9,14 @@ using static Mini.Engine.Diesel.Tracks.TrackParameters;
 
 namespace Mini.Engine.Diesel.Tracks;
 public static class TrackPieces
-{
-    public static TrackPiece LeftTurn(Device device, Entity entity)
-    {
-        var curve = new CircularArcCurve(0.0f, MathF.PI / 2.0f, TURN_RADIUS);
-        return FromCurve(device, entity, curve, TURN_VERTICES, nameof(LeftTurn));
-    }
-
-    public static TrackPiece RightTurn(Device device, Entity entity)
-    {
-        var curve = new CircularArcCurve(0.0f, MathF.PI / 2.0f, TURN_RADIUS).Reverse();
-        return FromCurve(device, entity, curve, TURN_VERTICES, nameof(RightTurn));
-    }
-
+{    
     public static TrackPiece Straight(Device device, Entity entity)
     {
         var curve = new StraightCurve(new Vector3(0.0f, 0.0f, STRAIGHT_LENGTH * 0.5f), new Vector3(0.0f, 0.0f, -1.0f), STRAIGHT_LENGTH);
         return FromCurve(device, entity, curve, 2, nameof(Straight));
     }
 
-    private static TrackPiece FromCurve(Device device, Entity entity, ICurve curve, int points, string name)
+    public static TrackPiece FromCurve(Device device, Entity entity, ICurve curve, int points, string name)
     {
         var builder = new PrimitiveMeshBuilder();
 

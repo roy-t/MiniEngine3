@@ -8,6 +8,8 @@ using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Primitives;
 using Mini.Engine.Graphics.Transforms;
 
+using static Mini.Engine.Diesel.Tracks.TrackParameters;
+
 namespace Mini.Engine.Diesel.Tracks;
 
 [Service]
@@ -25,7 +27,7 @@ public sealed class TrackManager
     public readonly TrackPiece LeftTurn;
     public readonly TrackPiece RightTurn;
 
-    public TrackManager(Device device, ECSAdministrator administrator, IComponentContainer<InstancesComponent> instances)
+    public TrackManager(Device device, ECSAdministrator administrator, CurveManager curves, IComponentContainer<InstancesComponent> instances)
     {
         this.Device = device;
         this.Administrator = administrator;
@@ -33,9 +35,9 @@ public sealed class TrackManager
 
         var entities = this.Administrator.Entities;
 
-        this.Straight = TrackPieces.Straight(device, entities.Create());
-        this.LeftTurn = TrackPieces.LeftTurn(device, entities.Create());
-        this.RightTurn = TrackPieces.RightTurn(device, entities.Create());
+        this.Straight = TrackPieces.FromCurve(device, entities.Create(), curves.Straight, STRAIGHT_VERTICES, nameof(this.Straight));
+        this.LeftTurn = TrackPieces.FromCurve(device, entities.Create(), curves.LeftTurn, TURN_VERTICES, nameof(this.LeftTurn));
+        this.RightTurn = TrackPieces.FromCurve(device, entities.Create(), curves.RightTurn, TURN_VERTICES, nameof(this.RightTurn));
 
         this.Pieces = new List<TrackPiece>()
         {

@@ -18,6 +18,7 @@ public static class TrackParameters
     public static int TURN_RADIUS => 25;
     public static int TURN_VERTICES => 25;
 
+    public static int STRAIGHT_VERTICES => 2;
     public static float STRAIGHT_LENGTH => 50.0f;
 
     public static float SINGLE_RAIL_WIDTH_TOP => 0.1f;
