@@ -20,6 +20,7 @@
     <ProjectReference Include="..\..\Backend\Mini.Engine.Core\Mini.Engine.Core.csproj" />
     <ProjectReference Include="..\..\Mini.Engine.ECS\Mini.Engine.ECS.csproj" />
     <ProjectReference Include="..\..\Mini.Engine.Graphics\Mini.Engine.Graphics.csproj" />
+    <ProjectReference Include="..\..\Mini.Engine\Mini.Engine.csproj" />
   </ItemGroup>
 
 </Project>

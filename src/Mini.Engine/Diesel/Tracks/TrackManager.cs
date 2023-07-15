@@ -140,6 +140,6 @@ public sealed class TrackManager
         primitive.Mesh = trackPiece.Mesh;
 
         ref var shadows = ref components.Create<ShadowCasterComponent>(entity);
-        shadows.Importance = 0.0f; // TODO: figure out which parts do and do not need a shadow
+        shadows.Importance = 1.0f; // TODO: figure out which parts do and do not need a shadow
     }
 }

@@ -8,33 +8,23 @@ namespace Mini.Engine.Diesel.Tracks;
 
 public readonly record struct ConnectedToReference(int XFrom, int YFrom, int IFrom, float UFrom, int XTo, int YTo, int ITo, float UTo);
 
-public sealed class CurvePlacement2
-{
-    public CurvePlacement2(ICurve curve, Transform transform)
-    {
-        this.Curve = curve;
-        this.Transform = transform;
-    }
-
-    public ICurve Curve { get; }
-    public Transform Transform { get; }
-}
+public sealed record class CurvePlacement(ICurve Curve, Transform Transform);
 
 public interface IReadOnlyCell
 {
-    IReadOnlyList<CurvePlacement2> Placements { get; }
+    IReadOnlyList<CurvePlacement> Placements { get; }
 }
 
 public sealed class Cell : IReadOnlyCell
 {
     public Cell(int capacity = 0)
     {
-        this.Placements = new List<CurvePlacement2>(capacity);
+        this.Placements = new List<CurvePlacement>(capacity);
     }
 
-    public List<CurvePlacement2> Placements { get; }
+    public List<CurvePlacement> Placements { get; }
 
-    IReadOnlyList<CurvePlacement2> IReadOnlyCell.Placements => this.Placements;
+    IReadOnlyList<CurvePlacement> IReadOnlyCell.Placements => this.Placements;
 }
 
 public sealed class TrackGrid
@@ -45,7 +35,7 @@ public sealed class TrackGrid
     private readonly float ApproximateDistanceFromCellBorderToCellCenter;
     private readonly float MaxValidConnectionDistanceSquared;
 
-    public TrackGrid(int dimX, int dimY, int cellSizeX, int cellSizeY)
+    public TrackGrid(int dimX, int dimY, float cellSizeX, float cellSizeY)
     {
         this.DimX = dimX;
         this.DimY = dimY;
@@ -61,8 +51,8 @@ public sealed class TrackGrid
 
     public int DimX { get; }
     public int DimY { get; }
-    public int CellSizeX { get; }
-    public int CellSizeY { get; }
+    public float CellSizeX { get; }
+    public float CellSizeY { get; }
 
     public IReadOnlyCell this[int x, int y]
     {
@@ -78,7 +68,7 @@ public sealed class TrackGrid
         }
     }
 
-    public void AddPlacement(int x, int y, CurvePlacement2 placement)
+    public void Add(int x, int y, ICurve curve, Transform transform)
     {
         var i = this.GetIndex(x, y);
         if (this.Cells[i] == null)
@@ -86,21 +76,18 @@ public sealed class TrackGrid
             this.Cells[i] = new Cell(1);
         }
 
-        this.Cells[i].Placements.Add(placement);
+        this.Cells[i].Placements.Add(new CurvePlacement(curve, transform));
     }
 
-    public void RemovePlacement(int x, int y, int index)
+    public void Remove(int x, int y, int index)
     {
         this.GetExistingCell(x, y).Placements.RemoveAt(index);
     }
 
     public void GetConnections(int x, int y, int index, float u, IList<ConnectedToReference> output)
     {
-        // TODO: write tests for this method, but it looks promising!
-        // TODO: make sure curves fit into grid!
-
         var placement = this.GetExistingCell(x, y).Placements[index];
-        var (position, forward) = placement.Curve.GetWorldOrientation(u, placement.Transform);                
+        var (position, forward) = placement.Curve.GetWorldOrientation(u, placement.Transform);
 
         var positionInNextCell = position + (forward * this.ApproximateDistanceFromCellBorderToCellCenter);
         var (ix, iy) = this.PickCell(positionInNextCell);
@@ -110,12 +97,12 @@ public sealed class TrackGrid
             var cell = this[ix, iy];
             for (var i = 0; i < cell.Placements.Count; i++)
             {
-                var nextPlacement = cell.Placements[i];                
-                if (this.IsConnected(placement.Curve, u, placement.Transform, nextPlacement.Curve, 0.0f, nextPlacement.Transform))
+                var nextPlacement = cell.Placements[i];
+                if (placement.Curve.IsConnectedTo(u, placement.Transform, nextPlacement.Curve, 0.0f, nextPlacement.Transform, this.MaxValidConnectionDistanceSquared))
                 {
                     output.Add(new ConnectedToReference(x, y, index, u, ix, iy, i, 0.0f));
                 }
-                else if (this.IsConnected(placement.Curve, u, placement.Transform, nextPlacement.Curve, 1.0f, nextPlacement.Transform))
+                else if (placement.Curve.IsConnectedTo(u, placement.Transform, nextPlacement.Curve, 1.0f, nextPlacement.Transform, MaxValidConnectionDistanceSquared))
                 {
                     output.Add(new ConnectedToReference(x, y, index, u, ix, iy, i, 1.0f));
                 }
@@ -125,23 +112,13 @@ public sealed class TrackGrid
 
     public (int x, int y) PickCell(Vector3 position)
     {
-        var (ix, _, iz) = Grids.PickCell(this.DimX, 1, this.DimY, new Vector3(this.CellSizeX, 1.0f, this.CellSizeY), Vector3.Zero, position);
+        var (ix, _, iz) = Grids.PickCell(this.DimX, 1, this.DimY, new Vector3(this.CellSizeX, 0.0f, this.CellSizeY), Vector3.Zero, position);
         return (ix, iz);
     }
 
-    public bool IsConnected(ICurve a, float ua, Transform transformA, ICurve b, float ub, Transform transformB)
+    public (Vector3 min, Vector3 max) GetCellBounds(int x, int y)
     {
-        // Two curves are connected if the positions on their respective curves are close and their forwards either
-        // point in exactly the same direction or in exactly the opposite direction
-        var (positionA, forwardA) = a.GetWorldOrientation(ua, transformA);
-        var (positionB, forwardB) = b.GetWorldOrientation(ub, transformB);
-
-        if (Vector3.DistanceSquared(positionA, positionB) < this.MaxValidConnectionDistanceSquared)
-        {
-            return Math.Abs(Vector3.Dot(forwardA, forwardB)) > 0.95f;
-        }
-
-        return false;
+        return Grids.GetCellBounds(this.DimX, 1, this.DimY, new Vector3(this.CellSizeX, 0.0f, this.CellSizeY), Vector3.Zero, x, 0, y);        
     }
 
     private bool CellIsInsideGrid(int x, int y)
