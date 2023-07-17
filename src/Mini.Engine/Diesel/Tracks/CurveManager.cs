@@ -27,23 +27,5 @@ public sealed class CurveManager
 
     public ICurve LeftTurn { get; }
     public ICurve RightTurn { get; }
-    public ICurve Straight { get; }
-
-    public ICurve Get(int curveId)
-    {
-        return this.Curves[curveId];
-    }
-
-    public int GetId(ICurve curve)
-    {
-        for (var i = 0; i < this.Curves.Length; i++)
-        {
-            if (this.Curves[i] == curve)
-            {
-                return i;
-            }
-        }
-
-        throw new Exception("Unknown curve");
-    }
+    public ICurve Straight { get; }  
 }

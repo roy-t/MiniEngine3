@@ -9,21 +9,19 @@ namespace Mini.Engine.Graphics.Primitives;
 public struct InstancesComponent : IComponent
 {
     public ILifetime<StructuredBuffer<Matrix4x4>> InstanceBuffer;
-    public ILifetime<ShaderResourceView<Matrix4x4>> InstanceBufferView;
-    public int InstanceCount;
+    public ILifetime<ShaderResourceView<Matrix4x4>> InstanceBufferView;    
 
-    public void Init(Device device, string name, ReadOnlySpan<Matrix4x4> instances, int capacity = 0)
+    // TODO: is it wrong to have a reference type here?
+    public List<Matrix4x4> InstanceList;
+
+    public void Init(Device device, string name, int capacity = 0)
     {
-        var buffer = new StructuredBuffer<Matrix4x4>(device, name);
-        if (capacity > instances.Length)
-        {
-            buffer.EnsureCapacity(capacity);
-        }
-        buffer.MapData(device.ImmediateContext, instances);
+        var buffer = new StructuredBuffer<Matrix4x4>(device, name, capacity);
         var view = buffer.CreateShaderResourceView();
 
         this.InstanceBuffer = device.Resources.Add(buffer);
         this.InstanceBufferView = device.Resources.Add(view);
-        this.InstanceCount = instances.Length;
+
+        this.InstanceList = new List<Matrix4x4>(capacity);
     }
 }

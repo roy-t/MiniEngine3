@@ -17,7 +17,8 @@ namespace Mini.Engine;
 
 [Service]
 internal sealed record class RenderSystems
-(    
+(
+    InstancesSystem InstancesSystem,
     PrimitiveSystem Primitive,
     ModelSystem Model,
     ImageBasedLightSystem ImageBasedLight,
@@ -53,6 +54,14 @@ internal sealed class RenderPipeline
     {
         this.Stopwatch.Restart();
 
+        // We sometimes need to prepare containers before drawing can begin
+        // preparing these containers can run in parallel, but has to complete
+        // before the render systems read the data
+        this.RunPreRenderStage();
+
+        this.ProcessQueue();
+
+
         // We create draw commands in parallel and then draw in sequence.
         // To make sure this works well systems should not modify their components
         // while preparing a command list, as this could create dependencies between systems
@@ -64,6 +73,11 @@ internal sealed class RenderPipeline
         this.ProcessQueue();
 
         this.MetricService.Update("RenderPipeline.Run.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
+    }
+
+    private void RunPreRenderStage()
+    {
+        this.Enqueue(this.Systems.InstancesSystem.UpdateInstances());
     }
 
     private void RunGeometryStage(in Rectangle viewport, in Rectangle scissor, float alpha)
@@ -100,7 +114,6 @@ internal sealed class RenderPipeline
             commandList.Dispose();
         }
     }
-
 
     private void Enqueue(Task<CommandList> task)
     {

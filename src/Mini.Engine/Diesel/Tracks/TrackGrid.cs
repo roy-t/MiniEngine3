@@ -112,13 +112,13 @@ public sealed class TrackGrid
 
     public (int x, int y) PickCell(Vector3 position)
     {
-        var (ix, _, iz) = Grids.PickCell(this.DimX, 1, this.DimY, new Vector3(this.CellSizeX, 0.0f, this.CellSizeY), Vector3.Zero, position);
+        var (ix, _, iz) = Grids.PickCell(this.DimX, 1, this.DimY, new Vector3(this.CellSizeX, 1.0f, this.CellSizeY), Vector3.Zero, position);
         return (ix, iz);
     }
 
     public (Vector3 min, Vector3 max) GetCellBounds(int x, int y)
     {
-        return Grids.GetCellBounds(this.DimX, 1, this.DimY, new Vector3(this.CellSizeX, 0.0f, this.CellSizeY), Vector3.Zero, x, 0, y);        
+        return Grids.GetCellBounds(this.DimX, 1, this.DimY, new Vector3(this.CellSizeX, 1.0f, this.CellSizeY), Vector3.Zero, x, 0, y);        
     }
 
     private bool CellIsInsideGrid(int x, int y)

@@ -81,7 +81,7 @@ public sealed class PrimitiveRenderService : IDisposable
 
         this.User.MapConstants(context, previousViewProjection, viewProjection, previousWorld, world, cameraPosition, cameraComponent.PreviousJitter, cameraComponent.Jitter, (uint)mesh.PartCount);
 
-        context.DrawIndexedInstanced(mesh.IndexCount, instancesComponent.InstanceCount);        
+        context.DrawIndexedInstanced(mesh.IndexCount, instancesComponent.InstanceList.Count);
     }
 
     public void SetupAndRenderAllPrimitiveDepths(DeviceContext context, float importanceThreshold, in Rectangle viewport, in Rectangle scissor, in Frustum viewVolume, in Matrix4x4 viewProjection)
@@ -116,7 +116,7 @@ public sealed class PrimitiveRenderService : IDisposable
 
         this.User.MapDepthConstants(context, viewProjection, world);
 
-        context.DrawIndexedInstanced(mesh.IndexCount, instancesComponent.InstanceCount);
+        context.DrawIndexedInstanced(mesh.IndexCount, instancesComponent.InstanceList.Count);
     }
 
     private void SetupDepth(DeviceContext context, in Rectangle viewport, in Rectangle scissor)

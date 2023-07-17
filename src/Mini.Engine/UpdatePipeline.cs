@@ -46,8 +46,6 @@ internal sealed class UpdatePipeline
         this.Systems.Camera.Update();
         this.Systems.CascadedShadowMap.Update();
 
-        this.Systems.TrackManager.Update();
-
         // TODO: add more systems that can run in parallel
         //this.ProcessQueue();
 

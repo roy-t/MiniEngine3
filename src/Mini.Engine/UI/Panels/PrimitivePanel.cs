@@ -11,20 +11,21 @@ namespace Mini.Engine.UI.Panels;
 internal sealed class PrimitivePanel : IEditorPanel
 {
     private readonly TrackManager TrackManager;
+    private readonly CurveManager CurveManager;
 
     public string Title => "Primitives";
 
     private bool shouldReload;
 
-    private Vector3 offset;
-    private Vector3 forward;
+    private ICurve lastCurve;
+    private Matrix4x4 lastTransform;
 
-    public PrimitivePanel(TrackManager trackManager)
+    public PrimitivePanel(TrackManager trackManager, CurveManager curveManager)
     {
         this.TrackManager = trackManager;
-
-        this.offset = Vector3.Zero;
-        this.forward = new Vector3(0, 0, -1);
+        this.CurveManager = curveManager;
+        this.lastCurve = curveManager.Straight;
+        this.lastTransform = Matrix4x4.Identity;
 
 #if DEBUG
         HotReloadManager.AddReloadCallback("Mini.Engine.Modelling", _ => this.shouldReload = true);
@@ -39,36 +40,34 @@ internal sealed class PrimitivePanel : IEditorPanel
         {
             this.TrackManager.Clear();
 
-            this.offset = Vector3.Zero;
-            this.forward = new Vector3(0, 0, -1);
+            this.lastCurve = this.CurveManager.Straight;
+            this.lastTransform = Matrix4x4.Identity;
         }
-
+        
         if (ImGui.Button("Forward") || this.shouldReload)
-        {
-            var placement = this.PlaceTrack(this.TrackManager.Straight.Curve);
-            this.TrackManager.AddStraight(0, placement.GetMatrix());
+        {            
+            var (position, forward) = this.GetNextOrientation();            
+            (this.lastTransform, this.lastCurve) = this.TrackManager.AddStraight(position, forward);
         }
 
         if (ImGui.Button("Turn Left"))
         {
-            var placement = this.PlaceTrack(this.TrackManager.LeftTurn.Curve);
-            this.TrackManager.AddLeftTurn(0, placement.GetMatrix());
+            var (position, forward) = this.GetNextOrientation();
+            (this.lastTransform, this.lastCurve) = this.TrackManager.AddLeftTurn(position, forward);
         }
 
         if (ImGui.Button("Turn Right"))
         {
-            var placement = this.PlaceTrack(this.TrackManager.RightTurn.Curve);
-            this.TrackManager.AddRightTurn(0, placement.GetMatrix());
+            var (position, forward) = this.GetNextOrientation();
+            (this.lastTransform, this.lastCurve) = this.TrackManager.AddRightTurn(position, forward);
         }
 
         this.shouldReload = false;
     }
 
-    private Transform PlaceTrack(ICurve curve)
+    private (Vector3 Position, Vector3 Forward) GetNextOrientation()
     {
-        var transform = curve.PlaceInXZPlane(0.0f, this.offset, this.forward);
-        (this.offset, this.forward) = curve.GetWorldOrientation(1.0f, transform);
-
-        return transform;
+        var (position, forward) = this.lastCurve.GetWorldOrientation(1.0f, this.lastTransform);        
+        return (position + (forward * 0.1f), forward);
     }
 }

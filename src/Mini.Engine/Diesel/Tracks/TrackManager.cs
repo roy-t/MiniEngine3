@@ -1,24 +1,28 @@
 ﻿using System.Numerics;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Primitives;
 using Mini.Engine.Graphics.Transforms;
-
+using Mini.Engine.Modelling.Curves;
 using static Mini.Engine.Diesel.Tracks.TrackParameters;
 
 namespace Mini.Engine.Diesel.Tracks;
 
+// TODO: maybe we need to move making all the track pieces and components out of this class?
+
 [Service]
 public sealed class TrackManager
 {
-    private const int BufferCapacityIncrement = 100;
+    private const int BufferCapacity = 100;
 
     private readonly Device Device;
     private readonly ECSAdministrator Administrator;
+    private readonly TrackGrid Grid;
     private readonly IComponentContainer<InstancesComponent> Instances;
 
     private readonly List<TrackPiece> Pieces;
@@ -31,13 +35,12 @@ public sealed class TrackManager
     {
         this.Device = device;
         this.Administrator = administrator;
+        this.Grid = new TrackGrid(100, 100, STRAIGHT_LENGTH, STRAIGHT_LENGTH);
         this.Instances = instances;
 
-        var entities = this.Administrator.Entities;
-
-        this.Straight = TrackPieces.FromCurve(device, entities.Create(), curves.Straight, STRAIGHT_VERTICES, nameof(this.Straight));
-        this.LeftTurn = TrackPieces.FromCurve(device, entities.Create(), curves.LeftTurn, TURN_VERTICES, nameof(this.LeftTurn));
-        this.RightTurn = TrackPieces.FromCurve(device, entities.Create(), curves.RightTurn, TURN_VERTICES, nameof(this.RightTurn));
+        this.Straight = this.CreateTrackPieceAndComponents(device, curves.Straight, STRAIGHT_VERTICES, nameof(this.Straight));
+        this.LeftTurn = this.CreateTrackPieceAndComponents(device, curves.LeftTurn, TURN_VERTICES, nameof(this.LeftTurn));
+        this.RightTurn = this.CreateTrackPieceAndComponents(device, curves.RightTurn, TURN_VERTICES, nameof(this.RightTurn));
 
         this.Pieces = new List<TrackPiece>()
         {
@@ -45,101 +48,120 @@ public sealed class TrackManager
             this.LeftTurn,
             this.RightTurn,
         };
-
-        foreach (var trackPiece in this.Pieces)
-        {
-            this.CreateComponents(trackPiece);
-        }
-    }
-
-    private static ReadOnlySpan<Matrix4x4> CreateTransformArray(TrackPiece trackPiece)
-    {
-        var transforms = new Matrix4x4[trackPiece.Instances.Count];
-        for (var i = 0; i < transforms.Length; i++)
-        {
-            transforms[i] = trackPiece.Instances[i].Transform;
-        }
-
-        return transforms;
-    }
-
-    public void Update()
-    {
-        var context = this.Device.ImmediateContext;
-
-        foreach (var piece in this.Pieces)
-        {
-            if (piece.IsDirty)
-            {
-                var entity = piece.Entity;
-                if (!this.Instances.Contains(entity))
-                {
-                    var components = this.Administrator.Components;
-                    ref var instances = ref components.Create<InstancesComponent>(entity);
-                    var transforms = CreateTransformArray(piece);
-                    instances.Init(this.Device, piece.Name, transforms, BufferCapacityIncrement);
-                }
-                else
-                {
-                    ref var instances = ref this.Instances[piece.Entity].Value;
-                    var buffer = context.Resources.Get(instances.InstanceBuffer);
-                    if (buffer.Capacity < piece.Instances.Count)
-                    {
-                        buffer.EnsureCapacity(buffer.Capacity + BufferCapacityIncrement);
-                    }
-                    var transforms = CreateTransformArray(piece);
-                    buffer.MapData(context, transforms);
-                    instances.InstanceCount = piece.Instances.Count;
-                }
-
-                piece.IsDirty = false;
-            }
-        }
-    }
+    }    
 
     public void Clear()
     {
-        foreach (var piece in this.Pieces)
+        foreach (var trackPiece in this.Pieces)
         {
-            piece.Instances.Clear();
-            piece.IsDirty = true;
+            ref var component = ref this.Instances[trackPiece.Entity];
+            component.Value.InstanceList.Clear();
+            component.LifeCycle = component.LifeCycle.ToChanged();
         }
     }
 
-    public void AddStraight(int trackId, Matrix4x4 offset)
+    public (Matrix4x4, ICurve) AddStraight(Vector3 approximatePosition, Vector3 forward)
     {
-        AddInstance(this.Straight, trackId, offset);
+        var offset = this.Place(this.Straight.Curve, approximatePosition, forward);
+        this.AddInstance(this.Straight, offset);
+
+        return (offset, this.Straight.Curve);
     }
 
-    public void AddLeftTurn(int trackId, Matrix4x4 offset)
+    public (Matrix4x4, ICurve) AddLeftTurn(Vector3 approximatePosition, Vector3 forward)
     {
-        AddInstance(this.LeftTurn, trackId, offset);
+        var offset = this.Place(this.LeftTurn.Curve, approximatePosition, forward);
+        this.AddInstance(this.LeftTurn, offset);
+
+        return (offset, this.LeftTurn.Curve);
     }
 
-    public void AddRightTurn(int trackId, Matrix4x4 offset)
+    public (Matrix4x4, ICurve) AddRightTurn(Vector3 approximatePosition, Vector3 forward)
     {
-        AddInstance(this.RightTurn, trackId, offset);
+        var offset = this.Place(this.RightTurn.Curve, approximatePosition, forward);
+        this.AddInstance(this.RightTurn, offset);
+
+        return (offset, this.RightTurn.Curve);
     }
 
-    private static void AddInstance(TrackPiece trackPiece, int trackId, Matrix4x4 offset)
+    private Matrix4x4 Place(ICurve curve, Vector3 approximatePosition, Vector3 forward)
     {
-        trackPiece.Instances.Add(new TrackInstance(offset, trackId));
-        trackPiece.IsDirty = true;
+        // Find the cell the curve needs to be placed in
+        var (x, y) = this.Grid.PickCell(approximatePosition);
+
+        // Find a position on the border of the cell, backwards from the picked position
+        var (cellMin, cellMax) = this.Grid.GetCellBounds(x, y);
+        var midX = (cellMax.X + cellMin.X) / 2.0f;
+        var midY = (cellMax.Y + cellMin.Y) / 2.0f;
+        var midZ = (cellMax.Z + cellMin.Z) / 2.0f;
+
+        Vector3 position;
+
+        // Forward is pointing forward, start at the center of the 'backward' edge
+        if (Vector3.Dot(forward, new Vector3(0, 0, -1)) > 0.95f)
+        {
+            position = new Vector3(midX, midY, cellMax.Z);
+        }
+        // Forward is pointing back, start at the center of the 'forward' edge
+        else if (Vector3.Dot(forward, new Vector3(0, 0, 1)) > 0.95f)
+        {
+            position = new Vector3(midX, midY, cellMin.Z);
+        }
+        // Forward is pointing right, start at the center of 'left' edge
+        else if (Vector3.Dot(forward, new Vector3(1, 0, 0)) > 0.95f)
+        {
+            position = new Vector3(cellMin.X, midY, midZ);
+        }
+        // Forward is pointing left, start at the center of 'right' edge
+        else if (Vector3.Dot(forward, new Vector3(-1, 0, 0)) > 0.95f)
+        {
+            position = new Vector3(cellMax.X, midY, midZ);
+        }
+        else
+        {
+            throw new NotImplementedException("Unexpected direction");
+        }
+
+        var transform = curve.PlaceInXZPlane(0.0f, position, forward);
+
+        this.Grid.Add(x, y, curve, transform);
+
+        return transform.GetMatrix();
     }
 
-    private void CreateComponents(TrackPiece trackPiece)
+    private void AddInstance(TrackPiece trackPiece, Matrix4x4 offset)
+    {
+        ref var component = ref this.Instances[trackPiece.Entity];
+        component.Value.InstanceList.Add(offset);
+        component.LifeCycle = component.LifeCycle.ToChanged();
+    }
+
+    private TrackPiece CreateTrackPieceAndComponents(Device device, ICurve curve, int points, string name)
+    {
+        var entity = this.Administrator.Entities.Create();
+        var trackPiece = new TrackPiece(entity, name, curve);
+        var primitive = TrackPieces.FromCurve(device, curve, points, name);
+
+        this.CreateComponents(entity, primitive);
+
+        return trackPiece;
+    }
+
+    private void CreateComponents(Entity entity, ILifetime<PrimitiveMesh> mesh)
     {
         var components = this.Administrator.Components;
-        var entity = trackPiece.Entity;
 
         ref var transform = ref components.Create<TransformComponent>(entity);
         transform.Current = Transform.Identity;
         transform.Previous = transform.Current;
 
         ref var primitive = ref components.Create<PrimitiveComponent>(entity);
-        primitive.Mesh = trackPiece.Mesh;
+        primitive.Mesh = mesh;
 
         ref var shadows = ref components.Create<ShadowCasterComponent>(entity);
         shadows.Importance = 1.0f; // TODO: figure out which parts do and do not need a shadow
+
+        ref var instances = ref components.Create<InstancesComponent>(entity);
+        instances.Init(this.Device, $"Instances{entity}", BufferCapacity);
     }
 }

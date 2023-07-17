@@ -1,13 +1,10 @@
 # TODO
-- Terrain Generation is still a bit ugly
-    - Can't go back and forth in the panels after creating something
-    - we can probably iteratively add erosion, with the building blocks we have, should provide an interesting visual effect
 
-- Grass needs to be tinted based on terrain erosion
-- Grass needs to be placed more on flat and less on sloped surfaces
-- Terrain needs a tiling texture, see below
-- Camera movement is stuttery, even at fixed FPS, is this because the alpha value is not used?
-- Without vsync TAA looks really crazy
+
+Implementations of IComponent that hold ILIfeCycle<> things always assume that they live for the entire scene
+and never clean up their resources when they are removed. Is that OK?
+
+----
 
 Use ReadOnlyMemory<> instead of naked arrays!
 
@@ -43,9 +40,5 @@ https://developer.nvidia.com/sites/default/files/akamai/gamedev/docs/GDC_2013_DU
 
 Due to the new flip mode and tearing support users need at least Windows 10 Anniversary edition (2016)
 See: https://docs.microsoft.com/en-us/windows/win32/direct3ddxgi/variable-refresh-rate-displays
-
-Ideas for terain rendering without repeats (stochastic texturing), blog contains other tips about terrains
-https://medium.com/@jasonbooth_86226/stochastic-texturing-3c2e58d76a14
-or: https://polycount.com/discussion/116254/terrain-tiling-reduction-multi-uv-mixing
 
 If trying out tasks, there's a lot I can do to figure out where to run tasks. See: https://devblogs.microsoft.com/dotnet/configureawait-faq/ (misleading name) also configureawait(false) seems like a good option to set!

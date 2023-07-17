@@ -6,15 +6,14 @@ namespace Mini.Engine.DirectX.Buffers;
 public class StructuredBuffer<T> : DeviceBuffer<T>
     where T : unmanaged
 {
-    protected StructuredBuffer(Device device, string user, string abbreviation)
+    protected StructuredBuffer(Device device, string user, string abbreviation, int capacity = 1)
         : base(device, user, abbreviation)
     {
-        this.EnsureCapacity(1);        
+        this.EnsureCapacity(capacity);        
     }
 
-    public StructuredBuffer(Device device, string user)
-        : this(device, user, "R") { }
-
+    public StructuredBuffer(Device device, string user, int capacity = 1)
+        : this(device, user, "R", capacity) { }
 
     public ShaderResourceView<T> CreateShaderResourceView()
     {

@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
-using Mini.Engine.ECS;
 using Mini.Engine.Graphics.Primitives;
 using Mini.Engine.Modelling.Curves;
 using Mini.Engine.Modelling.Paths;
@@ -9,14 +9,8 @@ using static Mini.Engine.Diesel.Tracks.TrackParameters;
 
 namespace Mini.Engine.Diesel.Tracks;
 public static class TrackPieces
-{    
-    public static TrackPiece Straight(Device device, Entity entity)
-    {
-        var curve = new StraightCurve(new Vector3(0.0f, 0.0f, STRAIGHT_LENGTH * 0.5f), new Vector3(0.0f, 0.0f, -1.0f), STRAIGHT_LENGTH);
-        return FromCurve(device, entity, curve, 2, nameof(Straight));
-    }
-
-    public static TrackPiece FromCurve(Device device, Entity entity, ICurve curve, int points, string name)
+{
+    public static ILifetime<PrimitiveMesh> FromCurve(Device device, ICurve curve, int points, string name)
     {
         var builder = new PrimitiveMeshBuilder();
 
@@ -24,9 +18,7 @@ public static class TrackPieces
         BuildTies(builder, curve);
         BuildBallast(points, builder, curve);
 
-        var primitive = builder.Build(device, name, out var bounds);
-
-        return new TrackPiece(entity, name, curve, primitive, bounds);
+        return builder.Build(device, name, out var bounds);
     }
 
     private static void BuildRails(int points, PrimitiveMeshBuilder builder, ICurve curve)
