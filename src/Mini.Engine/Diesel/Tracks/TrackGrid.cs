@@ -112,13 +112,58 @@ public sealed class TrackGrid
 
     public (int x, int y) PickCell(Vector3 position)
     {
-        var (ix, _, iz) = Grids.PickCell(this.DimX, 1, this.DimY, new Vector3(this.CellSizeX, 1.0f, this.CellSizeY), Vector3.Zero, position);
+        var (ix, _, iz) = Grids.PickCell(this.DimX, 1, this.DimY, new Vector3(this.CellSizeX, 0.0f, this.CellSizeY), Vector3.Zero, position);
         return (ix, iz);
     }
 
     public (Vector3 min, Vector3 max) GetCellBounds(int x, int y)
     {
-        return Grids.GetCellBounds(this.DimX, 1, this.DimY, new Vector3(this.CellSizeX, 1.0f, this.CellSizeY), Vector3.Zero, x, 0, y);        
+        return Grids.GetCellBounds(this.DimX, 1, this.DimY, new Vector3(this.CellSizeX, 0.0f, this.CellSizeY), Vector3.Zero, x, 0, y);        
+    }
+
+    public Transform Add(ICurve curve, Vector3 approximatePosition, Vector3 forward)
+    {
+        // Find the cell the curve needs to be placed in
+        var (x, y) = this.PickCell(approximatePosition);
+
+        // Find a position on the border of the cell, backwards from the picked position
+        var (cellMin, cellMax) = this.GetCellBounds(x, y);
+        var midX = (cellMax.X + cellMin.X) / 2.0f;
+        var midY = (cellMax.Y + cellMin.Y) / 2.0f;
+        var midZ = (cellMax.Z + cellMin.Z) / 2.0f;
+
+        Vector3 position;
+
+        // Forward is pointing forward, start at the center of the 'backward' edge
+        if (Vector3.Dot(forward, new Vector3(0, 0, -1)) > 0.95f)
+        {
+            position = new Vector3(midX, midY, cellMax.Z);
+        }
+        // Forward is pointing back, start at the center of the 'forward' edge
+        else if (Vector3.Dot(forward, new Vector3(0, 0, 1)) > 0.95f)
+        {
+            position = new Vector3(midX, midY, cellMin.Z);
+        }
+        // Forward is pointing right, start at the center of 'left' edge
+        else if (Vector3.Dot(forward, new Vector3(1, 0, 0)) > 0.95f)
+        {
+            position = new Vector3(cellMin.X, midY, midZ);
+        }
+        // Forward is pointing left, start at the center of 'right' edge
+        else if (Vector3.Dot(forward, new Vector3(-1, 0, 0)) > 0.95f)
+        {
+            position = new Vector3(cellMax.X, midY, midZ);
+        }
+        else
+        {
+            throw new NotImplementedException("Unexpected direction");
+        }
+
+        var transform = curve.PlaceInXZPlane(0.0f, position, forward);
+
+        this.Add(x, y, curve, transform);
+
+        return transform;
     }
 
     private bool CellIsInsideGrid(int x, int y)

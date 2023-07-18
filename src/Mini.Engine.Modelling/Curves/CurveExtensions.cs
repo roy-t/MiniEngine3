@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using System.Runtime.CompilerServices;
 using LibGame.Mathematics;
 using LibGame.Physics;
 using Mini.Engine.Core;
@@ -72,25 +71,43 @@ public static class CurveExtensions
     /// <summary>
     /// Creates a transformation matrix that translates an object so that it is at `u` 
     /// and rotates the object so that it points in the same direction as the forward at `u`
+    /// given the transformation first applied to the curve
+    /// </summary>
+    /// <param name="curve"></param>
+    /// <param name="u">The point on the curve</param>
+    /// <param name="up">A vector that points towards what is relatively up for this curve. Prevents unwanted rolls in the transformation matrix</param>
+    /// <param name="transform">The transformation to first apply to the curve</param>
+    public static Matrix4x4 AlignTo(this ICurve curve, float u, Vector3 up, in Transform transform)
+    {
+        var position = curve.GetPosition(u);
+        var forward = curve.GetForward(u);
+
+        var matrix = new Transform(position, Quaternion.Identity, Vector3.Zero, 1.0f)
+            .FaceTargetConstrained(position + forward, up)
+            .GetMatrix();
+
+        return matrix * transform.GetMatrix();
+    }
+
+    /// <summary>
+    /// Creates a transformation matrix that translates an object so that it is at `u` 
+    /// and rotates the object so that it points in the same direction as the forward at `u`
     /// </summary>
     /// <param name="curve"></param>
     /// <param name="u">The point on the curve</param>
     /// <param name="up">A vector that points towards what is relatively up for this curve. Prevents unwanted rolls in the transformation matrix</param>    
     public static Matrix4x4 AlignTo(this ICurve curve, float u, Vector3 up)
     {
-        var position = curve.GetPosition(u);
-        var forward = curve.GetForward(u);
-        return new Transform(position, Quaternion.Identity, Vector3.Zero, 1.0f)
-            .FaceTargetConstrained(position + forward, up)
-            .GetMatrix();
+        return AlignTo(curve, u, up, Transform.Identity);
     }
 
-    public static (Vector3 Position, Vector3 Forward) GetWorldOrientation(this ICurve curve, float u, Transform transform)
+    public static (Vector3 Position, Vector3 Forward) GetWorldOrientation(this ICurve curve, float u, in Transform transform)
     {
-        return GetWorldOrientation(curve, u, transform.GetMatrix());
+        var matrix = transform.GetMatrix();
+        return GetWorldOrientation(curve, u, in matrix);
     }
 
-    public static (Vector3 Position, Vector3 Forward) GetWorldOrientation(this ICurve curve, float u, Matrix4x4 world)
+    public static (Vector3 Position, Vector3 Forward) GetWorldOrientation(this ICurve curve, float u, in Matrix4x4 world)
     {
         var position = Vector3.Transform(curve.GetPosition(u), world);
         var forward = Vector3.TransformNormal(curve.GetForward(u), world);
@@ -113,12 +130,12 @@ public static class CurveExtensions
     /// <param name="maxDistanceSquared">The maximum squared distance between twe two position vectors for the two curves to be considered connected.</param>
     /// <param name="minCoherence">The minimum absolute value of the dot product between the two forward vectors for the two curves to be considered connected.</param>
     /// <returns></returns>
-    public static bool IsConnectedTo(this ICurve curveA, float ua, Transform transformA, ICurve curveB, float ub, Transform transformB, float maxDistanceSquared, float minCoherence = 0.95f)
+    public static bool IsConnectedTo(this ICurve curveA, float ua, in Transform transformA, ICurve curveB, float ub, in Transform transformB, float maxDistanceSquared, float minCoherence = 0.95f)
     {
         // Two curves are connected if the positions on their respective curves are close and their forwards either
         // point in exactly the same direction or in exactly the opposite direction
-        var (positionA, forwardA) = curveA.GetWorldOrientation(ua, transformA);
-        var (positionB, forwardB) = curveB.GetWorldOrientation(ub, transformB);
+        var (positionA, forwardA) = curveA.GetWorldOrientation(ua, in transformA);
+        var (positionB, forwardB) = curveB.GetWorldOrientation(ub, in transformB);
 
         if (Vector3.DistanceSquared(positionA, positionB) < maxDistanceSquared)
         {

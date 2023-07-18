@@ -20,7 +20,6 @@ public sealed class TrackManager
 {
     private const int BufferCapacity = 100;
 
-    private readonly Device Device;
     private readonly ECSAdministrator Administrator;
     private readonly TrackGrid Grid;
     private readonly IComponentContainer<InstancesComponent> Instances;
@@ -31,11 +30,10 @@ public sealed class TrackManager
     public readonly TrackPiece LeftTurn;
     public readonly TrackPiece RightTurn;
 
-    public TrackManager(Device device, ECSAdministrator administrator, CurveManager curves, IComponentContainer<InstancesComponent> instances)
+    public TrackManager(Device device, ECSAdministrator administrator, CurveManager curves, ScenarioManager scenarioManager, IComponentContainer<InstancesComponent> instances)
     {
-        this.Device = device;
         this.Administrator = administrator;
-        this.Grid = new TrackGrid(100, 100, STRAIGHT_LENGTH, STRAIGHT_LENGTH);
+        this.Grid = scenarioManager.Grid;
         this.Instances = instances;
 
         this.Straight = this.CreateTrackPieceAndComponents(device, curves.Straight, STRAIGHT_VERTICES, nameof(this.Straight));
@@ -62,7 +60,7 @@ public sealed class TrackManager
 
     public (Matrix4x4, ICurve) AddStraight(Vector3 approximatePosition, Vector3 forward)
     {
-        var offset = this.Place(this.Straight.Curve, approximatePosition, forward);
+        var offset = this.Grid.Add(this.Straight.Curve, approximatePosition, forward).GetMatrix();
         this.AddInstance(this.Straight, offset);
 
         return (offset, this.Straight.Curve);
@@ -70,7 +68,7 @@ public sealed class TrackManager
 
     public (Matrix4x4, ICurve) AddLeftTurn(Vector3 approximatePosition, Vector3 forward)
     {
-        var offset = this.Place(this.LeftTurn.Curve, approximatePosition, forward);
+        var offset = this.Grid.Add(this.LeftTurn.Curve, approximatePosition, forward).GetMatrix();
         this.AddInstance(this.LeftTurn, offset);
 
         return (offset, this.LeftTurn.Curve);
@@ -78,57 +76,12 @@ public sealed class TrackManager
 
     public (Matrix4x4, ICurve) AddRightTurn(Vector3 approximatePosition, Vector3 forward)
     {
-        var offset = this.Place(this.RightTurn.Curve, approximatePosition, forward);
+        var offset = this.Grid.Add(this.RightTurn.Curve, approximatePosition, forward).GetMatrix();
         this.AddInstance(this.RightTurn, offset);
 
         return (offset, this.RightTurn.Curve);
     }
-
-    private Matrix4x4 Place(ICurve curve, Vector3 approximatePosition, Vector3 forward)
-    {
-        // Find the cell the curve needs to be placed in
-        var (x, y) = this.Grid.PickCell(approximatePosition);
-
-        // Find a position on the border of the cell, backwards from the picked position
-        var (cellMin, cellMax) = this.Grid.GetCellBounds(x, y);
-        var midX = (cellMax.X + cellMin.X) / 2.0f;
-        var midY = (cellMax.Y + cellMin.Y) / 2.0f;
-        var midZ = (cellMax.Z + cellMin.Z) / 2.0f;
-
-        Vector3 position;
-
-        // Forward is pointing forward, start at the center of the 'backward' edge
-        if (Vector3.Dot(forward, new Vector3(0, 0, -1)) > 0.95f)
-        {
-            position = new Vector3(midX, midY, cellMax.Z);
-        }
-        // Forward is pointing back, start at the center of the 'forward' edge
-        else if (Vector3.Dot(forward, new Vector3(0, 0, 1)) > 0.95f)
-        {
-            position = new Vector3(midX, midY, cellMin.Z);
-        }
-        // Forward is pointing right, start at the center of 'left' edge
-        else if (Vector3.Dot(forward, new Vector3(1, 0, 0)) > 0.95f)
-        {
-            position = new Vector3(cellMin.X, midY, midZ);
-        }
-        // Forward is pointing left, start at the center of 'right' edge
-        else if (Vector3.Dot(forward, new Vector3(-1, 0, 0)) > 0.95f)
-        {
-            position = new Vector3(cellMax.X, midY, midZ);
-        }
-        else
-        {
-            throw new NotImplementedException("Unexpected direction");
-        }
-
-        var transform = curve.PlaceInXZPlane(0.0f, position, forward);
-
-        this.Grid.Add(x, y, curve, transform);
-
-        return transform.GetMatrix();
-    }
-
+   
     private void AddInstance(TrackPiece trackPiece, Matrix4x4 offset)
     {
         ref var component = ref this.Instances[trackPiece.Entity];
@@ -142,12 +95,12 @@ public sealed class TrackManager
         var trackPiece = new TrackPiece(entity, name, curve);
         var primitive = TrackPieces.FromCurve(device, curve, points, name);
 
-        this.CreateComponents(entity, primitive);
+        this.CreateComponents(device, entity, primitive);
 
         return trackPiece;
     }
 
-    private void CreateComponents(Entity entity, ILifetime<PrimitiveMesh> mesh)
+    private void CreateComponents(Device device, Entity entity, ILifetime<PrimitiveMesh> mesh)
     {
         var components = this.Administrator.Components;
 
@@ -159,9 +112,9 @@ public sealed class TrackManager
         primitive.Mesh = mesh;
 
         ref var shadows = ref components.Create<ShadowCasterComponent>(entity);
-        shadows.Importance = 1.0f; // TODO: figure out which parts do and do not need a shadow
+        shadows.Importance = 1.0f;
 
         ref var instances = ref components.Create<InstancesComponent>(entity);
-        instances.Init(this.Device, $"Instances{entity}", BufferCapacity);
+        instances.Init(device, $"Instances{entity}", BufferCapacity);
     }
 }

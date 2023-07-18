@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using LibGame.Physics;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.Diesel.Tracks;
 using Mini.Engine.DirectX;
 using Mini.Engine.Graphics.Primitives;
@@ -11,19 +11,16 @@ using static Mini.Engine.Diesel.Trains.TrainParameters;
 
 namespace Mini.Engine.Diesel.Trains;
 public static class TrainCars
-{    
-    public static TrainCar Flatcar(Device device)
+{
+    public static ILifetime<PrimitiveMesh> BuildBogie(Device device, string name)
     {
         var builder = new PrimitiveMeshBuilder();
-        BuildWheel(builder);
+        BuildBogie(builder);
 
-        var primitive = builder.Build(device, "Flatcar", out var bounds);
+        return builder.Build(device, name, out var bounds);
+    }    
 
-
-        return new TrainCar(primitive, bounds, Transform.Identity);
-    }
-
-    private static void BuildWheel(PrimitiveMeshBuilder builder)
+    private static void BuildBogie(PrimitiveMeshBuilder builder)
     {
         var partBuilder = builder.StartPart();
 
