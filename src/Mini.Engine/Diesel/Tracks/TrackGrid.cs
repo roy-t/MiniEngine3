@@ -118,7 +118,7 @@ public sealed class TrackGrid
 
     public (Vector3 min, Vector3 max) GetCellBounds(int x, int y)
     {
-        return Grids.GetCellBounds(this.DimX, 1, this.DimY, new Vector3(this.CellSizeX, 0.0f, this.CellSizeY), Vector3.Zero, x, 0, y);        
+        return Grids.GetCellBounds(this.DimX, 1, this.DimY, new Vector3(this.CellSizeX, 0.0f, this.CellSizeY), Vector3.Zero, x, 0, y);
     }
 
     public Transform Add(ICurve curve, Vector3 approximatePosition, Vector3 forward)
@@ -164,6 +164,120 @@ public sealed class TrackGrid
         this.Add(x, y, curve, transform);
 
         return transform;
+    }
+
+
+    /// <summary>
+    /// Finds the grid cell, curve and parameterized position on the curve of a point
+    /// that lies the given distance from the given curve and position on that curve.
+    /// The distance is straight line distance, not distance along the curve
+    /// </summary>    
+    public (int X, int Y, int Index, float U) FooFind(int x, int y, int index, float u, float uDir, float distance, float margin)
+    {
+        var references = new List<ConnectedToReference>(); // TODO not always needed
+        var startPlacement = this.GetExistingCell(x, y).Placements[index];
+        var startPosition = Vector3.Transform(startPlacement.Curve.GetPosition(u), startPlacement.Transform.GetMatrix());
+
+        while (true)
+        {
+            var nextU = uDir > 0 ? 1.0f : 0.0f;            
+            var placement = this.GetExistingCell(x, y).Placements[index];
+            var endPosition = Vector3.Transform(placement.Curve.GetPosition(nextU), placement.Transform.GetMatrix());
+
+            var coveredDistance = Vector3.Distance(startPosition, endPosition);
+            var diff = Math.Abs(distance - coveredDistance);
+
+            if (diff < margin)
+            {
+                return (x, y, index, nextU);
+            }
+
+            // TODO: the idea here is to do some sort of binary search, but we need to be smart about 'spilling' over
+            // to the next  or previous curve maybe we need to make some abstraction that
+            // takes a series of curves (path) and lets you interpolate along those form [0..1..2..3..4] or in meters even?
+
+            if (coveredDistance > distance)
+            {
+                nextU = (u + nextU) * 0.5f;
+            }
+
+            if (coveredDistance < distance)
+            {
+                
+
+
+                references.Clear();
+                this.GetConnections(x, y, index, nextU, references);
+
+                // TODO: always takes the first curve, assumes connections exist
+                x = references[0].XTo;
+                y = references[0].YTo;
+                index = references[0].ITo;
+
+                // We can either start at 'end' or the 'start' of the next curve
+                // so adjust nextU and uDir
+                nextU = references[0].UTo;
+                uDir = nextU == 0.0f ? 1.0f : -1.0f;
+            }
+        }
+
+
+
+
+        //var references = new List<ConnectedToReference>(); // TODO not always needed
+
+        //var startPlacement = this.GetExistingCell(x, y).Placements[index];
+        //var startPosition = Vector3.Transform(startPlacement.Curve.GetPosition(u), startPlacement.Transform.GetMatrix());
+
+        //var cummulativeDistance = 0.0f;
+        //while (true)
+        //{
+        //    // Find the cell and the curve in the cell that we choose to follow
+        //    var cell = this.GetExistingCell(x, y);            
+        //    var placement = cell.Placements[index];
+
+        //    // Figure out if forward is going to the 1.0f or 0.0f end of the curve
+        //    var toU = uDir > 0 ? 1.0f : 0.0f;
+
+        //    // Compute how much we can at most traverse along this curve
+        //    var remainder = Math.Abs(u - toU);
+        //    var maxDistance = placement.Curve.ComputeLength() * remainder;
+        //    var portion = distance / maxDistance
+
+        //    var nextU = u + (placement.Curve.ComputeLength() * remainder * uDir);
+
+        //    // If we might get enough distance on this curve, try that
+        //    if (nextU < 1.0f)
+        //    {
+        //        // Check if the distance is enough
+        //        var end = Vector3.Transform(placement.Curve.GetPosition(nextU), placement.Transform.GetMatrix());
+        //        if (Math.Abs(distance - Vector3.Distance(startPosition, end)) <= margin)
+        //        {
+        //            return (x, y, index, nextU);
+        //        }
+        //        else
+        //        {
+        //            // Otherwise start the search again from nextU
+        //            u = nextU;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        // If u > 1.0f that means we need to try the next curve
+        //        references.Clear();                
+        //        this.GetConnections(x, y, index, toU, references);
+
+        //        // TODO: always takes the first curve, assumes connections exist
+        //        x = references[0].XTo;
+        //        y = references[0].YTo;
+        //        index = references[0].ITo;
+
+        //        // We can either start at 'end' or the 'start' of the next curve
+        //        // so adjust nextU and uDir
+        //        nextU = references[0].UTo; 
+        //        uDir = nextU == 0.0f ? 1.0f : -1.0f;               
+        //    }
+        //}
     }
 
     private bool CellIsInsideGrid(int x, int y)

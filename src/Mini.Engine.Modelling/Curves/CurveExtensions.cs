@@ -87,7 +87,7 @@ public static class CurveExtensions
             .GetMatrix();
 
         return matrix * transform.GetMatrix();
-    }
+    }    
 
     /// <summary>
     /// Creates a transformation matrix that translates an object so that it is at `u` 

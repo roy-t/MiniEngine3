@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System.ComponentModel;
+using System.Drawing.Drawing2D;
+using System.Numerics;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Diesel.Tracks;
@@ -32,11 +34,11 @@ public sealed class TrainManager
     private TrainCar CreateTrainCarAndComponents(Device device, string name)
     {
         var bogiePrimitive = TrainCars.BuildBogie(device, "bogie");
-        //var carPrimitive = TrainCars.BuildBogie(device, nameof(front));
+        var carPrimitive = TrainCars.BuildFlatCar(device, "flat_car");
 
         var front = PrimitiveUtilities.CreateComponents(device, this.Administrator, bogiePrimitive, BufferCapacity, 1.0f);
         var rear = PrimitiveUtilities.CreateComponents(device, this.Administrator, bogiePrimitive, BufferCapacity, 1.0f);
-        var car = this.Administrator.Entities.Create();
+        var car = PrimitiveUtilities.CreateComponents(device, this.Administrator, carPrimitive, BufferCapacity, 1.0f);
 
         var trainCar = new TrainCar(front, rear, car, name);
 
@@ -48,16 +50,27 @@ public sealed class TrainManager
         var (x, y) = this.Grid.PickCell(approximatePosition);
         var placement = this.Grid[x, y].Placements[0];
 
-        this.AddInstance(this.FlatCar.Front, placement.Curve, 0.5f, placement.Transform);
+        var (positionBack, _) = this.AddInstance(this.FlatCar.Front, placement.Curve, 0.1f, placement.Transform);
 
-        // TODO: add a find distance function
-        this.AddInstance(this.FlatCar.Rear, placement.Curve, 0.6f, placement.Transform);
+        // TODO: add a function that finds the position X world distance further
+        var (positionFront, _) = this.AddInstance(this.FlatCar.Rear, placement.Curve, 0.6f, placement.Transform);
+
+        var carMatrix = Transform.Identity.SetTranslation((positionBack + positionFront) * 0.5f)
+            .FaceTargetConstrained(positionBack + Vector3.Normalize(positionFront - positionBack), Vector3.UnitY);
+        this.AddInstance(this.FlatCar.Car, carMatrix.GetMatrix());
     }
 
-    private void AddInstance(Entity entity, ICurve curve, float u, Transform transform)
+    private (Vector3 Position, Vector3 Forward) AddInstance(Entity entity, ICurve curve, float u, Transform transform)
+    {        
+        var matrix = curve.AlignTo(u, Vector3.UnitY, in transform);
+        this.AddInstance(entity, in matrix);
+
+        return curve.GetWorldOrientation(u, transform.GetMatrix());
+    }
+
+    private void AddInstance(Entity entity, in Matrix4x4 matrix)
     {
         ref var component = ref this.Instances[entity];
-        var matrix = curve.AlignTo(u, Vector3.UnitY, in transform);
         component.Value.InstanceList.Add(matrix);
         component.LifeCycle = component.LifeCycle.ToChanged();
     }
