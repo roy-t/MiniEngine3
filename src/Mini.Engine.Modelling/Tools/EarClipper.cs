@@ -4,13 +4,18 @@ using Mini.Engine.Core;
 
 namespace Mini.Engine.Modelling.Tools;
 
+// TODO: move to lib game and add tests!
 public class EarClipping
 {
     private readonly record struct IndexedVertex2D(int Index, Vector2 Vertex);
 
     private readonly record struct IndexedVertex3D(int Index, Vector3 Vertex);
-    
-    public static ReadOnlySpan<int> Triangulate(ReadOnlySpan<Vector3> polygon)
+
+    /// <summary>
+    /// Given a polygon without holes, defined by clockwise vertices, returns a triangulation of that polygon.
+    /// Only works if every vertex has an unobstructed view of the viewer by looking in the direction of the normal.
+    /// </summary>
+    public static ReadOnlySpan<int> Triangulate(ReadOnlySpan<Vector3> polygon, Vector3 normal)
     {
         var indices = new ArrayBuilder<int>(polygon.Length * 2);
         var remaining = new List<IndexedVertex3D>(polygon.Length);
@@ -29,7 +34,7 @@ public class EarClipping
                 (var i1, var v1) = remaining[(i + 1) % n];
                 (var i2, var v2) = remaining[(i + 2) % n];
 
-                if (IsEar(v0, v1, v2, remaining))
+                if (IsEar(v0, v1, v2, normal, remaining))
                 {
                     indices.Add(i0);
                     indices.Add(i1);
@@ -104,13 +109,12 @@ public class EarClipping
         return true;
     }
 
-    private static bool IsEar(Vector3 v0, Vector3 v1, Vector3 v2, List<IndexedVertex3D> polygon)
+    private static bool IsEar(Vector3 v0, Vector3 v1, Vector3 v2, Vector3 normal, List<IndexedVertex3D> polygon)
     {
-        // TODO: doesn't make sense in 3D? Works fine without? 
-        //if (TriangleUtilities.IsTriangleCounterClockwise(v0, v1, v2))
-        //{
-        //    return false;
-        //}
+        if (Triangles.IsTriangleCounterClockwise(v0, v1, v2, normal))
+        {
+            return false;
+        }
 
         foreach ((var _, var vertex) in polygon)
         {

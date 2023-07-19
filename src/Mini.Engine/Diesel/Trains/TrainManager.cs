@@ -1,14 +1,11 @@
 ﻿using System.Numerics;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Core.Lifetime;
 using Mini.Engine.Diesel.Tracks;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
-using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Primitives;
-using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Modelling.Curves;
 
 namespace Mini.Engine.Diesel.Trains;
@@ -34,22 +31,17 @@ public sealed class TrainManager
 
     private TrainCar CreateTrainCarAndComponents(Device device, string name)
     {
-        var front = this.Administrator.Entities.Create();
-        var rear = this.Administrator.Entities.Create();
+        var bogiePrimitive = TrainCars.BuildBogie(device, "bogie");
+        //var carPrimitive = TrainCars.BuildBogie(device, nameof(front));
+
+        var front = PrimitiveUtilities.CreateComponents(device, this.Administrator, bogiePrimitive, BufferCapacity, 1.0f);
+        var rear = PrimitiveUtilities.CreateComponents(device, this.Administrator, bogiePrimitive, BufferCapacity, 1.0f);
         var car = this.Administrator.Entities.Create();
 
         var trainCar = new TrainCar(front, rear, car, name);
 
-        var bogiePrimitive = TrainCars.BuildBogie(device, nameof(front));        
-        //var carPrimitive = TrainCars.BuildBogie(device, nameof(front));
-
-        this.CreateComponents(device, front, bogiePrimitive, 0.1f);
-        this.CreateComponents(device, rear, bogiePrimitive, 0.1f);
-        //this.CreateComponents(car, carPrimitive);
-
         return trainCar;
     }
-
 
     public void AddFlatCar(Vector3 approximatePosition)
     {
@@ -65,26 +57,8 @@ public sealed class TrainManager
     private void AddInstance(Entity entity, ICurve curve, float u, Transform transform)
     {
         ref var component = ref this.Instances[entity];
-        var matrix = curve.AlignTo(u, Vector3.UnitY, in transform); 
+        var matrix = curve.AlignTo(u, Vector3.UnitY, in transform);
         component.Value.InstanceList.Add(matrix);
         component.LifeCycle = component.LifeCycle.ToChanged();
-    }
-
-    private void CreateComponents(Device device, Entity entity, ILifetime<PrimitiveMesh> mesh, float shadowImportance)
-    {
-        var components = this.Administrator.Components;
-
-        ref var transform = ref components.Create<TransformComponent>(entity);
-        transform.Current = Transform.Identity;
-        transform.Previous = transform.Current;
-
-        ref var primitive = ref components.Create<PrimitiveComponent>(entity);
-        primitive.Mesh = mesh;
-
-        ref var shadows = ref components.Create<ShadowCasterComponent>(entity);
-        shadows.Importance = shadowImportance;
-
-        ref var instances = ref components.Create<InstancesComponent>(entity);
-        instances.Init(device, $"Instances{entity}", BufferCapacity);
     }
 }

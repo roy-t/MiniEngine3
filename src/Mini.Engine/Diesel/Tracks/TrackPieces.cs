@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using LibGame.Geometry;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.Graphics.Primitives;
@@ -43,8 +44,10 @@ public static class TrackPieces
 
         Joiner.Join(partBuilder, front, back);
 
-        Filler.Fill(partBuilder, front);
-        Filler.Fill(partBuilder, back.Reverse());  // To avoid culling
+        var backFill = back.Reverse(); // To avoid culling
+
+        Filler.Fill(partBuilder, front, Triangles.GetNormal(front[0], front[1], front[2]));
+        Filler.Fill(partBuilder, backFill, Triangles.GetNormal(backFill[0], backFill[1], backFill[2]));  
 
         var transforms = Walker.WalkSpacedOut(curve, RAIL_TIE_SPACING, Vector3.UnitY);
 

@@ -6,7 +6,6 @@ using static Mini.Engine.Diesel.Tracks.TrackParameters;
 namespace Mini.Engine.Diesel.Trains;
 public static class TrainParameters
 {
-
     public static int WHEEL_VERTICES => 20;
     public static float INNER_WHEEL_RADIUS => 1.1f / 2.0f;
     public static float OUTER_WHEEL_RADIUS => 0.9f / 2.0f;
@@ -18,7 +17,22 @@ public static class TrainParameters
     public static Color4 BOGIE_COLOR => new(112, 96, 88);
     public static float BOGIE_METALICNESS => 0.6f;
     public static float BOGIE_ROUGHNESS => 0.1f;
-    
+
+    public static float FLAT_CAR_LENGTH = 14.7f;
+    public static float FLAT_CAR_BOGEY_GAP_LENGTH = 2.9f;
+    public static float FLAT_CAR_WIDTH = 2.7f;
+
+
+    public static Transform FLAT_CAR_TRANSFORM
+    {
+        get
+        {
+            var h = SINGLE_RAIL_HEIGTH + BALLAST_HEIGHT_TOP + (OUTER_WHEEL_RADIUS * 2.1f);
+            return Transform.Identity.AddTranslation(new Vector3(0.0f, h, 0.0f))
+                .AddLocalRotation(Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI * 0.5f));
+        }
+    }
+
 
     public static Transform WHEEL_TRANSFORM
     {

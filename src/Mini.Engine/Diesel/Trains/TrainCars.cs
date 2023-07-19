@@ -1,4 +1,6 @@
 ﻿using System.Numerics;
+using LibGame.Geometry;
+using LibGame.Physics;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.Diesel.Tracks;
 using Mini.Engine.DirectX;
@@ -17,8 +19,36 @@ public static class TrainCars
         var builder = new PrimitiveMeshBuilder();
         BuildBogie(builder);
 
-        return builder.Build(device, name, out var bounds);
-    }    
+        return builder.Build(device, name, out var _);
+    }
+
+    public static ILifetime<PrimitiveMesh> BuildFlatCar(Device device, string name)
+    {
+        var builder = new PrimitiveMeshBuilder();
+        BuildFlatBed(builder);
+
+        return builder.Build(device, name, out var _);
+    }
+
+    private static void BuildFlatBed(PrimitiveMeshBuilder builder)
+    {
+        var partBuilder = builder.StartPart();
+        
+        var crossSection = CrossSections.Bed();
+        
+        var halfCarWidth = FLAT_CAR_WIDTH * 0.5f;
+        var curve = new StraightCurve(new Vector3(0, 0, halfCarWidth), new Vector3(0.0f, 0.0f, -1.0f), FLAT_CAR_WIDTH);
+        Extruder.Extrude(partBuilder, crossSection, curve, 2, Vector3.UnitY);
+
+        var fillPath = crossSection.ToPath3D(halfCarWidth);
+        var fillPath2 = crossSection.ToPath3D(-halfCarWidth).Reverse();
+
+        Filler.Fill(partBuilder, fillPath, Vector3.UnitZ);
+        Filler.Fill(partBuilder, fillPath2, -Vector3.UnitZ);
+
+        partBuilder.Transform(FLAT_CAR_TRANSFORM);
+        partBuilder.Complete(BOGIE_COLOR, BOGIE_METALICNESS, BOGIE_ROUGHNESS);
+    }
 
     private static void BuildBogie(PrimitiveMeshBuilder builder)
     {
@@ -71,11 +101,15 @@ public static class TrainCars
 
         if (direction < 0)
         {
-            Filler.Fill(partBuilder, crossSection.ToPath3D().Transform(Matrix4x4.CreateTranslation(curve.GetPosition(0))));
+            var path = crossSection.ToPath3D().Transform(Matrix4x4.CreateTranslation(curve.GetPosition(0)));
+            var normal = Triangles.GetNormal(path[0], path[1], path[2]);
+            Filler.Fill(partBuilder, path, normal);
         }
         else
         {
-            Filler.Fill(partBuilder, crossSection.ToPath3D().Transform(Matrix4x4.CreateTranslation(curve.GetPosition(1))).Reverse());
+            var path = crossSection.ToPath3D().Transform(Matrix4x4.CreateTranslation(curve.GetPosition(1))).Reverse();
+            var normal = Triangles.GetNormal(path[0], path[1], path[2]);
+            Filler.Fill(partBuilder, path, normal);
         }
     }
 }

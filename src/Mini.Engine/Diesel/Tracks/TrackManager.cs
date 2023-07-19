@@ -1,19 +1,13 @@
 ﻿using System.Numerics;
-using LibGame.Physics;
 using Mini.Engine.Configuration;
-using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
-using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Primitives;
-using Mini.Engine.Graphics.Transforms;
 using Mini.Engine.Modelling.Curves;
 using static Mini.Engine.Diesel.Tracks.TrackParameters;
 
 namespace Mini.Engine.Diesel.Tracks;
-
-// TODO: maybe we need to move making all the track pieces and components out of this class?
 
 [Service]
 public sealed class TrackManager
@@ -46,7 +40,7 @@ public sealed class TrackManager
             this.LeftTurn,
             this.RightTurn,
         };
-    }    
+    }
 
     public void Clear()
     {
@@ -81,7 +75,7 @@ public sealed class TrackManager
 
         return (offset, this.RightTurn.Curve);
     }
-   
+
     private void AddInstance(TrackPiece trackPiece, Matrix4x4 offset)
     {
         ref var component = ref this.Instances[trackPiece.Entity];
@@ -91,30 +85,8 @@ public sealed class TrackManager
 
     private TrackPiece CreateTrackPieceAndComponents(Device device, ICurve curve, int points, string name)
     {
-        var entity = this.Administrator.Entities.Create();
-        var trackPiece = new TrackPiece(entity, name, curve);
         var primitive = TrackPieces.FromCurve(device, curve, points, name);
-
-        this.CreateComponents(device, entity, primitive);
-
-        return trackPiece;
-    }
-
-    private void CreateComponents(Device device, Entity entity, ILifetime<PrimitiveMesh> mesh)
-    {
-        var components = this.Administrator.Components;
-
-        ref var transform = ref components.Create<TransformComponent>(entity);
-        transform.Current = Transform.Identity;
-        transform.Previous = transform.Current;
-
-        ref var primitive = ref components.Create<PrimitiveComponent>(entity);
-        primitive.Mesh = mesh;
-
-        ref var shadows = ref components.Create<ShadowCasterComponent>(entity);
-        shadows.Importance = 1.0f;
-
-        ref var instances = ref components.Create<InstancesComponent>(entity);
-        instances.Init(device, $"Instances{entity}", BufferCapacity);
+        var entity = PrimitiveUtilities.CreateComponents(device, this.Administrator, primitive, BufferCapacity, 1.0f);
+        return new TrackPiece(entity, name, curve);
     }
 }
