@@ -11,11 +11,11 @@ public static class Walker
     /// </summary>
     public static Transform[] WalkSpacedOut(ICurve curve, float minStepSize, Vector3 up)
     {
-        var length = curve.ComputeLength();
+        var length = curve.Length;
         var shorten = minStepSize / length;
         curve = curve.Range(shorten * 0.5f, 1.0f - shorten);
 
-        length = curve.ComputeLength();
+        length = curve.Length;
         var intervals = (int)(length / minStepSize);        
         var remainder = length - (minStepSize * intervals);
         var stepSize = minStepSize + (remainder / intervals);

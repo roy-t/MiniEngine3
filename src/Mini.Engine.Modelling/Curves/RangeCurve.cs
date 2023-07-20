@@ -2,8 +2,23 @@
 using LibGame.Mathematics;
 
 namespace Mini.Engine.Modelling.Curves;
-public sealed record class RangeCurve(ICurve Curve, float Start, float Length) : ICurve
+public sealed class RangeCurve : ICurve
 {
+    public readonly ICurve Curve;
+    public readonly float UStart;
+    public readonly float ULength;
+
+    public RangeCurve(ICurve curve, float uStart, float uLength)
+    {
+        this.Curve = curve;
+        this.UStart = uStart;
+        this.ULength = uLength;
+        
+        this.Length = this.ComputeLengthPiecewise(); 
+    }
+
+    public float Length { get; }
+
     public Vector3 GetPosition(float u)
     {
         return this.Curve.GetPosition(this.Rescale(u));
@@ -14,13 +29,8 @@ public sealed record class RangeCurve(ICurve Curve, float Start, float Length) :
         return this.Curve.GetForward(this.Rescale(u));
     }
 
-    public float ComputeLength()
-    {
-        return this.ComputeLengthPiecewise();
-    }
-
     private float Rescale(float u)
     {
-        return Ranges.Map(u, (0.0f, 1.0f), (this.Start, this.Start + this.Length));
+        return Ranges.Map(u, (0.0f, 1.0f), (this.UStart, this.UStart + this.ULength));
     }
 }

@@ -8,7 +8,7 @@ public static class CurveExtensions
 {
     public const float CurveStart = 0.0f;
     public const float CurveEnd = 1.0f;
-    
+
     public static Vector3 GetLeft(this ICurve curve, float u)
     {
         var forward = curve.GetForward(u);
@@ -33,11 +33,6 @@ public static class CurveExtensions
     public static ICurve Reverse(this ICurve curve)
     {
         return new ReverseCurve(curve);
-    }
-
-    public static ICurve Translate(this ICurve curve, Vector3 translation)
-    {
-        return new TranslateCurve(curve, translation);
     }
 
     public static float ComputeLengthPiecewise(this ICurve curve, int pieces = 1000)
@@ -87,7 +82,7 @@ public static class CurveExtensions
             .GetMatrix();
 
         return matrix * transform.GetMatrix();
-    }    
+    }
 
     /// <summary>
     /// Creates a transformation matrix that translates an object so that it is at `u` 
@@ -165,4 +160,62 @@ public static class CurveExtensions
 
         return transform;
     }
+
+
+    //public static float FindPositionOnCurveAtGivenDistance(this ICurve curve, float u, float distance, float margin)
+    //{
+    //    var start = curve.GetPosition(u);
+    //    var nextU = 1.0f;
+    //    var end = curve.GetPosition(nextU);
+    //    var covered = Vector3.Distance(start, end);
+    //    var difference = Math.Abs(distance - covered);
+
+    //    while (difference > margin)
+    //    {
+    //        var ratio = distance / covered;
+    //        nextU = u + ((nextU - u) * ratio);
+    //        var next = curve.GetPosition(nextU);
+    //        covered = Vector3.Distance(start, next);
+    //        difference = Math.Abs(distance - covered);
+    //    }
+
+    //    return nextU;
+    //}
+
+
+    //public static (int Index, float U) FindPositionOnPathWithEuclideanDistanceToU(IReadOnlyList<ICurve> path, float u, float distance, float margin)
+    //{
+    //    var start = path[0].GetPosition(u);
+    //    var index = -1;
+    //    float difference;
+    //    float covered;
+    //    Vector3 end;
+        
+    //    do
+    //    {
+    //        ++index;
+    //        end = path[index].GetPosition(1.0f);
+    //        covered = Vector3.Distance(start, end);
+    //    } while (distance > covered);
+
+    //    var startU = index == 0 ? u : 0.0f;
+    //    var nextU = 1.0f;
+    //    var segementStart = path[index].GetPosition(startU);
+    //    var target = path[index].GetPosition(nextU);
+
+    //    var distanceToSegment = Vector3.Distance(start, segementStart);        
+    //    covered = Vector3.Distance(start, target);
+    //    difference = Math.Abs(distance - covered);
+
+    //    while (difference > margin)
+    //    {
+    //        var ratio = (distance - distanceToSegment) /  (covered - distanceToSegment);
+    //        nextU = startU + ((nextU - startU) * ratio);
+    //        var next = path[index].GetPosition(nextU);
+    //        covered = Vector3.Distance(start, next);
+    //        difference = Math.Abs(distance - covered);
+    //    }
+
+    //    return (index, nextU);
+    //}
 }

@@ -3,6 +3,8 @@
 namespace Mini.Engine.Modelling.Curves;
 public sealed record class OffsetCurve(ICurve Curve, float Offset) : ICurve
 {
+    public float Length => this.Curve.Length;
+
     public Vector3 GetPosition(float u)
     {
         var p = this.Curve.GetPosition(u);
@@ -14,10 +16,5 @@ public sealed record class OffsetCurve(ICurve Curve, float Offset) : ICurve
     public Vector3 GetForward(float u)
     {
         return this.Curve.GetForward(u);
-    }
-
-    public float ComputeLength()
-    {
-        return this.ComputeLengthPiecewise(1000);
-    }
+    }    
 }

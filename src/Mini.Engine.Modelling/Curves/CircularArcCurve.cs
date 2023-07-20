@@ -7,16 +7,13 @@ namespace Mini.Engine.Modelling.Curves;
 public sealed record class CircularArcCurve(float Offset, float Radians, float Radius)
     : ICurve
 {
+    public float Length => this.Radians * this.Radius;
+
     public Vector3 GetPosition(float u)
     {        
         u *= this.Radians;
         return new Vector3(Cos(u + this.Offset), 0.0f, Sin(u + this.Offset)) * this.Radius;
-    }
-
-    public float ComputeLength()
-    {        
-        return this.Radians * this.Radius;
-    }
+    }    
 
     public Vector3 GetForward(float u)
     {

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-using System.Drawing.Drawing2D;
-using System.Numerics;
+﻿using System.Numerics;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Diesel.Tracks;
@@ -53,6 +51,12 @@ public sealed class TrainManager
         var (positionBack, _) = this.AddInstance(this.FlatCar.Front, placement.Curve, 0.1f, placement.Transform);
 
         // TODO: add a function that finds the position X world distance further
+        // look at SegmentedCurve for an easy way to do it
+        // note that since SegmentedCurve only looks at distance along the line, before applying the transform
+        // it doesn't really matter with symetric pieces what way the curves are pointing
+        // though it would probably be best if we skip that hole problem by reversing curves
+        // in the grid so that we make 2 sides connections
+        // and only count the 1->0 connections as connected (might also make it possible for 1 way tracks?)
         var (positionFront, _) = this.AddInstance(this.FlatCar.Rear, placement.Curve, 0.6f, placement.Transform);
 
         var carMatrix = Transform.Identity.SetTranslation((positionBack + positionFront) * 0.5f)
