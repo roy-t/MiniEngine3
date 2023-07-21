@@ -27,9 +27,6 @@ public sealed class Cell : IReadOnlyCell
     IReadOnlyList<CurvePlacement> IReadOnlyCell.Placements => this.Placements;
 }
 
-// TODO: what if we make all connections 2 different curves! So you can always move 'forward' along curves???
-// and connections only count for 1->0 ??
-
 public sealed class TrackGrid
 {
     private static readonly IReadOnlyCell EmptyCell = new Cell();
@@ -49,7 +46,6 @@ public sealed class TrackGrid
         this.MaxValidConnectionDistanceSquared = MathF.Pow(Math.Min(cellSizeX, cellSizeY) * 0.1f, 2.0f);
 
         this.Cells = new Cell[dimX * dimY];
-
     }
 
     public int DimX { get; }
@@ -71,7 +67,7 @@ public sealed class TrackGrid
         }
     }
 
-    public void Add(int x, int y, ICurve curve, Transform transform)
+    public void Add(int x, int y, ICurve curve, Transform transform, bool bidirectional = true)
     {
         var i = this.GetIndex(x, y);
         if (this.Cells[i] == null)
@@ -80,6 +76,11 @@ public sealed class TrackGrid
         }
 
         this.Cells[i].Placements.Add(new CurvePlacement(curve, transform));
+
+        if (bidirectional)
+        {
+            this.Cells[i].Placements.Add(new CurvePlacement(curve.Reverse(), transform));
+        }
     }
 
     public void Remove(int x, int y, int index)
@@ -101,13 +102,13 @@ public sealed class TrackGrid
             for (var i = 0; i < cell.Placements.Count; i++)
             {
                 var nextPlacement = cell.Placements[i];
-                if (placement.Curve.IsConnectedTo(u, placement.Transform, nextPlacement.Curve, 0.0f, nextPlacement.Transform, this.MaxValidConnectionDistanceSquared))
+                if (u == 0 && placement.Curve.IsConnectedTo(0.0f, placement.Transform, nextPlacement.Curve, 1.0f, nextPlacement.Transform, this.MaxValidConnectionDistanceSquared))
                 {
-                    output.Add(new ConnectedToReference(x, y, index, u, ix, iy, i, 0.0f));
+                    output.Add(new ConnectedToReference(x, y, index, 0.0f, ix, iy, i, 1.0f));
                 }
-                else if (placement.Curve.IsConnectedTo(u, placement.Transform, nextPlacement.Curve, 1.0f, nextPlacement.Transform, MaxValidConnectionDistanceSquared))
+                else if (u == 1.0f && placement.Curve.IsConnectedTo(1.0f, placement.Transform, nextPlacement.Curve, 0.0f, nextPlacement.Transform, this.MaxValidConnectionDistanceSquared))
                 {
-                    output.Add(new ConnectedToReference(x, y, index, u, ix, iy, i, 1.0f));
+                    output.Add(new ConnectedToReference(x, y, index, 1.0f, ix, iy, i, 0.0f));
                 }
             }
         }
@@ -167,7 +168,7 @@ public sealed class TrackGrid
         this.Add(x, y, curve, transform);
 
         return transform;
-    }   
+    }
 
     private bool CellIsInsideGrid(int x, int y)
     {
@@ -189,5 +190,5 @@ public sealed class TrackGrid
         }
 
         return this.Cells[i];
-    }
+    }    
 }

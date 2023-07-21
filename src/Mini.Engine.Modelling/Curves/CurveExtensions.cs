@@ -32,6 +32,11 @@ public static class CurveExtensions
 
     public static ICurve Reverse(this ICurve curve)
     {
+        if (curve is ReverseCurve reverse)
+        {
+            return reverse.Curve;
+        }
+
         return new ReverseCurve(curve);
     }
 
@@ -161,61 +166,47 @@ public static class CurveExtensions
         return transform;
     }
 
+    public static bool TravelAlongCurve(this ICurve curve, float u, float distance, out float uNext)
+    {
+        var length = curve.Length;
+        var portion = distance / length;
 
-    //public static float FindPositionOnCurveAtGivenDistance(this ICurve curve, float u, float distance, float margin)
-    //{
-    //    var start = curve.GetPosition(u);
-    //    var nextU = 1.0f;
-    //    var end = curve.GetPosition(nextU);
-    //    var covered = Vector3.Distance(start, end);
-    //    var difference = Math.Abs(distance - covered);
-
-    //    while (difference > margin)
-    //    {
-    //        var ratio = distance / covered;
-    //        nextU = u + ((nextU - u) * ratio);
-    //        var next = curve.GetPosition(nextU);
-    //        covered = Vector3.Distance(start, next);
-    //        difference = Math.Abs(distance - covered);
-    //    }
-
-    //    return nextU;
-    //}
-
-
-    //public static (int Index, float U) FindPositionOnPathWithEuclideanDistanceToU(IReadOnlyList<ICurve> path, float u, float distance, float margin)
-    //{
-    //    var start = path[0].GetPosition(u);
-    //    var index = -1;
-    //    float difference;
-    //    float covered;
-    //    Vector3 end;
+        uNext = u + portion;
+        if (uNext > 1.0f)
+        {
+            uNext = 1.0f;
+            return false;
+        }
         
-    //    do
-    //    {
-    //        ++index;
-    //        end = path[index].GetPosition(1.0f);
-    //        covered = Vector3.Distance(start, end);
-    //    } while (distance > covered);
+        return true;
+    }
 
-    //    var startU = index == 0 ? u : 0.0f;
-    //    var nextU = 1.0f;
-    //    var segementStart = path[index].GetPosition(startU);
-    //    var target = path[index].GetPosition(nextU);
+    public static bool TravelEucledianDistance(this ICurve curve, float u, float distance, float margin, out float uEnd)
+    {
+        // Traveling along a curve will get us at most to a position that is exactly `distance` away from our starting position.
+        // But most likely it will bring less far. So we iteratively try to cover the remaining distance by traveling along the
+        // curve again, without having to worry about overshooting it.
 
-    //    var distanceToSegment = Vector3.Distance(start, segementStart);        
-    //    covered = Vector3.Distance(start, target);
-    //    difference = Math.Abs(distance - covered);
+        var start = curve.GetPosition(u);
+        var covered = 0.0f;
 
-    //    while (difference > margin)
-    //    {
-    //        var ratio = (distance - distanceToSegment) /  (covered - distanceToSegment);
-    //        nextU = startU + ((nextU - startU) * ratio);
-    //        var next = path[index].GetPosition(nextU);
-    //        covered = Vector3.Distance(start, next);
-    //        difference = Math.Abs(distance - covered);
-    //    }
+        do
+        {            
+            if (curve.TravelAlongCurve(u, distance - covered, out var uInter))
+            {
+                u = uInter;
+                var end = curve.GetPosition(u);
+                covered = Vector3.Distance(start, end);
+            }
+            else
+            {
+                uEnd = u;
+                return false;
+            }
 
-    //    return (index, nextU);
-    //}
+        } while (covered < distance && Math.Abs(covered - distance) > margin);
+
+        uEnd = u;
+        return true;
+    }
 }

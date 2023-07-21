@@ -28,7 +28,7 @@ public static class TrackGridTests
         grid.Add(cell.x, cell.y, straight, Transform.Identity);
 
         var placement = grid[cell.x, cell.y].Placements;
-        Assert.Equal(1, placement.Count);
+        Assert.Equal(2, placement.Count);
 
         Assert.Equal(straight, placement[0].Curve);
         Assert.Equal(Transform.Identity, placement[0].Transform);
@@ -47,6 +47,7 @@ public static class TrackGridTests
         Assert.Single(connections);        
         Assert.Equal(new ConnectedToReference(cell.x, cell.y, 0, 1.0f, cell.x, cell.y - 1, 0, 0.0f), connections[0]);
 
+        grid.Remove(cell.x, cell.y, 1);
         grid.Remove(cell.x, cell.y, 0);
         placement = grid[cell.x, cell.y].Placements;
         Assert.Equal(0, placement.Count);        
