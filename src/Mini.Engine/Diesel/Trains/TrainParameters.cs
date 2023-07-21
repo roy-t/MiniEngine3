@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using LibGame.Physics;
+using Mini.Engine.Diesel.Tracks;
 using Vortice.Mathematics;
 using static Mini.Engine.Diesel.Tracks.TrackParameters;
 
@@ -20,14 +21,15 @@ public static class TrainParameters
 
     public static float FLAT_CAR_LENGTH = 14.7f;
     public static float FLAT_CAR_BOGEY_GAP_LENGTH = 2.9f;
-    public static float FLAT_CAR_WIDTH = 2.7f;
+    public static float FLAT_CAR_WIDTH = (TrackParameters.SINGLE_RAIL_OFFSET + OUTER_WHEEL_THICKNESS) * 2.0f;// 2.0f;
+    public static float FLAT_CAR_BOGEY_CENTER_DISTANCE = FLAT_CAR_LENGTH - FLAT_CAR_BOGEY_GAP_LENGTH;
 
 
     public static Transform FLAT_CAR_TRANSFORM
     {
         get
         {
-            var h = SINGLE_RAIL_HEIGTH + BALLAST_HEIGHT_TOP + (OUTER_WHEEL_RADIUS * 2.1f);
+            var h = SINGLE_RAIL_HEIGTH + BALLAST_HEIGHT_TOP + (OUTER_WHEEL_RADIUS * 1.2f);
             return Transform.Identity.AddTranslation(new Vector3(0.0f, h, 0.0f))
                 .AddLocalRotation(Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI * 0.5f));
         }

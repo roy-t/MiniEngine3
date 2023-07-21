@@ -57,7 +57,7 @@ public static class CrossSections
         var xMax = halfBedLength;
 
         var yMin = -INNER_WHEEL_RADIUS * 0.6f;
-        var yMid = 0.0f;
+        var yMid = INNER_WHEEL_RADIUS * 0.8f;
         var yMax = INNER_WHEEL_RADIUS * 1.2f;
 
         // TODO: finish shape of Bed    ;;;;;;;;;;;;;;;;;;;;;;;;;;
