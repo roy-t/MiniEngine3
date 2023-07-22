@@ -1,13 +1,15 @@
 ﻿using System.Numerics;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
+using Mini.Engine.Content;
+using Mini.Engine.Content.Models;
 using Mini.Engine.Diesel.Tracks;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Primitives;
 using Mini.Engine.Modelling.Curves;
-
+using static Mini.Engine.Diesel.Tracks.TrackParameters;
 namespace Mini.Engine.Diesel.Trains;
 
 [Service]
@@ -20,19 +22,21 @@ public sealed class TrainManager
     private readonly IComponentContainer<InstancesComponent> Instances;
     private readonly TrainCar FlatCar;
 
-    public TrainManager(Device device, ScenarioManager scenarioManager, ECSAdministrator administrator, IComponentContainer<InstancesComponent> instances)
+    public TrainManager(Device device, ContentManager content, ScenarioManager scenarioManager, ECSAdministrator administrator, IComponentContainer<InstancesComponent> instances)
     {
         this.Grid = scenarioManager.Grid;
         this.Administrator = administrator;
 
-        this.FlatCar = this.CreateTrainCarAndComponents(device, nameof(this.FlatCar));
-        this.Instances = instances;
+        this.FlatCar = this.CreateTrainCarAndComponents(device, content, nameof(this.FlatCar));
+        this.Instances = instances;                
     }
 
-    private TrainCar CreateTrainCarAndComponents(Device device, string name)
+    private TrainCar CreateTrainCarAndComponents(Device device, ContentManager content, string name)
     {
-        var bogiePrimitive = TrainCars.BuildBogie(device, "bogie");
-        var carPrimitive = TrainCars.BuildFlatCar(device, "flat_car");
+        //var bogiePrimitive = TrainCars.BuildBogie(device, "bogie");        
+        var bogiePrimitive = TrainCars.BuildBogie(device, content, "bogie");
+        var bogieBounds = device.Resources.Get(bogiePrimitive).Bounds;
+        var carPrimitive = TrainCars.BuildFlatCar(device, content, "flat_car", in bogieBounds);
 
         var front = PrimitiveUtilities.CreateComponents(device, this.Administrator, bogiePrimitive, BufferCapacity, 1.0f);
         var rear = PrimitiveUtilities.CreateComponents(device, this.Administrator, bogiePrimitive, BufferCapacity, 1.0f);

@@ -1,19 +1,93 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using LibGame.Geometry;
-using LibGame.Physics;
+using Mini.Engine.Content;
+using Mini.Engine.Content.Models;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.Diesel.Tracks;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources.Models;
 using Mini.Engine.Graphics.Primitives;
 using Mini.Engine.Modelling.Curves;
 using Mini.Engine.Modelling.Paths;
 using Mini.Engine.Modelling.Tools;
-
+using Vortice.Mathematics;
+using static Mini.Engine.Diesel.Tracks.TrackParameters;
 using static Mini.Engine.Diesel.Trains.TrainParameters;
+using MeshPart = Mini.Engine.Content.Shaders.Generated.Primitive.MeshPart;
 
 namespace Mini.Engine.Diesel.Trains;
 public static class TrainCars
 {
+
+    // obj files should be exported from Blender with the following setings:
+    // Scale: 1.0 (assuming you worked in Blender with 1 unit is 1 meter)
+    // Forward Axis: -Z
+    // Up Axis: Y
+    // Apply Modifiers: true    
+    // Normals: true
+    // Triangulated Mesh: true
+    // Object Groups: true
+    // The object does not need to be centered in the obj file, that is done for you in the code below.
+    // This makes it easier to export selected items from a larger Blender workspace.
+
+    public static ILifetime<PrimitiveMesh> BuildBogie(Device device, ContentManager content, string name)
+    {
+        var modelReference = content.LoadModelData(@"Diesel\bogie.obj", ModelSettings.Default);
+        var model = device.Resources.Get(modelReference);
+
+        var parts = CreateMeshParts(model.Vertices.Length, BOGIE_COLOR, BOGIE_METALICNESS, BOGIE_ROUGHNESS);
+        var yOffset = SINGLE_RAIL_HEIGTH + BALLAST_HEIGHT_TOP - 0.06f;
+        var vertices = CreateVertices(model.Bounds, model.Vertices, new Vector3(0.0f, yOffset, 0.0f));
+
+        return device.Resources.Add(new PrimitiveMesh(device, vertices, model.Indices.Span, parts, model.Bounds, name));
+    }
+
+    public static ILifetime<PrimitiveMesh> BuildFlatCar(Device device, ContentManager content, string name, in BoundingBox bogieBounds)
+    {
+        var modelReference = content.LoadModelData(@"Diesel\flat_car.obj", ModelSettings.Default);
+        var model = device.Resources.Get(modelReference);
+
+        var parts = CreateMeshParts(model.Vertices.Length, BOGIE_COLOR, BOGIE_METALICNESS, BOGIE_ROUGHNESS);
+        var yOffset = SINGLE_RAIL_HEIGTH + BALLAST_HEIGHT_TOP + bogieBounds.Height - 0.25f;
+        var vertices = CreateVertices(model.Bounds, model.Vertices, new Vector3(0.0f, yOffset, 0.0f));
+
+        return device.Resources.Add(new PrimitiveMesh(device, vertices, model.Indices.Span, parts, model.Bounds, name));
+    }
+
+    private static ReadOnlySpan<MeshPart> CreateMeshParts(int vertexCount, Color4 color, float metalicness, float roughness)
+    {
+        return new MeshPart[]
+        {
+            new MeshPart
+            {
+                Offset = 0,
+                Length = (uint)vertexCount,
+                Albedo = color,
+                Metalicness = metalicness,
+                Roughness = roughness,
+            }
+        };
+    }
+
+    private static ReadOnlySpan<PrimitiveVertex> CreateVertices(BoundingBox bounds, ReadOnlyMemory<ModelVertex> vertices, Vector3 offset = default)
+    {
+        // Place the model centered on the floor plane
+        var center = new Vector3(-bounds.Center.X, -bounds.Min.Y, -bounds.Center.Z);
+        var transform = Matrix4x4.CreateTranslation(center + offset);
+
+        var output = new PrimitiveVertex[vertices.Length];
+        var span = vertices.Span;
+        for (var i = 0; i < span.Length; i++)
+        {
+            var vertex = span[i];
+            var position = Vector3.Transform(vertex.Position, transform);
+            output[i] = new PrimitiveVertex(position, vertex.Normal);
+        }
+
+        return output;
+    }
+
     public static ILifetime<PrimitiveMesh> BuildBogie(Device device, string name)
     {
         var builder = new PrimitiveMeshBuilder();
@@ -33,9 +107,9 @@ public static class TrainCars
     private static void BuildFlatBed(PrimitiveMeshBuilder builder)
     {
         var partBuilder = builder.StartPart();
-        
+
         var crossSection = CrossSections.Bed();
-        
+
         var halfCarWidth = FLAT_CAR_WIDTH * 0.5f;
         var curve = new StraightCurve(new Vector3(0, 0, halfCarWidth), new Vector3(0.0f, 0.0f, -1.0f), FLAT_CAR_WIDTH);
         Extruder.Extrude(partBuilder, crossSection, curve, 2, Vector3.UnitY);
