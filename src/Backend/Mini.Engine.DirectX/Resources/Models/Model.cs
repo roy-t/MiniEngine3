@@ -4,16 +4,16 @@ using Vortice.Mathematics;
 
 namespace Mini.Engine.DirectX.Resources.Models;
 
-public sealed record ModelPart(string Name, BoundingBox Bounds, int MaterialIndex, int IndexOffset, int IndexCount);
+public readonly record struct ModelPart(string Name, BoundingBox Bounds, int MaterialIndex, int IndexOffset, int IndexCount);
 
 public sealed class Model : IModel
 {
-    public Model(Device device, BoundingBox bounds, ReadOnlyMemory<ModelVertex> vertices, ReadOnlyMemory<int> indices, IReadOnlyList<ModelPart> primitives, IReadOnlyList<ILifetime<IMaterial>> materials, string name)
+    public Model(Device device, BoundingBox bounds, ReadOnlyMemory<ModelVertex> vertices, ReadOnlyMemory<int> indices, ReadOnlyMemory<ModelPart> primitives, IReadOnlyList<ILifetime<IMaterial>> materials, string name)
     {
         this.Indices = new IndexBuffer<int>(device, name);
         this.Vertices = new VertexBuffer<ModelVertex>(device, name);
         this.Bounds = bounds;
-        this.Primitives = primitives;
+        this.Primitives = primitives.ToArray();
         this.Materials = materials;
 
         this.Vertices.MapData(device.ImmediateContext, vertices.Span);

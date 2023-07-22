@@ -58,9 +58,9 @@ internal sealed class WavefrontModelParser
         return TransformToModelData(id, state);
     }
 
-    private ModelOffline TransformToModelData(ContentId id, ParseState state)
+    private static ModelOffline TransformToModelData(ContentId id, ParseState state)
     {
-        var materials = this.LoadMaterialData(id, state);
+        var materials = LoadMaterialData(id, state);
 
         var vertices = new List<ModelVertex>(state.Positions.Count);
         var indices = new List<int>(state.Faces.Count * 3);
@@ -176,7 +176,7 @@ internal sealed class WavefrontModelParser
         return bounds;
     }
 
-    private ContentId[] LoadMaterialData(ContentId modelId, ParseState state)
+    private static ContentId[] LoadMaterialData(ContentId modelId, ParseState state)
     {
         var materialKeys = state.Groups.Select(x => x.Material ?? string.Empty).ToHashSet().ToArray();
         var materials = new ContentId[materialKeys.Length];

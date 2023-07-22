@@ -7,7 +7,7 @@ using Mini.Engine.IO;
 namespace Mini.Engine.Content.Models;
 internal sealed class WaveFrontModelProcessor : ContentProcessor<IModel, ModelContent, ModelSettings>
 {
-    private const int ProcessorVersion = 2;
+    private const int ProcessorVersion = 3;
     private static readonly Guid ProcessorType = new("{A855A352-8403-4B09-A87B-648F4901962E}");
     private readonly WavefrontModelParser Parser;
     private readonly Device Device;
@@ -50,10 +50,11 @@ internal sealed class WaveFrontModelProcessor : ContentProcessor<IModel, ModelCo
         var primitives = reader.ReadPrimitives();
         var materialIds = reader.ReadContentIds();
 
-        var materials = new ILifetime<IMaterial>[materialIds.Count];
+        var materialSpan = materialIds.Span;
+        var materials = new ILifetime<IMaterial>[materialSpan.Length];
         for (var i = 0; i < materials.Length; i++)
         {
-            materials[i] = this.Content.LoadMaterial(materialIds[i], settings.MaterialSettings);
+            materials[i] = this.Content.LoadMaterial(materialSpan[i], settings.MaterialSettings);
         }
 
         return new Model(this.Device, bounds, vertices, indices, primitives, materials, id.ToString());

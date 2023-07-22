@@ -83,7 +83,7 @@ internal static class SerializationExtensions
         }
     }
 
-    public static IReadOnlyList<ModelPart> ReadPrimitives(this ContentReader reader)
+    public static ReadOnlyMemory<ModelPart> ReadPrimitives(this ContentReader reader)
     {
         var primitives = new ModelPart[reader.Reader.ReadInt32()];
         for (var i = 0; i < primitives.Length; i++)

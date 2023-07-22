@@ -89,7 +89,7 @@ public static class SerializationExtensions
         }
     }
 
-    public static IReadOnlyList<ContentId> ReadContentIds(this ContentReader reader)
+    public static ReadOnlyMemory<ContentId> ReadContentIds(this ContentReader reader)
     {
         var contentIds = new ContentId[reader.Reader.ReadInt32()];
         for (var i = 0; i < contentIds.Length; i++)

@@ -21,7 +21,7 @@ public static class TrainParameters
 
     public static float FLAT_CAR_LENGTH = 14.7f;
     public static float FLAT_CAR_BOGEY_GAP_LENGTH = 2.9f;
-    public static float FLAT_CAR_WIDTH = (TrackParameters.SINGLE_RAIL_OFFSET + OUTER_WHEEL_THICKNESS) * 2.0f;// 2.0f;
+    public static float FLAT_CAR_WIDTH = (TrackParameters.SINGLE_RAIL_OFFSET + OUTER_WHEEL_THICKNESS) * 2.0f;
     public static float FLAT_CAR_BOGEY_CENTER_DISTANCE = FLAT_CAR_LENGTH - FLAT_CAR_BOGEY_GAP_LENGTH;
 
 
