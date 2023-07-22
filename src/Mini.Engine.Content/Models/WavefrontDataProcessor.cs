@@ -6,7 +6,7 @@ using Vortice.Mathematics;
 
 namespace Mini.Engine.Content.Models;
 
-public interface IWavefrontData : IDisposable
+public interface IModelData : IDisposable
 {
     public BoundingBox Bounds { get; }
     public ReadOnlyMemory<ModelVertex> Vertices { get; }
@@ -15,15 +15,15 @@ public interface IWavefrontData : IDisposable
     public ReadOnlyMemory<ContentId> Materials { get; }
 }
 
-internal sealed record class WavefrontData(BoundingBox Bounds, ReadOnlyMemory<ModelVertex> Vertices, ReadOnlyMemory<int> Indices, ReadOnlyMemory<ModelPart> Primitives, ReadOnlyMemory<ContentId> Materials)
-    : IWavefrontData
+internal sealed record class RawModelData(BoundingBox Bounds, ReadOnlyMemory<ModelVertex> Vertices, ReadOnlyMemory<int> Indices, ReadOnlyMemory<ModelPart> Primitives, ReadOnlyMemory<ContentId> Materials)
+    : IModelData
 {
     public void Dispose() { }
 }
 
-internal sealed class WavefrontDataContent : IWavefrontData, IContent<IWavefrontData, ModelSettings>
+internal sealed class ModelDataContent : IModelData, IContent<IModelData, ModelSettings>
 {
-    internal WavefrontDataContent(ContentId id, IWavefrontData data, ModelSettings settings, ISet<string> dependencies)
+    internal ModelDataContent(ContentId id, IModelData data, ModelSettings settings, ISet<string> dependencies)
     {
         this.Id = id;
         this.Settings = settings;
@@ -50,7 +50,7 @@ internal sealed class WavefrontDataContent : IWavefrontData, IContent<IWavefront
     {
     }
 
-    public void Reload(IWavefrontData content)
+    public void Reload(IModelData content)
     {
         this.Bounds = content.Bounds;
         this.Vertices = content.Vertices;
@@ -63,25 +63,26 @@ internal sealed class WavefrontDataContent : IWavefrontData, IContent<IWavefront
 // TODO: this is basically a slimmed down version of WaveFrontModelProcessor for when
 // you are only interested in the data in a wavefont file, and don't want to convert it to a GPU resource immediately
 // but we should be able to share some code with WaveFrontModelProcessor.
+// !!! also deserialization/caching will not work if both processors touch the same file !!!
 
-internal sealed class WavefrontDataProcessor : ContentProcessor<IWavefrontData, WavefrontDataContent, ModelSettings>
+internal sealed class WavefrontDataProcessor : ContentProcessor<IModelData, ModelDataContent, ModelSettings>
 {
-    private const int ProcessorVersion = 3;
+    private const int ProcessorVersion = 1;
     private static readonly Guid ProcessorType = new("{3F9E5C56-4A00-4DD6-9703-40FD3DD7CE6E}");
     private readonly WavefrontModelParser Parser;
 
-    public WavefrontDataProcessor(Device device, WavefrontModelParser parser)
+    public WavefrontDataProcessor(Device device)
         : base(device.Resources, ProcessorVersion, ProcessorType, ".obj")
     {
-        this.Parser = parser;
+        this.Parser = new WavefrontModelParser();
     }
 
-    public override WavefrontDataContent Wrap(ContentId id, IWavefrontData content, ModelSettings settings, ISet<string> dependencies)
+    public override ModelDataContent Wrap(ContentId id, IModelData content, ModelSettings settings, ISet<string> dependencies)
     {
-        return new WavefrontDataContent(id, content, settings, dependencies);
+        return new ModelDataContent(id, content, settings, dependencies);
     }
 
-    protected override IWavefrontData ReadBody(ContentId id, ModelSettings settings, ContentReader reader)
+    protected override IModelData ReadBody(ContentId id, ModelSettings settings, ContentReader reader)
     {
         var bounds = reader.ReadBoundingBox();
         var vertices = reader.ReadModelVertices();
@@ -89,7 +90,7 @@ internal sealed class WavefrontDataProcessor : ContentProcessor<IWavefrontData, 
         var primitives = reader.ReadPrimitives();
         var materialIds = reader.ReadContentIds();
 
-        return new WavefrontData(bounds, vertices, indices, primitives, materialIds);
+        return new RawModelData(bounds, vertices, indices, primitives, materialIds);
     }
 
     protected override ModelSettings ReadSettings(ContentId id, ContentReader reader)

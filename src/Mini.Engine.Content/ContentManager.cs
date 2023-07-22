@@ -26,6 +26,7 @@ public sealed class ContentManager
     private readonly PixelShaderProcessor PixelShaderProcessor;
     private readonly WavefrontMaterialProcessor MaterialProcessor;
     private readonly WaveFrontModelProcessor ModelProcessor;
+    private readonly WavefrontDataProcessor ModelDataProcessor;
 
     public ContentManager(ILogger logger, Device device, LifetimeManager lifetimeManager, IVirtualFileSystem fileSystem)
     {
@@ -38,6 +39,7 @@ public sealed class ContentManager
         this.PixelShaderProcessor = new PixelShaderProcessor(device);
         this.MaterialProcessor = new WavefrontMaterialProcessor(device, this);
         this.ModelProcessor = new WaveFrontModelProcessor(device, this);
+        this.ModelDataProcessor = new WavefrontDataProcessor(device);
     }
 
     public ILifetime<ITexture> LoadTexture(string path, TextureSettings settings)
@@ -78,6 +80,11 @@ public sealed class ContentManager
         var id = new ContentId("default.mtl", "default");
 
         return this.Load(this.MaterialProcessor, id, settings);
+    }
+
+    public ILifetime<IModelData> LoadModelData(string path, ModelSettings settings)
+    {
+        return this.Load(this.ModelDataProcessor, new ContentId(path), settings);
     }
 
     public ILifetime<IModel> LoadModel(string path, ModelSettings settings)
