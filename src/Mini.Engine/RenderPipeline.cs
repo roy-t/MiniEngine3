@@ -2,8 +2,6 @@
 using System.Drawing;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
-using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.Primitives;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
@@ -12,6 +10,7 @@ using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Lines;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.PostProcessing;
+using Mini.Engine.ECS.Systems;
 
 namespace Mini.Engine;
 
@@ -22,7 +21,7 @@ internal sealed record class RenderSystems
     PrimitiveSystem Primitive,
     ModelSystem Model,
     ImageBasedLightSystem ImageBasedLight,
-    SunLightSystem SunLight,
+    SunLightSystem SunLight,    
     CascadedShadowMapSystem CascadedShadowMap,
     PointLightSystem PointLight,
     SkyboxSystem Skybox,
@@ -33,18 +32,16 @@ internal sealed record class RenderSystems
 [Service]
 internal sealed class RenderPipeline
 {
-    private readonly ImmediateDeviceContext ImmediateContext;
     private readonly MetricService MetricService;
-    private readonly Queue<Task<CommandList>> GpuWorkQueue;
+    private readonly Queue<Task<ICompletable>> Work;
     private readonly Stopwatch Stopwatch;
 
     private readonly RenderSystems Systems;
 
-    public RenderPipeline(Device device, MetricService metricService, RenderSystems systems)
+    public RenderPipeline(MetricService metricService, RenderSystems systems)
     {
-        this.ImmediateContext = device.ImmediateContext;
         this.MetricService = metricService;
-        this.GpuWorkQueue = new Queue<Task<CommandList>>();
+        this.Work = new Queue<Task<ICompletable>>();
         this.Stopwatch = new Stopwatch();
 
         this.Systems = systems;
@@ -61,11 +58,9 @@ internal sealed class RenderPipeline
 
         this.ProcessQueue();
 
-
         // We create draw commands in parallel and then draw in sequence.
         // To make sure this works well systems should not modify their components
         // while preparing a command list, as this could create dependencies between systems
-
         this.RunGeometryStage(in viewport, in scissor, alpha);
         this.RunLightStage(in viewport, in scissor, alpha);        
         this.RunPostProcessStage(in viewport, in scissor);
@@ -77,7 +72,8 @@ internal sealed class RenderPipeline
 
     private void RunPreRenderStage()
     {
-        this.Enqueue(this.Systems.InstancesSystem.UpdateInstances());
+        this.Enqueue(this.Systems.CascadedShadowMap.Update());
+        this.Enqueue(this.Systems.InstancesSystem.UpdateInstances());        
     }
 
     private void RunGeometryStage(in Rectangle viewport, in Rectangle scissor, float alpha)
@@ -104,19 +100,16 @@ internal sealed class RenderPipeline
 
     private void ProcessQueue()
     {
-        while (this.GpuWorkQueue.Any())
+        while (this.Work.Any())
         {
-            var task = this.GpuWorkQueue.Dequeue();
+            var task = this.Work.Dequeue();
             task.Wait();
-
-            var commandList = task.Result;
-            this.ImmediateContext.ExecuteCommandList(commandList);
-            commandList.Dispose();
+            task.Result.Complete();
         }
     }
 
-    private void Enqueue(Task<CommandList> task)
+    private void Enqueue(Task<ICompletable> task)
     {
-        this.GpuWorkQueue.Enqueue(task);
+        this.Work.Enqueue(task);
     }
 }

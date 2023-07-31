@@ -3,6 +3,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Components;
+using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine.Graphics.Models;
@@ -11,6 +12,7 @@ namespace Mini.Engine.Graphics.Models;
 public sealed class ModelSystem : IDisposable
 {
     private readonly DeferredDeviceContext Context;
+    private readonly ImmediateDeviceContext CompletionContext;
     private readonly FrameService FrameService;
     private readonly ModelRenderService ModelRenderService;
 
@@ -20,13 +22,14 @@ public sealed class ModelSystem : IDisposable
     public ModelSystem(Device device, FrameService frameService, ModelRenderService modelRenderService, IComponentContainer<ModelComponent> models, IComponentContainer<TransformComponent> transforms)
     {
         this.Context = device.CreateDeferredContextFor<ModelSystem>();
+        this.CompletionContext = device.ImmediateContext;
         this.FrameService = frameService;
         this.ModelRenderService = modelRenderService;
         this.Models = models;
         this.Transforms = transforms;
     }
 
-    public Task<CommandList> Render(Rectangle viewport, Rectangle scissor, float alpha)
+    public Task<ICompletable> Render(Rectangle viewport, Rectangle scissor, float alpha)
     {
         return Task.Run(() =>
         {
@@ -45,7 +48,7 @@ public sealed class ModelSystem : IDisposable
                 }
             }
 
-            return this.Context.FinishCommandList();
+            return CompletableCommandList.Create(this.CompletionContext, this.Context.FinishCommandList());
         });
     }  
     

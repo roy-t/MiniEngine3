@@ -1,30 +1,19 @@
 ﻿using Mini.Engine.Configuration;
-using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
-using Mini.Engine.ECS.Generators.Shared;
-using Mini.Engine.ECS.Systems;
 using Vortice.Direct3D11;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.Graphics;
 
 [Service]
-public sealed partial class ClearBuffersSystem : ISystem
+public sealed partial class ClearBuffersSystem
 {
-    private readonly Device Device;
-    private readonly FrameService FrameService;
 
     private static readonly Color4 NeutralAlbedo = new Color4(0, 0, 0, 0);
     private static readonly Color4 NeutralMaterial = new Color4(0, 0, 0, 0.0f);
     private static readonly Color4 NeutralNormal = new Color4(0.0f, 0.0f, 0.0f, 0.0f);
     private static readonly Color4 NeutralLight = new Color4(0, 0, 0, 0.0f);
     private static readonly Color4 NeutralVelocity = new Color4(0, 0, 0, 0.0f);
-
-    public ClearBuffersSystem(Device device, FrameService frameService)
-    {
-        this.Device = device;
-        this.FrameService = frameService;
-    }
 
     public static void Clear(DeviceContext context, FrameService frameService)
     {
@@ -40,16 +29,5 @@ public sealed partial class ClearBuffersSystem : ISystem
         // LBuffer
         context.Clear(frameService.LBuffer.Light, NeutralLight);
     }
-
-    public void OnSet() { }
-
-    [Process]
-    public void Process()
-    {
-        var context = this.Device.ImmediateContext;
-        Clear(context, this.FrameService);
-    }
-
-    public void OnUnSet() { }
 }
 

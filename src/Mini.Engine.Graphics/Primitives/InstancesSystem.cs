@@ -3,6 +3,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Components;
+using Mini.Engine.ECS.Systems;
 
 namespace Mini.Engine.Graphics.Primitives;
 
@@ -12,15 +13,17 @@ public sealed class InstancesSystem : IDisposable
     private const int BufferCapacityIncrement = 100;
 
     private readonly DeferredDeviceContext Context;
+    private readonly ImmediateDeviceContext CompletionContext;    
     private readonly IComponentContainer<InstancesComponent> Instances;
 
     public InstancesSystem(Device device, IComponentContainer<InstancesComponent> instances)
-    {
-        this.Instances = instances;
+    {        
+        this.Instances = instances;        
         this.Context = device.CreateDeferredContextFor<InstancesSystem>();
+        this.CompletionContext = device.ImmediateContext;
     }
 
-    public Task<CommandList> UpdateInstances()
+    public Task<ICompletable> UpdateInstances()
     {
         return Task.Run(() =>
         {
@@ -34,7 +37,7 @@ public sealed class InstancesSystem : IDisposable
                 this.MapInstanceData(in component.Value);
             }
 
-            return this.Context.FinishCommandList();
+            return CompletableCommandList.Create(this.CompletionContext, this.Context.FinishCommandList());
         });
     }
 

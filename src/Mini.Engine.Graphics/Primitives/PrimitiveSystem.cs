@@ -3,6 +3,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Components;
+using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine.Graphics.Primitives;
@@ -11,6 +12,7 @@ namespace Mini.Engine.Graphics.Primitives;
 public sealed class PrimitiveSystem : IDisposable
 {
     private readonly DeferredDeviceContext Context;
+    private readonly ImmediateDeviceContext CompletionContext;
     private readonly PrimitiveRenderService RenderService;
     private readonly FrameService FrameService;
 
@@ -21,6 +23,7 @@ public sealed class PrimitiveSystem : IDisposable
     public PrimitiveSystem(Device device, PrimitiveRenderService renderService, FrameService frameService, IComponentContainer<PrimitiveComponent> models, IComponentContainer<TransformComponent> transforms, IComponentContainer<InstancesComponent> instances)
     {
         this.Context = device.CreateDeferredContextFor<PrimitiveSystem>();
+        this.CompletionContext = device.ImmediateContext;
         this.RenderService = renderService;
         this.FrameService = frameService;
         this.Primitives = models;
@@ -28,7 +31,7 @@ public sealed class PrimitiveSystem : IDisposable
         this.Instances = instances;
     }
 
-    public Task<CommandList> Render(Rectangle viewport, Rectangle scissor, float alpha)
+    public Task<ICompletable> Render(Rectangle viewport, Rectangle scissor, float alpha)
     {
         return Task.Run(() =>
         {
@@ -54,7 +57,7 @@ public sealed class PrimitiveSystem : IDisposable
                 }
             }
 
-            return this.Context.FinishCommandList();
+            return CompletableCommandList.Create(this.CompletionContext, this.Context.FinishCommandList());
         });
     }
 

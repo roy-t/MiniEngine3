@@ -10,6 +10,7 @@ using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.ECS.Components;
+using Mini.Engine.ECS.Systems;
 
 namespace Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
@@ -21,6 +22,7 @@ public sealed class ImageBasedLightSystem : IDisposable
     private readonly SamplerState SamplerState;
 
     private readonly DeferredDeviceContext Context;
+    private readonly ImmediateDeviceContext CompletionContext;
     private readonly FrameService FrameService;
     private readonly FullScreenTriangle FullScreenTriangleShader;
     private readonly ImageBasedLight Shader;
@@ -37,6 +39,7 @@ public sealed class ImageBasedLightSystem : IDisposable
         this.SamplerState = device.SamplerStates.LinearClamp;
 
         this.Context = device.CreateDeferredContextFor<ImageBasedLightSystem>();
+        this.CompletionContext = device.ImmediateContext;
         this.FrameService = frameService;
         this.FullScreenTriangleShader = fullScreenTriangleShader;
         this.Shader = shader;
@@ -46,7 +49,7 @@ public sealed class ImageBasedLightSystem : IDisposable
         this.SkyboxContainer = componentContainer;
     }
 
-    public Task<CommandList> Render(Rectangle viewport, Rectangle scissor)
+    public Task<ICompletable> Render(Rectangle viewport, Rectangle scissor)
     {
         return Task.Run(() =>
         {
@@ -57,7 +60,7 @@ public sealed class ImageBasedLightSystem : IDisposable
                 this.Render(in component.Value);
             }
 
-            return this.Context.FinishCommandList();
+            return CompletableCommandList.Create(this.CompletionContext, this.Context.FinishCommandList());
         });
     }
 

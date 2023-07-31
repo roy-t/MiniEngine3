@@ -30,6 +30,8 @@ public sealed class TrackManager
         this.Grid = scenarioManager.Grid;
         this.Instances = instances;
 
+
+        // TODO: because we reference an entity here that gets deleted when we changes scenes, this breaks!
         this.Straight = this.CreateTrackPieceAndComponents(device, curves.Straight, STRAIGHT_VERTICES, nameof(this.Straight));
         this.LeftTurn = this.CreateTrackPieceAndComponents(device, curves.LeftTurn, TURN_VERTICES, nameof(this.LeftTurn));
         this.RightTurn = this.CreateTrackPieceAndComponents(device, curves.RightTurn, TURN_VERTICES, nameof(this.RightTurn));

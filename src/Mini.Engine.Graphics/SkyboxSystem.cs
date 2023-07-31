@@ -5,7 +5,9 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
+using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.ECS.Components;
+using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 
 namespace Mini.Engine.Graphics;
@@ -13,25 +15,33 @@ namespace Mini.Engine.Graphics;
 [Service]
 public sealed class SkyboxSystem : IDisposable
 {
-    private readonly Device Device;
     private readonly DeferredDeviceContext Context;
+    private readonly ImmediateDeviceContext CompletionContext;
     private readonly Skybox Shader;
     private readonly Skybox.User User;
     private readonly FrameService FrameService;
 
     private readonly IComponentContainer<SkyboxComponent> SkyboxContainer;
 
+    private readonly BlendState Opaque;
+    private readonly DepthStencilState ReverseZReadOnly;
+    private readonly SamplerState LinearClamp;
+
     public SkyboxSystem(Device device, FrameService frameService, Skybox shader, IComponentContainer<SkyboxComponent> componentContainer)
     {
-        this.Device = device;
         this.Context = device.CreateDeferredContextFor<SkyboxSystem>();
+        this.CompletionContext = device.ImmediateContext;
         this.Shader = shader;
         this.User = shader.CreateUserFor<SkyboxSystem>();
         this.FrameService = frameService;
         this.SkyboxContainer = componentContainer;
+
+        this.Opaque = device.BlendStates.Opaque;
+        this.ReverseZReadOnly = device.DepthStencilStates.ReverseZReadOnly;
+        this.LinearClamp = device.SamplerStates.LinearClamp;
     }
 
-    public Task<CommandList> Render(Rectangle viewport, Rectangle scissor)
+    public Task<ICompletable> Render(Rectangle viewport, Rectangle scissor)
     {
         return Task.Run(() =>
         {
@@ -42,17 +52,17 @@ public sealed class SkyboxSystem : IDisposable
                 this.DrawSkybox(in component.Value);
             }
 
-            return this.Context.FinishCommandList();
+            return CompletableCommandList.Create(this.CompletionContext, this.Context.FinishCommandList());
         });
     }
 
     private void Setup(in Rectangle viewport, in Rectangle scissor)
     {
-        var blend = this.Device.BlendStates.Opaque;
-        var depth = this.Device.DepthStencilStates.ReverseZReadOnly;
+        var blend = this.Opaque;
+        var depth = this.ReverseZReadOnly;
         this.Context.SetupFullScreenTriangle(this.Shader.Vs, in viewport, in scissor, this.Shader.Ps, blend, depth);
 
-        this.Context.PS.SetSampler(Skybox.TextureSampler, this.Device.SamplerStates.LinearClamp);
+        this.Context.PS.SetSampler(Skybox.TextureSampler, this.LinearClamp);
 
         this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.LBuffer.Light);
     }

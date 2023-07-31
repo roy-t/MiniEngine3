@@ -6,6 +6,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Components;
+using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.Primitives;
@@ -18,6 +19,7 @@ namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 public sealed class CascadedShadowMapSystem : IDisposable
 {
     private readonly DeferredDeviceContext Context;
+    private readonly ImmediateDeviceContext CompletionContext;
     private readonly FrameService FrameService;
     private readonly ModelRenderService ModelRenderService;
     private readonly PrimitiveRenderService PrimitiveRenderService;
@@ -29,6 +31,7 @@ public sealed class CascadedShadowMapSystem : IDisposable
     public CascadedShadowMapSystem(Device device, FrameService frameService, ModelRenderService modelRenderService, PrimitiveRenderService primitiveRenderService, IComponentContainer<CascadedShadowMapComponent> shadowMaps, IComponentContainer<TransformComponent> transforms)
     {
         this.Context = device.CreateDeferredContextFor<CascadedShadowMapSystem>();
+        this.CompletionContext = device.ImmediateContext;
         this.FrameService = frameService;
         this.ModelRenderService = modelRenderService;
         this.PrimitiveRenderService = primitiveRenderService;
@@ -37,7 +40,7 @@ public sealed class CascadedShadowMapSystem : IDisposable
         this.Transforms = transforms;
     }
 
-    public Task<CommandList> Render(float alpha)
+    public Task<ICompletable> Render(float alpha)
     {
         return Task.Run(() =>
         {
@@ -52,20 +55,25 @@ public sealed class CascadedShadowMapSystem : IDisposable
                 }
             }
 
-            return this.Context.FinishCommandList();
+            return CompletableCommandList.Create(this.CompletionContext, this.Context.FinishCommandList());
         });
     }
 
-    public void Update()
+    public Task<ICompletable> Update()
     {
-        foreach (ref var shadowMap in this.ShadowMaps.IterateAll())
+        return Task.Run(() =>
         {
-            if (this.Transforms.Contains(shadowMap.Entity))
+            foreach (ref var shadowMap in this.ShadowMaps.IterateAll())
             {
-                ref var transform = ref this.Transforms[shadowMap.Entity];
-                this.UpdateCascades(ref shadowMap.Value, ref transform.Value);
+                if (this.Transforms.Contains(shadowMap.Entity))
+                {
+                    ref var transform = ref this.Transforms[shadowMap.Entity];
+                    this.UpdateCascades(ref shadowMap.Value, ref transform.Value);
+                }
             }
-        }
+
+            return Completable.Empty;
+        });
     }
 
     private void UpdateCascades(ref CascadedShadowMapComponent shadowMap, ref TransformComponent viewPoint)

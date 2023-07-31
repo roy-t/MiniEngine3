@@ -4,7 +4,9 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Content.Shaders.Generated;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
+using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.ECS.Components;
+using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
@@ -12,8 +14,8 @@ namespace Mini.Engine.Graphics.Lighting.ShadowingLights;
 [Service]
 public sealed class SunLightSystem : IDisposable
 {
-    private readonly Device Device;
     private readonly DeferredDeviceContext Context;
+    private readonly ImmediateDeviceContext CompletionContext;
     private readonly FrameService FrameService;
 
     private readonly FullScreenTriangle FullScreenTriangle;
@@ -25,10 +27,16 @@ public sealed class SunLightSystem : IDisposable
     private readonly IComponentContainer<CascadedShadowMapComponent> CascadedShadowMapContainer;
     private readonly IComponentContainer<TransformComponent> TransformContainer;
 
+
+    private readonly BlendState Additive;
+    private readonly DepthStencilState None;
+    private readonly SamplerState LinearClamp;
+    private readonly SamplerState CompareLessEqualClamp;
+
     public SunLightSystem(Device device, FrameService frameService, FullScreenTriangle fullScreenTriangle, SunLight shader, IComponentContainer<SunLightComponent> sunLightContainer, IComponentContainer<CascadedShadowMapComponent> cascadedShadowMapContainer, IComponentContainer<TransformComponent> transformContainer)
     {
-        this.Device = device;
         this.Context = device.CreateDeferredContextFor<SunLightSystem>();
+        this.CompletionContext = device.ImmediateContext;
         this.FrameService = frameService;
         this.FullScreenTriangle = fullScreenTriangle;
 
@@ -37,9 +45,14 @@ public sealed class SunLightSystem : IDisposable
         this.SunLightContainer = sunLightContainer;
         this.CascadedShadowMapContainer = cascadedShadowMapContainer;
         this.TransformContainer = transformContainer;
+
+        this.Additive = device.BlendStates.Additive;
+        this.None = device.DepthStencilStates.None;
+        this.LinearClamp = device.SamplerStates.LinearClamp;
+        this.CompareLessEqualClamp = device.SamplerStates.CompareLessEqualClamp;
     }
 
-    public Task<CommandList> Render(Rectangle viewport, Rectangle scissor)
+    public Task<ICompletable> Render(Rectangle viewport, Rectangle scissor)
     {
         return Task.Run(() =>
         {
@@ -59,22 +72,22 @@ public sealed class SunLightSystem : IDisposable
 
             }
 
-            return this.Context.FinishCommandList();
+            return CompletableCommandList.Create(this.CompletionContext, this.Context.FinishCommandList());
         });
     }
 
     private void Setup(in Rectangle viewport, in Rectangle scissor)
     {
-        this.Context.SetupFullScreenTriangle(this.FullScreenTriangle.TextureVs, in viewport, in scissor, this.Shader.Ps, this.Device.BlendStates.Additive, this.Device.DepthStencilStates.None);
+        this.Context.SetupFullScreenTriangle(this.FullScreenTriangle.TextureVs, in viewport, in scissor, this.Shader.Ps, this.Additive, this.None);
         this.Context.OM.SetRenderTarget(this.FrameService.LBuffer.Light);
 
-        this.Context.PS.SetSampler(SunLight.TextureSampler, this.Device.SamplerStates.LinearClamp);
+        this.Context.PS.SetSampler(SunLight.TextureSampler, this.LinearClamp);
         this.Context.PS.SetShaderResource(SunLight.Albedo, this.FrameService.GBuffer.Albedo);
         this.Context.PS.SetShaderResource(SunLight.Normal, this.FrameService.GBuffer.Normal);
         this.Context.PS.SetShaderResource(SunLight.Depth, this.FrameService.GBuffer.DepthStencilBuffer);
         this.Context.PS.SetShaderResource(SunLight.Material, this.FrameService.GBuffer.Material);
 
-        this.Context.PS.SetSampler(SunLight.ShadowSampler, this.Device.SamplerStates.CompareLessEqualClamp);
+        this.Context.PS.SetSampler(SunLight.ShadowSampler, this.CompareLessEqualClamp);
 
         this.Context.PS.SetConstantBuffer(SunLight.ConstantsSlot, this.User.ConstantsBuffer);
     }

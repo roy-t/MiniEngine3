@@ -3,6 +3,7 @@ using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS.Components;
+using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine.Graphics.Lines;
@@ -11,6 +12,7 @@ namespace Mini.Engine.Graphics.Lines;
 public sealed class LineSystem : IDisposable
 {
     private readonly DeferredDeviceContext Context;
+    private readonly ImmediateDeviceContext CompletionContext;
     private readonly LineRenderService RenderService;
     private readonly FrameService FrameService;
     private readonly IComponentContainer<LineComponent> Lines;
@@ -19,13 +21,14 @@ public sealed class LineSystem : IDisposable
     public LineSystem(Device device, LineRenderService renderService, FrameService frameService, IComponentContainer<LineComponent> lines, IComponentContainer<TransformComponent> transforms)
     {
         this.Context = device.CreateDeferredContextFor<LineSystem>();
+        this.CompletionContext = device.ImmediateContext;
         this.RenderService = renderService;
         this.FrameService = frameService;
         this.Lines = lines;
         this.Transforms = transforms;
     }
 
-    public Task<CommandList> Render(Rectangle viewport, Rectangle scissor, float alpha)
+    public Task<ICompletable> Render(Rectangle viewport, Rectangle scissor, float alpha)
     {
         return Task.Run(() =>
         {
@@ -47,7 +50,7 @@ public sealed class LineSystem : IDisposable
                 }
             }
 
-            return this.Context.FinishCommandList();
+            return CompletableCommandList.Create(this.CompletionContext, this.Context.FinishCommandList());
         });
     }
 

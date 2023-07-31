@@ -2,14 +2,12 @@
 using LibGame.Physics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
-using Mini.Engine.Content.Models;
 using Mini.Engine.Diesel.Tracks;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS;
 using Mini.Engine.ECS.Components;
 using Mini.Engine.Graphics.Primitives;
 using Mini.Engine.Modelling.Curves;
-using static Mini.Engine.Diesel.Tracks.TrackParameters;
 namespace Mini.Engine.Diesel.Trains;
 
 [Service]

@@ -3,8 +3,8 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
 using Mini.Engine.Diesel.Tracks;
 using Mini.Engine.ECS.Components;
+using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics.Cameras;
-using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Transforms;
 
 namespace Mini.Engine;
@@ -14,8 +14,7 @@ internal sealed record class UpdateSystems
 (
     CameraSystem Camera,
     ComponentLifeCycleSystem ComponentLifeCycle,
-    TransformSystem Transform,
-    CascadedShadowMapSystem CascadedShadowMap,
+    TransformSystem Transform,    
     TrackManager TrackManager
 );
 
@@ -26,13 +25,13 @@ internal sealed class UpdatePipeline
     private readonly UpdateSystems Systems;    
     private readonly Stopwatch Stopwatch;
 
-    private readonly Queue<Task> WorkQueue;
+    private readonly Queue<Task<ICompletable>> WorkQueue;
 
     public UpdatePipeline(MetricService metricService, UpdateSystems systems)
     {
         this.MetricService = metricService;
         this.Systems = systems;
-        this.WorkQueue = new Queue<Task>();
+        this.WorkQueue = new Queue<Task<ICompletable>>();
         this.Stopwatch = new Stopwatch();
     }
 
@@ -43,8 +42,7 @@ internal sealed class UpdatePipeline
         // The following systems depend directly on each other, so they cannot run in parallel
         this.Systems.ComponentLifeCycle.Run();        
         this.Systems.Transform.Run();
-        this.Systems.Camera.Update();
-        this.Systems.CascadedShadowMap.Update();
+        this.Systems.Camera.Update();        
 
         // TODO: add more systems that can run in parallel
         //this.ProcessQueue();
