@@ -14,7 +14,7 @@ IDC_SIZENWSE
 IDC_SIZEWE
 
 // MapVirtualKey uMapType constants that governs the translation used
-MAPVK_VK_TO_VSC
+MAP_VIRTUAL_KEY_TYPE
 
 // Parameters of WM_SIZE window messages
 SIZE_MAXIMIZED
