@@ -50,6 +50,6 @@ public static class TrackGridTests
         grid.Remove(cell.x, cell.y, 1);
         grid.Remove(cell.x, cell.y, 0);
         placement = grid[cell.x, cell.y].Placements;
-        Assert.Equal(0, placement.Count);        
+        Assert.Empty(placement);        
     }
 }

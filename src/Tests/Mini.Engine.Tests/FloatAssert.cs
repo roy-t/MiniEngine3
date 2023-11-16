@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using Xunit.Sdk;
+using Xunit;
 
 namespace Mini.Engine.Tests;
 public static class FloatAssert
@@ -12,7 +12,7 @@ public static class FloatAssert
 
         if (dX > tolerance || dY > tolerance || dZ > tolerance)
         {
-            throw new EqualException(expected, actual);
+            Assert.Equal(expected, actual);
         }
     }
 }

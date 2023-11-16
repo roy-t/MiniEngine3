@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <PackageReference Include="NativeLibraryLoader" Version="1.0.13" />
-    <PackageReference Include="Serilog" Version="2.12.0" />
-    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="7.0.0" />
-    <PackageReference Include="System.Management" Version="7.0.1" />
+    <PackageReference Include="Serilog" Version="3.1.1" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Mini.Engine.Configuration\Mini.Engine.Configuration.csproj" />

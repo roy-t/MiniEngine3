@@ -74,7 +74,7 @@ internal sealed class ImGuiRenderer : IDisposable
         {
             for (var n = 0; n < data.CmdListsCount; n++)
             {
-                var cmdlList = data.CmdListsRange[n];
+                var cmdlList = data.CmdLists[n];
                 unsafe
                 {
                     vertexWriter.MapData(new Span<ImDrawVert>(cmdlList.VtxBuffer.Data.ToPointer(), cmdlList.VtxBuffer.Size), vertexOffset);
@@ -97,7 +97,7 @@ internal sealed class ImGuiRenderer : IDisposable
         var lobalVertexOffset = 0;
         for (var n = 0; n < data.CmdListsCount; n++)
         {
-            var cmdList = data.CmdListsRange[n];
+            var cmdList = data.CmdLists[n];
             for (var i = 0; i < cmdList.CmdBuffer.Size; i++)
             {
                 var cmd = cmdList.CmdBuffer[i];
