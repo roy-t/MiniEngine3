@@ -11,7 +11,6 @@ public struct InstancesComponent : IComponent
     public ILifetime<StructuredBuffer<Matrix4x4>> InstanceBuffer;
     public ILifetime<ShaderResourceView<Matrix4x4>> InstanceBufferView;    
 
-    // TODO: is it wrong to have a reference type here?
     public List<Matrix4x4> InstanceList;
 
     public void Init(Device device, string name, int capacity = 0)

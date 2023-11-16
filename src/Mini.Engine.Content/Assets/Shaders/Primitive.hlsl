@@ -85,6 +85,7 @@ PS_INPUT VSInstanced(VS_INPUT input, uint vertexId : SV_VertexID, uint instanceI
     output.world = mul(world, position).xyz;
     output.normal = normalize(mul(rotation, input.normal));
     
+    
     for (uint i = 0; i < PartCount; i++)
     {
         if (vertexId >= Parts[i].Offset)

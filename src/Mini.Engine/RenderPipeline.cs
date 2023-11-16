@@ -11,13 +11,15 @@ using Mini.Engine.Graphics.Lines;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.PostProcessing;
 using Mini.Engine.ECS.Systems;
+using Mini.Engine.Diesel.v2.Terrain;
 
 namespace Mini.Engine;
 
 [Service]
 internal sealed record class RenderSystems
 (
-    InstancesSystem InstancesSystem,
+    TerrainUpdateSystem Terrain,
+    InstancesSystem Instances,
     PrimitiveSystem Primitive,
     ModelSystem Model,
     ImageBasedLightSystem ImageBasedLight,
@@ -73,7 +75,8 @@ internal sealed class RenderPipeline
     private void RunPreRenderStage()
     {
         this.Enqueue(this.Systems.CascadedShadowMap.Update());
-        this.Enqueue(this.Systems.InstancesSystem.UpdateInstances());        
+        this.Enqueue(this.Systems.Terrain.Update());
+        this.Enqueue(this.Systems.Instances.UpdateInstances());        
     }
 
     private void RunGeometryStage(in Rectangle viewport, in Rectangle scissor, float alpha)
