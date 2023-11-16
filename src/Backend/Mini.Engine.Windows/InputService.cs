@@ -76,7 +76,7 @@ public sealed class InputService
 
     public static ushort GetScanCode(VIRTUAL_KEY virtualKey)
     {
-        return (ushort)MapVirtualKey((uint)virtualKey, MAPVK_VK_TO_VSC);
+        return (ushort)MapVirtualKey((uint)virtualKey, MAP_VIRTUAL_KEY_TYPE.MAPVK_VK_TO_VSC);
     }
 
     private unsafe void ProcessMessage(UIntPtr _, IntPtr lParam)

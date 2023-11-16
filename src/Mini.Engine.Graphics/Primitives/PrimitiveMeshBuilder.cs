@@ -34,7 +34,7 @@ public sealed class PrimitiveMeshBuilder
         this.Indices = new ArrayBuilder<int>(indexCapacity);
         this.Parts = new ArrayBuilder<MeshPart>(partCapacity);
 
-        this.bounds = BoundingBox.Empty;
+        this.bounds = BoundingBox.Zero;
     }
 
     public void Add(ReadOnlySpan<PrimitiveVertex> vertices, ReadOnlySpan<int> indices, Color4 albedo, float metalicness = DefaultMetalicness, float rougness = DefaultRoughness)
@@ -81,7 +81,7 @@ public sealed class PrimitiveMeshBuilder
 
     public ILifetime<PrimitiveMesh> Build(Device device, string name, out BoundingBox bounds)
     {
-        Debug.Assert(this.Vertices.Length > 0 && this.Indices.Length > 0 && this.Parts.Length > 0 && this.bounds != BoundingBox.Empty);
+        Debug.Assert(this.Vertices.Length > 0 && this.Indices.Length > 0 && this.Parts.Length > 0 && this.bounds != BoundingBox.Zero);
 
         var vertices = this.Vertices.Build();
         var indices = this.Indices.Build();
