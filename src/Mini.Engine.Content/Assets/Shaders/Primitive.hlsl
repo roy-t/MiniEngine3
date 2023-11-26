@@ -7,7 +7,7 @@ struct MeshPart
 {
     uint Offset;
     uint Length;
-    float4 Albedo;
+    float3 Albedo;
     float Metalicness;
     float Roughness;
 };
@@ -25,7 +25,7 @@ struct PS_INPUT
     float4 currentPosition : POSITION1;
     float3 world : WORLD;
     float3 normal : NORMAL;
-    float4 albedo : COLOR0;
+    float3 albedo : COLOR0;
     float metalicness : COLOR1;
     float roughness : COLOR2;
 };
@@ -102,8 +102,7 @@ PS_INPUT VSInstanced(VS_INPUT input, uint vertexId : SV_VertexID, uint instanceI
 #pragma PixelShader
 OUTPUT PS(PS_INPUT input)
 {
-    float4 albedo = input.albedo;
-    clip(albedo.a - 0.5f);
+    float4 albedo = float4(input.albedo, 1.0);
     
     float3 V = normalize(CameraPosition - input.world);
     float3 normal = normalize(input.normal);

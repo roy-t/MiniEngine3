@@ -55,7 +55,7 @@ public static class TrainCars
         return device.Resources.Add(new PrimitiveMesh(device, vertices, model.Indices.Span, parts, model.Bounds, name));
     }
 
-    private static ReadOnlySpan<MeshPart> CreateMeshParts(int vertexCount, Color4 color, float metalicness, float roughness)
+    private static ReadOnlySpan<MeshPart> CreateMeshParts(int vertexCount, Color3 color, float metalicness, float roughness)
     {
         return new MeshPart[]
         {
@@ -63,7 +63,7 @@ public static class TrainCars
             {
                 Offset = 0,
                 Length = (uint)vertexCount,
-                Albedo = color,
+                Albedo = color.ToVector3(),
                 Metalicness = metalicness,
                 Roughness = roughness,
             }

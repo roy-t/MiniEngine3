@@ -1,6 +1,5 @@
 # TODO
 
-
 Implementations of IComponent that hold ILIfeCycle<> things always assume that they live for the entire scene
 and never clean up their resources when they are removed. Is that OK?
 

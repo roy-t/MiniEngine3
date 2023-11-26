@@ -15,7 +15,7 @@ public static class TrainParameters
     public static float AXLE_RADIUS => 0.125f;
     public static float WHEEL_SPACING => 1.4f;
 
-    public static Color4 BOGIE_COLOR => new(112, 96, 88);
+    public static Color3 BOGIE_COLOR => new(0.43f, 0.38f, 0.35f);
     public static float BOGIE_METALICNESS => 0.6f;
     public static float BOGIE_ROUGHNESS => 0.1f;
 
