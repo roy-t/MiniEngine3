@@ -1,12 +1,6 @@
 ﻿using System.Numerics;
 using LibGame.Mathematics;
-using Mini.Engine.Content;
-using Mini.Engine.Diesel.Trains;
-using Mini.Engine.DirectX;
-using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.ECS;
-using Mini.Engine.ECS.Components;
-using Mini.Engine.Graphics.Buffers;
 using Mini.Engine.Graphics.Primitives;
 
 namespace Mini.Engine.Diesel.v2.Terrain;
@@ -24,52 +18,52 @@ public readonly record struct TerrainCell(byte Height, Entity Type, Orientation 
 public abstract class InstanceGrid<TCellType>
     where TCellType : unmanaged, IEquatable<TCellType>
 {
-    protected readonly IComponentContainer<InstancesComponent> Instances;
+    protected readonly InstancesSystem Instances;
     protected readonly TCellType[] Cells;
+    private readonly Dictionary<Entity, List<Matrix4x4>> InstanceLookUp;
+    private readonly HashSet<Entity> DirtySet;
 
-    public InstanceGrid(IComponentContainer<InstancesComponent> Instances, int gridWidth, int gridHeight, float cellWidth, float cellHeight)
+    public InstanceGrid(InstancesSystem Instances, int gridWidth, int gridHeight, float cellWidth, float cellHeight)
     {
+        this.Instances = Instances;
+
         this.GridWidth = gridWidth;
         this.GridHeight = gridHeight;
         this.CellWidth = cellWidth;
         this.CellHeight = cellHeight;
-
+                
         this.Cells = new TCellType[gridWidth * gridHeight];
-
-        this.Instances = Instances;
+        this.InstanceLookUp = new Dictionary<Entity, List<Matrix4x4>>();
+        this.DirtySet = new HashSet<Entity>();
     }
 
+    public IReadOnlyDictionary<Entity, List<Matrix4x4>> LookUp => this.InstanceLookUp;
+    public IReadOnlySet<Entity> Dirty => this.DirtySet;
     public int GridWidth { get; }
     public int GridHeight { get; }
     public float CellWidth { get; }
-    public float CellHeight { get; }    
+    public float CellHeight { get; }
+    public bool Changed { get; private set; }
 
     public void SetCell(int x, int y, in TCellType cell)
     {
         var index = this.ToIndex(x, y);
         var previous = this.Cells[index];
-
+       
         if (!previous.Equals(cell))
         {
+            var entity = this.ToEntity(cell);
+            if (!this.InstanceLookUp.TryGetValue(entity, out var list))
+            {
+                list = new List<Matrix4x4>();
+                this.InstanceLookUp.Add(entity, list);
+            }
+
             this.Cells[index] = cell;
-
-            ref var previousInstance = ref this.Instances[this.ToEntity(in previous)];
-            previousInstance.Value.InstanceList.Remove(this.ToMatrix(x, y, in previous));
-            previousInstance.LifeCycle = previousInstance.LifeCycle.ToChanged();
-
-            ref var nextInstance = ref this.Instances[this.ToEntity(in cell)];
-            nextInstance.Value.InstanceList.Add(this.ToMatrix(x, y, in cell));
-            nextInstance.LifeCycle = nextInstance.LifeCycle.ToChanged();
+            list.Remove(this.ToMatrix(x, y, in previous));
+            list.Add(this.ToMatrix(x, y, in cell));
+            this.DirtySet.Add(entity);
         }
-    }
-
-    protected void InitializeCell(int x, int y, in TCellType cell)
-    {
-        this.Cells[this.ToIndex(x, y)] = cell;
-
-        ref var nextInstance = ref this.Instances[this.ToEntity(in cell)];
-        nextInstance.Value.InstanceList.Add(this.ToMatrix(x, y, in cell));
-        nextInstance.LifeCycle = nextInstance.LifeCycle.ToChanged();
     }
 
     protected abstract Entity ToEntity(in TCellType cell);
@@ -83,16 +77,15 @@ public abstract class InstanceGrid<TCellType>
 
 public sealed class TerrainGrid : InstanceGrid<TerrainCell>
 {
-    public TerrainGrid(IComponentContainer<InstancesComponent> instances, Entity initialEntity, int gridWidth, int gridHeight, float cellWidth, float cellHeight)
+    public TerrainGrid(InstancesSystem instances, Entity initialEntity, int gridWidth, int gridHeight, float cellWidth, float cellHeight)
         : base(instances, gridWidth, gridHeight, cellWidth, cellHeight)
-    {
-      
+    {      
         var cell = new TerrainCell(1, initialEntity, Orientation.North);
         for (var y = 0; y < gridHeight; y++)
         {
             for (var x = 0; x < gridWidth; x++)
             {
-                this.InitializeCell(x, y, in cell);
+                this.SetCell(x, y, in cell);
             }
         }
     }
@@ -124,15 +117,5 @@ public sealed class TerrainGrid : InstanceGrid<TerrainCell>
     protected override Entity ToEntity(in TerrainCell cell)
     {
         return cell.Type;
-    }
-
-    private static UploadBuffer<Matrix4x4>[] CreateUploadBuffers(Device device, int gridWidth, int gridHeight)
-    {
-        return new UploadBuffer<Matrix4x4>[]
-        {
-            new UploadBuffer<Matrix4x4>(device, "Flat", gridWidth * gridHeight),
-            new UploadBuffer<Matrix4x4>(device, "Slope", Math.Min(100, gridWidth * gridHeight)),
-            new UploadBuffer<Matrix4x4>(device, "Cliff", Math.Min(100, gridWidth * gridHeight))
-        };
-    }
+    }  
 }

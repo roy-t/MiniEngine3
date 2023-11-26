@@ -50,7 +50,7 @@ public sealed class PrimitiveSystem : IDisposable
                     ref var instances = ref this.Instances[entity].Value;
                     ref var transform = ref this.Transforms[entity].Value;
 
-                    if (instances.InstanceList.Count > 0)
+                    if (instances.Count > 0)
                     {
                         this.RenderService.Render(this.Context, in camera, in cameraTransform, in primitive, in instances, in transform);
                     }

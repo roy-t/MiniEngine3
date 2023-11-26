@@ -19,6 +19,7 @@ internal sealed class PrimitivePanel : IEditorPanel
     private readonly TrackManager TrackManager;
     private readonly TrainManager TrainManager;
     private readonly CurveManager CurveManager;
+    private readonly InstancesSystem Instances;
 
     public string Title => "Primitives";
 
@@ -28,13 +29,14 @@ internal sealed class PrimitivePanel : IEditorPanel
     private ICurve lastCurve;
     private Matrix4x4 lastTransform;
 
-    public PrimitivePanel(Device device, ECSAdministrator administrator, TrackManager trackManager, TrainManager trainManager, CurveManager curveManager)
+    public PrimitivePanel(Device device, ECSAdministrator administrator, TrackManager trackManager, TrainManager trainManager, CurveManager curveManager, InstancesSystem instances)
     {
         this.Device = device;
         this.Administrator = administrator;
         this.TrackManager = trackManager;
         this.TrainManager = trainManager;
         this.CurveManager = curveManager;
+        this.Instances = instances;
         this.lastCurve = curveManager.Straight;
         this.lastTransform = Matrix4x4.Identity;
 
@@ -86,8 +88,8 @@ internal sealed class PrimitivePanel : IEditorPanel
             var primitive = TrainCars.BuildFlatCar(this.Device, "flatcar");
             this.lastEntity = PrimitiveUtilities.CreateComponents(this.Device, this.Administrator, primitive, 1, 1.0f);
 
-            ref var instances = ref this.Administrator.Components.GetComponent<InstancesComponent>(this.lastEntity);
-            instances.Value.InstanceList.Add(Matrix4x4.Identity);
+            var list = new List<Matrix4x4>() { Matrix4x4.Identity };
+            this.Instances.QueueUpdate(this.lastEntity, list);
         }
 
         this.shouldReload = false;

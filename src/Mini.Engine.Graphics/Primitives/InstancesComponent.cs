@@ -9,9 +9,9 @@ namespace Mini.Engine.Graphics.Primitives;
 public struct InstancesComponent : IComponent
 {
     public ILifetime<StructuredBuffer<Matrix4x4>> InstanceBuffer;
-    public ILifetime<ShaderResourceView<Matrix4x4>> InstanceBufferView;    
-
-    public List<Matrix4x4> InstanceList;
+    public ILifetime<ShaderResourceView<Matrix4x4>> InstanceBufferView;
+    public int Count;
+    //public List<Matrix4x4> InstanceList;
 
     public void Init(Device device, string name, int capacity = 0)
     {
@@ -20,7 +20,7 @@ public struct InstancesComponent : IComponent
 
         this.InstanceBuffer = device.Resources.Add(buffer);
         this.InstanceBufferView = device.Resources.Add(view);
-
-        this.InstanceList = new List<Matrix4x4>(capacity);
-    }
+        this.Count = 0;
+        //this.InstanceList = new List<Matrix4x4>(capacity);
+    }    
 }

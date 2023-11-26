@@ -15,8 +15,8 @@ public sealed class TrackManager
     private const int BufferCapacity = 100;
 
     private readonly ECSAdministrator Administrator;
+    private readonly InstancesSystem InstancesSystem;
     private readonly TrackGrid Grid;
-    private readonly IComponentContainer<InstancesComponent> Instances;
 
     private readonly List<TrackPiece> Pieces;
 
@@ -24,12 +24,11 @@ public sealed class TrackManager
     public readonly TrackPiece LeftTurn;
     public readonly TrackPiece RightTurn;
 
-    public TrackManager(Device device, ECSAdministrator administrator, CurveManager curves, ScenarioManager scenarioManager, IComponentContainer<InstancesComponent> instances)
+    public TrackManager(Device device, ECSAdministrator administrator, CurveManager curves, ScenarioManager scenarioManager, InstancesSystem instancesSystem, IComponentContainer<InstancesComponent> instances)
     {
         this.Administrator = administrator;
+        this.InstancesSystem = instancesSystem;
         this.Grid = scenarioManager.Grid;
-        this.Instances = instances;
-
 
         // TODO: because we reference an entity here that gets deleted when we changes scenes, this breaks!
         this.Straight = this.CreateTrackPieceAndComponents(device, curves.Straight, STRAIGHT_VERTICES, nameof(this.Straight));
@@ -48,9 +47,8 @@ public sealed class TrackManager
     {
         foreach (var trackPiece in this.Pieces)
         {
-            ref var component = ref this.Instances[trackPiece.Entity];
-            component.Value.InstanceList.Clear();
-            component.LifeCycle = component.LifeCycle.ToChanged();
+            trackPiece.Instances.Clear();
+            this.InstancesSystem.QueueUpdate(trackPiece.Entity, trackPiece.Instances);
         }
     }
 
@@ -80,9 +78,8 @@ public sealed class TrackManager
 
     private void AddInstance(TrackPiece trackPiece, Matrix4x4 offset)
     {
-        ref var component = ref this.Instances[trackPiece.Entity];
-        component.Value.InstanceList.Add(offset);
-        component.LifeCycle = component.LifeCycle.ToChanged();
+        trackPiece.Instances.Add(offset);
+        this.InstancesSystem.QueueUpdate(trackPiece.Entity, trackPiece.Instances);
     }
 
     private TrackPiece CreateTrackPieceAndComponents(Device device, ICurve curve, int points, string name)
