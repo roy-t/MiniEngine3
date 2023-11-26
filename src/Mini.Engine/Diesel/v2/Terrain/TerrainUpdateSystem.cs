@@ -5,8 +5,6 @@ using Mini.Engine.Graphics;
 using Mini.Engine.DirectX;
 using Mini.Engine.ECS.Systems;
 using Mini.Engine.ECS;
-using Mini.Engine.Diesel.Trains;
-using Mini.Engine.Content;
 
 namespace Mini.Engine.Diesel.v2.Terrain;
 
@@ -19,14 +17,12 @@ public sealed class TerrainUpdateSystem : IDisposable
     private readonly TerrainGrid Terrain;
     private readonly InstancesSystem Instances;
 
-    public TerrainUpdateSystem(Device device, ContentManager content, ECSAdministrator administrator, InstancesSystem instances)
+    public TerrainUpdateSystem(Device device, ECSAdministrator administrator, InstancesSystem instances)
     {
         this.Context = device.CreateDeferredContextFor<TerrainUpdateSystem>();
         this.CompletionContext = device.ImmediateContext;
 
-        var bogiePrimitive = TrainCars.BuildBogie(device, content, "bogie");
-        var bogieBounds = device.Resources.Get(bogiePrimitive).Bounds;
-        var mesh = TrainCars.BuildFlatCar(device, content, "flat_car", in bogieBounds);
+        var mesh = PrimitiveUtilities.BuildPlane(device, out var _);
 
         var entity = PrimitiveUtilities.CreateComponents(device, administrator, mesh, 1000, 1.0f);
 
