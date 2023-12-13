@@ -65,6 +65,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibGame", "src\External\Lib
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibGame.Tests", "src\External\LibGame\LibGame.Tests\LibGame.Tests.csproj", "{7CC42014-6983-40CA-8B09-DE9979C70AFE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Titan", "Titan", "{0B64581C-6B1C-4BF5-AE6D-AFF0BA865765}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Titan.Transport", "src\Titan\Titan.Transport\Titan.Transport.csproj", "{8F73AB7A-D096-44FD-B3F5-4E049AAD11EE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -257,6 +261,14 @@ Global
 		{7CC42014-6983-40CA-8B09-DE9979C70AFE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7CC42014-6983-40CA-8B09-DE9979C70AFE}.Release|x64.ActiveCfg = Release|Any CPU
 		{7CC42014-6983-40CA-8B09-DE9979C70AFE}.Release|x64.Build.0 = Release|Any CPU
+		{8F73AB7A-D096-44FD-B3F5-4E049AAD11EE}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{8F73AB7A-D096-44FD-B3F5-4E049AAD11EE}.Debug|Any CPU.Build.0 = Debug|x64
+		{8F73AB7A-D096-44FD-B3F5-4E049AAD11EE}.Debug|x64.ActiveCfg = Debug|x64
+		{8F73AB7A-D096-44FD-B3F5-4E049AAD11EE}.Debug|x64.Build.0 = Debug|x64
+		{8F73AB7A-D096-44FD-B3F5-4E049AAD11EE}.Release|Any CPU.ActiveCfg = Release|x64
+		{8F73AB7A-D096-44FD-B3F5-4E049AAD11EE}.Release|Any CPU.Build.0 = Release|x64
+		{8F73AB7A-D096-44FD-B3F5-4E049AAD11EE}.Release|x64.ActiveCfg = Release|x64
+		{8F73AB7A-D096-44FD-B3F5-4E049AAD11EE}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -279,6 +291,7 @@ Global
 		{F5F27296-66AC-4040-B1E1-6F2080A66C86} = {DC1F1BAE-401D-4710-848C-316561617DCD}
 		{90F47018-184B-47EF-B8CF-5F482950344C} = {1DE88C73-3B8E-4296-873A-4631E25FE685}
 		{7CC42014-6983-40CA-8B09-DE9979C70AFE} = {1DE88C73-3B8E-4296-873A-4631E25FE685}
+		{8F73AB7A-D096-44FD-B3F5-4E049AAD11EE} = {0B64581C-6B1C-4BF5-AE6D-AFF0BA865765}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CE662EDF-5575-4B51-82CF-58DF83292B85}
