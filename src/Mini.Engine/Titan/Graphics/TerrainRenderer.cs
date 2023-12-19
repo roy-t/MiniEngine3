@@ -93,6 +93,7 @@ internal sealed class TerrainRenderer : IDisposable
     public void Dispose()
     {
         this.User.Dispose();
+        this.Layout.Dispose();
         this.Vertices.Dispose();
         this.Indices.Dispose();
     }

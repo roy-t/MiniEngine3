@@ -1,4 +1,5 @@
-﻿using Windows.Win32.UI.Input;
+﻿using System.Numerics;
+using Windows.Win32.UI.Input;
 
 namespace Mini.Engine.Windows;
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Input;
@@ -28,6 +29,9 @@ public sealed class InputService
     private readonly List<RawInputEvent> KeyboardEvents;
     private readonly Win32Window Window;
 
+    private Vector2 cursorPosition;
+    private bool cursorPositionIsUpToDate;
+
     public InputService(Win32Window window)
     {
         Win32Application.RegisterMessageListener(WM_INPUT, this.ProcessMessage);
@@ -43,6 +47,19 @@ public sealed class InputService
         this.MouseEvents = new List<RawInputEvent>(3);
         this.KeyboardEvents = new List<RawInputEvent>(3);
         this.Window = window;
+
+        this.cursorPositionIsUpToDate = false;
+    }
+
+    public Vector2 GetCursorPosition()
+    {
+        if (!this.cursorPositionIsUpToDate && GetCursorPos(out var pos) && ScreenToClient(this.Window.Handle, ref pos))
+        {
+            this.cursorPosition = new Vector2(pos.X, pos.Y);
+            this.cursorPositionIsUpToDate = true;
+        }
+
+        return this.cursorPosition;
     }
 
     public bool ProcessEvents(Mouse mouse)
@@ -59,6 +76,7 @@ public sealed class InputService
     {
         this.MouseEvents.Clear();
         this.KeyboardEvents.Clear();
+        this.cursorPositionIsUpToDate = false;
 
         while (this.EventQueue.TryDequeue(out var input))
         {
@@ -93,7 +111,7 @@ public sealed class InputService
         if (device.iterator == -1)
         {
             device.NextFrame();
-            device.iterator = 0;            
+            device.iterator = 0;
         }
 
         if (device.iterator < events.Count)

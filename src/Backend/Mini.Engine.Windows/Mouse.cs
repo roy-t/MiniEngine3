@@ -67,18 +67,16 @@ public sealed class Mouse : InputDevice
     internal override void NextFrame()
     {
         this.scrollDirection = Direction.None;
-        this.Movement = Vector2.Zero;
+        this.Movement = Vector2.Zero;        
 
         Decay(this.States);
     }
 
     internal override void NextEvent(RAWINPUT input, bool hasFocus)
     {
-        var position = MouseDecoder.GetPosition(input);
-        this.Movement = position;
-
+        this.Movement = MouseDecoder.GetPosition(input);
         var buttons = MouseDecoder.GetButtons(input);
-
+                
         switch (buttons)
         {
             case ButtonFlags.LeftDown:

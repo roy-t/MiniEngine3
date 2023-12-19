@@ -17,17 +17,19 @@ internal class TitanGameLoop : IGameLoop
     private readonly UICore UserInterface;
     private readonly PresentationHelper Presenter;
     private readonly GBuffer GBuffer;
+    private readonly CameraController CameraController;
     private readonly TerrainRenderer TerrainRenderer;
 
     private PerspectiveCamera camera;
 
-    public TitanGameLoop(Device device, UICore userInterface, PresentationHelper presenter, TerrainRenderer terrainRenderer)
+    public TitanGameLoop(Device device, UICore userInterface, PresentationHelper presenter, CameraController cameraController, TerrainRenderer terrainRenderer)
     {
         this.GBuffer = new GBuffer(device);        
         this.camera = new PerspectiveCamera(0.1f, 100.0f, MathF.PI / 2.0f, this.GBuffer.AspectRatio);
 
         this.Device = device;
         this.UserInterface = userInterface;
+        this.CameraController = cameraController;
         this.TerrainRenderer = terrainRenderer;
         this.Presenter = presenter;
     }
@@ -41,7 +43,9 @@ internal class TitanGameLoop : IGameLoop
 
     public void Update(float elapsedSimulationTime, float elapsedRealWorldTime)
     {
-        this.UserInterface.NewFrame(elapsedRealWorldTime);
+        this.UserInterface.NewFrame(elapsedRealWorldTime);        
+
+        this.CameraController.Update(elapsedRealWorldTime, in this.camera, this.Device.Width, this.Device.Height);
         ImGui.ShowDemoWindow();
     }
 
@@ -49,7 +53,7 @@ internal class TitanGameLoop : IGameLoop
     {
         this.GBuffer.Clear();
 
-        var transform = Transform.Identity.SetTranslation(new Vector3(0.0f, 0.1f, 0.0f));
+        var transform = this.CameraController.GetCameraTransform();
         var output = this.Device.Viewport;
 
         this.Device.ImmediateContext.OM.SetRenderTargets(this.GBuffer.Depth, this.GBuffer.Albedo);
