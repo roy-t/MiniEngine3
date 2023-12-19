@@ -11,6 +11,10 @@
     "Editor - Single Frame": {
       "commandName": "Project",
       "commandLineArgs": "--gameLoop \"Mini.Engine.SingleFrameLoop\" --no-ui --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
+    },
+    "Titan": {
+      "commandName": "Project",
+      "commandLineArgs": "--gameloop \"Mini.Engine.Titan.TitanGameLoop\" --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
     }
   }
 }

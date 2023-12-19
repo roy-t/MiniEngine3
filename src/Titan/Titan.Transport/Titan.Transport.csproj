@@ -10,4 +10,9 @@
     <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Backend\Mini.Engine.Debugging\Mini.Engine.Debugging.csproj" />
+    <ProjectReference Include="..\..\Backend\Mini.Engine.Windows\Mini.Engine.Windows.csproj" />
+  </ItemGroup>
+
 </Project>

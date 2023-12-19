@@ -38,6 +38,8 @@ public class PresentationHelper
         context.PS.SetSampler(TextureShader.TextureSampler, this.Device.SamplerStates.LinearWrap);
         context.PS.SetShaderResource(TextureShader.Texture, texture);
         context.Draw(3);
+
+        context.PS.ClearShaderResource(TextureShader.Texture);
     }
 
     public void ToneMapAndPresent(DeviceContext context, ISurface texture)
@@ -54,5 +56,7 @@ public class PresentationHelper
         context.PS.SetSampler(ToneMapShader.TextureSampler, this.Device.SamplerStates.LinearWrap);
         context.PS.SetShaderResource(ToneMapShader.Texture, texture);
         context.Draw(3);
+
+        context.PS.ClearShaderResource(ToneMapShader.Texture);
     }
 }

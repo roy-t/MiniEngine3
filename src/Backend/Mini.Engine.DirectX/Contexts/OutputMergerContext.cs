@@ -1,5 +1,4 @@
 ﻿using LibGame.Mathematics;
-using Mini.Engine.Core;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.DirectX.Resources.Surfaces;
@@ -27,11 +26,11 @@ public sealed class OutputMergerContext : DeviceContextPart
 
     public void SetRenderTargetToBackBuffer(IDepthStencilBuffer? depthStencilBuffer = null)
     {
-        this.ID3D11DeviceContext.OMSetRenderTargets(base.DeviceContext.Device.BackBufferView, depthStencilBuffer?.DepthStencilViews[0]);
+        this.ID3D11DeviceContext.OMSetRenderTargets(this.DeviceContext.Device.BackBufferView, depthStencilBuffer?.DepthStencilViews[0]);
     }
 
     public void SetRenderTarget(IDepthStencilBuffer depthStencilBuffer)
-    {
+    {        
 #nullable disable
         this.ID3D11DeviceContext.OMSetRenderTargets((ID3D11RenderTargetView)null, depthStencilBuffer.DepthStencilViews[0]);
 #nullable restore

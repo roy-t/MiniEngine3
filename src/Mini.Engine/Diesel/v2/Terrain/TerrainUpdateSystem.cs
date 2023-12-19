@@ -26,7 +26,7 @@ public sealed class TerrainUpdateSystem : IDisposable
 
         var entity = PrimitiveUtilities.CreateComponents(device, administrator, mesh, 1000, 1.0f);
 
-        // With more than 1000 cells, drawing stops working, might be some undocumented loimit for DrawIndexedInstanced?
+        // With more than 1000 cells, drawing stops working, might be some undocumented limit for DrawIndexedInstanced?
         this.Instances = instances;
         this.Terrain = new TerrainGrid(instances, entity, 30, 30, 10, 5);      
     }

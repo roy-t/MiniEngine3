@@ -9,7 +9,7 @@ using Shader = Mini.Engine.Content.Shaders.Generated.UserInterface;
 namespace Mini.Engine.UI;
 
 [Service]
-internal sealed class UICore : IDisposable
+public sealed class UICore : IDisposable
 {
     private readonly ImGuiRenderer Renderer;
     private readonly ImGuiInputHandler Input;
