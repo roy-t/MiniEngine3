@@ -14,6 +14,7 @@ namespace Mini.Engine.Titan;
 internal sealed class CameraController
 {
     private const float ZoomSpeed = 1.0f;
+    private const float MoveSpeed = 0.1f;
 
     private readonly InputService InputService;
     private readonly Keyboard Keyboard;
@@ -51,7 +52,7 @@ internal sealed class CameraController
             }            
         }
 
-        if (zoomAccumulator != 0.0f)
+        if (zoomAccumulator < 0.0f)
         {
             var cursor = this.InputService.GetCursorPosition();
             var transform = this.GetCameraTransform();
@@ -62,14 +63,12 @@ internal sealed class CameraController
             var intersection = ray.Intersects(plane);
             if (intersection.HasValue)
             {
-                
-            }
-
-
-            //var foo = GetWorldPosition2(cursor, width, height, camera.GetViewProjection(in transform), transform.GetPosition());
-            //this.target += new Vector3(rX, 0.0f, rY) * -zoomAccumulator;
-            this.distance = Math.Clamp(this.distance + zoomAccumulator, 1.0f, 100.0f);            
+                var newTarget = position + (direction * intersection.Value);
+                this.target = Vector3.Lerp(this.target, newTarget, MoveSpeed);
+            }            
         }
+
+        this.distance = Math.Clamp(this.distance + zoomAccumulator, 1.0f, 100.0f);
     }
 
     public Transform GetCameraTransform()
