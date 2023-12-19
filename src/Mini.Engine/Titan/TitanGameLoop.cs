@@ -45,7 +45,7 @@ internal class TitanGameLoop : IGameLoop
     {
         this.UserInterface.NewFrame(elapsedRealWorldTime);        
 
-        this.CameraController.Update(elapsedRealWorldTime, in this.camera, this.Device.Width, this.Device.Height);
+        this.CameraController.Update(elapsedRealWorldTime, in this.camera, this.Device.Viewport);
         ImGui.ShowDemoWindow();
     }
 

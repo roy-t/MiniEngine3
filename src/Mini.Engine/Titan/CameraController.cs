@@ -35,7 +35,7 @@ internal sealed class CameraController
         this.distance = 10.0f;
     }
 
-    public void Update(float elapsedRealWorldTime, in PerspectiveCamera camera, float width, float height)
+    public void Update(float elapsedRealWorldTime, in PerspectiveCamera camera, in Rectangle viewport)
     {
         var zoomAccumulator = 0.0f;
         while (this.InputService.ProcessEvents(this.Mouse))
@@ -54,26 +54,15 @@ internal sealed class CameraController
         if (zoomAccumulator != 0.0f)
         {
             var cursor = this.InputService.GetCursorPosition();
-            //var rX = Ranges.Map(cursor.X, (0.0f, width), (-1.0f, 1.0f));
-            //var rY = Ranges.Map(cursor.Y, (0.0f, height), (-1.0f, 1.0f));
-
-            //var source = new Vector3(rX, rY, 0.0f);
-
-            var transform = GetCameraTransform();
-            var view = Matrix4x4.CreateLookAt(transform.GetPosition(), transform.GetPosition() + transform.GetForward(), transform.GetUp());
-            var proj = Matrix4x4.CreatePerspectiveFieldOfView(camera.FieldOfView, camera.AspectRatio, camera.NearPlane, camera.FarPlane);
-            //var foo = GetWorldPosition(cursor, width, height, proj, view, transform.GetPosition());
-            var ray = CalculateCursorRay(cursor, 0.0f, 0.0f, width, height, camera.NearPlane, camera.FarPlane, proj, view);
+            var transform = this.GetCameraTransform();
+            var wvp = camera.GetViewProjection(in transform);
+            var (position, direction) = Picking.CalculateCursorRay(cursor, in viewport, wvp);
+            var ray = new Ray(position, direction);
             var plane = new Plane(Vector3.UnitY, 0.0f);
             var intersection = ray.Intersects(plane);
             if (intersection.HasValue)
             {
-                var p = ray.Position + (ray.Direction * intersection.Value);
-                Debug.WriteLine(p);
-            }
-            else
-            {
-                Debug.WriteLine("nope");
+                
             }
 
 
@@ -130,59 +119,7 @@ internal sealed class CameraController
         return ray.Position + (ray.Direction * d);
     }
 
-    // CalculateCursorRay Calculates a world space ray starting at the camera's
-    // "eye" and pointing in the direction of the cursor. Viewport.Unproject is used
-    // to accomplish this. see the accompanying documentation for more explanation
-    // of the math behind this function.
-    public Ray CalculateCursorRay(Vector2 cursor, float x, float y, float width, float height, float minDepth, float maxDepth, Matrix4x4 projectionMatrix, Matrix4x4 viewMatrix)
-    {
-        var pointX = Ranges.Map(cursor.X, (0.0f, width), (0.0f, 1.0f)); // TODO [0..1] or [-1..1]?
-        var pointY = Ranges.Map(cursor.Y, (0.0f, height), (0.0f, 1.0f));
-        var position = new Vector2(cursor.X, cursor.Y);
-        // create 2 positions in screenspace using the cursor position. 0 is as
-        // close as possible to the camera, 1 is as far away as possible.
-        var nearSource = new Vector3(position, 0f);
-        var farSource = new Vector3(position, 1f);
 
-        // use Viewport.Unproject to tell what those two screen space positions
-        // would be in world space. we'll need the projection matrix and view
-        // matrix, which we have saved as member variables. We also need a world
-        // matrix, which can just be identity.
-        var nearPoint = Unproject(x, y, width, height, minDepth, maxDepth, nearSource,
-            projectionMatrix, viewMatrix, Matrix4x4.Identity);
 
-        var farPoint = Unproject(x, y, width, height, minDepth, maxDepth, farSource,
-            projectionMatrix, viewMatrix, Matrix4x4.Identity);
-
-        // find the direction vector that goes from the nearPoint to the farPoint
-        // and normalize it....
-        var direction = Vector3.Normalize(farPoint - nearPoint);
-
-        // and then create a new ray using nearPoint as the source.
-        return new Ray(nearPoint, direction);
-    }
-
-    public static Vector3 Unproject(float x, float y, float width, float height, float minDepth, float maxDepth, Vector3 source, Matrix4x4 projection, Matrix4x4 view, Matrix4x4 world)
-    {
-        Matrix4x4.Invert(Matrix4x4.Multiply(Matrix4x4.Multiply(world, view), projection), out var matrix);
-        source.X = (((source.X - x) / ((float)width)) * 2f) - 1f;
-        source.Y = -((((source.Y - y) / ((float)height)) * 2f) - 1f);
-        source.Z = (source.Z - minDepth) / (maxDepth - minDepth);
-        var vector = Vector3.Transform(source, matrix);
-        var a = (((source.X * matrix.M14) + (source.Y * matrix.M24)) + (source.Z * matrix.M34)) + matrix.M44;
-        if (!WithinEpsilon(a, 1f))
-        {
-            vector.X = vector.X / a;
-            vector.Y = vector.Y / a;
-            vector.Z = vector.Z / a;
-        }
-        return vector;
-
-    }
-
-    private static bool WithinEpsilon(float a, float b)
-    {
-        var num = a - b;
-        return ((-1.401298E-45f <= num) && (num <= float.Epsilon));
-    }
+   
 }
