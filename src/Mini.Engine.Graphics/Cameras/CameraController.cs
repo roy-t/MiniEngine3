@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Windows;
@@ -27,6 +28,7 @@ public sealed class CameraController
     private readonly Mouse Mouse;
     private readonly Keyboard Keyboard;
     private readonly InputService InputController;
+    private readonly Stopwatch Stopwatch;
 
     public CameraController(InputService inputController)
     {
@@ -34,12 +36,14 @@ public sealed class CameraController
 
         this.Mouse = new Mouse();
         this.Keyboard = new Keyboard();
+        this.Stopwatch = Stopwatch.StartNew();
     }
 
-
-
-    public void Update(float elapsed, ref Transform cameraTransform)
+    public void Update(ref Transform cameraTransform)
     {
+        var elapsed = (float)this.Stopwatch.Elapsed.TotalSeconds;
+        this.Stopwatch.Restart();
+
         var reset = false;
         while (this.InputController.ProcessEvents(this.Keyboard))
         {

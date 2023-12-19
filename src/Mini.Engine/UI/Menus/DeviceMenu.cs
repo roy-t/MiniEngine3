@@ -22,7 +22,7 @@ internal class DeviceMenu : IEditorMenu
 
     public string Title => "Device";
 
-    public void Update(float elapsed)
+    public void Update()
     {
         var vSync = this.Device.VSync;
         if (ImGui.Checkbox("Vertical Sync", ref vSync))

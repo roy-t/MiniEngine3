@@ -6,7 +6,7 @@ namespace Mini.Engine.Graphics.Cameras;
 public sealed class CameraSystem
 {
     private readonly CameraController CameraController;
-    private readonly FrameService FrameService;
+    private readonly FrameService FrameService;    
 
     public CameraSystem(CameraController cameraController, FrameService frameService)
     {
@@ -16,9 +16,7 @@ public sealed class CameraSystem
 
     public void Update()
     {
-        var elapsed = this.FrameService.ElapsedRealWorldTime;
         ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
-
-        this.CameraController.Update(elapsed, ref cameraTransform.Current);
+        this.CameraController.Update(ref cameraTransform.Current);
     }
 }

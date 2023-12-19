@@ -22,7 +22,7 @@ internal sealed class PerformancePanel : IEditorPanel
         this.filter = string.Empty;
     }
 
-    public void Update(float elapsed)
+    public void Update()
     {        
         ImGui.InputText("Filter", ref this.filter, 100);
 

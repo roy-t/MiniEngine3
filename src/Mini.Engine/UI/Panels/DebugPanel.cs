@@ -31,7 +31,7 @@ internal sealed class DebugPanel : IEditorPanel
 
     public string Title => "Debug";
 
-    public void Update(float elapsed)
+    public void Update()
     {                
         this.ShowVSync();
         this.ShowAA();

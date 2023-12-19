@@ -18,7 +18,7 @@ internal sealed class ShaderResourcePanel : IEditorPanel
 
     public string Title => "Shader Resources";
 
-    public void Update(float elapsed)
+    public void Update()
     {
         if (this.Selector.Begin("Shader Resources", nameof(this.FrameService.GBuffer.Albedo)))
         {

@@ -22,7 +22,7 @@ internal class HotReloadPanel : IEditorPanel
 #endif
     }
 
-    public void Update(float elapsed)
+    public void Update()
     {
         if (ImGui.BeginTable("Reports", 3, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.Hideable))
         {

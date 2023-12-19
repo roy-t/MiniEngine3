@@ -20,7 +20,7 @@ internal sealed class CameraMenu : IEditorMenu
 
     public string Title => "Camera";
     
-    public void Update(float elapsed)
+    public void Update()
     {
         if(ImGui.BeginMenu("Birds Eye"))
         {

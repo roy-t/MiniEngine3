@@ -47,7 +47,7 @@ internal sealed class PrimitivePanel : IEditorPanel
 #endif
     }
 
-    public void Update(float elapsed)
+    public void Update()
     {
         if (ImGui.Button("Clear"))
         {

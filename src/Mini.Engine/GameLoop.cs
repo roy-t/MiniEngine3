@@ -64,14 +64,13 @@ internal sealed class GameLoop : IGameLoop
         this.UpdatePipeline = updatePipelineV2;
     }
 
-    public void Update(float elapsedSimulationTime, float elapsedRealWorldTime)
+    public void Update(float elapsedSimulationTime)
     {
         this.Stopwatch.Restart();
 
         this.FrameService.ElapsedGameTime = elapsedSimulationTime;
-        this.FrameService.ElapsedRealWorldTime = elapsedRealWorldTime;
 
-        this.UserInterface.NewFrame(elapsedRealWorldTime);
+        this.UserInterface.NewFrame();
 
         this.SceneManager.CheckChangeScene();
         this.Content.ReloadChangedContent();

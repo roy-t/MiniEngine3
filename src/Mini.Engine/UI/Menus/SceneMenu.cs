@@ -28,7 +28,7 @@ internal sealed class SceneMenu : IEditorMenu
 
     public string Title => "Scenes";
 
-    public void Update(float elapsed)
+    public void Update()
     {
         if (ImGui.BeginMenu("Scene"))
         {

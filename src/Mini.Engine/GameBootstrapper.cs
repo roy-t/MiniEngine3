@@ -104,7 +104,6 @@ public sealed class GameBootstrapper
         while (Win32Application.PumpMessages())
         {
             // Main loop based on https://www.gafferongames.com/post/fix_your_timestep/            
-            stopwatch.Restart();
 
             // TOOD: this is good for sim, but makes the camera (and possibly animations) stutter
             // even if they run on the ElapsedRealWorldTime, because the position just doesn't get updated every frame then
@@ -123,7 +122,7 @@ public sealed class GameBootstrapper
                     }
                 }
 
-                this.gameLoop.Update((float)dt, (float)elapsed);
+                this.gameLoop.Update((float)dt);
             }
 
             var alpha = accumulator / dt;
@@ -141,6 +140,7 @@ public sealed class GameBootstrapper
             }
 
             elapsed = stopwatch.Elapsed.TotalSeconds;
+            stopwatch.Restart();
             accumulator += Math.Min(elapsed, 0.25);
 
             this.metrics.Update("GameBootstrapper.Run.Millis", (float)stopwatch.Elapsed.TotalMilliseconds);

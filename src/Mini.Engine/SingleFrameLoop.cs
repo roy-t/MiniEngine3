@@ -25,7 +25,7 @@ internal sealed class SingleFrameLoop : IGameLoop
         // ...
     }
 
-    public void Update(float elapsedSimulationTime, float elapsedRealWorldTime) { }
+    public void Update(float elapsedSimulationTime) { }
 
     public void Draw(float alpha, float elapsedRealWorldTime)
     {

@@ -28,7 +28,7 @@ internal sealed class SunPanel : IEditorPanel
 
     public string Title => "Sun";
 
-    public void Update(float elapsed)
+    public void Update()
     {
         this.ComponentSelector.Update();
         if (this.ComponentSelector.HasComponent())

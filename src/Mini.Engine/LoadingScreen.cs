@@ -64,7 +64,7 @@ internal sealed class LoadingScreen
     {
         this.Device.ImmediateContext.ClearBackBuffer();
 
-        this.UI.NewFrame((float)ReportDelta.TotalMilliseconds);
+        this.UI.NewFrame();
 
         ImGui.SetNextWindowPos(new Vector2(0, Math.Max(0, this.Device.Height - 100)));
         ImGui.SetNextWindowSize(new Vector2(this.Device.Width, Math.Min(this.Device.Height, 100)));

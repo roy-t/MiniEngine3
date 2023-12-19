@@ -1,9 +1,6 @@
-﻿using System.Numerics;
-using ImGuiNET;
-using LibGame.Physics;
+﻿using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
-using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.PostProcessing;
 using Mini.Engine.Titan.Graphics;
 using Mini.Engine.UI;
@@ -20,12 +17,9 @@ internal class TitanGameLoop : IGameLoop
     private readonly CameraController CameraController;
     private readonly TerrainRenderer TerrainRenderer;
 
-    private PerspectiveCamera camera;
-
     public TitanGameLoop(Device device, UICore userInterface, PresentationHelper presenter, CameraController cameraController, TerrainRenderer terrainRenderer)
     {
-        this.GBuffer = new GBuffer(device);        
-        this.camera = new PerspectiveCamera(0.1f, 100.0f, MathF.PI / 2.0f, this.GBuffer.AspectRatio);
+        this.GBuffer = new GBuffer(device);                
 
         this.Device = device;
         this.UserInterface = userInterface;
@@ -36,28 +30,29 @@ internal class TitanGameLoop : IGameLoop
 
     public void Resize(int width, int height)
     {
-        this.UserInterface.Resize(width, height);
         this.GBuffer.Resize(width, height);
-        this.camera = new PerspectiveCamera(0.1f, 100.0f, MathF.PI / 2.0f, this.GBuffer.AspectRatio);
+        this.UserInterface.Resize(width, height);
+        this.CameraController.Resize(width, height);
     }
 
-    public void Update(float elapsedSimulationTime, float elapsedRealWorldTime)
+    public void Update(float elapsedSimulationTime)
     {
-        this.UserInterface.NewFrame(elapsedRealWorldTime);        
-
-        this.CameraController.Update(elapsedRealWorldTime, in this.camera, this.Device.Viewport);
+        this.UserInterface.NewFrame();        
+        
         ImGui.ShowDemoWindow();
     }
 
     public void Draw(float alpha, float elapsedRealWorldTime)
     {
+        this.CameraController.Update(elapsedRealWorldTime, this.Device.Viewport);
+
         this.GBuffer.Clear();
 
-        var transform = this.CameraController.GetCameraTransform();
+        var transform = this.CameraController.Transform;
         var output = this.Device.Viewport;
 
         this.Device.ImmediateContext.OM.SetRenderTargets(this.GBuffer.Depth, this.GBuffer.Albedo);
-        this.TerrainRenderer.Render(this.Device.ImmediateContext, this.GBuffer, in this.camera, in transform, in output, in output);
+        this.TerrainRenderer.Render(this.Device.ImmediateContext, this.GBuffer, this.CameraController.Camera, in transform, in output, in output);
 
         this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();
         // TODO: tone map later when we incorporate lights

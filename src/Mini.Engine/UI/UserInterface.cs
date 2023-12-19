@@ -11,9 +11,9 @@ internal abstract class UserInterface
 {
     private sealed record MenuRegistration(string Title, IMenu Menu)
     {
-        public void Update(float elapsed)
+        public void Update()
         {
-            this.Menu.Update(elapsed);
+            this.Menu.Update();
         }
     }
 
@@ -32,10 +32,10 @@ internal abstract class UserInterface
         public IPanel Panel { get; }
         public bool IsVisible { get; set; }
 
-        public void Update(float elapsed)
+        public void Update()
         {
             ImGui.PushID(this.Id);
-            this.Panel.Update(elapsed);
+            this.Panel.Update();
             ImGui.PopID();
         }
     }
@@ -62,11 +62,11 @@ internal abstract class UserInterface
         this.Core.Resize(width, height);
     }
 
-    public void NewFrame(float elapsedRealWorldTime)
+    public void NewFrame()
     {
         this.Stopwatch.Restart();
 
-        this.Core.NewFrame(elapsedRealWorldTime);
+        this.Core.NewFrame();
 
         ImGui.DockSpaceOverViewport(ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode);
 
@@ -90,7 +90,7 @@ internal abstract class UserInterface
             {
                 if (ImGui.BeginMenu(menu.Title))
                 {
-                    menu.Update(elapsedRealWorldTime);
+                    menu.Update();
 
                     ImGui.EndMenu();
                 }
@@ -107,7 +107,7 @@ internal abstract class UserInterface
                 var isVisible = true;
                 if (ImGui.Begin(panel.Title, ref isVisible))
                 {
-                    panel.Update(elapsedRealWorldTime);
+                    panel.Update();
                     ImGui.End();
                 }
 
