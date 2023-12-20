@@ -36,7 +36,7 @@ internal class TitanGameLoop : IGameLoop
 
     public void Update(float elapsedSimulationTime)
     {
-        this.UserInterface.NewFrame();        
+        this.UserInterface.NewFrame();
     }
 
     public void Draw(float alpha, float elapsedRealWorldTime)
@@ -49,7 +49,7 @@ internal class TitanGameLoop : IGameLoop
         var output = this.Device.Viewport;
 
         this.Device.ImmediateContext.OM.SetRenderTargets(this.GBuffer.Depth, this.GBuffer.Albedo);
-        this.TerrainRenderer.Render(this.Device.ImmediateContext, this.GBuffer, this.CameraController.Camera, in transform, in output, in output);
+        this.TerrainRenderer.Render(this.Device.ImmediateContext, this.CameraController.Camera, in transform, in output, in output);
 
         this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();
         // TODO: tone map later when we incorporate lights

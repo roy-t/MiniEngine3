@@ -22,8 +22,8 @@ internal sealed class CameraController
     private static readonly ushort KeyRotateCCW = InputService.GetScanCode(VK_OEM_PERIOD);
 
     private const float DistanceMin = 1.0f;
-    private const float DistanceMax = 100.0f;
-    private const float ZoomSpeed = 1.0f;
+    private const float DistanceMax = 1000.0f;
+    private const float ZoomSpeed = 75.0f;
     private const float ClimbSpeed = 1.0f;
     private const float RotateSpeed = MathHelper.TwoPi;
 
@@ -86,7 +86,8 @@ internal sealed class CameraController
             }
         }
 
-        this.UpdateTarget(scrollAccumulator * ZoomSpeed, in viewport);
+        var zoomProgress = Ranges.Map(this.distance, (0.0f, DistanceMax), (0.0f, 1.0f));        
+        this.UpdateTarget(scrollAccumulator * zoomProgress * ZoomSpeed, in viewport);
         this.Transform = this.GetCameraTransform();
     }
 
@@ -152,7 +153,7 @@ internal sealed class CameraController
     private static PerspectiveCamera CreateCamera(float width, float height)
     {
         const float nearPlane = 0.1f;
-        const float farPlane = 100.0f;
+        const float farPlane = 1000.0f;
         const float fieldOfView = MathF.PI / 2.0f;
 
         var aspectRatio = width / height;

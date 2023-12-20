@@ -65,8 +65,8 @@ internal sealed class TerrainRenderer : IDisposable
         this.User = shader.CreateUserFor<TerrainRenderer>();
         this.Shader = shader;
 
-        const int width = 20;
-        const int height = 20;
+        const int width = 1000;
+        const int height = 1000;
 
         this.Vertices = new VertexBuffer<TerrainVertex>(device, nameof(TerrainRenderer));
         var vertices = GenerateVertices(width, height, 1.0f);
@@ -89,7 +89,7 @@ internal sealed class TerrainRenderer : IDisposable
         var tiles = new Tile[length];
         for (var i = 0; i < tiles.Length; i++)
         {
-            var color = ColorPalette.GrassLawn.Pick();
+            var color = Colors.RGBToLinear(ColorPalette.GrassLawn.Pick());
             tiles[i] = new Tile()
             {
                 Albedo = color
@@ -144,7 +144,7 @@ internal sealed class TerrainRenderer : IDisposable
         return vertices;
     }
 
-    public void Render(DeviceContext context, GBuffer gBuffer, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
+    public void Render(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
     {
         context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.RasterizerState, in viewport, in scissor, this.Shader.Ps, this.BlendState, this.DepthStencilState);
 
