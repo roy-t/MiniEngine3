@@ -62,6 +62,13 @@ public sealed class PixelShaderContext : DeviceContextPart
         this.ID3D11DeviceContext.PSSetConstantBuffer(slot, buffer.Buffer);
     }
 
+
+    public void SetBuffer<T>(int slot, ShaderResourceView<T> buffer)
+        where T : unmanaged
+    {
+        this.ID3D11DeviceContext.PSSetShaderResource(slot, buffer.View);
+    }
+
     public void SetInstanceBuffer<T>(int slot, ILifetime<ShaderResourceView<T>> instanceBufferView)
        where T : unmanaged
     {

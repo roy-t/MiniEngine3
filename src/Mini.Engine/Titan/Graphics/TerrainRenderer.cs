@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using LibGame.Graphics;
 using LibGame.Mathematics;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
@@ -13,6 +14,7 @@ using Vortice.Direct3D;
 using Vortice.Direct3D11;
 
 using Shader = Mini.Engine.Content.Shaders.Generated.TitanTerrain;
+using Tile = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TILE;
 
 namespace Mini.Engine.Titan.Graphics;
 
@@ -43,6 +45,8 @@ internal sealed class TerrainRenderer : IDisposable
 {
     private readonly IndexBuffer<int> Indices;
     private readonly VertexBuffer<TerrainVertex> Vertices;
+    private readonly StructuredBuffer<Tile> Tiles;
+    private readonly ShaderResourceView<Tile> TilesView;
     private readonly InputLayout Layout;
     private readonly Shader Shader;
     private readonly Shader.User User;
@@ -52,8 +56,6 @@ internal sealed class TerrainRenderer : IDisposable
 
     public TerrainRenderer(Device device, Shader shader)
     {
-        this.Indices = new IndexBuffer<int>(device, nameof(TerrainRenderer));
-        this.Vertices = new VertexBuffer<TerrainVertex>(device, nameof(TerrainRenderer));
         this.Layout = shader.CreateInputLayoutForVs(TerrainVertex.Elements);
 
         this.BlendState = device.BlendStates.Opaque;
@@ -66,21 +68,46 @@ internal sealed class TerrainRenderer : IDisposable
         const int width = 20;
         const int height = 20;
 
+        this.Vertices = new VertexBuffer<TerrainVertex>(device, nameof(TerrainRenderer));
         var vertices = GenerateVertices(width, height, 1.0f);
         this.Vertices.MapData(device.ImmediateContext, vertices);
 
+        this.Indices = new IndexBuffer<int>(device, nameof(TerrainRenderer));
         var indices = GenerateIndices(width, height);
         this.Indices.MapData(device.ImmediateContext, indices);
+
+
+        var tiles = GenerateTiles(width, height);
+        this.Tiles = new StructuredBuffer<Tile>(device, nameof(TerrainRenderer), tiles.Length);
+        this.Tiles.MapData(device.ImmediateContext, tiles);
+        this.TilesView = this.Tiles.CreateShaderResourceView();
+    }
+
+    private static Tile[] GenerateTiles(int width, int height)
+    {
+        var length = (width - 1) * (height - 1);
+        var tiles = new Tile[length];
+        for (var i = 0; i < tiles.Length; i++)
+        {
+            var color = ColorPalette.GrassLawn.Pick();
+            tiles[i] = new Tile()
+            {
+                Albedo = color
+            };
+
+        }
+
+        return tiles;
     }
 
     private static int[] GenerateIndices(int width, int height)
     {
-        // for every cell we have 2 triangles, so 6 indices
-        var cellCount = (width - 1) * (height - 1);
-        var indices = new int[cellCount * 6];
+        // for every tile we have 2 triangles, so 6 indices
+        var tiles = (width - 1) * (height - 1);
+        var indices = new int[tiles * 6];
 
         var i = 0;
-        for (var c = 0; c < cellCount; c++)
+        for (var c = 0; c < tiles; c++)
         {
             var (x, y) = Indexes.ToTwoDimensional(c, width - 1);
 
@@ -88,7 +115,7 @@ internal sealed class TerrainRenderer : IDisposable
             var tr = Indexes.ToOneDimensional(x + 1, y, width);
             var bl = Indexes.ToOneDimensional(x, y + 1, width);
             var br = Indexes.ToOneDimensional(x + 1, y + 1, width);
-            
+
             indices[i++] = tl;
             indices[i++] = tr;
             indices[i++] = br;
@@ -105,7 +132,7 @@ internal sealed class TerrainRenderer : IDisposable
     {
         var vertices = new TerrainVertex[width * height];
 
-        var offset = new Vector3((width - 1) * spacing * -0.5f, 0.0f, (height -1) * spacing * -0.5f);
+        var offset = new Vector3((width - 1) * spacing * -0.5f, 0.0f, (height - 1) * spacing * -0.5f);
 
         for (var i = 0; i < vertices.Length; i++)
         {
@@ -123,10 +150,11 @@ internal sealed class TerrainRenderer : IDisposable
 
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
+        context.PS.SetBuffer(Shader.Tiles, this.TilesView);
 
         context.IA.SetVertexBuffer(this.Vertices);
         context.IA.SetIndexBuffer(this.Indices);
-        this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform), Matrix4x4.Identity);
+        this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
 
         context.DrawIndexed(this.Indices.Length, 0, 0);
     }
@@ -137,5 +165,8 @@ internal sealed class TerrainRenderer : IDisposable
         this.Layout.Dispose();
         this.Vertices.Dispose();
         this.Indices.Dispose();
+
+        this.TilesView.Dispose();
+        this.Tiles.Dispose();        
     }
 }
