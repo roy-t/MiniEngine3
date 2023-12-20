@@ -1,5 +1,4 @@
-﻿using ImGuiNET;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.Graphics.PostProcessing;
 using Mini.Engine.Titan.Graphics;
@@ -38,8 +37,6 @@ internal class TitanGameLoop : IGameLoop
     public void Update(float elapsedSimulationTime)
     {
         this.UserInterface.NewFrame();        
-        
-        ImGui.ShowDemoWindow();
     }
 
     public void Draw(float alpha, float elapsedRealWorldTime)

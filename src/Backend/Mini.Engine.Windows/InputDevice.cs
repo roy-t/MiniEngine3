@@ -15,7 +15,7 @@ public enum InputState : byte
     Pressed = 2,
 
     /// <summary>
-    /// The button is being held, not this does not generate new input events!
+    /// The button is being held, note this does not generate new input events!
     /// </summary>    
     Held = 4,
 

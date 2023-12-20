@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using LibGame.Mathematics;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
@@ -62,22 +63,62 @@ internal sealed class TerrainRenderer : IDisposable
         this.User = shader.CreateUserFor<TerrainRenderer>();
         this.Shader = shader;
 
+        const int width = 20;
+        const int height = 20;
 
-        this.Indices.MapData(device.ImmediateContext, new[]
-        {
-            0, 1, 2,
-        });
+        var vertices = GenerateVertices(width, height, 1.0f);
+        this.Vertices.MapData(device.ImmediateContext, vertices);
 
-        this.Vertices.MapData(device.ImmediateContext, new[]
+        var indices = GenerateIndices(width, height);
+        this.Indices.MapData(device.ImmediateContext, indices);
+    }
+
+    private static int[] GenerateIndices(int width, int height)
+    {
+        // for every cell we have 2 triangles, so 6 indices
+        var cellCount = (width - 1) * (height - 1);
+        var indices = new int[cellCount * 6];
+
+        var i = 0;
+        for (var c = 0; c < cellCount; c++)
         {
-            new TerrainVertex(new Vector3(-5.0f, 0.0f,  5.0f)),
-            new TerrainVertex(new Vector3( 0.0f, 0.0f, -5.0f)),
-            new TerrainVertex(new Vector3( 5.0f, 0.0f,  5.0f)),
-        });
+            var (x, y) = Indexes.ToTwoDimensional(c, width - 1);
+
+            var tl = Indexes.ToOneDimensional(x, y, width);
+            var tr = Indexes.ToOneDimensional(x + 1, y, width);
+            var bl = Indexes.ToOneDimensional(x, y + 1, width);
+            var br = Indexes.ToOneDimensional(x + 1, y + 1, width);
+            
+            indices[i++] = tl;
+            indices[i++] = tr;
+            indices[i++] = br;
+
+            indices[i++] = br;
+            indices[i++] = bl;
+            indices[i++] = tl;
+        }
+
+        return indices;
+    }
+
+    private static TerrainVertex[] GenerateVertices(int width, int height, float spacing)
+    {
+        var vertices = new TerrainVertex[width * height];
+
+        var offset = new Vector3((width - 1) * spacing * -0.5f, 0.0f, (height -1) * spacing * -0.5f);
+
+        for (var i = 0; i < vertices.Length; i++)
+        {
+            var (x, y) = Indexes.ToTwoDimensional(i, width);
+            var position = offset + new Vector3(x * spacing, 0.0f, y * spacing);
+            vertices[i] = new TerrainVertex(position);
+        }
+
+        return vertices;
     }
 
     public void Render(DeviceContext context, GBuffer gBuffer, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
-    {        
+    {
         context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.RasterizerState, in viewport, in scissor, this.Shader.Ps, this.BlendState, this.DepthStencilState);
 
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
@@ -87,7 +128,7 @@ internal sealed class TerrainRenderer : IDisposable
         context.IA.SetIndexBuffer(this.Indices);
         this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform), Matrix4x4.Identity);
 
-        context.DrawIndexed(this.Indices.Length, 0, 0);        
+        context.DrawIndexed(this.Indices.Length, 0, 0);
     }
 
     public void Dispose()

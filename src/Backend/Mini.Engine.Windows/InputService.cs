@@ -9,7 +9,8 @@ using static Windows.Win32.PInvoke;
 namespace Mini.Engine.Windows;
 
 // TODO: it is quite hard to use this class right, as clicks should be handled once iteration at a time
-// as to not miss the first down/up event. But helds should be handled only once otherwise you run into duplication.
+// as to not miss the first down/up event. But helds should be handled only once otherwise you run into duplication
+// another caveat is that helds don't generate events, so you'll miss them if you do it in the process loop
 
 public sealed class InputService
 {
@@ -64,12 +65,26 @@ public sealed class InputService
 
     public bool ProcessEvents(Mouse mouse)
     {
-        return ProcesEvents(mouse, this.MouseEvents);
+        return ProcessEvents(mouse, this.MouseEvents);
+    }
+
+    public void ProcessAllEvents(Mouse mouse)
+    {
+        while (this.ProcessEvents(mouse))
+        {
+        }
     }
 
     public bool ProcessEvents(Keyboard keyboard)
     {
-        return ProcesEvents(keyboard, this.KeyboardEvents);
+        return ProcessEvents(keyboard, this.KeyboardEvents);
+    }
+
+    public void ProcessAllEvents(Keyboard keyboard)
+    {
+        while (this.ProcessEvents(keyboard))
+        {            
+        }
     }
 
     public void NextFrame()
@@ -106,7 +121,7 @@ public sealed class InputService
         this.EventQueue.Enqueue(new RawInputEvent(rawInput, this.Window.HasFocus));
     }
 
-    private static bool ProcesEvents(InputDevice device, IReadOnlyList<RawInputEvent> events)
+    private static bool ProcessEvents(InputDevice device, IReadOnlyList<RawInputEvent> events)
     {
         if (device.iterator == -1)
         {

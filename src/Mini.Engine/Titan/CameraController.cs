@@ -12,17 +12,18 @@ using static Windows.Win32.UI.Input.KeyboardAndMouse.VIRTUAL_KEY;
 
 namespace Mini.Engine.Titan;
 
-
 [Service]
 internal sealed class CameraController
 {
-    private static readonly ushort KeyRotateUp = InputService.GetScanCode(VK_A);
-    private static readonly ushort KeyRotateDown = InputService.GetScanCode(VK_Z);
+    private static readonly ushort KeyReset = InputService.GetScanCode(VK_R);
+    private static readonly ushort KeyRotateUp = InputService.GetScanCode(VK_OEM_7); // '
+    private static readonly ushort KeyRotateDown = InputService.GetScanCode(VK_OEM_2); // ?
     private static readonly ushort KeyRotateCW = InputService.GetScanCode(VK_OEM_COMMA);
     private static readonly ushort KeyRotateCCW = InputService.GetScanCode(VK_OEM_PERIOD);
 
+    private const float DistanceMin = 1.0f;
+    private const float DistanceMax = 100.0f;
     private const float ZoomSpeed = 1.0f;
-    private const float MoveSpeed = 0.1f;
     private const float ClimbSpeed = 1.0f;
     private const float RotateSpeed = MathHelper.TwoPi;
 
@@ -30,8 +31,8 @@ internal sealed class CameraController
     private readonly Keyboard Keyboard;
     private readonly Mouse Mouse;
 
-    private float climb;
     private Vector3 target;
+    private float slope;
     private float rotation;
     private float distance;
 
@@ -39,14 +40,10 @@ internal sealed class CameraController
     {
         this.Keyboard = new Keyboard();
         this.Mouse = new Mouse();
-        this.InputService = inputService;
-
-        this.target = Vector3.Zero;
-        this.climb = 0.5f;
-        this.rotation = 0.0f;
-        this.distance = 10.0f;
-
+        this.InputService = inputService;        
         this.Camera = CreateCamera(device.Width, device.Height);
+
+        this.ResetParameters();
     }
 
     public Transform Transform { get; private set; }
@@ -59,86 +56,97 @@ internal sealed class CameraController
 
     public void Update(float elapsedRealWorldTime, in Rectangle viewport)
     {
-        var rotationAccumulator = 0.0f;
-        var climbAccumulator = 0.0f;
-        while (this.InputService.ProcessEvents(this.Keyboard))
+        this.InputService.ProcessAllEvents(this.Keyboard);
+        if (this.Keyboard.Pressed(KeyReset))
         {
-            if (this.Keyboard.Pressed(KeyRotateCW) || this.Keyboard.Held(KeyRotateCW))
-            {
-                rotationAccumulator += 1.0f;
-            }
-
-            if (this.Keyboard.Pressed(KeyRotateCCW) || this.Keyboard.Held(KeyRotateCCW))
-            {
-                rotationAccumulator -= 1.0f;
-            }
-
-            if (this.Keyboard.Pressed(KeyRotateUp) || this.Keyboard.Held(KeyRotateUp))
-            {
-                climbAccumulator += 1.0f;
-            }            
-
-            if (this.Keyboard.Pressed(KeyRotateDown) || this.Keyboard.Held(KeyRotateDown))
-            {
-                climbAccumulator -= 1.0f;
-            }
+            this.ResetParameters();
         }
 
+        var rotationAccumulator = 0.0f;
+        rotationAccumulator += this.Keyboard.AsFloat(InputState.Held, KeyRotateCW);
+        rotationAccumulator -= this.Keyboard.AsFloat(InputState.Held, KeyRotateCCW);
         this.rotation = Radians.WrapRadians(this.rotation + (rotationAccumulator * RotateSpeed * elapsedRealWorldTime));
-        this.climb = Math.Clamp(this.climb + (climbAccumulator * elapsedRealWorldTime * ClimbSpeed), 0.1f, 0.9f);
 
-        var zoomAccumulator = 0.0f;
+        var slopeAccumulator = 0.0f;
+        slopeAccumulator += this.Keyboard.AsFloat(InputState.Held, KeyRotateUp);
+        slopeAccumulator -= this.Keyboard.AsFloat(InputState.Held, KeyRotateDown);
+        this.slope = Math.Clamp(this.slope + (slopeAccumulator * elapsedRealWorldTime * ClimbSpeed), 0.1f, 0.9f);
+
+        var scrollAccumulator = 0.0f;
         while (this.InputService.ProcessEvents(this.Mouse))
         {
             if (this.Mouse.ScrolledDown)
             {
-                zoomAccumulator -= ZoomSpeed;
+                scrollAccumulator -= 1.0f;
             }
 
             if (this.Mouse.ScrolledUp)
             {
-                zoomAccumulator += ZoomSpeed;
+                scrollAccumulator += 1.0f;
             }
         }
 
-        var newTarget = this.GetZoomMovementTarget(zoomAccumulator, in viewport);
-        this.target = Vector3.Lerp(this.target, newTarget, MoveSpeed);
-        this.distance = Math.Clamp(this.distance + zoomAccumulator, 1.0f, 100.0f);
-
+        this.UpdateTarget(scrollAccumulator * ZoomSpeed, in viewport);
         this.Transform = this.GetCameraTransform();
     }
 
-    private Vector3 GetZoomMovementTarget(float zoomChange, in Rectangle viewport)
+    private void ResetParameters()
     {
-        if (zoomChange < 0.0f)
-        {
-            var cursor = this.InputService.GetCursorPosition();
-            var (position, direction) = Picking.CalculateCursorRay(cursor, in viewport, this.Camera.GetViewProjection(this.Transform));
-            var ray = new Ray(position, direction);
-            var plane = new Plane(Vector3.UnitY, 0.0f);
-            var intersection = ray.Intersects(plane);
-            if (intersection.HasValue)
-            {                
-                return position + (direction * intersection.Value);
-            }
-        }
-
-        return this.target;
+        this.target = Vector3.Zero;
+        this.slope = 0.5f;
+        this.rotation = 0.0f;
+        this.distance = 10.0f;
     }
 
     private Transform GetCameraTransform()
     {
-        var bx = Matrix4x4.CreateRotationY(this.rotation);
-        var vector = Vector3.TransformNormal(-Vector3.UnitZ, bx);
 
-        var h = this.distance * this.climb;
-        var w = this.distance * (1.0f - this.climb);
+        var vector = new Vector3(MathF.Cos(this.rotation), 0.0f, MathF.Sin(this.rotation));
+        //var vector = Vector3.TransformNormal(Vector3.UnitZ, Matrix4x4.CreateRotationY(this.rotation));
 
-        var position = this.target + new Vector3(vector.X * w, h, vector.Z * w);
-       
+        var vertical = this.distance * this.slope;
+        var horizontal = this.distance * (1.0f - this.slope);
+
+        var position = this.target + new Vector3(vector.X * horizontal, vertical, vector.Z * horizontal);
+
         return Transform.Identity
             .SetTranslation(position)
             .FaceTargetConstrained(this.target, Vector3.UnitY);
+    }
+
+    private void UpdateTarget(float distanceChange, in Rectangle viewport)
+    {
+        if (distanceChange != 0.0f)
+        {
+            var cursor = this.InputService.GetCursorPosition();
+
+            var transform = this.GetCameraTransform();
+            var viewProjection = this.Camera.GetViewProjection(transform);
+            var world = GetWorldPositionUnderMouseCursor(cursor, in viewProjection, in viewport, this.target);
+
+            this.distance = Math.Clamp(this.distance + distanceChange, DistanceMin, DistanceMax);
+
+            transform = this.GetCameraTransform();
+            viewProjection = this.Camera.GetViewProjection(transform);
+            var newWorld = GetWorldPositionUnderMouseCursor(cursor, in viewProjection, in viewport, this.target);
+            var change = newWorld - world;
+
+            this.target -= change;
+        }
+    }
+
+    private static Vector3 GetWorldPositionUnderMouseCursor(Vector2 cursor, in Matrix4x4 viewProjection, in Rectangle viewport, Vector3 fallback)
+    {
+        var (position, direction) = Picking.CalculateCursorRay(cursor, in viewport, viewProjection);
+        var ray = new Ray(position, direction);
+        var plane = new Plane(Vector3.UnitY, 0.0f);
+        var intersection = ray.Intersects(plane);
+        if (intersection.HasValue)
+        {
+            return position + (direction * intersection.Value);
+        }
+
+        return fallback;
     }
 
     private static PerspectiveCamera CreateCamera(float width, float height)
