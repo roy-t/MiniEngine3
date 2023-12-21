@@ -117,7 +117,7 @@ internal sealed class CameraController
 
     private void UpdateTarget(float distanceChange, in Rectangle viewport)
     {
-        if (distanceChange != 0.0f)
+        if (distanceChange < 0.0f)
         {
             var cursor = this.InputService.GetCursorPosition();
 
@@ -133,6 +133,10 @@ internal sealed class CameraController
             var change = newWorld - world;
 
             this.target -= change;
+        }
+        else
+        {
+            this.distance = Math.Clamp(this.distance + distanceChange, DistanceMin, DistanceMax);
         }
     }
 
