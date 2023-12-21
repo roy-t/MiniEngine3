@@ -1,4 +1,5 @@
 ﻿using Mini.Engine.Configuration;
+using Mini.Engine.Content;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.Graphics.PostProcessing;
@@ -11,17 +12,19 @@ namespace Mini.Engine.Titan;
 internal class TitanGameLoop : IGameLoop
 {
     private readonly Device Device;
+    private readonly ContentManager Content;
     private readonly UICore UserInterface;
     private readonly PresentationHelper Presenter;
     private readonly GBuffer GBuffer;
     private readonly CameraController CameraController;
     private readonly TerrainRenderer TerrainRenderer;
 
-    public TitanGameLoop(Device device, UICore userInterface, PresentationHelper presenter, CameraController cameraController, TerrainRenderer terrainRenderer)
+    public TitanGameLoop(Device device, ContentManager content, UICore userInterface, PresentationHelper presenter, CameraController cameraController, TerrainRenderer terrainRenderer)
     {
-        this.GBuffer = new GBuffer(device, MultiSamplingRequest.Sixteen);
+        this.GBuffer = new GBuffer(device, MultiSamplingRequest.Eight);
 
         this.Device = device;
+        this.Content = content;
         this.UserInterface = userInterface;
         this.CameraController = cameraController;
         this.TerrainRenderer = terrainRenderer;
@@ -38,6 +41,7 @@ internal class TitanGameLoop : IGameLoop
     public void Update(float elapsedSimulationTime)
     {
         this.UserInterface.NewFrame();
+        this.Content.ReloadChangedContent();
     }
 
     public void Draw(float alpha, float elapsedRealWorldTime)

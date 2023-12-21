@@ -6,6 +6,7 @@ struct VS_INPUT
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
+    float depth : TEXCOORD0;
 };
     
 struct OUTPUT
@@ -30,7 +31,7 @@ PS_INPUT VS(VS_INPUT input)
 {
     PS_INPUT output;      
     output.position = mul(WorldViewProjection, float4(input.position, 1.0));
-    
+    output.depth = output.position.z / output.position.w;
     return output;
 }
     
@@ -40,7 +41,7 @@ OUTPUT PS(PS_INPUT input, uint primitiveId : SV_PrimitiveID)
     OUTPUT output;
     float3 albedo = Tiles[primitiveId / 2].albedo;
     output.albedo = float4(albedo, 1.0);
-
+        
     return output;
 }
     
@@ -48,7 +49,11 @@ OUTPUT PS(PS_INPUT input, uint primitiveId : SV_PrimitiveID)
 OUTPUT PSLine(PS_INPUT input)
 {
     OUTPUT output;
-    output.albedo = float4(0.0, 0.0, 0.0, 1.0);
+    // TODO: arbitrary number, might need tweaking when the near/far plane of the camera are changed 
+    // or a different ViewProjection matrix is used.
+    float depth = input.depth * 100.0; 
+    float a = clamp(depth, 0.0, 1.0);
+    output.albedo = float4(0.0, 0.0, 0.0, a);
     
     return output;
 }

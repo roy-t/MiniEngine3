@@ -44,6 +44,7 @@ public struct TerrainVertex
 internal sealed class TerrainRenderer : IDisposable
 {
     private readonly IndexBuffer<int> Indices;
+    private readonly IndexBuffer<int> GridIndices;
     private readonly VertexBuffer<TerrainVertex> Indicators;
     private readonly VertexBuffer<TerrainVertex> Vertices;
     private readonly StructuredBuffer<Tile> Tiles;
@@ -51,8 +52,10 @@ internal sealed class TerrainRenderer : IDisposable
     private readonly InputLayout Layout;
     private readonly Shader Shader;
     private readonly Shader.User User;
-    private readonly BlendState BlendState;
-    private readonly DepthStencilState DepthStencilState;
+    private readonly BlendState OpaqueBlendState;
+    private readonly BlendState AlphaBlendState;
+    private readonly DepthStencilState DefaultDepthStencilState;
+    private readonly DepthStencilState NoneDepthStencilState;
     private readonly RasterizerState DefaultRasterizerState;
     private readonly RasterizerState CullNoneRasterizerState;
 
@@ -60,8 +63,10 @@ internal sealed class TerrainRenderer : IDisposable
     {
         this.Layout = shader.CreateInputLayoutForVs(TerrainVertex.Elements);
 
-        this.BlendState = device.BlendStates.Opaque;
-        this.DepthStencilState = device.DepthStencilStates.ReverseZ;
+        this.OpaqueBlendState = device.BlendStates.Opaque;
+        this.AlphaBlendState = device.BlendStates.NonPreMultiplied;
+        this.DefaultDepthStencilState = device.DepthStencilStates.ReverseZ;
+        this.NoneDepthStencilState = device.DepthStencilStates.None;
         this.DefaultRasterizerState = device.RasterizerStates.Default;
         this.CullNoneRasterizerState = device.RasterizerStates.CullNone;
 
@@ -87,6 +92,9 @@ internal sealed class TerrainRenderer : IDisposable
         var indices = GenerateIndices(width, height);
         this.Indices.MapData(device.ImmediateContext, indices);
 
+        this.GridIndices = new IndexBuffer<int>(device, nameof(TerrainRenderer));
+        var gridIndices = GenerateGridIndices(width, height);
+        this.GridIndices.MapData(device.ImmediateContext, gridIndices);
 
         var tiles = GenerateTiles(width, height);
         this.Tiles = new StructuredBuffer<Tile>(device, nameof(TerrainRenderer), tiles.Length);
@@ -139,6 +147,40 @@ internal sealed class TerrainRenderer : IDisposable
         return indices;
     }
 
+    private static int[] GenerateGridIndices(int width, int height)
+    {
+        var columns = width - 1;
+        var rows = height - 1;
+        var indices = new int[(columns * 2 * height) + (rows * 2 * width)];
+
+        var i = 0;
+        for (var x = 0; x < columns; x++)
+        {
+            for (var y = 0; y <= rows; y++)
+            {             
+                var a = Indexes.ToOneDimensional(x, y, width);
+                var b = Indexes.ToOneDimensional(x + 1, y, width);
+
+                indices[i++] = a;
+                indices[i++] = b;
+            }
+        }
+
+        for (var y = 0; y < rows; y++)
+        {
+            for (var x = 0; x <= columns; x++)
+            {
+                var a = Indexes.ToOneDimensional(x, y, width);
+                var b = Indexes.ToOneDimensional(x, y + 1, width);
+
+                indices[i++] = a;
+                indices[i++] = b;
+            }
+        }
+
+        return indices;
+    }
+
     private static TerrainVertex[] GenerateVertices(int width, int height, float spacing)
     {
         var vertices = new TerrainVertex[width * height];
@@ -157,7 +199,7 @@ internal sealed class TerrainRenderer : IDisposable
 
     public void Render(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.DefaultRasterizerState, in viewport, in scissor, this.Shader.Ps, this.BlendState, this.DepthStencilState);
+        context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.DefaultRasterizerState, in viewport, in scissor, this.Shader.Ps, this.OpaqueBlendState, this.DefaultDepthStencilState);
 
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetBuffer(Shader.Tiles, this.TilesView);
@@ -168,7 +210,8 @@ internal sealed class TerrainRenderer : IDisposable
 
         context.DrawIndexed(this.Indices.Length, 0, 0);
 
-        RenderSelection(context, in camera, in cameraTransform, in viewport, in scissor);
+        this.RenderSelection(context, in camera, in cameraTransform, in viewport, in scissor);
+        this.RenderGrid(context, in camera, in cameraTransform, in viewport, in scissor);
     }
 
 
@@ -176,16 +219,30 @@ internal sealed class TerrainRenderer : IDisposable
     {
         if (this.Indicators.Length > 0)
         {
-            context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.CullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.BlendState, this.DepthStencilState);
+            context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.CullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.OpaqueBlendState, this.DefaultDepthStencilState);
 
             context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
 
             context.IA.SetVertexBuffer(this.Indicators);            
             this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
 
-            context.DrawIndexed(this.Indices.Length, 0, 0);
-
             context.Draw(this.Indicators.Length);
+        }
+    }
+
+    private void RenderGrid(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
+    {
+        if (this.Indicators.Length > 0)
+        {
+            context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.CullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.AlphaBlendState, this.NoneDepthStencilState);
+
+            context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
+
+            context.IA.SetVertexBuffer(this.Vertices);
+            context.IA.SetIndexBuffer(this.GridIndices);
+            this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
+
+            context.DrawIndexed(this.GridIndices.Length, 0, 0);
         }
     }
 
@@ -196,6 +253,7 @@ internal sealed class TerrainRenderer : IDisposable
         this.Indicators.Dispose();
         this.Vertices.Dispose();
         this.Indices.Dispose();
+        this.GridIndices.Dispose();
 
         this.TilesView.Dispose();
         this.Tiles.Dispose();
