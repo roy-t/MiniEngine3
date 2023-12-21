@@ -1,5 +1,5 @@
 ﻿using LibGame.Mathematics;
-using Mini.Engine.Core;
+using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -26,12 +26,93 @@ public readonly record struct MipMapInfo(MipMapFlags Flags, int Levels)
     public static MipMapInfo None() { return new MipMapInfo(MipMapFlags.None, 1); }
 }
 
+public readonly record struct SamplingInfo(int Count, int Quality)
+{
+    // DirectX11 Hardware must support 1, 4, and 8 sample counts
+    // https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels
+    public const int MSAA_SAMPLE_COUNT = 8;
+
+    public static readonly SamplingInfo None = new(1, 0);
+
+    public static SamplingInfo GetMaximum(Device device, Format format)
+    {
+        var count = 1;
+        var quality = 0;
+        if (device.IsMultiSamplingSupported(format, MSAA_SAMPLE_COUNT))
+        {
+            count = MSAA_SAMPLE_COUNT;
+            quality = (int)StandardMultisampleQualityLevels.StandardMultisamplePattern;
+        }
+
+
+        return new SamplingInfo(count, quality);
+    }
+
+    public ShaderResourceViewDimension GetSrvDimensions(bool array = false)
+    {
+        if (this.Count > 1)
+        {
+            if (array)
+            {
+                return ShaderResourceViewDimension.Texture2DMultisampledArray;
+            }
+            return ShaderResourceViewDimension.Texture2DMultisampled;
+        }
+
+        if (array)
+        {
+            return ShaderResourceViewDimension.Texture2DArray;
+        }
+        return ShaderResourceViewDimension.Texture2D;
+    }
+
+    public RenderTargetViewDimension GetRtvDimensions(bool array = false)
+    {
+        if (this.Count > 1)
+        {
+            if (array)
+            {
+                return RenderTargetViewDimension.Texture2DMultisampledArray;
+            }
+            return RenderTargetViewDimension.Texture2DMultisampled;
+        }
+
+        if (array)
+        {
+            return RenderTargetViewDimension.Texture2DArray;
+        }
+        return RenderTargetViewDimension.Texture2D;
+    }
+
+    public DepthStencilViewDimension GetDsvDimensions(bool array = false)
+    {
+        if (this.Count > 1)
+        {
+            if (array)
+            {
+                return DepthStencilViewDimension.Texture2DMultisampledArray;
+            }
+            return DepthStencilViewDimension.Texture2DMultisampled;
+        }
+
+        if (array)
+        {
+            return DepthStencilViewDimension.Texture2DArray;
+        }
+        return DepthStencilViewDimension.Texture2D;
+    }
+}
+
 public static class Textures
 {
-
     internal static ID3D11Texture2D Create(Device device, string owner, ImageInfo image, MipMapInfo mipMapInfo, BindInfo binding, ResourceInfo resource = ResourceInfo.Texture)
     {
-        var description = CreateDescription(image, mipMapInfo, binding, resource);
+        return Create(device, owner, image, mipMapInfo, binding, SamplingInfo.None, resource);
+    }
+
+    internal static ID3D11Texture2D Create(Device device, string owner, ImageInfo image, MipMapInfo mipMapInfo, BindInfo binding, SamplingInfo multiSample, ResourceInfo resource = ResourceInfo.Texture)
+    {
+        var description = CreateDescription(image, mipMapInfo, binding, resource, multiSample);
 
         var texture = device.ID3D11Device.CreateTexture2D(description);
         texture.DebugName = DebugNameGenerator.GetName(owner, "Texture2D", image.Format);
@@ -39,7 +120,7 @@ public static class Textures
         return texture;
     }
 
-    internal static Texture2DDescription CreateDescription(ImageInfo image, MipMapInfo mipMapInfo, BindInfo binding, ResourceInfo resource)
+    internal static Texture2DDescription CreateDescription(ImageInfo image, MipMapInfo mipMapInfo, BindInfo binding, ResourceInfo resource, SamplingInfo multiSample)
     {
         var bindFlags = BindFlags.None;
         var cpuAccess = CpuAccessFlags.None;
@@ -95,6 +176,8 @@ public static class Textures
             usage = ResourceUsage.Staging;
         }
 
+        var sample = new SampleDescription(multiSample.Count, multiSample.Quality);
+
         var description = new Texture2DDescription
         {
             Width = image.DimX,
@@ -102,7 +185,7 @@ public static class Textures
             Format = image.Format,
             MipLevels = levels,
             ArraySize = image.DimZ,
-            SampleDescription = new SampleDescription(1, 0),
+            SampleDescription = sample,
             Usage = usage,
             BindFlags = bindFlags,
             CPUAccessFlags = cpuAccess,

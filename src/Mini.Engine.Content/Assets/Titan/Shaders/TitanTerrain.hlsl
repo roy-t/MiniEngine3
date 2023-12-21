@@ -43,3 +43,12 @@ OUTPUT PS(PS_INPUT input, uint primitiveId : SV_PrimitiveID)
 
     return output;
 }
+    
+#pragma PixelShader
+OUTPUT PSLine(PS_INPUT input)
+{
+    OUTPUT output;
+    output.albedo = float4(0.0, 0.0, 0.0, 1.0);
+    
+    return output;
+}

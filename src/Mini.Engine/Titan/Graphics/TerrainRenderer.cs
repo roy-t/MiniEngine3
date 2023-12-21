@@ -44,6 +44,7 @@ public struct TerrainVertex
 internal sealed class TerrainRenderer : IDisposable
 {
     private readonly IndexBuffer<int> Indices;
+    private readonly VertexBuffer<TerrainVertex> Indicators;
     private readonly VertexBuffer<TerrainVertex> Vertices;
     private readonly StructuredBuffer<Tile> Tiles;
     private readonly ShaderResourceView<Tile> TilesView;
@@ -52,7 +53,9 @@ internal sealed class TerrainRenderer : IDisposable
     private readonly Shader.User User;
     private readonly BlendState BlendState;
     private readonly DepthStencilState DepthStencilState;
-    private readonly RasterizerState RasterizerState;
+    private readonly RasterizerState DefaultRasterizerState;
+    private readonly RasterizerState CullNoneRasterizerState;
+    //private readonly RasterizerState LineRasterizerState;
 
     public TerrainRenderer(Device device, Shader shader)
     {
@@ -60,13 +63,23 @@ internal sealed class TerrainRenderer : IDisposable
 
         this.BlendState = device.BlendStates.Opaque;
         this.DepthStencilState = device.DepthStencilStates.ReverseZ;
-        this.RasterizerState = device.RasterizerStates.Default;
+        this.DefaultRasterizerState = device.RasterizerStates.Default;
+        this.CullNoneRasterizerState = device.RasterizerStates.CullNone;
+        //this.LineRasterizerState = device.RasterizerStates.Line;
 
         this.User = shader.CreateUserFor<TerrainRenderer>();
         this.Shader = shader;
 
         const int width = 1000;
         const int height = 1000;
+
+        this.Indicators = new VertexBuffer<TerrainVertex>(device, nameof(TerrainRenderer));
+        var indicators = new TerrainVertex[]
+        {
+            new(-Vector3.UnitY),
+            new(Vector3.UnitY),
+        };
+        this.Indicators.MapData(device.ImmediateContext, indicators);
 
         this.Vertices = new VertexBuffer<TerrainVertex>(device, nameof(TerrainRenderer));
         var vertices = GenerateVertices(width, height, 1.0f);
@@ -146,10 +159,9 @@ internal sealed class TerrainRenderer : IDisposable
 
     public void Render(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.RasterizerState, in viewport, in scissor, this.Shader.Ps, this.BlendState, this.DepthStencilState);
+        context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.DefaultRasterizerState, in viewport, in scissor, this.Shader.Ps, this.BlendState, this.DepthStencilState);
 
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
-        context.PS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetBuffer(Shader.Tiles, this.TilesView);
 
         context.IA.SetVertexBuffer(this.Vertices);
@@ -157,16 +169,37 @@ internal sealed class TerrainRenderer : IDisposable
         this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
 
         context.DrawIndexed(this.Indices.Length, 0, 0);
+
+        RenderSelection(context, in camera, in cameraTransform, in viewport, in scissor);
+    }
+
+
+    private void RenderSelection(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
+    {
+        if (this.Indicators.Length > 0)
+        {
+            context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.CullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.BlendState, this.DepthStencilState);
+
+            context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
+
+            context.IA.SetVertexBuffer(this.Indicators);            
+            this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
+
+            context.DrawIndexed(this.Indices.Length, 0, 0);
+
+            context.Draw(this.Indicators.Length);
+        }
     }
 
     public void Dispose()
     {
         this.User.Dispose();
         this.Layout.Dispose();
+        this.Indicators.Dispose();
         this.Vertices.Dispose();
         this.Indices.Dispose();
 
         this.TilesView.Dispose();
-        this.Tiles.Dispose();        
+        this.Tiles.Dispose();
     }
 }

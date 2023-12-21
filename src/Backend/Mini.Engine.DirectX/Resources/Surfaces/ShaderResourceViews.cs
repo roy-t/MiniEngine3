@@ -7,14 +7,21 @@ internal static class ShaderResourceViews
 {
     public static ID3D11ShaderResourceView Create(Device device, ID3D11Texture2D texture, string name, ImageInfo image)
     {
+        return Create(device, texture, name, image, SamplingInfo.None);
+    }
+
+    public static ID3D11ShaderResourceView Create(Device device, ID3D11Texture2D texture, string name, ImageInfo image, SamplingInfo sampling)
+    {
         ShaderResourceViewDescription description;
         if (image.DimZ == 1)
         {
-            description = new ShaderResourceViewDescription(texture, ShaderResourceViewDimension.Texture2D, image.Format);
+            var dimensions = sampling.GetSrvDimensions();
+            description = new ShaderResourceViewDescription(texture, dimensions, image.Format);
         }
         else
         {
-            description = new ShaderResourceViewDescription(texture, ShaderResourceViewDimension.Texture2DArray, image.Format, 0, -1, 0, image.DimZ);
+            var dimensions = sampling.GetSrvDimensions(true);
+            description = new ShaderResourceViewDescription(texture, dimensions, image.Format, 0, -1, 0, image.DimZ);
         }
 
         var srv = device.ID3D11Device.CreateShaderResourceView(texture, description);

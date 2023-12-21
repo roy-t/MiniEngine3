@@ -30,6 +30,12 @@ public class PresentationHelper
         this.Present(context, texture, in output, in output);
     }
 
+    public void PresentMultiSampled(DeviceContext context, ISurface texture)
+    {
+        var output = this.Device.Viewport;
+        this.PresentMultiSampled(context, texture, in output, in output);
+    }
+
     public void Present(DeviceContext context, ISurface texture, in Rectangle viewport, in Rectangle scissor)
     {
         context.OM.SetRenderTargetToBackBuffer();
@@ -40,6 +46,17 @@ public class PresentationHelper
         context.Draw(3);
 
         context.PS.ClearShaderResource(TextureShader.Texture);
+    }
+
+    public void PresentMultiSampled(DeviceContext context, ISurface texture, in Rectangle viewport, in Rectangle scissor)
+    {
+        context.OM.SetRenderTargetToBackBuffer();
+
+        context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, in viewport, in scissor, this.TextureShader.PsmultiSample, this.Device.BlendStates.AlphaBlend, this.Device.DepthStencilStates.None);        
+        context.PS.SetShaderResource(TextureShader.TextureMs, texture);
+        context.Draw(3);
+
+        context.PS.ClearShaderResource(TextureShader.TextureMs);
     }
 
     public void ToneMapAndPresent(DeviceContext context, ISurface texture)

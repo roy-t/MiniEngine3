@@ -53,7 +53,7 @@ internal class TitanGameLoop : IGameLoop
 
         this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();
         // TODO: tone map later when we incorporate lights
-        this.Presenter.Present(this.Device.ImmediateContext, this.GBuffer.Albedo);
+        this.Presenter.PresentMultiSampled(this.Device.ImmediateContext, this.GBuffer.Albedo);
 
         this.UserInterface.Render();
     }

@@ -18,7 +18,7 @@ public sealed class StagingBuffer<T> : IDisposable
             this.PrimitiveSizeInBytes = sizeof(T);
         }
 
-        var description = Textures.CreateDescription(imageInfo, mipMapInfo, BindInfo.Staging, ResourceInfo.Texture);
+        var description = Textures.CreateDescription(imageInfo, mipMapInfo, BindInfo.Staging, ResourceInfo.Texture, SamplingInfo.None);
        
         this.Buffer = device.ID3D11Device.CreateTexture2D(description);
 #if DEBUG

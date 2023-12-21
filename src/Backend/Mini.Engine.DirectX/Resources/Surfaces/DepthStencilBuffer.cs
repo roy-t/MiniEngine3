@@ -14,12 +14,19 @@ public enum DepthStencilFormat
 
 public sealed class DepthStencilBuffer : Surface, IDepthStencilBuffer
 {
-    public DepthStencilBuffer(Device device, string name, DepthStencilFormat format, int dimX, int dimY, int dimZ)
+    public DepthStencilBuffer(Device device, string name, DepthStencilFormat format, int dimX, int dimY, int dimZ, bool enableMSAA = false)
         : base(name, new ImageInfo(dimX, dimY, ToTextureFormat(format), DimZ: dimZ), MipMapInfo.None())
     {
         var image = new ImageInfo(dimX, dimY, ToTextureFormat(format), DimZ: dimZ);
-        var texture = Textures.Create(device, name, image, MipMapInfo.None(), BindInfo.DepthStencil);
-        var view = CreateSRV(device, texture, image.DimZ, ToShaderResourceViewFormat(format), name, "");
+
+        var sampling = SamplingInfo.None;
+        if (enableMSAA)
+        {
+            sampling = SamplingInfo.GetMaximum(device, image.Format);
+        }
+        
+        var texture = Textures.Create(device, name, image, MipMapInfo.None(), BindInfo.DepthStencil, sampling);
+        var view = CreateSRV(device, texture, image.DimZ, ToShaderResourceViewFormat(format), sampling, name, "");
 
         this.texture = texture;
         this.shaderResourceView = view;
@@ -27,7 +34,8 @@ public sealed class DepthStencilBuffer : Surface, IDepthStencilBuffer
         var dsvs = new ID3D11DepthStencilView[image.DimZ];
         for (var i = 0; i < dsvs.Length; i++)
         {
-            var depthView = new DepthStencilViewDescription(DepthStencilViewDimension.Texture2DArray, ToDepthViewFormat(format), 0, i, 1);
+            var dimensions = sampling.GetDsvDimensions(true);
+            var depthView = new DepthStencilViewDescription(dimensions, ToDepthViewFormat(format), 0, i, 1);
             dsvs[i] = device.ID3D11Device.CreateDepthStencilView(texture, depthView);
             dsvs[i].DebugName = DebugNameGenerator.GetName(name, "DSV", ToDepthViewFormat(format), i);
         }
@@ -50,9 +58,10 @@ public sealed class DepthStencilBuffer : Surface, IDepthStencilBuffer
         }
     }
 
-    private static ID3D11ShaderResourceView CreateSRV(Device device, ID3D11Texture2D texture, int length, Format format, string user, string meaning)
+    private static ID3D11ShaderResourceView CreateSRV(Device device, ID3D11Texture2D texture, int length, Format format, SamplingInfo sampling, string user, string meaning)
     {
-        var description = new ShaderResourceViewDescription(texture, ShaderResourceViewDimension.Texture2DArray, format, 0, -1, 0, length);
+        var dimensions = sampling.GetSrvDimensions(true);
+        var description = new ShaderResourceViewDescription(texture, dimensions, format, 0, -1, 0, length);
         var srv = device.ID3D11Device.CreateShaderResourceView(texture, description);
         srv.DebugName = DebugNameGenerator.GetName(user, "SRV", meaning, format);
 

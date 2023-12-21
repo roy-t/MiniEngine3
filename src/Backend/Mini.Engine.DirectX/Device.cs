@@ -56,7 +56,7 @@ public sealed class Device : IDisposable
         this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Warning, true);
         this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Error, true);
         this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Corruption, true);
-        this.DebugLayerExceptionConverter.Register(this.DxgiInfoQueue, DebugAll);      
+        this.DebugLayerExceptionConverter.Register(this.DxgiInfoQueue, DebugAll);
 #endif
         this.ID3D11DeviceContext = context;
 
@@ -127,6 +127,11 @@ public sealed class Device : IDisposable
         this.CreateBackBuffer();
     }
 
+    public bool IsMultiSamplingSupported(Format format, int count)
+    {
+        return this.ID3D11Device.CheckMultisampleQualityLevels(format, count) > 0;        
+    }
+
     private void CreateBackBuffer()
     {
         this.BackBuffer = this.swapChain.GetBuffer<ID3D11Texture2D1>(0);
@@ -149,7 +154,7 @@ public sealed class Device : IDisposable
         using var factory5 = factory4.QueryInterface<IDXGIFactory5>();
         factory5.DebugName = "FACTORY5_DXGI4";
         presentAllowTearing = factory5?.PresentAllowTearing ?? false;
-       
+
         return factory4;
     }
 
@@ -204,8 +209,8 @@ public sealed class Device : IDisposable
         this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Warning, false);
         this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Error, false);
         this.DxgiInfoQueue.SetBreakOnSeverity(DebugAll, InfoQueueMessageSeverity.Corruption, false);
-        
-        this.IDXGIDebug.ReportLiveObjects(DebugAll, ReportLiveObjectFlags.Detail | ReportLiveObjectFlags.IgnoreInternal);      
+
+        this.IDXGIDebug.ReportLiveObjects(DebugAll, ReportLiveObjectFlags.Detail | ReportLiveObjectFlags.IgnoreInternal);
         this.DebugLayerExceptionConverter.CheckExceptions();
 #endif                
     }

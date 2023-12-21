@@ -10,10 +10,11 @@ namespace Mini.Engine.Titan.Graphics;
 internal sealed class GBuffer : IDisposable
 {
     private readonly Device Device;
-
+    private readonly bool EnableMSAA;
     public GBuffer(Device device)
     {
         this.Device = device;
+        this.EnableMSAA = true;
         this.Resize(device.Width, device.Height);
     }
 
@@ -29,8 +30,8 @@ internal sealed class GBuffer : IDisposable
         this.Dispose();
 
         var image = new ImageInfo(width, height, Format.R8G8B8A8_UNorm);
-        this.Albedo = new RenderTarget(this.Device, nameof(GBuffer) + "Albedo", image, MipMapInfo.None());
-        this.Depth = new DepthStencilBuffer(this.Device, nameof(GBuffer) + "Depth", DepthStencilFormat.D32_Float, width, height, 1);
+        this.Albedo = new RenderTarget(this.Device, nameof(GBuffer) + "Albedo", image, MipMapInfo.None(), this.EnableMSAA);
+        this.Depth = new DepthStencilBuffer(this.Device, nameof(GBuffer) + "Depth", DepthStencilFormat.D32_Float, width, height, 1, this.EnableMSAA);
         
         this.Width = width;
         this.Height = height;
