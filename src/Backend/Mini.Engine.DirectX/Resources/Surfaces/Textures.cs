@@ -5,6 +5,7 @@ using Vortice.DXGI;
 
 namespace Mini.Engine.DirectX.Resources.Surfaces;
 
+public enum MultiSamplingRequest { None = 0, Two = 2, Four = 4, Eight = 8, Sixteen = 16 };
 public enum MipMapFlags { None, Provided, Generated };
 public enum BindInfo { ShaderResource, RenderTarget, UnorderedAccessView, DepthStencil, Staging };
 public enum ResourceInfo { Texture, Cube };
@@ -28,24 +29,31 @@ public readonly record struct MipMapInfo(MipMapFlags Flags, int Levels)
 
 public readonly record struct SamplingInfo(int Count, int Quality)
 {
-    // DirectX11 Hardware must support 1, 4, and 8 sample counts
-    // https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels
-    public const int MSAA_SAMPLE_COUNT = 8;
-
     public static readonly SamplingInfo None = new(1, 0);
 
-    public static SamplingInfo GetMaximum(Device device, Format format)
+    public static SamplingInfo GetAtMost(Device device, Format format, MultiSamplingRequest request)
     {
         var count = 1;
         var quality = 0;
-        if (device.IsMultiSamplingSupported(format, MSAA_SAMPLE_COUNT))
-        {
-            count = MSAA_SAMPLE_COUNT;
-            quality = (int)StandardMultisampleQualityLevels.StandardMultisamplePattern;
-        }
 
+        var option = (int)request;
+        while(option > 1)
+        {
+            if (device.IsMultiSamplingSupported(format, option))
+            {
+                count = option;
+                quality = (int)StandardMultisampleQualityLevels.StandardMultisamplePattern;
+                return new SamplingInfo(count, quality);
+            }
+            option /= 2;
+        }        
 
         return new SamplingInfo(count, quality);
+    }
+
+    public static SamplingInfo GetMaximum(Device device, Format format)
+    {
+        return GetAtMost(device, format, MultiSamplingRequest.Sixteen);
     }
 
     public ShaderResourceViewDimension GetSrvDimensions(bool array = false)

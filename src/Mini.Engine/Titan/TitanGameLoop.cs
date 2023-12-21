@@ -1,5 +1,6 @@
 ﻿using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
+using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.Graphics.PostProcessing;
 using Mini.Engine.Titan.Graphics;
 using Mini.Engine.UI;
@@ -18,7 +19,7 @@ internal class TitanGameLoop : IGameLoop
 
     public TitanGameLoop(Device device, UICore userInterface, PresentationHelper presenter, CameraController cameraController, TerrainRenderer terrainRenderer)
     {
-        this.GBuffer = new GBuffer(device);                
+        this.GBuffer = new GBuffer(device, MultiSamplingRequest.Sixteen);
 
         this.Device = device;
         this.UserInterface = userInterface;
@@ -53,7 +54,14 @@ internal class TitanGameLoop : IGameLoop
 
         this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();
         // TODO: tone map later when we incorporate lights
-        this.Presenter.PresentMultiSampled(this.Device.ImmediateContext, this.GBuffer.Albedo);
+        if (this.GBuffer.Albedo.Sampling.Count > 1)
+        {
+            this.Presenter.PresentMultiSampled(this.Device.ImmediateContext, this.GBuffer.Albedo);
+        }
+        else
+        {
+            this.Presenter.Present(this.Device.ImmediateContext, this.GBuffer.Albedo);
+        }
 
         this.UserInterface.Render();
     }

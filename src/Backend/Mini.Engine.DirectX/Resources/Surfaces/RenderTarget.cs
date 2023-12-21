@@ -4,15 +4,11 @@ using Vortice.Direct3D11;
 namespace Mini.Engine.DirectX.Resources.Surfaces;
 public class RenderTarget : Surface, IRenderTarget
 {
-    public RenderTarget(Device device, string name, ImageInfo image, MipMapInfo mipMap, bool enableMSAA = false)
+    public RenderTarget(Device device, string name, ImageInfo image, MipMapInfo mipMap, MultiSamplingRequest multiSamplingRequest = MultiSamplingRequest.None)
         : base(name, image, mipMap)
     {
-        var sampling = SamplingInfo.None;
-        if(enableMSAA)
-        {
-            sampling = SamplingInfo.GetMaximum(device, image.Format);
-        }
-        var (texture, view) = this.CreateResources(device, name, image, mipMap, sampling);
+        this.Sampling = SamplingInfo.GetAtMost(device, image.Format, multiSamplingRequest);        
+        var (texture, view) = this.CreateResources(device, name, image, mipMap, this.Sampling);
 
         this.texture = texture;
         this.shaderResourceView = view;
@@ -23,12 +19,14 @@ public class RenderTarget : Surface, IRenderTarget
             for (var s = 0; s < mipMap.Levels; s++)
             {
                 var index = Indexes.ToOneDimensional(i, s, image.DimZ);
-                rtvs[index] = RenderTargetViews.Create(device, texture, name, image.Format, sampling, i, s);
+                rtvs[index] = RenderTargetViews.Create(device, texture, name, image.Format, this.Sampling, i, s);
             }
         }
 
         this.AsRenderTarget.ID3D11RenderTargetViews = rtvs;
     }
+
+    public SamplingInfo Sampling { get; }
 
     protected virtual (ID3D11Texture2D, ID3D11ShaderResourceView) CreateResources(Device device, string name, ImageInfo image, MipMapInfo mipMap, SamplingInfo sampling)
     {

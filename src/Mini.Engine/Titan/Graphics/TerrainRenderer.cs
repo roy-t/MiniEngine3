@@ -55,7 +55,6 @@ internal sealed class TerrainRenderer : IDisposable
     private readonly DepthStencilState DepthStencilState;
     private readonly RasterizerState DefaultRasterizerState;
     private readonly RasterizerState CullNoneRasterizerState;
-    //private readonly RasterizerState LineRasterizerState;
 
     public TerrainRenderer(Device device, Shader shader)
     {
@@ -65,7 +64,6 @@ internal sealed class TerrainRenderer : IDisposable
         this.DepthStencilState = device.DepthStencilStates.ReverseZ;
         this.DefaultRasterizerState = device.RasterizerStates.Default;
         this.CullNoneRasterizerState = device.RasterizerStates.CullNone;
-        //this.LineRasterizerState = device.RasterizerStates.Line;
 
         this.User = shader.CreateUserFor<TerrainRenderer>();
         this.Shader = shader;
