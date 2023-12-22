@@ -24,11 +24,12 @@ internal sealed class GBuffer : IDisposable
 
     public RenderTarget Albedo { get; private set; }
     public DepthStencilBuffer Depth { get; private set; }
+    public RenderTargetGroup Group { get; private set; }
     public int Width { get; private set; }
     public int Height { get; private set; }
     public float AspectRatio => this.Width / (float)this.Height;
 
-    [MemberNotNull(nameof(Albedo), nameof(Depth))]
+    [MemberNotNull(nameof(Albedo), nameof(Depth), nameof(Group))]
     public void Resize(int width, int height)
     {
         this.Dispose();
@@ -36,7 +37,9 @@ internal sealed class GBuffer : IDisposable
         var image = new ImageInfo(width, height, Format.R8G8B8A8_UNorm);
         this.Albedo = new RenderTarget(this.Device, nameof(GBuffer) + "Albedo", image, MipMapInfo.None(), this.MultiSamplingRequest);
         this.Depth = new DepthStencilBuffer(this.Device, nameof(GBuffer) + "Depth", DepthStencilFormat.D32_Float, width, height, 1, this.MultiSamplingRequest);
-        
+        this.Group = new RenderTargetGroup(this.Albedo);
+
+
         this.Width = width;
         this.Height = height;
     }
@@ -49,6 +52,7 @@ internal sealed class GBuffer : IDisposable
 
     public void Dispose()
     {
+        this.Group?.Dispose();
         this.Depth?.Dispose();
         this.Albedo?.Dispose();
     }

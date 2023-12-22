@@ -30,8 +30,9 @@ internal sealed class CameraMenu : IEditorMenu
                 if (ImGui.MenuItem($"{option}m"))
                 {
                     ref var transform = ref this.FrameService.GetPrimaryCameraTransform();
-                    transform.Current = new Transform(Vector3.UnitY * option, Quaternion.Identity, Vector3.Zero, 1.0f)
-                    .FaceTarget(Vector3.UnitZ * 0.001f);
+                    transform.Current = Transform.Identity
+                        .SetTranslation(Vector3.UnitY * option)
+                        .FaceTargetConstrained(Vector3.UnitZ * -0.001f, -Vector3.UnitZ);
                 }
             }
             

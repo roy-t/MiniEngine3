@@ -23,8 +23,6 @@ internal sealed class PrimitivePanel : IEditorPanel
 
     public string Title => "Primitives";
 
-    private bool shouldReload;
-
     private Entity lastEntity;
     private ICurve lastCurve;
     private Matrix4x4 lastTransform;
@@ -39,12 +37,6 @@ internal sealed class PrimitivePanel : IEditorPanel
         this.Instances = instances;
         this.lastCurve = curveManager.Straight;
         this.lastTransform = Matrix4x4.Identity;
-
-#if DEBUG
-        HotReloadManager.AddReloadCallback("Mini.Engine.Modelling", _ => this.shouldReload = true);
-        HotReloadManager.AddReloadCallback("Mini.Engine.Diesel", _ => this.shouldReload = true);
-        HotReloadManager.AddReloadCallback("Mini.Engine.UI.Panels.PrimitivePanel", _ => this.shouldReload = true);
-#endif
     }
 
     public void Update()
@@ -91,8 +83,6 @@ internal sealed class PrimitivePanel : IEditorPanel
             var list = new List<Matrix4x4>() { Matrix4x4.Identity };
             this.Instances.QueueUpdate(this.lastEntity, list);
         }
-
-        this.shouldReload = false;
     }
 
     private (Vector3 Position, Vector3 Forward) GetNextOrientation()

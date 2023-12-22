@@ -64,7 +64,7 @@ public sealed class SkyboxSystem : IDisposable
 
         this.Context.PS.SetSampler(Skybox.TextureSampler, this.LinearClamp);
 
-        this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.LBuffer.Light);
+        this.Context.OM.SetRenderTargets(this.FrameService.LBuffer.Group, this.FrameService.GBuffer.DepthStencilBuffer);
     }
 
     private void DrawSkybox(in SkyboxComponent skybox)

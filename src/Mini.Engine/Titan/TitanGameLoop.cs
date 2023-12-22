@@ -53,7 +53,7 @@ internal class TitanGameLoop : IGameLoop
         var transform = this.CameraController.Transform;
         var output = this.Device.Viewport;
 
-        this.Device.ImmediateContext.OM.SetRenderTargets(this.GBuffer.Depth, this.GBuffer.Albedo);
+        this.Device.ImmediateContext.OM.SetRenderTargets(this.GBuffer.Group, this.GBuffer.Depth);
         this.TerrainRenderer.Render(this.Device.ImmediateContext, this.CameraController.Camera, in transform, in output, in output);
 
         this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();

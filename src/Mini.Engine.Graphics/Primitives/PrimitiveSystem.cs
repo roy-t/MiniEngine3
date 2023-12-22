@@ -36,7 +36,7 @@ public sealed class PrimitiveSystem : IDisposable
         return Task.Run(() =>
         {
             this.RenderService.Setup(this.Context, viewport, scissor);
-            this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.GBuffer.Albedo, this.FrameService.GBuffer.Material, this.FrameService.GBuffer.Normal, this.FrameService.GBuffer.Velocity);
+            this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.AlbedoMaterialNormalVelocity, this.FrameService.GBuffer.DepthStencilBuffer);
 
             ref var camera = ref this.FrameService.GetPrimaryCamera();
             ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();

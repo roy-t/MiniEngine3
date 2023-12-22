@@ -33,7 +33,7 @@ public sealed class LineSystem : IDisposable
         return Task.Run(() =>
         {
             this.RenderService.Setup(this.Context, viewport, scissor);
-            this.Context.OM.SetRenderTargets(this.FrameService.GBuffer.DepthStencilBuffer, this.FrameService.LBuffer.Light);
+            this.Context.OM.SetRenderTargets(this.FrameService.LBuffer.Group, this.FrameService.GBuffer.DepthStencilBuffer);
 
             ref var camera = ref this.FrameService.GetPrimaryCamera();
             ref var cameraTransform = ref this.FrameService.GetPrimaryCameraTransform();
