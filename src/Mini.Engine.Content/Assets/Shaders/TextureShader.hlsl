@@ -9,6 +9,11 @@ struct PS_INPUT
 sampler TextureSampler : register(s0);
 Texture2D Texture : register(t0);    
 Texture2DMS<float4> TextureMS : register(t1);
+ 
+cbuffer Constants : register(b0)
+{
+    uint Samples;
+};
     
 #pragma PixelShader
 float4 PS(PS_INPUT input) : SV_Target
@@ -18,14 +23,12 @@ float4 PS(PS_INPUT input) : SV_Target
 
 #pragma PixelShader
 float4 PSMultiSample(PS_INPUT input, float4 position : SV_Position) : SV_Target
-{
-    // TODO: assume 8 levels for now
-    const uint samples = 8;
+{    
     float4 accumulator = float4(0, 0, 0, 0);
-    for (uint i = 0; i < samples; i++)
+    for (uint i = 0; i < Samples; i++)
     {
         accumulator += TextureMS.Load(position.xy, i);
     }
     
-    return accumulator / samples;
+    return accumulator / Samples;
 }

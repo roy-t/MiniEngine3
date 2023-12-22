@@ -60,7 +60,7 @@ internal class TitanGameLoop : IGameLoop
         // TODO: tone map later when we incorporate lights
         if (this.GBuffer.Albedo.Sampling.Count > 1)
         {
-            this.Presenter.PresentMultiSampled(this.Device.ImmediateContext, this.GBuffer.Albedo);
+            this.Presenter.PresentMultiSampled(this.Device.ImmediateContext, this.GBuffer.Albedo, this.GBuffer.Albedo.Sampling.Count);
         }
         else
         {

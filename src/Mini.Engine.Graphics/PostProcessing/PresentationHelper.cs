@@ -8,11 +8,12 @@ using Mini.Engine.DirectX.Resources.Surfaces;
 namespace Mini.Engine.Graphics.PostProcessing;
 
 [Service]
-public class PresentationHelper
+public class PresentationHelper : IDisposable
 {
     private readonly Device Device;
     private readonly FullScreenTriangle FullScreenTriangleShader;
     private readonly TextureShader TextureShader;
+    private readonly TextureShader.User TextureShaderUser;
     private readonly ToneMapShader ToneMapShader;
 
     public PresentationHelper(Device device, FullScreenTriangle fullScreenTriangleShader, TextureShader textureShader, ToneMapShader toneMapShader)
@@ -21,6 +22,7 @@ public class PresentationHelper
 
         this.FullScreenTriangleShader = fullScreenTriangleShader;
         this.TextureShader = textureShader;
+        this.TextureShaderUser = textureShader.CreateUserFor<PresentationHelper>();
         this.ToneMapShader = toneMapShader;
     }
 
@@ -30,10 +32,10 @@ public class PresentationHelper
         this.Present(context, texture, in output, in output);
     }
 
-    public void PresentMultiSampled(DeviceContext context, ISurface texture)
+    public void PresentMultiSampled(DeviceContext context, ISurface texture, int samples)
     {
         var output = this.Device.Viewport;
-        this.PresentMultiSampled(context, texture, in output, in output);
+        this.PresentMultiSampled(context, texture, samples, in output, in output);
     }
 
     public void Present(DeviceContext context, ISurface texture, in Rectangle viewport, in Rectangle scissor)
@@ -48,11 +50,14 @@ public class PresentationHelper
         context.PS.ClearShaderResource(TextureShader.Texture);
     }
 
-    public void PresentMultiSampled(DeviceContext context, ISurface texture, in Rectangle viewport, in Rectangle scissor)
+    public void PresentMultiSampled(DeviceContext context, ISurface texture, int samples, in Rectangle viewport, in Rectangle scissor)
     {
+        this.TextureShaderUser.MapConstants(context, (uint)samples);
+        context.PS.SetConstantBuffer(TextureShader.ConstantsSlot, this.TextureShaderUser.ConstantsBuffer);
+        
         context.OM.SetRenderTargetToBackBuffer();
 
-        context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, in viewport, in scissor, this.TextureShader.PsmultiSample, this.Device.BlendStates.AlphaBlend, this.Device.DepthStencilStates.None);        
+        context.SetupFullScreenTriangle(this.FullScreenTriangleShader.TextureVs, in viewport, in scissor, this.TextureShader.PsmultiSample, this.Device.BlendStates.AlphaBlend, this.Device.DepthStencilStates.None);
         context.PS.SetShaderResource(TextureShader.TextureMs, texture);
         context.Draw(3);
 
@@ -75,5 +80,10 @@ public class PresentationHelper
         context.Draw(3);
 
         context.PS.ClearShaderResource(ToneMapShader.Texture);
+    }
+
+    public void Dispose()
+    {
+        this.TextureShaderUser.Dispose();
     }
 }
