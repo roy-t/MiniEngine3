@@ -10,6 +10,7 @@ using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.Graphics.Cameras;
+using SimplexNoise;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 
@@ -30,9 +31,9 @@ public struct TerrainVertex
     }
 
     public static readonly InputElementDescription[] Elements =
-    {
+    [
         new("POSITION", 0, Vortice.DXGI.Format.R32G32B32_Float, 0 * sizeof(float), 0, InputClassification.PerVertexData, 0),
-    };
+    ];
 
     public override readonly string ToString()
     {
@@ -104,14 +105,22 @@ internal sealed class TerrainRenderer : IDisposable
 
     private static Tile[] GenerateTiles(int width, int height)
     {
-        var length = (width - 1) * (height - 1);
+        var palette = ColorPalette.GrassLawn;
+        var columns = width - 1;
+        var rows = height - 1;
+        var length = columns * rows;
         var tiles = new Tile[length];
         for (var i = 0; i < tiles.Length; i++)
         {
-            var color = Colors.RGBToLinear(ColorPalette.GrassLawn.Pick());
+            var (x, y) = Indexes.ToTwoDimensional(i, columns);
+            
+            var noise = Noise.CalcPixel2D(x, y, 0.01f);
+            noise = Ranges.Map(noise, (0.0f, 256.0f), (0.0f, palette.Colors.Count));
+            var color = palette.Colors[(int)noise];            
+            
             tiles[i] = new Tile()
             {
-                Albedo = color
+                Albedo = Colors.RGBToLinear(color)
             };
 
         }
@@ -199,6 +208,13 @@ internal sealed class TerrainRenderer : IDisposable
 
     public void Render(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
     {
+        this.RenderTiles(context, camera, in cameraTransform, in viewport, in scissor);
+        this.RenderSelection(context, in camera, in cameraTransform, in viewport, in scissor);
+        this.RenderGrid(context, in camera, in cameraTransform, in viewport, in scissor);
+    }
+
+    private void RenderTiles(DeviceContext context, PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
+    {
         context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.DefaultRasterizerState, in viewport, in scissor, this.Shader.Ps, this.OpaqueBlendState, this.DefaultDepthStencilState);
 
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
@@ -209,11 +225,7 @@ internal sealed class TerrainRenderer : IDisposable
         this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
 
         context.DrawIndexed(this.Indices.Length, 0, 0);
-
-        this.RenderSelection(context, in camera, in cameraTransform, in viewport, in scissor);
-        this.RenderGrid(context, in camera, in cameraTransform, in viewport, in scissor);
     }
-
 
     private void RenderSelection(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
     {
@@ -232,18 +244,15 @@ internal sealed class TerrainRenderer : IDisposable
 
     private void RenderGrid(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
     {
-        if (this.Indicators.Length > 0)
-        {
-            context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.CullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.AlphaBlendState, this.NoneDepthStencilState);
+        context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.CullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.AlphaBlendState, this.NoneDepthStencilState);
 
-            context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
+        context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
 
-            context.IA.SetVertexBuffer(this.Vertices);
-            context.IA.SetIndexBuffer(this.GridIndices);
-            this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
+        context.IA.SetVertexBuffer(this.Vertices);
+        context.IA.SetIndexBuffer(this.GridIndices);
+        this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
 
-            context.DrawIndexed(this.GridIndices.Length, 0, 0);
-        }
+        context.DrawIndexed(this.GridIndices.Length, 0, 0);
     }
 
     public void Dispose()

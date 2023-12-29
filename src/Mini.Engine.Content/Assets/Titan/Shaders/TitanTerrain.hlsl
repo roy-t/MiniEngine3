@@ -6,7 +6,7 @@ struct VS_INPUT
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
-    float depth : TEXCOORD0;
+    float depth : TEXCOORD0; // TODO: depth only required for PSLine
 };
     
 struct OUTPUT
