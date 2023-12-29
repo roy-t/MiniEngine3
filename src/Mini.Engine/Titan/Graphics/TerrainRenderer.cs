@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using LibGame.Geometry;
 using LibGame.Graphics;
 using LibGame.Mathematics;
 using LibGame.Physics;
@@ -16,20 +17,14 @@ using Vortice.Direct3D11;
 
 using Shader = Mini.Engine.Content.Shaders.Generated.TitanTerrain;
 using Tile = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TILE;
+using Triangle = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TRIANGLE;
 
 namespace Mini.Engine.Titan.Graphics;
 
-
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct TerrainVertex
+public readonly struct TerrainVertex(Vector3 position)
 {
-    public Vector3 Position;
-
-    public TerrainVertex(Vector3 position)
-    {
-        this.Position = position;
-    }
-
+    public readonly Vector3 Position = position;
     public static readonly InputElementDescription[] Elements =
     [
         new("POSITION", 0, Vortice.DXGI.Format.R32G32B32_Float, 0 * sizeof(float), 0, InputClassification.PerVertexData, 0),
@@ -48,15 +43,17 @@ internal sealed class TerrainRenderer : IDisposable
     private readonly IndexBuffer<int> GridIndices;
     private readonly VertexBuffer<TerrainVertex> Indicators;
     private readonly VertexBuffer<TerrainVertex> Vertices;
-    private readonly StructuredBuffer<Tile> Tiles;
+    private readonly StructuredBuffer<Tile> TilesBuffer;
     private readonly ShaderResourceView<Tile> TilesView;
+    private readonly StructuredBuffer<Triangle> TrianglesBuffer;
+    private readonly ShaderResourceView<Triangle> TrianglesView;
     private readonly InputLayout Layout;
     private readonly Shader Shader;
     private readonly Shader.User User;
     private readonly BlendState OpaqueBlendState;
     private readonly BlendState AlphaBlendState;
     private readonly DepthStencilState DefaultDepthStencilState;
-    private readonly DepthStencilState NoneDepthStencilState;
+    private readonly DepthStencilState ReadOnlyDepthStencilState;
     private readonly RasterizerState DefaultRasterizerState;
     private readonly RasterizerState CullNoneRasterizerState;
 
@@ -67,7 +64,7 @@ internal sealed class TerrainRenderer : IDisposable
         this.OpaqueBlendState = device.BlendStates.Opaque;
         this.AlphaBlendState = device.BlendStates.NonPreMultiplied;
         this.DefaultDepthStencilState = device.DepthStencilStates.ReverseZ;
-        this.NoneDepthStencilState = device.DepthStencilStates.None;
+        this.ReadOnlyDepthStencilState = device.DepthStencilStates.ReverseZReadOnly;
         this.DefaultRasterizerState = device.RasterizerStates.Default;
         this.CullNoneRasterizerState = device.RasterizerStates.CullNone;
 
@@ -90,7 +87,7 @@ internal sealed class TerrainRenderer : IDisposable
         this.Vertices.MapData(device.ImmediateContext, vertices);
 
         this.Indices = new IndexBuffer<int>(device, nameof(TerrainRenderer));
-        var indices = GenerateIndices(width, height);
+        var (indices, triangles) = GenerateTriangles(width, height);
         this.Indices.MapData(device.ImmediateContext, indices);
 
         this.GridIndices = new IndexBuffer<int>(device, nameof(TerrainRenderer));
@@ -98,9 +95,13 @@ internal sealed class TerrainRenderer : IDisposable
         this.GridIndices.MapData(device.ImmediateContext, gridIndices);
 
         var tiles = GenerateTiles(width, height);
-        this.Tiles = new StructuredBuffer<Tile>(device, nameof(TerrainRenderer), tiles.Length);
-        this.Tiles.MapData(device.ImmediateContext, tiles);
-        this.TilesView = this.Tiles.CreateShaderResourceView();
+        this.TilesBuffer = new StructuredBuffer<Tile>(device, nameof(TerrainRenderer), tiles.Length);
+        this.TilesBuffer.MapData(device.ImmediateContext, tiles);
+        this.TilesView = this.TilesBuffer.CreateShaderResourceView();
+
+        this.TrianglesBuffer = new StructuredBuffer<Triangle>(device, nameof(TerrainRenderer), triangles.Length);
+        this.TrianglesBuffer.MapData(device.ImmediateContext, triangles);
+        this.TrianglesView = this.TrianglesBuffer.CreateShaderResourceView();
     }
 
     private static Tile[] GenerateTiles(int width, int height)
@@ -113,28 +114,29 @@ internal sealed class TerrainRenderer : IDisposable
         for (var i = 0; i < tiles.Length; i++)
         {
             var (x, y) = Indexes.ToTwoDimensional(i, columns);
-            
+
             var noise = Noise.CalcPixel2D(x, y, 0.01f);
             noise = Ranges.Map(noise, (0.0f, 256.0f), (0.0f, palette.Colors.Count));
-            var color = palette.Colors[(int)noise];            
-            
+            var color = palette.Colors[(int)noise];
+
             tiles[i] = new Tile()
             {
-                Albedo = Colors.RGBToLinear(color)
+                Albedo = Colors.RGBToLinear(color),
             };
-
         }
 
         return tiles;
     }
 
-    private static int[] GenerateIndices(int width, int height)
+    private static (int[], Triangle[]) GenerateTriangles(int width, int height)
     {
         // for every tile we have 2 triangles, so 6 indices
         var tiles = (width - 1) * (height - 1);
+        var triangles = new Triangle[tiles * 2];
         var indices = new int[tiles * 6];
-
+        
         var i = 0;
+        var t = 0;
         for (var c = 0; c < tiles; c++)
         {
             var (x, y) = Indexes.ToTwoDimensional(c, width - 1);
@@ -144,16 +146,39 @@ internal sealed class TerrainRenderer : IDisposable
             var bl = Indexes.ToOneDimensional(x, y + 1, width);
             var br = Indexes.ToOneDimensional(x + 1, y + 1, width);
 
-            indices[i++] = tl;
-            indices[i++] = tr;
-            indices[i++] = br;
+            // Make sure to cut into two triangles so that the
+            // edge shared by both triangles is horizontal if possible
+            var tlh = GetVertex(x, y);
+            var trh = GetVertex(x + 1, y);
+            var blh = GetVertex(x, y + 1);
+            var brh = GetVertex(x + 1, y + 1);
+            if (tlh.Y == brh.Y)
+            {
+                indices[i++] = tl;
+                indices[i++] = tr;
+                indices[i++] = br;
+                triangles[t++] = new Triangle() { Normal = Triangles.GetNormal(tlh, trh, brh) };
 
-            indices[i++] = br;
-            indices[i++] = bl;
-            indices[i++] = tl;
+                indices[i++] = br;
+                indices[i++] = bl;
+                indices[i++] = tl;
+                triangles[t++] = new Triangle() { Normal = Triangles.GetNormal(brh, blh, tlh) };
+            }
+            else
+            {
+                indices[i++] = tr;
+                indices[i++] = br;
+                indices[i++] = bl;
+                triangles[t++] = new Triangle() { Normal = Triangles.GetNormal(trh, brh, blh) };
+
+                indices[i++] = bl;
+                indices[i++] = tl;
+                indices[i++] = tr;
+                triangles[t++] = new Triangle() { Normal = Triangles.GetNormal(blh, tlh, trh) };
+            }
         }
 
-        return indices;
+        return (indices, triangles);
     }
 
     private static int[] GenerateGridIndices(int width, int height)
@@ -166,7 +191,7 @@ internal sealed class TerrainRenderer : IDisposable
         for (var x = 0; x < columns; x++)
         {
             for (var y = 0; y <= rows; y++)
-            {             
+            {
                 var a = Indexes.ToOneDimensional(x, y, width);
                 var b = Indexes.ToOneDimensional(x + 1, y, width);
 
@@ -199,11 +224,28 @@ internal sealed class TerrainRenderer : IDisposable
         for (var i = 0; i < vertices.Length; i++)
         {
             var (x, y) = Indexes.ToTwoDimensional(i, width);
-            var position = offset + new Vector3(x * spacing, 0.0f, y * spacing);
+            var yOffset = GetHeightOffset(x, y);
+            var position = offset + GetVertex(x, y, spacing);
             vertices[i] = new TerrainVertex(position);
         }
 
         return vertices;
+    }
+
+    private static Vector3 GetVertex(int x, int y, float spacing = 1.0f)
+    {
+        var yOffset = GetHeightOffset(x, y);
+        return new Vector3(x * spacing, yOffset, y * spacing);
+    }
+
+    private static float GetHeightOffset(int x, int y)
+    {
+        var noise = Noise.CalcPixel2D(x, y, 0.01f);
+        noise = Ranges.Map(noise, (0.0f, 256.0f), (0.0f, 10.0f));
+        noise = MathF.Floor(noise) * 1.0f;
+        var yOffset = noise;
+
+        return yOffset;
     }
 
     public void Render(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
@@ -219,6 +261,7 @@ internal sealed class TerrainRenderer : IDisposable
 
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetBuffer(Shader.Tiles, this.TilesView);
+        context.PS.SetBuffer(Shader.Triangles, this.TrianglesView);
 
         context.IA.SetVertexBuffer(this.Vertices);
         context.IA.SetIndexBuffer(this.Indices);
@@ -235,7 +278,7 @@ internal sealed class TerrainRenderer : IDisposable
 
             context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
 
-            context.IA.SetVertexBuffer(this.Indicators);            
+            context.IA.SetVertexBuffer(this.Indicators);
             this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
 
             context.Draw(this.Indicators.Length);
@@ -244,7 +287,7 @@ internal sealed class TerrainRenderer : IDisposable
 
     private void RenderGrid(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.CullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.AlphaBlendState, this.NoneDepthStencilState);
+        context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.CullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.AlphaBlendState, this.ReadOnlyDepthStencilState);
 
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
 
@@ -265,6 +308,9 @@ internal sealed class TerrainRenderer : IDisposable
         this.GridIndices.Dispose();
 
         this.TilesView.Dispose();
-        this.Tiles.Dispose();
+        this.TilesBuffer.Dispose();
+
+        this.TrianglesView.Dispose();
+        this.TrianglesBuffer.Dispose();
     }
 }

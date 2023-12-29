@@ -85,6 +85,7 @@ internal sealed class CameraController
                 scrollAccumulator += 1.0f;
             }
         }
+        scrollAccumulator = Math.Clamp(scrollAccumulator, -1.0f, 1.0f);
 
         var zoomProgress = Ranges.Map(this.distance, (0.0f, DistanceMax), (0.0f, 1.0f));        
         this.UpdateTarget(scrollAccumulator * zoomProgress * ZoomSpeed, in viewport);
@@ -101,9 +102,7 @@ internal sealed class CameraController
 
     private Transform GetCameraTransform()
     {
-
         var vector = new Vector3(MathF.Cos(this.rotation), 0.0f, MathF.Sin(this.rotation));
-        //var vector = Vector3.TransformNormal(Vector3.UnitZ, Matrix4x4.CreateRotationY(this.rotation));
 
         var vertical = this.distance * this.slope;
         var horizontal = this.distance * (1.0f - this.slope);

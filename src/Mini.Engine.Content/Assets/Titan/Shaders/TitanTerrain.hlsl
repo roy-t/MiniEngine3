@@ -18,6 +18,11 @@ struct TILE
 {
     float3 albedo;
 };
+    
+struct TRIANGLE
+{
+    float3 normal;
+};
   
 cbuffer Constants : register(b0)
 {
@@ -25,6 +30,7 @@ cbuffer Constants : register(b0)
 };
     
 StructuredBuffer<TILE> Tiles: register(t0);
+StructuredBuffer<TRIANGLE> Triangles: register(t1);
     
 #pragma VertexShader
 PS_INPUT VS(VS_INPUT input)
@@ -39,8 +45,18 @@ PS_INPUT VS(VS_INPUT input)
 OUTPUT PS(PS_INPUT input, uint primitiveId : SV_PrimitiveID)
 {
     OUTPUT output;
+    
     float3 albedo = Tiles[primitiveId / 2].albedo;
-    output.albedo = float4(albedo, 1.0);
+    float3 normal = Triangles[primitiveId].normal;
+        
+    const float3 lightDirection = normalize(float3(-3.0, -1.0, 0.0));
+    const float3 lightColor = float3(1.0, 1.0, 1.0);
+    const float3 ambient = float3(0.1, 0.1, 0.1);
+    
+    float3 diffuse = max(dot(normal, -lightDirection), 0.0) * lightColor;    
+    float3 color = saturate(ambient + diffuse) * albedo; // TODO: instead of saturate, just let it grow out of bounds and fix in tonemap
+    
+    output.albedo = float4(color, 1.0);    
         
     return output;
 }
