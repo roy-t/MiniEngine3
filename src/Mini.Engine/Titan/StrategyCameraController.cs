@@ -13,7 +13,7 @@ using static Windows.Win32.UI.Input.KeyboardAndMouse.VIRTUAL_KEY;
 namespace Mini.Engine.Titan;
 
 [Service]
-internal sealed class CameraController
+internal sealed class StrategyCameraController
 {
     private static readonly ushort KeyReset = InputService.GetScanCode(VK_R);
     private static readonly ushort KeyRotateUp = InputService.GetScanCode(VK_OEM_7); // '
@@ -36,7 +36,7 @@ internal sealed class CameraController
     private float rotation;
     private float distance;
 
-    public CameraController(Device device, InputService inputService)
+    public StrategyCameraController(Device device, InputService inputService)
     {
         this.Keyboard = new Keyboard();
         this.Mouse = new Mouse();

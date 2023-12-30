@@ -31,10 +31,10 @@ public static class Extruder
                 var a = crossSection[j + 0];
                 var b = crossSection[j + 1];
 
-                var normal = Vector3.TransformNormal(Lines.GetNormalFromLineSegement(a, b).WithZ(), matrix);
+                var normal = Vector3.TransformNormal(Lines.GetNormalFromLineSegement(a, b).Expand(), matrix);
 
-                var vA = Vector3.Transform(a.WithZ(), matrix);
-                var vB = Vector3.Transform(b.WithZ(), matrix);
+                var vA = Vector3.Transform(a.Expand(), matrix);
+                var vB = Vector3.Transform(b.Expand(), matrix);
 
                 var index = builder.AddVertex(vA, normal);
                 minIndex = Math.Min(minIndex, index);
@@ -94,10 +94,10 @@ public static class Extruder
 
             for (var j = 0; j < crossSection.Steps; j++)
             {
-                var topRight = Vector3.Transform(crossSection[j + 1].WithZ(), matrixB);
-                var bottomRight = Vector3.Transform(crossSection[j + 1].WithZ(), matrixA);
-                var bottomLeft = Vector3.Transform(crossSection[j].WithZ(), matrixA);
-                var topLeft = Vector3.Transform(crossSection[j].WithZ(), matrixB);
+                var topRight = Vector3.Transform(crossSection[j + 1].Expand(), matrixB);
+                var bottomRight = Vector3.Transform(crossSection[j + 1].Expand(), matrixA);
+                var bottomLeft = Vector3.Transform(crossSection[j].Expand(), matrixA);
+                var topLeft = Vector3.Transform(crossSection[j].Expand(), matrixB);
 
                 builder.AddQuad(topRight, bottomRight, bottomLeft, topLeft);
             }

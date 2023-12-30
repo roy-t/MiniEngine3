@@ -6,7 +6,7 @@ public static class PathExtensions
 {
     public static Path3D ToPath3D(this Path2D original, float unitZ = 0.0f)
     {
-        return new Path3D(original.IsClosed, original.Positions.Select(p => p.WithZ(unitZ)).ToArray());
+        return new Path3D(original.IsClosed, original.Positions.Select(p => p.Expand(unitZ)).ToArray());
     }
 
     public static Path3D Reverse(this Path3D original)

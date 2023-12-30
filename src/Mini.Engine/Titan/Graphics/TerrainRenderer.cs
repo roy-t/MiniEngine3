@@ -11,10 +11,9 @@ using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.Graphics.Cameras;
-using SimplexNoise;
+using LibGame.Noise;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
-
 using Shader = Mini.Engine.Content.Shaders.Generated.TitanTerrain;
 using Tile = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TILE;
 using Triangle = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TRIANGLE;
@@ -115,8 +114,8 @@ internal sealed class TerrainRenderer : IDisposable
         {
             var (x, y) = Indexes.ToTwoDimensional(i, columns);
 
-            var noise = Noise.CalcPixel2D(x, y, 0.01f);
-            noise = Ranges.Map(noise, (0.0f, 256.0f), (0.0f, palette.Colors.Count));
+            var noise = SimplexNoise.Noise(x * 0.01f, y * 0.01f);
+            noise = Ranges.Map(noise, (-1.0f, 1.0f), (0.0f, palette.Colors.Count));
             var color = palette.Colors[(int)noise];
 
             tiles[i] = new Tile()
@@ -134,7 +133,7 @@ internal sealed class TerrainRenderer : IDisposable
         var tiles = (width - 1) * (height - 1);
         var triangles = new Triangle[tiles * 2];
         var indices = new int[tiles * 6];
-        
+
         var i = 0;
         var t = 0;
         for (var c = 0; c < tiles; c++)
@@ -240,13 +239,40 @@ internal sealed class TerrainRenderer : IDisposable
 
     private static float GetHeightOffset(int x, int y)
     {
-        var noise = Noise.CalcPixel2D(x, y, 0.01f);
-        noise = Ranges.Map(noise, (0.0f, 256.0f), (0.0f, 10.0f));
+        //var noise = FBM(x, y);
+        var noise = SimplexNoise.Noise(x * 0.01f, y * 0.01f);
+        noise = Ranges.Map(noise, (-1.0f, 1.0f), (0.0f, 10.0f));
         noise = MathF.Floor(noise) * 1.0f;
         var yOffset = noise;
 
         return yOffset;
     }
+
+    // TODO: replace with new noise
+    //private static float FBM(int x, int y)
+    //{
+    //    const float Frequency = 1.0f;
+    //    const float Lacunarity = 0.909f;
+    //    const float Amplitude = (1.0f / 256.0f) * 10.0f;
+    //    const float Persistance = 0.600f;
+    //    const int Octaves = 20;
+
+    //    var sum = 0.0f;
+
+    //    var frequency = Frequency;
+    //    var amplitude = Amplitude;
+    //    for (var i = 0; i < Octaves; i++)
+    //    {
+    //        sum += Noise.CalcPixel2D((int)(x * frequency), (int)(y * frequency), 1.0f) * amplitude;
+    //        frequency *= Lacunarity;
+    //        amplitude *= Persistance;
+
+    //        x += 4643;
+    //        y += 3121;
+    //    }
+
+    //    return sum;
+    //}
 
     public void Render(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
     {
