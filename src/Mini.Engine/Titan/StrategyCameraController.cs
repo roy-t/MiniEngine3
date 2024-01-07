@@ -40,7 +40,7 @@ internal sealed class StrategyCameraController
     {
         this.Keyboard = new Keyboard();
         this.Mouse = new Mouse();
-        this.InputService = inputService;        
+        this.InputService = inputService;
         this.Camera = CreateCamera(device.Width, device.Height);
 
         this.ResetParameters();
@@ -87,7 +87,7 @@ internal sealed class StrategyCameraController
         }
         scrollAccumulator = Math.Clamp(scrollAccumulator, -1.0f, 1.0f);
 
-        var zoomProgress = Ranges.Map(this.distance, (0.0f, DistanceMax), (0.0f, 1.0f));        
+        var zoomProgress = Ranges.Map(this.distance, (0.0f, DistanceMax), (0.0f, 1.0f));
         this.UpdateTarget(scrollAccumulator * zoomProgress * ZoomSpeed, in viewport);
         this.Transform = this.GetCameraTransform();
     }
@@ -97,7 +97,7 @@ internal sealed class StrategyCameraController
         this.target = Vector3.Zero;
         this.slope = 0.5f;
         this.rotation = 0.0f;
-        this.distance = 10.0f;
+        this.distance = 35.0f;
     }
 
     private Transform GetCameraTransform()
