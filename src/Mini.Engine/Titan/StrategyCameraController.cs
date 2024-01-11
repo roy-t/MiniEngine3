@@ -102,7 +102,7 @@ internal sealed class StrategyCameraController
 
     private Transform GetCameraTransform()
     {
-        var vector = new Vector3(MathF.Cos(this.rotation), 0.0f, MathF.Sin(this.rotation));
+        var vector = new Vector3(MathF.Sin(this.rotation), 0.0f, MathF.Cos(this.rotation));
 
         var vertical = this.distance * this.slope;
         var horizontal = this.distance * (1.0f - this.slope);
