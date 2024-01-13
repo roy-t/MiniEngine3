@@ -68,7 +68,7 @@ OUTPUT PSLine(PS_INPUT input)
     // or a different ViewProjection matrix is used.
     float depth = input.depth * 100.0; 
     float a = clamp(depth, 0.0, 1.0);
-    output.albedo = float4(0.0, 0.0, 0.0, a);
+    output.albedo = float4(0.0, 1.0, 0.0, a);
     
     return output;
 }

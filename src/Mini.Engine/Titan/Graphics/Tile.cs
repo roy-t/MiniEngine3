@@ -53,6 +53,23 @@ public static class TileUtilities
     private static readonly Vector4 SlopeOffsets = new(0.5f, -0.5f, -0.5f, 0.5f);
     private static readonly Vector4 DiagonalSlopeOffsets = new(0.5f, 0.0f, -0.5f, 0.0f);
 
+
+    public static List<TileType> Fit(TileCorner corner, float targetHeight, float baseHeight, List<TileType> options)
+    {
+        for (var i = options.Count - 1; i >= 0; i--)
+        {
+            var type = options[i];
+            var height = baseHeight + GetCornerOffsets(type)[(int)corner];
+            if (Math.Abs(targetHeight - height) > 0.01f)
+            {
+                options.RemoveAt(i);
+            }
+        }
+
+        return options;
+    }
+
+
     /// <summary>
     /// Returns the offsets (-1.0f, 0.0f, or 1.0f) of the 4 corners of the given tile
     /// The offets are returned in clockwise order, starting with the north-east corner

@@ -1,8 +1,6 @@
 ﻿using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using LibGame.Geometry;
-using LibGame.Graphics;
 using LibGame.Mathematics;
 using LibGame.Noise;
 using LibGame.Physics;
@@ -15,7 +13,6 @@ using Mini.Engine.Graphics.Cameras;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Shader = Mini.Engine.Content.Shaders.Generated.TitanTerrain;
-using Tile = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TILE;
 using Triangle = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TRIANGLE;
 
 namespace Mini.Engine.Titan.Graphics;
@@ -41,14 +38,14 @@ internal sealed class TerrainRenderer : IDisposable
 {
     private const int MaxHeight = 10;
 
-    private readonly int[] Heights;
+    // private readonly int[] Heights;
 
     private readonly IndexBuffer<int> Indices;
-    //private readonly IndexBuffer<int> GridIndices;
-    private readonly VertexBuffer<TerrainVertex> Indicators;
+    private readonly IndexBuffer<int> GridIndices;
     private readonly VertexBuffer<TerrainVertex> Vertices;
     //private readonly StructuredBuffer<Tile> TilesBuffer;
     //private readonly ShaderResourceView<Tile> TilesView;
+    //private readonly VertexBuffer<TerrainVertex> Indicators;
     private readonly StructuredBuffer<Triangle> TrianglesBuffer;
     private readonly ShaderResourceView<Triangle> TrianglesView;
     private readonly InputLayout Layout;
@@ -75,32 +72,34 @@ internal sealed class TerrainRenderer : IDisposable
         this.User = shader.CreateUserFor<TerrainRenderer>();
         this.Shader = shader;
 
-        const int width = 1000;
-        const int height = 1000;
 
-        this.Heights = GenerateHeights(width, height);
+        //this.Indicators = new VertexBuffer<TerrainVertex>(device, nameof(TerrainRenderer));
+        //var indicators = new TerrainVertex[]
+        //{
+        //    new(-Vector3.UnitY),
+        //    new(Vector3.UnitY),
+        //};
+        //this.Indicators.MapData(device.ImmediateContext, indicators);
 
-        this.Indicators = new VertexBuffer<TerrainVertex>(device, nameof(TerrainRenderer));
-        var indicators = new TerrainVertex[]
-        {
-            new(-Vector3.UnitY),
-            new(Vector3.UnitY),
-        };
-        this.Indicators.MapData(device.ImmediateContext, indicators);
+        const int width = 200;
+        const int height = 200;
 
-        //var vertices = this.GenerateVertices(width, height, 1.0f);
-        //var (indices, triangles) = this.GenerateTriangles(width, height);
+        //var heights = new float[] { 0.5f, 0, 0, 0 };
 
-        var terrainTiles = new TerrainTile[]
-        {
-            new(TileType.SlopeStartN, 0.0f),
-            new(TileType.SlopeN, 0.0f),
-            new(TileType.Flat, 1.0f),
-            new(TileType.Flat, 0.0f),
-        };
-        (var vertices, var indices, var triangles) = FromTiles(terrainTiles, 2);
+        var heights = GenerateHeights(width, height);
 
-        throw new Exception("TODO: rendering individual tiles now works, but we need extra work to get the grid lines back!");
+        // TODO: making fitting tiles often fails if there's not fitting shape cascade
+        throw new Exception();
+        var terrainTiles = GetTiles(heights, width);
+        //var terrainTiles = new TerrainTile[width * height];
+        //for (var i = 0; i < terrainTiles.Length; i++)
+        //{
+        //    terrainTiles[i] = new TerrainTile(TileType.Flat, heights[i]);
+        //}
+
+        //terrainTiles[0] = new TerrainTile(TileType.SlopeN, 1.0f);
+
+        (var vertices, var indices, var gridIndices, var triangles) = FromTiles(terrainTiles, width);
 
         this.Vertices = new VertexBuffer<TerrainVertex>(device, nameof(TerrainRenderer));
         this.Vertices.MapData(device.ImmediateContext, vertices);
@@ -112,9 +111,8 @@ internal sealed class TerrainRenderer : IDisposable
         this.TrianglesBuffer.MapData(device.ImmediateContext, triangles);
         this.TrianglesView = this.TrianglesBuffer.CreateShaderResourceView();
 
-        //this.GridIndices = new IndexBuffer<int>(device, nameof(TerrainRenderer));
-        //var gridIndices = GenerateGridIndices(width, height);
-        //this.GridIndices.MapData(device.ImmediateContext, gridIndices);
+        this.GridIndices = new IndexBuffer<int>(device, nameof(TerrainRenderer));
+        this.GridIndices.MapData(device.ImmediateContext, gridIndices);
 
         //var tiles = this.GenerateTiles(width, height);
         //this.TilesBuffer = new StructuredBuffer<Tile>(device, nameof(TerrainRenderer), tiles.Length);
@@ -122,20 +120,85 @@ internal sealed class TerrainRenderer : IDisposable
         //this.TilesView = this.TilesBuffer.CreateShaderResourceView();
     }
 
+    private TerrainTile[] GetTiles(float[] heights, int stride)
+    {
+        var values = Enum.GetValues<TileType>();
+        var options = new List<TileType>();
 
-    private static (TerrainVertex[], int[], Triangle[]) FromTiles(TerrainTile[] tiles, int width)
+        var columns = stride;
+        var rows = heights.Length / stride;
+        var tiles = new TerrainTile[columns * rows];
+
+        // First tile
+        tiles[0] = new TerrainTile(TileType.Flat, heights[0]);
+
+        // First row
+        for (var i = 1; i < columns; i++)
+        {
+            var leftTile = tiles[i - 1];
+            var height = heights[i];
+
+            options.Clear();
+            options.AddRange(values);
+            options = TileUtilities.Fit(TileCorner.NW, leftTile.GetHeight(TileCorner.NE), height, options);
+            options = TileUtilities.Fit(TileCorner.SW, leftTile.GetHeight(TileCorner.SE), height, options);
+
+            tiles[i] = new TerrainTile(options.FirstOrDefault(TileType.Flat), height);
+        }
+
+        // First column
+        for (var i = stride; i < heights.Length; i += stride)
+        {
+            var topTile = tiles[i - stride];
+            var height = heights[i];
+
+            options.Clear();
+            options.AddRange(values);
+            options = TileUtilities.Fit(TileCorner.NW, topTile.GetHeight(TileCorner.SW), height, options);
+            options = TileUtilities.Fit(TileCorner.NE, topTile.GetHeight(TileCorner.SE), height, options);
+
+            tiles[i] = new TerrainTile(options.FirstOrDefault(TileType.Flat), height);
+        }
+
+        for (var i = stride + 1; i < heights.Length; i++)
+        {
+            var nw = tiles[i - stride - 1];
+            var n = tiles[i - stride];
+            var w = tiles[i - 1];
+            var height = heights[i];
+
+            options.Clear();
+            options.AddRange(values);
+
+            options = TileUtilities.Fit(TileCorner.NW, nw.GetHeight(TileCorner.SE), height, options);
+
+            options = TileUtilities.Fit(TileCorner.NW, n.GetHeight(TileCorner.SW), height, options);
+            options = TileUtilities.Fit(TileCorner.NE, n.GetHeight(TileCorner.SE), height, options);
+
+            options = TileUtilities.Fit(TileCorner.NW, w.GetHeight(TileCorner.NE), height, options);
+            options = TileUtilities.Fit(TileCorner.SW, w.GetHeight(TileCorner.SE), height, options);
+
+            tiles[i] = new TerrainTile(options.FirstOrDefault(TileType.Flat), height);
+        }
+
+        return tiles;
+    }
+
+    private static (TerrainVertex[], int[], int[], Triangle[]) FromTiles(TerrainTile[] tiles, int stride)
     {
         var vertices = new TerrainVertex[4 * tiles.Length];
         var indices = new int[6 * tiles.Length];
+        var gridIndices = new int[8 * tiles.Length];
         var triangles = new Triangle[2 * tiles.Length];
 
         var v = 0;
         var i = 0;
+        var g = 0;
         var t = 0;
-        for (var ix = 0; ix < tiles.Length; ix++)
+        for (var it = 0; it < tiles.Length; it++)
         {
-            var tile = tiles[ix];
-            var (x, y) = Indexes.ToTwoDimensional(ix, width);
+            var tile = tiles[it];
+            var (x, y) = Indexes.ToTwoDimensional(it, stride);
             vertices[v + 0] = new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NE, x, y));
             vertices[v + 1] = new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SE, x, y));
             vertices[v + 2] = new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SW, x, y));
@@ -153,12 +216,25 @@ internal sealed class TerrainRenderer : IDisposable
             triangles[t + 0] = new Triangle() { Normal = n0 };
             triangles[t + 1] = new Triangle() { Normal = n1 };
 
+            gridIndices[g + 0] = v + 0;
+            gridIndices[g + 1] = v + 1;
+
+            gridIndices[g + 2] = v + 1;
+            gridIndices[g + 3] = v + 2;
+
+            gridIndices[g + 4] = v + 2;
+            gridIndices[g + 5] = v + 3;
+
+            gridIndices[g + 6] = v + 3;
+            gridIndices[g + 7] = v + 0;
+
             v += 4;
             i += 6;
+            g += 8;
             t += 2;
         }
 
-        return (vertices, indices, triangles);
+        return (vertices, indices, gridIndices, triangles);
     }
 
     private static Vector3 GetTileCornerPosition(TerrainTile tile, TileCorner corner, int tileX, int tileY)
@@ -167,100 +243,47 @@ internal sealed class TerrainRenderer : IDisposable
         return new Vector3(offset.X + tileX, offset.Y + tile.Offset, offset.Z + tileY);
     }
 
-    private static int[] GenerateHeights(int width, int height)
+    private static float[] GenerateHeights(int width, int height)
     {
-        var heights = new int[width * height];
+        var heights = new float[width * height];
 
         Parallel.For(0, heights.Length, i =>
         {
             var (x, y) = Indexes.ToTwoDimensional(i, width);
             var noise = FractalBrownianMotion.Generate(SimplexNoise.Noise, x * 0.001f, y * 0.001f, 1.5f, 0.9f, 5);
             noise = Ranges.Map(noise, (-1.0f, 1.0f), (0.0f, MaxHeight));
-            heights[i] = (int)noise;
+            heights[i] = ((int)noise) * 0.5f;
         });
 
         return heights;
     }
 
-    private Tile[] GenerateTiles(int width, int height)
-    {
-        var palette = ColorPalette.GrassLawn;
-        var columns = width - 1;
-        var rows = height - 1;
-        var length = columns * rows;
-        var tiles = new Tile[length];
-        for (var i = 0; i < tiles.Length; i++)
-        {
-            var (x, y) = Indexes.ToTwoDimensional(i, columns);
+    //private Tile[] GenerateTiles(int width, int height)
+    //{
+    //    var palette = ColorPalette.GrassLawn;
+    //    var columns = width - 1;
+    //    var rows = height - 1;
+    //    var length = columns * rows;
+    //    var tiles = new Tile[length];
+    //    for (var i = 0; i < tiles.Length; i++)
+    //    {
+    //        var (x, y) = Indexes.ToTwoDimensional(i, columns);
 
-            var noise = this.GetHeight(x, y, width);
-            noise = Math.Min(noise, this.GetHeight(x + 1, y, width));
-            noise = Math.Min(noise, this.GetHeight(x, y + 1, width));
-            noise = Math.Min(noise, this.GetHeight(x + 1, y + 1, width));
-            var index = (int)Ranges.Map(noise, (0.0f, MaxHeight), (0.0f, palette.Colors.Count - 1));
-            var color = palette.Colors[index];
+    //        var noise = this.GetHeight(x, y, width);
+    //        noise = Math.Min(noise, this.GetHeight(x + 1, y, width));
+    //        noise = Math.Min(noise, this.GetHeight(x, y + 1, width));
+    //        noise = Math.Min(noise, this.GetHeight(x + 1, y + 1, width));
+    //        var index = (int)Ranges.Map(noise, (0.0f, MaxHeight), (0.0f, palette.Colors.Count - 1));
+    //        var color = palette.Colors[index];
 
-            tiles[i] = new Tile()
-            {
-                Albedo = Colors.RGBToLinear(color),
-            };
-        }
+    //        tiles[i] = new Tile()
+    //        {
+    //            Albedo = Colors.RGBToLinear(color),
+    //        };
+    //    }
 
-        return tiles;
-    }
-
-    private (int[], Triangle[]) GenerateTriangles(int width, int height)
-    {
-        // for every tile we have 2 triangles, so 6 indices
-        var tiles = (width - 1) * (height - 1);
-        var triangles = new Triangle[tiles * 2];
-        var indices = new int[tiles * 6];
-
-        var i = 0;
-        var t = 0;
-        for (var c = 0; c < tiles; c++)
-        {
-            var (x, y) = Indexes.ToTwoDimensional(c, width - 1);
-
-            var tl = Indexes.ToOneDimensional(x, y, width);
-            var tr = Indexes.ToOneDimensional(x + 1, y, width);
-            var bl = Indexes.ToOneDimensional(x, y + 1, width);
-            var br = Indexes.ToOneDimensional(x + 1, y + 1, width);
-
-            // Make sure to cut into two triangles so that the
-            // edge shared by both triangles is horizontal if possible
-            var tlh = this.GetVertex(x, y, width);
-            var trh = this.GetVertex(x + 1, y, width);
-            var blh = this.GetVertex(x, y + 1, width);
-            var brh = this.GetVertex(x + 1, y + 1, width);
-            if (tlh.Y == brh.Y)
-            {
-                indices[i++] = tl;
-                indices[i++] = tr;
-                indices[i++] = br;
-                triangles[t++] = new Triangle() { Normal = Triangles.GetNormal(tlh, trh, brh) };
-
-                indices[i++] = br;
-                indices[i++] = bl;
-                indices[i++] = tl;
-                triangles[t++] = new Triangle() { Normal = Triangles.GetNormal(brh, blh, tlh) };
-            }
-            else
-            {
-                indices[i++] = tr;
-                indices[i++] = br;
-                indices[i++] = bl;
-                triangles[t++] = new Triangle() { Normal = Triangles.GetNormal(trh, brh, blh) };
-
-                indices[i++] = bl;
-                indices[i++] = tl;
-                indices[i++] = tr;
-                triangles[t++] = new Triangle() { Normal = Triangles.GetNormal(blh, tlh, trh) };
-            }
-        }
-
-        return (indices, triangles);
-    }
+    //    return tiles;
+    //}   
 
     private static int[] GenerateGridIndices(int width, int height)
     {
@@ -296,38 +319,11 @@ internal sealed class TerrainRenderer : IDisposable
         return indices;
     }
 
-    private TerrainVertex[] GenerateVertices(int width, int height, float spacing)
-    {
-        var vertices = new TerrainVertex[width * height];
-
-        var offset = new Vector3((width - 1) * spacing * -0.5f, 0.0f, (height - 1) * spacing * -0.5f);
-
-        for (var i = 0; i < vertices.Length; i++)
-        {
-            var (x, y) = Indexes.ToTwoDimensional(i, width);
-            var position = offset + this.GetVertex(x, y, width, spacing);
-            vertices[i] = new TerrainVertex(position);
-        }
-
-        return vertices;
-    }
-
-    private Vector3 GetVertex(int x, int y, int stride, float spacing = 1.0f)
-    {
-        var height = this.GetHeight(x, y, stride);
-        return new Vector3(x * spacing, height, y * spacing);
-    }
-
-    private float GetHeight(int x, int y, int stride)
-    {
-        return this.Heights[Indexes.ToOneDimensional(x, y, stride)];
-    }
-
     public void Render(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
     {
         this.RenderTiles(context, camera, in cameraTransform, in viewport, in scissor);
         //this.RenderSelection(context, in camera, in cameraTransform, in viewport, in scissor);
-        //this.RenderGrid(context, in camera, in cameraTransform, in viewport, in scissor);
+        this.RenderGrid(context, in camera, in cameraTransform, in viewport, in scissor);
     }
 
     private void RenderTiles(DeviceContext context, PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
@@ -360,27 +356,27 @@ internal sealed class TerrainRenderer : IDisposable
     //    }
     //}
 
-    //private void RenderGrid(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
-    //{
-    //    context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.CullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.AlphaBlendState, this.ReadOnlyDepthStencilState);
+    private void RenderGrid(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
+    {
+        context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.CullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.AlphaBlendState, this.ReadOnlyDepthStencilState);
 
-    //    context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
+        context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
 
-    //    context.IA.SetVertexBuffer(this.Vertices);
-    //    context.IA.SetIndexBuffer(this.GridIndices);
-    //    this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
+        context.IA.SetVertexBuffer(this.Vertices);
+        context.IA.SetIndexBuffer(this.GridIndices);
+        this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
 
-    //    context.DrawIndexed(this.GridIndices.Length, 0, 0);
-    //}
+        context.DrawIndexed(this.GridIndices.Length, 0, 0);
+    }
 
     public void Dispose()
     {
         this.User.Dispose();
         this.Layout.Dispose();
-        this.Indicators.Dispose();
+        //this.Indicators.Dispose();
         this.Vertices.Dispose();
         this.Indices.Dispose();
-        //this.GridIndices.Dispose();
+        this.GridIndices.Dispose();
         //this.TilesView.Dispose();
         //this.TilesBuffer.Dispose();
 
