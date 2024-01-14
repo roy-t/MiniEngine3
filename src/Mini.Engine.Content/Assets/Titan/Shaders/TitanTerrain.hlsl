@@ -46,7 +46,7 @@ OUTPUT PS(PS_INPUT input, uint primitiveId : SV_PrimitiveID)
 {
     OUTPUT output;
     
-    float3 albedo = float3(1.0f, 0.0f, 0.0f); // Tiles[primitiveId / 2].albedo;
+    float3 albedo = Tiles[primitiveId / 2].albedo;
     float3 normal = Triangles[primitiveId].normal;
         
     const float3 lightDirection = normalize(float3(-3.0, -1.0, 0.0));

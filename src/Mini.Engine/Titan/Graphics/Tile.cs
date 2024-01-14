@@ -27,6 +27,14 @@ public enum TileType : byte
     SlopeE,
     SlopeS,
     SlopeW,
+    SlopeStartNE,
+    SlopeStartSE,
+    SlopeStartSW,
+    SlopeStartNW,
+    SlopeEndNE,
+    SlopeEndSE,
+    SlopeEndSW,
+    SlopeEndNW,
     SlopeNE,
     SlopeSE,
     SlopeSW,
@@ -50,6 +58,8 @@ public static class TileUtilities
 {
     private static readonly Vector4 SlopeStartOffsets = new(0.5f, 0.0f, 0.0f, 0.5f);
     private static readonly Vector4 SlopeEndOffsets = new(0.0f, -0.5f, -0.5f, 0.0f);
+    private static readonly Vector4 DiagonalStartOffsets = new(0.5f, 0.5f, 0.0f, 0.5f);
+    private static readonly Vector4 DiagonalEndOffsets = new(0.0f, -0.5f, -0.5f, -0.5f);
     private static readonly Vector4 SlopeOffsets = new(0.5f, -0.5f, -0.5f, 0.5f);
     private static readonly Vector4 DiagonalSlopeOffsets = new(0.5f, 0.0f, -0.5f, 0.0f);
 
@@ -71,7 +81,7 @@ public static class TileUtilities
 
 
     /// <summary>
-    /// Returns the offsets (-1.0f, 0.0f, or 1.0f) of the 4 corners of the given tile
+    /// Returns the offsets (-0.5f, 0.0f, or 0.5f) of the 4 corners of the given tile
     /// The offets are returned in clockwise order, starting with the north-east corner
     /// </summary>
     public static Vector4 GetCornerOffsets(TileType type)
@@ -94,6 +104,16 @@ public static class TileUtilities
             TileType.SlopeE => SlopeOffsets.RotateRight(1),
             TileType.SlopeS => SlopeOffsets.RotateRight(2),
             TileType.SlopeW => SlopeOffsets.RotateRight(3),
+
+            TileType.SlopeStartNE => DiagonalStartOffsets,
+            TileType.SlopeStartSE => DiagonalStartOffsets.RotateRight(1),
+            TileType.SlopeStartSW => DiagonalStartOffsets.RotateRight(2),
+            TileType.SlopeStartNW => DiagonalStartOffsets.RotateRight(3),
+
+            TileType.SlopeEndNE => DiagonalEndOffsets,
+            TileType.SlopeEndSE => DiagonalEndOffsets.RotateRight(1),
+            TileType.SlopeEndSW => DiagonalEndOffsets.RotateRight(2),
+            TileType.SlopeEndNW => DiagonalEndOffsets.RotateRight(3),
 
             TileType.SlopeNE => DiagonalSlopeOffsets,
             TileType.SlopeSE => DiagonalSlopeOffsets.RotateRight(1),

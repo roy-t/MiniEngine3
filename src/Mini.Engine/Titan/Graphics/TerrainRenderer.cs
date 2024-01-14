@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using LibGame.Graphics;
 using LibGame.Mathematics;
 using LibGame.Noise;
 using LibGame.Physics;
@@ -13,6 +14,7 @@ using Mini.Engine.Graphics.Cameras;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Shader = Mini.Engine.Content.Shaders.Generated.TitanTerrain;
+using Tile = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TILE;
 using Triangle = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TRIANGLE;
 
 namespace Mini.Engine.Titan.Graphics;
@@ -43,8 +45,8 @@ internal sealed class TerrainRenderer : IDisposable
     private readonly IndexBuffer<int> Indices;
     private readonly IndexBuffer<int> GridIndices;
     private readonly VertexBuffer<TerrainVertex> Vertices;
-    //private readonly StructuredBuffer<Tile> TilesBuffer;
-    //private readonly ShaderResourceView<Tile> TilesView;
+    private readonly StructuredBuffer<Tile> TilesBuffer;
+    private readonly ShaderResourceView<Tile> TilesView;
     //private readonly VertexBuffer<TerrainVertex> Indicators;
     private readonly StructuredBuffer<Triangle> TrianglesBuffer;
     private readonly ShaderResourceView<Triangle> TrianglesView;
@@ -83,14 +85,21 @@ internal sealed class TerrainRenderer : IDisposable
 
         const int width = 200;
         const int height = 200;
-
-        //var heights = new float[] { 0.5f, 0, 0, 0 };
-
         var heights = GenerateHeights(width, height);
+        //heights[610] = 10.0f;
+        //const int width = 3;
+        //var heights = new float[]
+        //{
+        //    0.0f, 0.0f, 0.0f,
+        //    0.5f, 0.0f, 0.0f,
+        //    0.5f, 0.5f, 0.0f,
+        //};
+
+
 
         // TODO: making fitting tiles often fails if there's not fitting shape cascade
-        throw new Exception();
-        var terrainTiles = GetTiles(heights, width);
+        //throw new Exception();
+        (var terrainTiles, var tiles) = GetTiles(heights, width);
         //var terrainTiles = new TerrainTile[width * height];
         //for (var i = 0; i < terrainTiles.Length; i++)
         //{
@@ -114,28 +123,37 @@ internal sealed class TerrainRenderer : IDisposable
         this.GridIndices = new IndexBuffer<int>(device, nameof(TerrainRenderer));
         this.GridIndices.MapData(device.ImmediateContext, gridIndices);
 
-        //var tiles = this.GenerateTiles(width, height);
-        //this.TilesBuffer = new StructuredBuffer<Tile>(device, nameof(TerrainRenderer), tiles.Length);
-        //this.TilesBuffer.MapData(device.ImmediateContext, tiles);
-        //this.TilesView = this.TilesBuffer.CreateShaderResourceView();
+        this.TilesBuffer = new StructuredBuffer<Tile>(device, nameof(TerrainRenderer), tiles.Length);
+        this.TilesBuffer.MapData(device.ImmediateContext, tiles);
+        this.TilesView = this.TilesBuffer.CreateShaderResourceView();
     }
 
-    private TerrainTile[] GetTiles(float[] heights, int stride)
+    private static (TerrainTile[], Tile[]) GetTiles(float[] heights, int stride)
     {
         var values = Enum.GetValues<TileType>();
         var options = new List<TileType>();
 
         var columns = stride;
         var rows = heights.Length / stride;
-        var tiles = new TerrainTile[columns * rows];
+        var terrain = new TerrainTile[columns * rows];
+
+        var palette = ColorPalette.GrassLawn;
+        var tiles = new Tile[columns * rows];
+        for (var i = 0; i < tiles.Length; i++)
+        {
+            var height = heights[i];
+            var index = (int)Ranges.Map(height, (0.0f, MaxHeight), (0.0f, palette.Colors.Count - 1));
+            var color = palette.Colors[index];
+            tiles[i] = new Tile() { Albedo = Colors.RGBToLinear(color) };
+        }
 
         // First tile
-        tiles[0] = new TerrainTile(TileType.Flat, heights[0]);
+        terrain[0] = new TerrainTile(TileType.Flat, heights[0]);
 
         // First row
         for (var i = 1; i < columns; i++)
         {
-            var leftTile = tiles[i - 1];
+            var leftTile = terrain[i - 1];
             var height = heights[i];
 
             options.Clear();
@@ -143,13 +161,13 @@ internal sealed class TerrainRenderer : IDisposable
             options = TileUtilities.Fit(TileCorner.NW, leftTile.GetHeight(TileCorner.NE), height, options);
             options = TileUtilities.Fit(TileCorner.SW, leftTile.GetHeight(TileCorner.SE), height, options);
 
-            tiles[i] = new TerrainTile(options.FirstOrDefault(TileType.Flat), height);
+            terrain[i] = new TerrainTile(options.FirstOrDefault(TileType.Flat), height);
         }
 
         // First column
         for (var i = stride; i < heights.Length; i += stride)
         {
-            var topTile = tiles[i - stride];
+            var topTile = terrain[i - stride];
             var height = heights[i];
 
             options.Clear();
@@ -157,31 +175,40 @@ internal sealed class TerrainRenderer : IDisposable
             options = TileUtilities.Fit(TileCorner.NW, topTile.GetHeight(TileCorner.SW), height, options);
             options = TileUtilities.Fit(TileCorner.NE, topTile.GetHeight(TileCorner.SE), height, options);
 
-            tiles[i] = new TerrainTile(options.FirstOrDefault(TileType.Flat), height);
+            terrain[i] = new TerrainTile(options.FirstOrDefault(TileType.Flat), height);
         }
 
-        for (var i = stride + 1; i < heights.Length; i++)
+        for (var i = 0; i < heights.Length; i++)
         {
-            var nw = tiles[i - stride - 1];
-            var n = tiles[i - stride];
-            var w = tiles[i - 1];
-            var height = heights[i];
+            var (x, y) = Indexes.ToTwoDimensional(i, stride);
+            if (x > 0 && y > 0)
+            {
+                var nw = terrain[i - stride - 1];
+                var n = terrain[i - stride];
+                var w = terrain[i - 1];
+                var height = heights[i];
 
-            options.Clear();
-            options.AddRange(values);
+                options.Clear();
+                options.AddRange(values);
 
-            options = TileUtilities.Fit(TileCorner.NW, nw.GetHeight(TileCorner.SE), height, options);
+                options = TileUtilities.Fit(TileCorner.NW, nw.GetHeight(TileCorner.SE), height, options);
 
-            options = TileUtilities.Fit(TileCorner.NW, n.GetHeight(TileCorner.SW), height, options);
-            options = TileUtilities.Fit(TileCorner.NE, n.GetHeight(TileCorner.SE), height, options);
+                options = TileUtilities.Fit(TileCorner.NW, n.GetHeight(TileCorner.SW), height, options);
+                options = TileUtilities.Fit(TileCorner.NE, n.GetHeight(TileCorner.SE), height, options);
 
-            options = TileUtilities.Fit(TileCorner.NW, w.GetHeight(TileCorner.NE), height, options);
-            options = TileUtilities.Fit(TileCorner.SW, w.GetHeight(TileCorner.SE), height, options);
+                options = TileUtilities.Fit(TileCorner.NW, w.GetHeight(TileCorner.NE), height, options);
+                options = TileUtilities.Fit(TileCorner.SW, w.GetHeight(TileCorner.SE), height, options);
 
-            tiles[i] = new TerrainTile(options.FirstOrDefault(TileType.Flat), height);
+                if (options.Count == 0)
+                {
+                    tiles[i].Albedo = Colors.RGBToLinear(new ColorRGB(1.0f, 0.0f, 0.0f));
+                }
+
+                terrain[i] = new TerrainTile(options.FirstOrDefault(TileType.Flat), height);
+            }
         }
 
-        return tiles;
+        return (terrain, tiles);
     }
 
     private static (TerrainVertex[], int[], int[], Triangle[]) FromTiles(TerrainTile[] tiles, int stride)
@@ -331,7 +358,7 @@ internal sealed class TerrainRenderer : IDisposable
         context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.DefaultRasterizerState, in viewport, in scissor, this.Shader.Ps, this.OpaqueBlendState, this.DefaultDepthStencilState);
 
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
-        //context.PS.SetBuffer(Shader.Tiles, this.TilesView);
+        context.PS.SetBuffer(Shader.Tiles, this.TilesView);
         context.PS.SetBuffer(Shader.Triangles, this.TrianglesView);
 
         context.IA.SetVertexBuffer(this.Vertices);
@@ -377,8 +404,8 @@ internal sealed class TerrainRenderer : IDisposable
         this.Vertices.Dispose();
         this.Indices.Dispose();
         this.GridIndices.Dispose();
-        //this.TilesView.Dispose();
-        //this.TilesBuffer.Dispose();
+        this.TilesView.Dispose();
+        this.TilesBuffer.Dispose();
 
         this.TrianglesView.Dispose();
         this.TrianglesBuffer.Dispose();
