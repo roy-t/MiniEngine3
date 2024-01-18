@@ -18,6 +18,9 @@ public enum CornerType : byte
     Lowered
 }
 
+public readonly record struct Neighbours<T>(T NW, T N, T NE, T W, T C, T E, T SW, T S, T SE)
+    where T : struct
+{ }
 
 public readonly record struct TerrainTile(CornerType NE, CornerType SE, CornerType SW, CornerType NW, float Offset)
 {
@@ -53,13 +56,6 @@ public readonly record struct TerrainTile(CornerType NE, CornerType SE, CornerTy
 
 public static class TileUtilities
 {
-    private static readonly Vector4 SlopeStartOffsets = new(0.5f, 0.0f, 0.0f, 0.5f);
-    private static readonly Vector4 SlopeEndOffsets = new(0.0f, -0.5f, -0.5f, 0.0f);
-    private static readonly Vector4 DiagonalStartOffsets = new(0.5f, 0.5f, 0.0f, 0.5f);
-    private static readonly Vector4 DiagonalEndOffsets = new(0.0f, -0.5f, -0.5f, -0.5f);
-    private static readonly Vector4 SlopeOffsets = new(0.5f, -0.5f, -0.5f, 0.5f);
-    private static readonly Vector4 DiagonalSlopeOffsets = new(0.5f, 0.0f, -0.5f, 0.0f);
-
     public static float GetOffset(CornerType corner)
     {
         return corner switch
@@ -71,34 +67,32 @@ public static class TileUtilities
         };
     }
 
-    public static (float nw, float n, float ne, float w, float c, float e, float sw, float s, float se) GetHeights(int index, float[] values, int stride)
+    public static Neighbours<T> GetNeighboursFromGrid<T>(int index, int stride, params T[] grid)
+        where T : struct
     {
-        var c = values[index];
-        var nw = index - stride - 1 > 0 ? values[index - stride - 1] : c;
-        var n = index - stride > 0 ? values[index - stride] : c;
-        var ne = index - stride + 1 > 0 ? values[index - stride + 1] : c;
-        var w = index - 1 > 0 ? values[index - 1] : c;
-        var e = index + 1 < values.Length ? values[index + 1] : c;
-        var sw = index + stride - 1 < values.Length ? values[index + stride - 1] : c;
-        var s = index + stride < values.Length ? values[index + stride] : c;
-        var se = index + stride + 1 < values.Length ? values[index + stride + 1] : c;
+        var c = grid[index];
+        var nw = GetFromGrid(grid, index, -(stride + 1), c);
+        var n = GetFromGrid(grid, index, -stride, c);
+        var ne = GetFromGrid(grid, index, -(stride - 1), c);
+        var w = GetFromGrid(grid, index, -1, c);
+        var e = GetFromGrid(grid, index, 1, c);
+        var sw = GetFromGrid(grid, index, stride - 1, c);
+        var s = GetFromGrid(grid, index, stride, c);
+        var se = GetFromGrid(grid, index, stride + 1, c);
 
-        return (nw, n, ne, w, c, e, sw, s, se);
+        return new Neighbours<T>(nw, n, ne, w, c, e, sw, s, se);
     }
 
-    public static (TerrainTile nw, TerrainTile n, TerrainTile ne, TerrainTile w, TerrainTile c, TerrainTile e, TerrainTile sw, TerrainTile s, TerrainTile se) GetTiles(int index, TerrainTile[] values, int stride)
+    private static T GetFromGrid<T>(T[] grid, int index, int offset, T fallback)
+        where T : struct
     {
-        var c = values[index];
-        var nw = index - stride - 1 > 0 ? values[index - stride - 1] : c;
-        var n = index - stride > 0 ? values[index - stride] : c;
-        var ne = index - stride + 1 > 0 ? values[index - stride + 1] : c;
-        var w = index - 1 > 0 ? values[index - 1] : c;
-        var e = index + 1 < values.Length ? values[index + 1] : c;
-        var sw = index + stride - 1 < values.Length ? values[index + stride - 1] : c;
-        var s = index + stride < values.Length ? values[index + stride] : c;
-        var se = index + stride + 1 < values.Length ? values[index + stride + 1] : c;
+        var actual = index + offset;
+        if (actual >= 0 && actual < grid.Length)
+        {
+            return grid[actual];
+        }
 
-        return (nw, n, ne, w, c, e, sw, s, se);
+        return fallback;
     }
 
     public static TerrainTile FitNorth(TerrainTile n, float heightNorthWest, float heightNorthEast, float heightWest, float heightEast, float heightSouthWest, float heightSouth, float heightSouthEast, float baseHeight)

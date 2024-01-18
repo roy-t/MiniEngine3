@@ -152,16 +152,16 @@ internal sealed class TerrainRenderer : IDisposable
         for (var i = 1; i < columns; i++)
         {
             var leftTile = terrain[i - 1];
-            var t = TileUtilities.GetHeights(i, heights, columns);
-            terrain[i] = TileUtilities.FitWest(leftTile, t.nw, t.n, t.ne, t.e, t.sw, t.s, t.se, t.c);
+            var t = TileUtilities.GetNeighboursFromGrid(i, columns, heights);
+            terrain[i] = TileUtilities.FitWest(leftTile, t.NW, t.N, t.NE, t.E, t.SW, t.S, t.SE, t.C);
         }
 
         // First column
         for (var i = stride; i < heights.Length; i += stride)
         {
             var topTile = terrain[i - stride];
-            var t = TileUtilities.GetHeights(i, heights, stride);
-            terrain[i] = TileUtilities.FitNorth(topTile, t.nw, t.ne, t.w, t.e, t.sw, t.s, t.se, t.c);
+            var t = TileUtilities.GetNeighboursFromGrid(i, columns, heights);
+            terrain[i] = TileUtilities.FitNorth(topTile, t.NW, t.NE, t.W, t.E, t.SW, t.S, t.SE, t.C);
         }
 
         // Fill
@@ -170,9 +170,9 @@ internal sealed class TerrainRenderer : IDisposable
             var (x, y) = Indexes.ToTwoDimensional(i, stride);
             if (x > 0 && y > 0)
             {
-                var tt = TileUtilities.GetTiles(i, terrain, stride);
-                var hh = TileUtilities.GetHeights(i, heights, stride);
-                terrain[i] = TileUtilities.Fit(tt.nw, tt.n, tt.ne, tt.w, hh.e, hh.sw, hh.s, hh.se, hh.c);
+                var tt = TileUtilities.GetNeighboursFromGrid(i, columns, terrain);
+                var hh = TileUtilities.GetNeighboursFromGrid(i, columns, heights);
+                terrain[i] = TileUtilities.Fit(tt.NW, tt.N, tt.NE, tt.W, hh.E, hh.SW, hh.S, hh.SE, hh.C);
             }
         }
 
