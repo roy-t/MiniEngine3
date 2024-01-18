@@ -130,9 +130,6 @@ internal sealed class TerrainRenderer : IDisposable
 
     private static (TerrainTile[], Tile[]) GetTiles(float[] heights, int stride)
     {
-        var values = Enum.GetValues<TileType>();
-        var options = new List<TileType>();
-
         var columns = stride;
         var rows = heights.Length / stride;
         var terrain = new TerrainTile[columns * rows];
@@ -147,64 +144,35 @@ internal sealed class TerrainRenderer : IDisposable
             tiles[i] = new Tile() { Albedo = Colors.RGBToLinear(color) };
         }
 
+
         // First tile
-        terrain[0] = new TerrainTile(TileType.Flat, heights[0]);
+        terrain[0] = new TerrainTile(heights[0]);
 
         // First row
         for (var i = 1; i < columns; i++)
         {
             var leftTile = terrain[i - 1];
-            var height = heights[i];
-
-            options.Clear();
-            options.AddRange(values);
-            options = TileUtilities.Fit(TileCorner.NW, leftTile.GetHeight(TileCorner.NE), height, options);
-            options = TileUtilities.Fit(TileCorner.SW, leftTile.GetHeight(TileCorner.SE), height, options);
-
-            terrain[i] = new TerrainTile(options.FirstOrDefault(TileType.Flat), height);
+            var t = TileUtilities.GetHeights(i, heights, columns);
+            terrain[i] = TileUtilities.FitWest(leftTile, t.nw, t.n, t.ne, t.e, t.sw, t.s, t.se, t.c);
         }
 
         // First column
         for (var i = stride; i < heights.Length; i += stride)
         {
             var topTile = terrain[i - stride];
-            var height = heights[i];
-
-            options.Clear();
-            options.AddRange(values);
-            options = TileUtilities.Fit(TileCorner.NW, topTile.GetHeight(TileCorner.SW), height, options);
-            options = TileUtilities.Fit(TileCorner.NE, topTile.GetHeight(TileCorner.SE), height, options);
-
-            terrain[i] = new TerrainTile(options.FirstOrDefault(TileType.Flat), height);
+            var t = TileUtilities.GetHeights(i, heights, stride);
+            terrain[i] = TileUtilities.FitNorth(topTile, t.nw, t.ne, t.w, t.e, t.sw, t.s, t.se, t.c);
         }
 
+        // Fill
         for (var i = 0; i < heights.Length; i++)
         {
             var (x, y) = Indexes.ToTwoDimensional(i, stride);
             if (x > 0 && y > 0)
             {
-                var nw = terrain[i - stride - 1];
-                var n = terrain[i - stride];
-                var w = terrain[i - 1];
-                var height = heights[i];
-
-                options.Clear();
-                options.AddRange(values);
-
-                options = TileUtilities.Fit(TileCorner.NW, nw.GetHeight(TileCorner.SE), height, options);
-
-                options = TileUtilities.Fit(TileCorner.NW, n.GetHeight(TileCorner.SW), height, options);
-                options = TileUtilities.Fit(TileCorner.NE, n.GetHeight(TileCorner.SE), height, options);
-
-                options = TileUtilities.Fit(TileCorner.NW, w.GetHeight(TileCorner.NE), height, options);
-                options = TileUtilities.Fit(TileCorner.SW, w.GetHeight(TileCorner.SE), height, options);
-
-                if (options.Count == 0)
-                {
-                    tiles[i].Albedo = Colors.RGBToLinear(new ColorRGB(1.0f, 0.0f, 0.0f));
-                }
-
-                terrain[i] = new TerrainTile(options.FirstOrDefault(TileType.Flat), height);
+                var tt = TileUtilities.GetTiles(i, terrain, stride);
+                var hh = TileUtilities.GetHeights(i, heights, stride);
+                terrain[i] = TileUtilities.Fit(tt.nw, tt.n, tt.ne, tt.w, hh.e, hh.sw, hh.s, hh.se, hh.c);
             }
         }
 
@@ -231,7 +199,7 @@ internal sealed class TerrainRenderer : IDisposable
             vertices[v + 2] = new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SW, x, y));
             vertices[v + 3] = new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NW, x, y));
 
-            var (a, b, c, d, e, f) = TileUtilities.GetBestTriangleIndices(tile.Type);
+            var (a, b, c, d, e, f) = TileUtilities.GetBestTriangleIndices(tile);
             indices[i + 0] = v + a;
             indices[i + 1] = v + b;
             indices[i + 2] = v + c;
@@ -239,7 +207,7 @@ internal sealed class TerrainRenderer : IDisposable
             indices[i + 4] = v + e;
             indices[i + 5] = v + f;
 
-            var (n0, n1) = TileUtilities.GetNormals(tile.Type, a, b, c, d, e, f);
+            var (n0, n1) = TileUtilities.GetNormals(tile, a, b, c, d, e, f);
             triangles[t + 0] = new Triangle() { Normal = n0 };
             triangles[t + 1] = new Triangle() { Normal = n1 };
 
@@ -266,8 +234,8 @@ internal sealed class TerrainRenderer : IDisposable
 
     private static Vector3 GetTileCornerPosition(TerrainTile tile, TileCorner corner, int tileX, int tileY)
     {
-        var offset = TileUtilities.IndexToCorner(tile.Type, corner);
-        return new Vector3(offset.X + tileX, offset.Y + tile.Offset, offset.Z + tileY);
+        var offset = TileUtilities.IndexToCorner(tile, corner);
+        return new Vector3(offset.X + tileX, offset.Y, offset.Z + tileY);
     }
 
     private static float[] GenerateHeights(int width, int height)
