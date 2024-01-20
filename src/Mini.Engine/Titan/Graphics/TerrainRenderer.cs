@@ -79,8 +79,9 @@ internal sealed class TerrainRenderer : IDisposable
 
         const int width = 200;
         const int height = 200;
-        var heights = GenerateHeightMap(width, height);
-        var tiles = GetTilesFromHeightMap(heights, width);
+        var heightMap = GenerateHeightMap(width, height);
+        heightMap[width + 4] += 4;
+        var tiles = GetTilesFromHeightMap(heightMap, width);
 
         (var vertices, var indices, var gridIndices, var triangles) = GetRenderDataFromTiles(tiles, width);
 
@@ -138,7 +139,97 @@ internal sealed class TerrainRenderer : IDisposable
         return terrain;
     }
 
-    private static (TerrainVertex[], int[], int[], Triangle[]) GetRenderDataFromTiles(TerrainTile[] tiles, int stride)
+    private static ReadOnlySpan<int> GetCliffIndicesFromTiles(TerrainTile[] tiles, int stride)
+    {
+        var indices = new List<int>();
+
+        for (var it = 0; it < tiles.Length; it++)
+        {
+            var tile = tiles[it];
+            var (x, y) = Indexes.ToTwoDimensional(it, stride);
+            var neighbours = TileUtilities.GetNeighboursFromGrid(it, stride, tiles);
+
+            var nw = tile.GetHeight(TileCorner.NW);
+            var sw = tile.GetHeight(TileCorner.SW);
+
+            var wnw = neighbours.W.GetHeight(TileCorner.NE);
+            var wsw = neighbours.W.GetHeight(TileCorner.SE);
+
+            // TODO: floating point comparisons might fail, but solved when we turn to bytes
+            // TODO: guard for out of bounds
+            if (wnw != nw && sw != wsw)
+            {
+                var a = GetVertexIndex(TileCorner.SW, x, y, stride);
+                var b = GetVertexIndex(TileCorner.SE, x - 1, y, stride);
+                var c = GetVertexIndex(TileCorner.NE, x - 1, y, stride);
+                var d = GetVertexIndex(TileCorner.NW, x, y, stride);
+                indices.AddRange([a, b, c, c, d, a]);
+            }
+        }
+
+        return CollectionsMarshal.AsSpan(indices);
+    }
+
+    private static void CheckCliff(TerrainTile[] tiles, int stride, int index, TileSide side)
+    {
+        var (x, y) = Indexes.ToTwoDimensional(index, stride);
+        var (nx, ny) = side switch
+        {
+            TileSide.North => (x + 0, y - 1),
+            TileSide.East => (x + 1, y + 0),
+            TileSide.South => (x + 0, y + 1),
+            TileSide.West => (x - 1, y + 0),
+            _ => throw new ArgumentOutOfRangeException(nameof(side));
+        };
+
+        if (nx >= 0 && nx < stride && ny >= 0 && (ny * stride) < tiles.Length)
+        {
+            CheckCliffSide(tiles, stride, x, y, nx, ny, side);
+        }
+    }
+
+    private static ReadOnlySpan<int> CheckCliffSide(TerrainTile[] tiles, int stride, int cx, int cy, int nx, int ny, TileSide side, List<int> indices)
+    {
+        var c = tiles[Indexes.ToOneDimensional(cx, cy, stride)];
+        var n = tiles[Indexes.ToOneDimensional(nx, ny, stride)];
+
+        (var ca, var cb) = TileUtilities.TileSideToTileCorners(side);
+        (var na, var nb) = TileUtilities.TileSideToTileCorners(TileUtilities.GetOppositeSide(side));
+
+        var ica = GetVertexIndex(ca, cx, cy, stride);
+        var icb = GetVertexIndex(cb, cx, cy, stride);
+
+        var ina = GetVertexIndex(na, nx, ny, stride);
+        var inb = GetVertexIndex(nb, nx, ny, stride);
+
+        var hca = c.GetHeight(ca);
+        var hcb = c.GetHeight(cb);
+
+        var hna = c.GetHeight(na);
+        var hnb = c.GetHeight(nb);
+
+        // depending on which side is higher we need to draw the indices in a different order!
+
+        if (hca > hnb)
+        {
+            if (hcb > hna)
+            {
+                indices.AddRange([ica, inb, ina, ina, icb, ica]);
+            }
+        }
+
+        // TODO: other cases
+        TERJALKTJHELAKJTLKEAJTLKJEALKTJAELKJTLKE HIER WAS IK!
+
+        return [];
+    }
+
+    private static int GetVertexIndex(TileCorner corner, int x, int y, int stride)
+    {
+        return (y * stride * 4) + (x * 4) + (int)corner;
+    }
+
+    private static (TerrainVertex[] vertices, int[] indices, int[] gridIndices, Triangle[] triangles) GetRenderDataFromTiles(TerrainTile[] tiles, int stride)
     {
         var palette = ColorPalette.GrassLawn;
         var vertices = new TerrainVertex[4 * tiles.Length];
@@ -155,6 +246,7 @@ internal sealed class TerrainRenderer : IDisposable
             var tile = tiles[it];
 
             var (x, y) = Indexes.ToTwoDimensional(it, stride);
+            // Don't change this order without changing GetVertexIndex
             vertices[v + 0] = new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NE, x, y));
             vertices[v + 1] = new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SE, x, y));
             vertices[v + 2] = new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SW, x, y));

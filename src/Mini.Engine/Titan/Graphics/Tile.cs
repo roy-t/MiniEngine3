@@ -3,6 +3,14 @@ using LibGame.Geometry;
 
 namespace Mini.Engine.Titan.Graphics;
 
+public enum TileSide : int
+{
+    North = 0,
+    East = 1,
+    South = 2,
+    West = 3,
+}
+
 public enum TileCorner : int
 {
     NE = 0,
@@ -22,6 +30,7 @@ public readonly record struct Neighbours<T>(T NW, T N, T NE, T W, T C, T E, T SW
     where T : struct
 { }
 
+// TODO: all this data can be stored in two bytes
 public readonly record struct TerrainTile(CornerType NE, CornerType SE, CornerType SW, CornerType NW, float Offset)
 {
     public TerrainTile(float offset)
@@ -56,6 +65,34 @@ public readonly record struct TerrainTile(CornerType NE, CornerType SE, CornerTy
 
 public static class TileUtilities
 {
+    // TODO: a lot of these utilities can move to LibGame
+
+    // Returns sides as if you are looking straight at them in clock wise order starting from 12 o-clock.
+    public static (TileCorner A, TileCorner B) TileSideToTileCorners(TileSide side)
+    {
+        return side switch
+        {
+            TileSide.North => (TileCorner.NE, TileCorner.NW),
+            TileSide.East => (TileCorner.NE, TileCorner.SE),
+            TileSide.South => (TileCorner.SE, TileCorner.SW),
+            TileSide.West => (TileCorner.SW, TileCorner.NW),
+            _ => throw new ArgumentOutOfRangeException(nameof(side)),
+        };
+    }
+
+    public static TileSide GetOppositeSide(TileSide side)
+    {
+        return side switch
+        {
+            TileSide.North => TileSide.South,
+            TileSide.East => TileSide.West,
+            TileSide.South => TileSide.North,
+            TileSide.West => TileSide.East,
+            _ => throw new ArgumentOutOfRangeException(nameof(side)),
+        };
+    }
+
+
     public static float GetOffset(CornerType corner)
     {
         return corner switch
