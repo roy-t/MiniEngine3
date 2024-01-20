@@ -14,13 +14,9 @@ struct OUTPUT
     float4 albedo : SV_Target0;
 };
     
-struct TILE
-{
-    float3 albedo;
-};
-    
 struct TRIANGLE
 {
+    float3 albedo;
     float3 normal;
 };
   
@@ -28,9 +24,8 @@ cbuffer Constants : register(b0)
 {
     float4x4 WorldViewProjection;
 };
-    
-StructuredBuffer<TILE> Tiles: register(t0);
-StructuredBuffer<TRIANGLE> Triangles: register(t1);
+
+StructuredBuffer<TRIANGLE> Triangles: register(t0);
     
 #pragma VertexShader
 PS_INPUT VS(VS_INPUT input)
@@ -46,8 +41,9 @@ OUTPUT PS(PS_INPUT input, uint primitiveId : SV_PrimitiveID)
 {
     OUTPUT output;
     
-    float3 albedo = Tiles[primitiveId / 2].albedo;
-    float3 normal = Triangles[primitiveId].normal;
+    TRIANGLE t = Triangles[primitiveId];    
+    float3 albedo = t.albedo;
+    float3 normal = t.normal;
         
     const float3 lightDirection = normalize(float3(-3.0, -1.0, 0.0));
     const float3 lightColor = float3(1.0, 1.0, 1.0);

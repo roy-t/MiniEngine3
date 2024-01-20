@@ -67,6 +67,7 @@ public static class TileUtilities
         };
     }
 
+    // TODO: replace with a function that returns indexes instead of copies
     public static Neighbours<T> GetNeighboursFromGrid<T>(int index, int stride, params T[] grid)
         where T : struct
     {
