@@ -65,7 +65,14 @@ internal sealed class TerrainRenderer : IDisposable
         const int columns = 200;
         const int rows = 200;
         var heightMap = GenerateHeightMap(columns, rows);
-        heightMap[columns + 4] += 4;
+        for (var i = 0; i < heightMap.Length; i++)
+        {
+            if (heightMap[i] > 5)
+            {
+                heightMap[i] = 7;
+            }
+        }
+
         var tiles = GetTilesFromHeightMap(heightMap, columns);
         var vertices = GetVertices(tiles, columns);
         var indices = GetIndices(tiles);
@@ -85,9 +92,21 @@ internal sealed class TerrainRenderer : IDisposable
         this.TrianglesBuffer = new StructuredBuffer<Triangle>(device, nameof(TerrainRenderer), triangles.Count);
         this.TrianglesBuffer.MapData(device.ImmediateContext, CollectionsMarshal.AsSpan(triangles));
         this.TrianglesView = this.TrianglesBuffer.CreateShaderResourceView();
+    }
 
-        //this.GridIndices = new IndexBuffer<int>(device, nameof(TerrainRenderer));
-        //this.GridIndices.MapData(device.ImmediateContext, gridIndices);
+    private static float[] GenerateHeightMap(int columns, int rows)
+    {
+        var heights = new float[columns * rows];
+
+        Parallel.For(0, heights.Length, i =>
+        {
+            var (x, y) = Indexes.ToTwoDimensional(i, columns);
+            var noise = FractalBrownianMotion.Generate(SimplexNoise.Noise, x * 0.001f, y * 0.001f, 1.5f, 0.9f, 5);
+            noise = Ranges.Map(noise, (-1.0f, 1.0f), (0.0f, MaxHeight));
+            heights[i] = (int)noise;
+        });
+
+        return heights;
     }
 
     private static TerrainTile[] GetTilesFromHeightMap(float[] heights, int stride)
@@ -128,6 +147,137 @@ internal sealed class TerrainRenderer : IDisposable
         }
 
         return terrain;
+    }
+
+    private static List<TerrainVertex> GetVertices(IReadOnlyList<TerrainTile> tiles, int columns)
+    {
+        var vertices = new List<TerrainVertex>(4 * tiles.Count);
+        for (var i = 0; i < tiles.Count; i++)
+        {
+            var tile = tiles[i];
+            var (x, y) = Indexes.ToTwoDimensional(i, columns);
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NE, x, y)));
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SE, x, y)));
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SW, x, y)));
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NW, x, y)));
+        }
+
+        return vertices;
+    }
+
+    private static Vector3 GetTileCornerPosition(TerrainTile tile, TileCorner corner, int tileX, int tileY)
+    {
+        var offset = TileUtilities.IndexToCorner(tile, corner);
+        return new Vector3(offset.X + tileX, offset.Y, offset.Z + tileY);
+    }
+
+    private static List<int> GetIndices(IReadOnlyList<TerrainTile> tiles)
+    {
+        var indices = new List<int>(6 * tiles.Count);
+
+        for (var i = 0; i < tiles.Count; i++)
+        {
+            var tile = tiles[i];
+            var (a, b, c, d, e, f) = TileUtilities.GetBestTriangleIndices(tile);
+            var v = i * 4;
+            indices.Add(v + a);
+            indices.Add(v + b);
+            indices.Add(v + c);
+            indices.Add(v + d);
+            indices.Add(v + e);
+            indices.Add(v + f);
+        }
+
+        return indices;
+    }
+
+    private static int AddGrid(IReadOnlyList<TerrainTile> tiles, List<int> indices)
+    {
+        var length = tiles.Count * 8;
+        indices.EnsureCapacity(indices.Count + length);
+
+        for (var i = 0; i < tiles.Count; i++)
+        {
+            var v = i * 4;
+            indices.Add(v + 0);
+            indices.Add(v + 1);
+
+            indices.Add(v + 1);
+            indices.Add(v + 2);
+
+            indices.Add(v + 2);
+            indices.Add(v + 3);
+
+            indices.Add(v + 3);
+            indices.Add(v + 0);
+        }
+
+        return length;
+    }
+
+    private static List<Triangle> GetTriangles(IReadOnlyList<TerrainTile> tiles, IReadOnlyList<TerrainVertex> vertices, IReadOnlyList<int> indices)
+    {
+        var triangles = new List<Triangle>(2 * tiles.Count);
+        var palette = ColorPalette.GrassLawn;
+
+        for (var i = 0; i < tiles.Count; i++)
+        {
+            var tile = tiles[i];
+            var v = i * 4;
+            var ix = i * 6;
+            var a = indices[ix + 0] - v;
+            var b = indices[ix + 1] - v;
+            var c = indices[ix + 2] - v;
+            var d = indices[ix + 3] - v;
+            var e = indices[ix + 4] - v;
+            var f = indices[ix + 5] - v;
+            var (n0, n1) = TileUtilities.GetNormals(tile, a, b, c, d, e, f);
+
+            var colorA = GetTriangleColor(palette, vertices, indices[ix + 0], indices[ix + 1], indices[ix + 2]);
+            var colorB = GetTriangleColor(palette, vertices, indices[ix + 3], indices[ix + 4], indices[ix + 5]);
+            triangles.Add(new Triangle() { Normal = n0, Albedo = colorA });
+            triangles.Add(new Triangle() { Normal = n1, Albedo = colorB });
+        }
+
+        return triangles;
+    }
+
+    private static ColorLinear GetTriangleColor(ColorPalette palette, IReadOnlyList<TerrainVertex> vertices, int a, int b, int c)
+    {
+        var ya = vertices[a].Position.Y;
+        var yb = vertices[b].Position.Y;
+        var yc = vertices[c].Position.Y;
+
+        var heigth = Math.Max(ya, Math.Max(yb, yc));
+        var paletteIndex = (int)Ranges.Map(heigth, (0.0f, MaxHeight), (0.0f, palette.Colors.Count - 1));
+        return Colors.RGBToLinear(palette.Colors[paletteIndex]);
+    }
+
+    private static void AddCliffs(IReadOnlyList<TerrainTile> tiles, List<int> indices, List<Triangle> triangles, int columns, int rows)
+    {
+        for (var it = 0; it < tiles.Count; it++)
+        {
+            var (x, y) = Indexes.ToTwoDimensional(it, columns);
+            if (x > 0)
+            {
+                AddCliff(tiles, columns, it, TileSide.West, indices, triangles);
+            }
+
+            if (x < (columns - 1))
+            {
+                AddCliff(tiles, columns, it, TileSide.East, indices, triangles);
+            }
+
+            if (y > 0)
+            {
+                AddCliff(tiles, columns, it, TileSide.North, indices, triangles);
+            }
+
+            if (y < (rows - 1))
+            {
+                AddCliff(tiles, columns, it, TileSide.South, indices, triangles);
+            }
+        }
     }
 
     private static void AddCliff(IReadOnlyList<TerrainTile> tiles, int stride, int index, TileSide side, List<int> indices, List<Triangle> triangles)
@@ -198,157 +348,14 @@ internal sealed class TerrainRenderer : IDisposable
                 triangles.Add(new Triangle() { Normal = normal, Albedo = albedo });
             }
         }
+        throw new Exception("TODO");
+        // TODO: cliffs block grid rendering
+        // TODO: if the triangle is an upside down triangle shape it leads to a black triangle, are we missing a case!?
     }
 
     private static int GetVertexIndex(TileCorner corner, int x, int y, int stride)
     {
         return (y * stride * 4) + (x * 4) + (int)corner;
-    }
-
-    private static List<TerrainVertex> GetVertices(IReadOnlyList<TerrainTile> tiles, int columns)
-    {
-        var vertices = new List<TerrainVertex>(4 * tiles.Count);
-        for (var i = 0; i < tiles.Count; i++)
-        {
-            var tile = tiles[i];
-            var (x, y) = Indexes.ToTwoDimensional(i, columns);
-            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NE, x, y)));
-            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SE, x, y)));
-            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SW, x, y)));
-            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NW, x, y)));
-        }
-
-        return vertices;
-    }
-
-    private static List<int> GetIndices(IReadOnlyList<TerrainTile> tiles)
-    {
-        var indices = new List<int>(6 * tiles.Count);
-
-        for (var i = 0; i < tiles.Count; i++)
-        {
-            var tile = tiles[i];
-            var (a, b, c, d, e, f) = TileUtilities.GetBestTriangleIndices(tile);
-            var v = i * 4;
-            indices.Add(v + a);
-            indices.Add(v + b);
-            indices.Add(v + c);
-            indices.Add(v + d);
-            indices.Add(v + e);
-            indices.Add(v + f);
-        }
-
-        return indices;
-    }
-
-    private static int AddGrid(IReadOnlyList<TerrainTile> tiles, List<int> indices)
-    {
-        var length = tiles.Count * 8;
-        indices.EnsureCapacity(indices.Count + length);
-
-        for (var i = 0; i < tiles.Count; i++)
-        {
-            var v = i * 4;
-            indices.Add(v + 0);
-            indices.Add(v + 1);
-
-            indices.Add(v + 1);
-            indices.Add(v + 2);
-
-            indices.Add(v + 2);
-            indices.Add(v + 3);
-
-            indices.Add(v + 3);
-            indices.Add(v + 0);
-        }
-
-        return length;
-    }
-
-    private static void AddCliffs(IReadOnlyList<TerrainTile> tiles, List<int> indices, List<Triangle> triangles, int columns, int rows)
-    {
-        for (var it = 0; it < tiles.Count; it++)
-        {
-            var (x, y) = Indexes.ToTwoDimensional(it, columns);
-            if (x > 0)
-            {
-                AddCliff(tiles, columns, it, TileSide.West, indices, triangles);
-            }
-
-            if (x < (columns - 1))
-            {
-                AddCliff(tiles, columns, it, TileSide.East, indices, triangles);
-            }
-
-            if (y > 0)
-            {
-                AddCliff(tiles, columns, it, TileSide.North, indices, triangles);
-            }
-
-            if (y < (rows - 1))
-            {
-                AddCliff(tiles, columns, it, TileSide.South, indices, triangles);
-            }
-        }
-    }
-
-    private static List<Triangle> GetTriangles(IReadOnlyList<TerrainTile> tiles, IReadOnlyList<TerrainVertex> vertices, IReadOnlyList<int> indices)
-    {
-        var triangles = new List<Triangle>(2 * tiles.Count);
-        var palette = ColorPalette.GrassLawn;
-
-        for (var i = 0; i < tiles.Count; i++)
-        {
-            var tile = tiles[i];
-            var v = i * 4;
-            var ix = i * 6;
-            var a = indices[ix + 0] - v;
-            var b = indices[ix + 1] - v;
-            var c = indices[ix + 2] - v;
-            var d = indices[ix + 3] - v;
-            var e = indices[ix + 4] - v;
-            var f = indices[ix + 5] - v;
-            var (n0, n1) = TileUtilities.GetNormals(tile, a, b, c, d, e, f);
-
-            var colorA = GetTriangleColor(palette, vertices, indices[ix + 0], indices[ix + 1], indices[ix + 2]);
-            var colorB = GetTriangleColor(palette, vertices, indices[ix + 3], indices[ix + 4], indices[ix + 5]);
-            triangles.Add(new Triangle() { Normal = n0, Albedo = colorA });
-            triangles.Add(new Triangle() { Normal = n1, Albedo = colorB });
-        }
-
-        return triangles;
-    }
-
-    private static ColorLinear GetTriangleColor(ColorPalette palette, IReadOnlyList<TerrainVertex> vertices, int a, int b, int c)
-    {
-        var ya = vertices[a].Position.Y;
-        var yb = vertices[b].Position.Y;
-        var yc = vertices[c].Position.Y;
-
-        var heigth = Math.Max(ya, Math.Max(yb, yc));
-        var paletteIndex = (int)Ranges.Map(heigth, (0.0f, MaxHeight), (0.0f, palette.Colors.Count - 1));
-        return Colors.RGBToLinear(palette.Colors[paletteIndex]);
-    }
-
-    private static Vector3 GetTileCornerPosition(TerrainTile tile, TileCorner corner, int tileX, int tileY)
-    {
-        var offset = TileUtilities.IndexToCorner(tile, corner);
-        return new Vector3(offset.X + tileX, offset.Y, offset.Z + tileY);
-    }
-
-    private static float[] GenerateHeightMap(int columns, int rows)
-    {
-        var heights = new float[columns * rows];
-
-        Parallel.For(0, heights.Length, i =>
-        {
-            var (x, y) = Indexes.ToTwoDimensional(i, columns);
-            var noise = FractalBrownianMotion.Generate(SimplexNoise.Noise, x * 0.001f, y * 0.001f, 1.5f, 0.9f, 5);
-            noise = Ranges.Map(noise, (-1.0f, 1.0f), (0.0f, MaxHeight));
-            heights[i] = ((int)noise) * 0.5f;
-        });
-
-        return heights;
     }
 
     public void Render(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
