@@ -12,27 +12,10 @@ using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.Graphics.Cameras;
 using Vortice.Direct3D;
-using Vortice.Direct3D11;
 using Shader = Mini.Engine.Content.Shaders.Generated.TitanTerrain;
 using Triangle = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TRIANGLE;
 
 namespace Mini.Engine.Titan.Graphics;
-
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public readonly struct TerrainVertex(Vector3 position)
-{
-    public readonly Vector3 Position = position;
-    public static readonly InputElementDescription[] Elements =
-    [
-        new("POSITION", 0, Vortice.DXGI.Format.R32G32B32_Float, 0 * sizeof(float), 0, InputClassification.PerVertexData, 0),
-    ];
-
-    public override readonly string ToString()
-    {
-        return this.Position.ToString();
-    }
-}
-
 
 [Service]
 internal sealed class TerrainRenderer : IDisposable
@@ -40,7 +23,9 @@ internal sealed class TerrainRenderer : IDisposable
     private const int MaxHeight = 10;
 
     private readonly IndexBuffer<int> Indices;
-    private readonly IndexBuffer<int> GridIndices;
+    private readonly int TileIndexCount;
+    private readonly int GridIndexOffset;
+    private readonly int GridIndexCount;
     private readonly VertexBuffer<TerrainVertex> Vertices;
     //private readonly VertexBuffer<TerrainVertex> Indicators;
     private readonly StructuredBuffer<Triangle> TrianglesBuffer;
@@ -82,21 +67,27 @@ internal sealed class TerrainRenderer : IDisposable
         var heightMap = GenerateHeightMap(columns, rows);
         heightMap[columns + 4] += 4;
         var tiles = GetTilesFromHeightMap(heightMap, columns);
+        var vertices = GetVertices(tiles, columns);
+        var indices = GetIndices(tiles);
+        var triangles = GetTriangles(tiles, vertices, indices);
+        AddCliffs(tiles, indices, triangles, columns, rows);
 
-        (var vertices, var indices, var gridIndices, var triangles) = GetRenderDataFromTiles(tiles, columns, rows);
+        this.TileIndexCount = indices.Count;
+        this.GridIndexOffset = this.TileIndexCount;
+        this.GridIndexCount = AddGrid(tiles, indices);
 
         this.Vertices = new VertexBuffer<TerrainVertex>(device, nameof(TerrainRenderer));
-        this.Vertices.MapData(device.ImmediateContext, vertices);
+        this.Vertices.MapData(device.ImmediateContext, CollectionsMarshal.AsSpan(vertices));
 
         this.Indices = new IndexBuffer<int>(device, nameof(TerrainRenderer));
-        this.Indices.MapData(device.ImmediateContext, indices);
+        this.Indices.MapData(device.ImmediateContext, CollectionsMarshal.AsSpan(indices));
 
-        this.TrianglesBuffer = new StructuredBuffer<Triangle>(device, nameof(TerrainRenderer), triangles.Length);
-        this.TrianglesBuffer.MapData(device.ImmediateContext, triangles);
+        this.TrianglesBuffer = new StructuredBuffer<Triangle>(device, nameof(TerrainRenderer), triangles.Count);
+        this.TrianglesBuffer.MapData(device.ImmediateContext, CollectionsMarshal.AsSpan(triangles));
         this.TrianglesView = this.TrianglesBuffer.CreateShaderResourceView();
 
-        this.GridIndices = new IndexBuffer<int>(device, nameof(TerrainRenderer));
-        this.GridIndices.MapData(device.ImmediateContext, gridIndices);
+        //this.GridIndices = new IndexBuffer<int>(device, nameof(TerrainRenderer));
+        //this.GridIndices.MapData(device.ImmediateContext, gridIndices);
     }
 
     private static TerrainTile[] GetTilesFromHeightMap(float[] heights, int stride)
@@ -137,33 +128,6 @@ internal sealed class TerrainRenderer : IDisposable
         }
 
         return terrain;
-    }
-
-    private static void AddCliffs(IReadOnlyList<TerrainTile> tiles, int columns, int rows, List<int> indices, List<Triangle> triangles)
-    {
-        for (var it = 0; it < tiles.Count; it++)
-        {
-            var (x, y) = Indexes.ToTwoDimensional(it, columns);
-            if (x > 0)
-            {
-                AddCliff(tiles, columns, it, TileSide.West, indices, triangles);
-            }
-
-            if (x < (columns - 1))
-            {
-                AddCliff(tiles, columns, it, TileSide.East, indices, triangles);
-            }
-
-            if (y > 0)
-            {
-                AddCliff(tiles, columns, it, TileSide.North, indices, triangles);
-            }
-
-            if (y < (rows - 1))
-            {
-                AddCliff(tiles, columns, it, TileSide.South, indices, triangles);
-            }
-        }
     }
 
     private static void AddCliff(IReadOnlyList<TerrainTile> tiles, int stride, int index, TileSide side, List<int> indices, List<Triangle> triangles)
@@ -241,70 +205,121 @@ internal sealed class TerrainRenderer : IDisposable
         return (y * stride * 4) + (x * 4) + (int)corner;
     }
 
-    private static (TerrainVertex[] vertices, int[] indices, int[] gridIndices, Triangle[] triangles) GetRenderDataFromTiles(IReadOnlyList<TerrainTile> tiles, int columns, int rows)
+    private static List<TerrainVertex> GetVertices(IReadOnlyList<TerrainTile> tiles, int columns)
     {
-        var palette = ColorPalette.GrassLawn;
-        var vertices = new TerrainVertex[4 * tiles.Count];
-        var indices = new List<int>(6 * tiles.Count);
-        var gridIndices = new int[8 * tiles.Count];
-        var triangles = new List<Triangle>(2 * tiles.Count);
-
-        var v = 0;
-        var i = 0;
-        var g = 0;
-        var t = 0;
-        for (var it = 0; it < tiles.Count; it++)
+        var vertices = new List<TerrainVertex>(4 * tiles.Count);
+        for (var i = 0; i < tiles.Count; i++)
         {
-            var tile = tiles[it];
+            var tile = tiles[i];
+            var (x, y) = Indexes.ToTwoDimensional(i, columns);
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NE, x, y)));
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SE, x, y)));
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SW, x, y)));
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NW, x, y)));
+        }
 
-            var (x, y) = Indexes.ToTwoDimensional(it, columns);
-            // Don't change this order without changing GetVertexIndex
-            vertices[v + 0] = new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NE, x, y));
-            vertices[v + 1] = new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SE, x, y));
-            vertices[v + 2] = new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SW, x, y));
-            vertices[v + 3] = new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NW, x, y));
+        return vertices;
+    }
 
+    private static List<int> GetIndices(IReadOnlyList<TerrainTile> tiles)
+    {
+        var indices = new List<int>(6 * tiles.Count);
+
+        for (var i = 0; i < tiles.Count; i++)
+        {
+            var tile = tiles[i];
             var (a, b, c, d, e, f) = TileUtilities.GetBestTriangleIndices(tile);
+            var v = i * 4;
             indices.Add(v + a);
             indices.Add(v + b);
             indices.Add(v + c);
             indices.Add(v + d);
             indices.Add(v + e);
             indices.Add(v + f);
-
-            var (n0, n1) = TileUtilities.GetNormals(tile, a, b, c, d, e, f);
-
-            var colorA = GetTriangleColor(palette, vertices, indices[i + 0], indices[i + 1], indices[i + 2]);
-            triangles.Add(new Triangle() { Normal = n0, Albedo = colorA });
-
-            var colorB = GetTriangleColor(palette, vertices, indices[i + 3], indices[i + 4], indices[i + 5]);
-            triangles.Add(new Triangle() { Normal = n1, Albedo = colorB });
-
-            gridIndices[g + 0] = v + 0;
-            gridIndices[g + 1] = v + 1;
-
-            gridIndices[g + 2] = v + 1;
-            gridIndices[g + 3] = v + 2;
-
-            gridIndices[g + 4] = v + 2;
-            gridIndices[g + 5] = v + 3;
-
-            gridIndices[g + 6] = v + 3;
-            gridIndices[g + 7] = v + 0;
-
-            v += 4;
-            i += 6;
-            g += 8;
-            t += 2;
         }
 
-        AddCliffs(tiles, columns, rows, indices, triangles);
-
-        // TODO: find a datatype that we don't have to copy, ideally we could just return a ReadOnlySpan, but we can't put that in a tuple
-        return (vertices, indices.ToArray(), gridIndices, triangles.ToArray());
+        return indices;
     }
 
-    private static ColorLinear GetTriangleColor(ColorPalette palette, TerrainVertex[] vertices, int a, int b, int c)
+    private static int AddGrid(IReadOnlyList<TerrainTile> tiles, List<int> indices)
+    {
+        var length = tiles.Count * 8;
+        indices.EnsureCapacity(indices.Count + length);
+
+        for (var i = 0; i < tiles.Count; i++)
+        {
+            var v = i * 4;
+            indices.Add(v + 0);
+            indices.Add(v + 1);
+
+            indices.Add(v + 1);
+            indices.Add(v + 2);
+
+            indices.Add(v + 2);
+            indices.Add(v + 3);
+
+            indices.Add(v + 3);
+            indices.Add(v + 0);
+        }
+
+        return length;
+    }
+
+    private static void AddCliffs(IReadOnlyList<TerrainTile> tiles, List<int> indices, List<Triangle> triangles, int columns, int rows)
+    {
+        for (var it = 0; it < tiles.Count; it++)
+        {
+            var (x, y) = Indexes.ToTwoDimensional(it, columns);
+            if (x > 0)
+            {
+                AddCliff(tiles, columns, it, TileSide.West, indices, triangles);
+            }
+
+            if (x < (columns - 1))
+            {
+                AddCliff(tiles, columns, it, TileSide.East, indices, triangles);
+            }
+
+            if (y > 0)
+            {
+                AddCliff(tiles, columns, it, TileSide.North, indices, triangles);
+            }
+
+            if (y < (rows - 1))
+            {
+                AddCliff(tiles, columns, it, TileSide.South, indices, triangles);
+            }
+        }
+    }
+
+    private static List<Triangle> GetTriangles(IReadOnlyList<TerrainTile> tiles, IReadOnlyList<TerrainVertex> vertices, IReadOnlyList<int> indices)
+    {
+        var triangles = new List<Triangle>(2 * tiles.Count);
+        var palette = ColorPalette.GrassLawn;
+
+        for (var i = 0; i < tiles.Count; i++)
+        {
+            var tile = tiles[i];
+            var v = i * 4;
+            var ix = i * 6;
+            var a = indices[ix + 0] - v;
+            var b = indices[ix + 1] - v;
+            var c = indices[ix + 2] - v;
+            var d = indices[ix + 3] - v;
+            var e = indices[ix + 4] - v;
+            var f = indices[ix + 5] - v;
+            var (n0, n1) = TileUtilities.GetNormals(tile, a, b, c, d, e, f);
+
+            var colorA = GetTriangleColor(palette, vertices, indices[ix + 0], indices[ix + 1], indices[ix + 2]);
+            var colorB = GetTriangleColor(palette, vertices, indices[ix + 3], indices[ix + 4], indices[ix + 5]);
+            triangles.Add(new Triangle() { Normal = n0, Albedo = colorA });
+            triangles.Add(new Triangle() { Normal = n1, Albedo = colorB });
+        }
+
+        return triangles;
+    }
+
+    private static ColorLinear GetTriangleColor(ColorPalette palette, IReadOnlyList<TerrainVertex> vertices, int a, int b, int c)
     {
         var ya = vertices[a].Position.Y;
         var yb = vertices[b].Position.Y;
@@ -338,14 +353,7 @@ internal sealed class TerrainRenderer : IDisposable
 
     public void Render(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
     {
-        this.RenderTiles(context, camera, in cameraTransform, in viewport, in scissor);
-        //this.RenderSelection(context, in camera, in cameraTransform, in viewport, in scissor);
-        this.RenderGrid(context, in camera, in cameraTransform, in viewport, in scissor);
-    }
-
-    private void RenderTiles(DeviceContext context, PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
-    {
-        context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.DefaultRasterizerState, in viewport, in scissor, this.Shader.Ps, this.OpaqueBlendState, this.DefaultDepthStencilState);
+        context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
 
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
         context.PS.SetBuffer(Shader.Triangles, this.TrianglesView);
@@ -354,8 +362,23 @@ internal sealed class TerrainRenderer : IDisposable
         context.IA.SetIndexBuffer(this.Indices);
         this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
 
-        context.DrawIndexed(this.Indices.Length, 0, 0);
+        this.RenderTiles(context, in viewport, in scissor);
+        this.RenderGrid(context, in viewport, in scissor);
+        //this.RenderSelection(context, in camera, in cameraTransform, in viewport, in scissor);
     }
+
+    private void RenderTiles(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
+    {
+        context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.DefaultRasterizerState, in viewport, in scissor, this.Shader.Ps, this.OpaqueBlendState, this.DefaultDepthStencilState);
+        context.DrawIndexed(this.TileIndexCount, 0, 0);
+    }
+
+    private void RenderGrid(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
+    {
+        context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.CullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.AlphaBlendState, this.ReadOnlyDepthStencilState);
+        context.DrawIndexed(this.GridIndexCount, this.GridIndexOffset, 0);
+    }
+
 
     //private void RenderSelection(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
     //{
@@ -372,19 +395,6 @@ internal sealed class TerrainRenderer : IDisposable
     //    }
     //}
 
-    private void RenderGrid(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
-    {
-        context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.CullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.AlphaBlendState, this.ReadOnlyDepthStencilState);
-
-        context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
-
-        context.IA.SetVertexBuffer(this.Vertices);
-        context.IA.SetIndexBuffer(this.GridIndices);
-        this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
-
-        context.DrawIndexed(this.GridIndices.Length, 0, 0);
-    }
-
     public void Dispose()
     {
         this.User.Dispose();
@@ -392,7 +402,6 @@ internal sealed class TerrainRenderer : IDisposable
         //this.Indicators.Dispose();
         this.Vertices.Dispose();
         this.Indices.Dispose();
-        this.GridIndices.Dispose();
 
         this.TrianglesView.Dispose();
         this.TrianglesBuffer.Dispose();
