@@ -67,12 +67,12 @@ public static class TileUtilities
 {
     // TODO: a lot of these utilities can move to LibGame
 
-    // Returns sides as if you are looking straight at them in clock wise order starting from 12 o-clock.
+    // Returns corners for each side from left to right
     public static (TileCorner A, TileCorner B) TileSideToTileCorners(TileSide side)
     {
         return side switch
         {
-            TileSide.North => (TileCorner.NE, TileCorner.NW),
+            TileSide.North => (TileCorner.NW, TileCorner.NE),
             TileSide.East => (TileCorner.NE, TileCorner.SE),
             TileSide.South => (TileCorner.SE, TileCorner.SW),
             TileSide.West => (TileCorner.SW, TileCorner.NW),
@@ -92,6 +92,17 @@ public static class TileUtilities
         };
     }
 
+    public static (int x, int y) GetNeighbourIndex(int x, int y, TileSide side)
+    {
+        return side switch
+        {
+            TileSide.North => (x + 0, y - 1),
+            TileSide.East => (x + 1, y + 0),
+            TileSide.South => (x + 0, y + 1),
+            TileSide.West => (x - 1, y + 0),
+            _ => throw new ArgumentOutOfRangeException(nameof(side))
+        };
+    }
 
     public static float GetOffset(CornerType corner)
     {
