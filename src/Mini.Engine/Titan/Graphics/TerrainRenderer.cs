@@ -37,9 +37,10 @@ internal sealed class TerrainRenderer : IDisposable
     private readonly BlendState AlphaBlendState;
     private readonly DepthStencilState DefaultDepthStencilState;
     private readonly DepthStencilState ReadOnlyDepthStencilState;
-    private readonly RasterizerState DefaultRasterizerState;
-    //private readonly RasterizerState CullNoneRasterizerState;
-    private RasterizerState biasedCullNoneRasterizerState;
+    private readonly RasterizerState GridRasterizerState;
+    private RasterizerState TerrainRasterizerState;
+
+    private const int bias = -10000;
 
     public TerrainRenderer(Device device, Shader shader)
     {
@@ -49,10 +50,9 @@ internal sealed class TerrainRenderer : IDisposable
         this.AlphaBlendState = device.BlendStates.NonPreMultiplied;
         this.DefaultDepthStencilState = device.DepthStencilStates.ReverseZ;
         this.ReadOnlyDepthStencilState = device.DepthStencilStates.ReverseZReadOnly;
-        this.DefaultRasterizerState = device.RasterizerStates.Default;
-        //this.CullNoneRasterizerState = device.RasterizerStates.CullNone;
-
-        this.biasedCullNoneRasterizerState = RasterizerStates.CreateBiased(device, device.RasterizerStates.CullNone, 10);
+        this.GridRasterizerState = device.RasterizerStates.CullNone;
+        // Make sure the terrain is always the lowest object so it doesn't interfer with the grid
+        this.TerrainRasterizerState = RasterizerStates.CreateBiased(device, device.RasterizerStates.Default, bias);
 
         this.User = shader.CreateUserFor<TerrainRenderer>();
         this.Shader = shader;
@@ -380,29 +380,15 @@ internal sealed class TerrainRenderer : IDisposable
 
     private void RenderTiles(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.DefaultRasterizerState, in viewport, in scissor, this.Shader.Ps, this.OpaqueBlendState, this.DefaultDepthStencilState);
+        context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.TerrainRasterizerState, in viewport, in scissor, this.Shader.Ps, this.OpaqueBlendState, this.DefaultDepthStencilState);
         context.DrawIndexed(this.TileIndexCount, 0, 0);
     }
 
-    int bias = 0;
     private void RenderGrid(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
     {
-        //if (ImGui.Begin("Hello"))
-        //{
-        //    if (ImGui.SliderInt("DepthBias", ref this.bias, -1000, 1000))
-        //    {
-        //        var device = context.Device;
-        //        this.biasedCullNoneRasterizerState?.Dispose();
-        //        this.biasedCullNoneRasterizerState = RasterizerStates.CreateBiased(device, device.RasterizerStates.CullNone, bias);
-
-        //    }
-        //    ImGui.End();
-        //}
-
-        context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.biasedCullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.AlphaBlendState, this.ReadOnlyDepthStencilState);
+        context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.GridRasterizerState, in viewport, in scissor, this.Shader.Psline, this.AlphaBlendState, this.ReadOnlyDepthStencilState);
         context.DrawIndexed(this.GridIndexCount, this.GridIndexOffset, 0);
     }
-
 
     //private void RenderSelection(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform, in Rectangle viewport, in Rectangle scissor)
     //{
@@ -430,6 +416,6 @@ internal sealed class TerrainRenderer : IDisposable
         this.TrianglesView.Dispose();
         this.TrianglesBuffer.Dispose();
 
-        this.biasedCullNoneRasterizerState.Dispose();
+        this.TerrainRasterizerState.Dispose();
     }
 }
