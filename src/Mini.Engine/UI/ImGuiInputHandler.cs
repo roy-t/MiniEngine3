@@ -1,5 +1,4 @@
-﻿using System;
-using ImGuiNET;
+﻿using ImGuiNET;
 using Mini.Engine.Windows;
 using Windows.Win32.Foundation;
 using static Windows.Win32.PInvoke;

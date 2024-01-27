@@ -38,7 +38,8 @@ internal sealed class TerrainRenderer : IDisposable
     private readonly DepthStencilState DefaultDepthStencilState;
     private readonly DepthStencilState ReadOnlyDepthStencilState;
     private readonly RasterizerState DefaultRasterizerState;
-    private readonly RasterizerState CullNoneRasterizerState;
+    //private readonly RasterizerState CullNoneRasterizerState;
+    private RasterizerState biasedCullNoneRasterizerState;
 
     public TerrainRenderer(Device device, Shader shader)
     {
@@ -49,7 +50,9 @@ internal sealed class TerrainRenderer : IDisposable
         this.DefaultDepthStencilState = device.DepthStencilStates.ReverseZ;
         this.ReadOnlyDepthStencilState = device.DepthStencilStates.ReverseZReadOnly;
         this.DefaultRasterizerState = device.RasterizerStates.Default;
-        this.CullNoneRasterizerState = device.RasterizerStates.CullNone;
+        //this.CullNoneRasterizerState = device.RasterizerStates.CullNone;
+
+        this.biasedCullNoneRasterizerState = RasterizerStates.CreateBiased(device, device.RasterizerStates.CullNone, 10);
 
         this.User = shader.CreateUserFor<TerrainRenderer>();
         this.Shader = shader;
@@ -381,9 +384,22 @@ internal sealed class TerrainRenderer : IDisposable
         context.DrawIndexed(this.TileIndexCount, 0, 0);
     }
 
+    int bias = 0;
     private void RenderGrid(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
     {
-        context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.CullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.AlphaBlendState, this.ReadOnlyDepthStencilState);
+        //if (ImGui.Begin("Hello"))
+        //{
+        //    if (ImGui.SliderInt("DepthBias", ref this.bias, -1000, 1000))
+        //    {
+        //        var device = context.Device;
+        //        this.biasedCullNoneRasterizerState?.Dispose();
+        //        this.biasedCullNoneRasterizerState = RasterizerStates.CreateBiased(device, device.RasterizerStates.CullNone, bias);
+
+        //    }
+        //    ImGui.End();
+        //}
+
+        context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.biasedCullNoneRasterizerState, in viewport, in scissor, this.Shader.Psline, this.AlphaBlendState, this.ReadOnlyDepthStencilState);
         context.DrawIndexed(this.GridIndexCount, this.GridIndexOffset, 0);
     }
 
@@ -413,5 +429,7 @@ internal sealed class TerrainRenderer : IDisposable
 
         this.TrianglesView.Dispose();
         this.TrianglesBuffer.Dispose();
+
+        this.biasedCullNoneRasterizerState.Dispose();
     }
 }

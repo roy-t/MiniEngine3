@@ -4,16 +4,18 @@ namespace Mini.Engine.DirectX.Contexts.States;
 
 public sealed class RasterizerState : IDisposable
 {
-    internal RasterizerState(ID3D11RasterizerState state, string meaning)
+    internal RasterizerState(ID3D11RasterizerState state, string meaning, RasterizerDescription description)
     {
         this.Name = DebugNameGenerator.GetName(nameof(RasterizerState), meaning);
 
         this.State = state;
         this.State.DebugName = this.Name;
+        this.Description = description;
     }
 
     public string Name { get; }
 
+    internal RasterizerDescription Description { get; }
     internal ID3D11RasterizerState State { get; }
 
     public void Dispose()
@@ -25,8 +27,8 @@ public sealed class RasterizerState : IDisposable
 public sealed class RasterizerStates : IDisposable
 {
     private const int DefaultDepthBias = 0;
-    private const int DefaultDepthBiasClamp = 0;
-    private const int DefaultSlopeScaledDepthBias = 0;
+    private const float DefaultDepthBiasClamp = 0.0f;
+    private const float DefaultSlopeScaledDepthBias = 0.0f;
 
     internal RasterizerStates(ID3D11Device device)
     {
@@ -47,7 +49,7 @@ public sealed class RasterizerStates : IDisposable
         this.Default = this.CullCounterClockwise;
     }
 
-    public RasterizerState Default { get; set; }    
+    public RasterizerState Default { get; set; }
 
     public RasterizerState WireFrame { get; }
 
@@ -66,11 +68,20 @@ public sealed class RasterizerStates : IDisposable
     public RasterizerState CullCounterClockwiseNoDepthClip { get; }
     public RasterizerState CullClockwiseNoDepthClip { get; }
 
+    public static RasterizerState CreateBiased(Device device, RasterizerState template, int depthBias, float depthBiasClamp = 0.0f, float slopeScaledDepthBias = 0.0f)
+    {
+        var description = template.Description;
+        description.DepthBias = depthBias;
+        description.DepthBiasClamp = depthBiasClamp;
+        description.SlopeScaledDepthBias = slopeScaledDepthBias;
+        return Create(device.ID3D11Device, description, string.Empty);
+    }
+
     private static RasterizerState Create(ID3D11Device device, RasterizerDescription description, string name)
     {
         description.ScissorEnable = true;
         var state = device.CreateRasterizerState(description);
-        return new RasterizerState(state, name);
+        return new RasterizerState(state, name, description);
     }
 
     private static RasterizerDescription CreateCullNoneNoDepthClip()
@@ -126,7 +137,7 @@ public sealed class RasterizerStates : IDisposable
 
     private static RasterizerDescription CreateLine()
     {
-        
+
         return new RasterizerDescription()
         {
             CullMode = CullMode.None,

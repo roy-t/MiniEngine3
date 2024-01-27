@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Configuration;
+﻿using ImGuiNET;
+using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
@@ -40,12 +41,13 @@ internal class TitanGameLoop : IGameLoop
 
     public void Update(float elapsedSimulationTime)
     {
-        this.UserInterface.NewFrame();
         this.Content.ReloadChangedContent();
     }
 
     public void Draw(float alpha, float elapsedRealWorldTime)
     {
+        this.UserInterface.NewFrame();
+
         this.CameraController.Update(elapsedRealWorldTime, this.Device.Viewport);
 
         this.GBuffer.Clear();
@@ -67,6 +69,7 @@ internal class TitanGameLoop : IGameLoop
             this.Presenter.Present(this.Device.ImmediateContext, this.GBuffer.Albedo);
         }
 
+        ImGui.ShowDemoWindow();
         this.UserInterface.Render();
     }
 

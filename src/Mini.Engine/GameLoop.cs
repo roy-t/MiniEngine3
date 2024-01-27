@@ -70,8 +70,6 @@ internal sealed class GameLoop : IGameLoop
 
         this.FrameService.ElapsedGameTime = elapsedSimulationTime;
 
-        this.UserInterface.NewFrame();
-
         this.SceneManager.CheckChangeScene();
         this.Content.ReloadChangedContent();
         this.EditorState.Update();
@@ -92,14 +90,16 @@ internal sealed class GameLoop : IGameLoop
     public void Draw(float alpha, float elapsedRealWorldTime)
     {
         this.Stopwatch.Restart();
+        this.UserInterface.NewFrame();
+
 
         this.FrameService.Alpha = alpha;
         this.FrameService.PBuffer.Swap(ref this.FrameService.GetPrimaryCamera());
         ClearBuffersSystem.Clear(this.Device.ImmediateContext, this.FrameService);
-        
-        var output = this.Device.Viewport;        
+
+        var output = this.Device.Viewport;
         this.RenderPipeline.Run(in output, in output, alpha);
-        this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.CurrentColor);                
+        this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.CurrentColor);
 
         if (this.enableUI)
         {

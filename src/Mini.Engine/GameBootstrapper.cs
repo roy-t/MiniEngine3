@@ -108,6 +108,8 @@ public sealed class GameBootstrapper
             // TOOD: this is good for sim, but makes the camera (and possibly animations) stutter
             // even if they run on the ElapsedRealWorldTime, because the position just doesn't get updated every frame then
             // these kind of things should run in the draw step!
+            // this also messes with DearImGUi as NewFrame isn't called every draw
+            // but we lose some panels if they are create in an update
             while (accumulator >= dt)
             {
                 accumulator -= dt;

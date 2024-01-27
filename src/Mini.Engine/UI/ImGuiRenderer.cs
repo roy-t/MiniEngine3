@@ -24,7 +24,7 @@ internal sealed class ImGuiRenderer : IDisposable
     private readonly DeferredDeviceContext DeferredContext;
     private readonly Shader Shader;
     private readonly Shader.User User;
-    private readonly ISurface FontTexture;
+    private readonly Texture FontTexture;
     private readonly InputLayout InputLayout;
     private readonly VertexBuffer<ImDrawVert> VertexBuffer;
     private readonly IndexBuffer<ImDrawIdx> IndexBuffer;
@@ -40,7 +40,7 @@ internal sealed class ImGuiRenderer : IDisposable
         this.IndexBuffer = new IndexBuffer<ImDrawIdx>(device, $"{nameof(ImGuiRenderer)}_IB");
 
         this.Shader = shader;
-        this.User = shader.CreateUserFor<ImGuiRenderer>();        
+        this.User = shader.CreateUserFor<ImGuiRenderer>();
 
         this.InputLayout = this.Shader.CreateInputLayoutForVs
         (
@@ -74,7 +74,7 @@ internal sealed class ImGuiRenderer : IDisposable
         {
             for (var n = 0; n < data.CmdListsCount; n++)
             {
-                var cmdlList = data.CmdLists[n];
+                var cmdlList = data.CmdListsRange[n];
                 unsafe
                 {
                     vertexWriter.MapData(new Span<ImDrawVert>(cmdlList.VtxBuffer.Data.ToPointer(), cmdlList.VtxBuffer.Size), vertexOffset);
@@ -97,7 +97,7 @@ internal sealed class ImGuiRenderer : IDisposable
         var lobalVertexOffset = 0;
         for (var n = 0; n < data.CmdListsCount; n++)
         {
-            var cmdList = data.CmdLists[n];
+            var cmdList = data.CmdListsRange[n];
             for (var i = 0; i < cmdList.CmdBuffer.Size; i++)
             {
                 var cmd = cmdList.CmdBuffer[i];
@@ -143,7 +143,7 @@ internal sealed class ImGuiRenderer : IDisposable
         context.PS.SetSampler(0, this.Device.SamplerStates.LinearWrap);
     }
 
-    private static ISurface CreateFontsTexture(Device device)
+    private static Texture CreateFontsTexture(Device device)
     {
         var io = ImGui.GetIO();
         unsafe
