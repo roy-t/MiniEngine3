@@ -300,7 +300,7 @@ internal sealed class TerrainRenderer : IDisposable
         var nSWHeight = nTile.GetHeight(nSWCorner);
 
         // We only care about our sides being higher, the other situations will be taken care of by working on the other tile's sides
-        if (cNWHeight > nSWHeight || cNEHeight != nSWHeight) // Cliff
+        if (cNWHeight > nSWHeight || cNEHeight > nSEHeight) // Cliff
         {
             var cNWIndex = GetVertexIndex(cNWCorner, x, y, stride);
             var cNEIndex = GetVertexIndex(cNECorner, x, y, stride);
@@ -347,10 +347,11 @@ internal sealed class TerrainRenderer : IDisposable
                 indices.Add(cNEIndex);
                 triangles.Add(new Triangle() { Normal = normal, Albedo = albedo });
             }
+            else
+            {
+                throw new Exception("Unexpected case");
+            }
         }
-        throw new Exception("TODO");
-        // TODO: cliffs block grid rendering
-        // TODO: if the triangle is an upside down triangle shape it leads to a black triangle, are we missing a case!?
     }
 
     private static int GetVertexIndex(TileCorner corner, int x, int y, int stride)
