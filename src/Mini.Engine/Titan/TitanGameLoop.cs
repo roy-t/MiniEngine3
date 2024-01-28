@@ -1,5 +1,4 @@
-﻿using ImGuiNET;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
 using Mini.Engine.Content;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
@@ -19,8 +18,9 @@ internal class TitanGameLoop : IGameLoop
     private readonly GBuffer GBuffer;
     private readonly StrategyCameraController CameraController;
     private readonly TerrainRenderer TerrainRenderer;
+    private readonly Terrain Terrain;
 
-    public TitanGameLoop(Device device, ContentManager content, UICore userInterface, PresentationHelper presenter, StrategyCameraController cameraController, TerrainRenderer terrainRenderer)
+    public TitanGameLoop(Device device, ContentManager content, UICore userInterface, PresentationHelper presenter, StrategyCameraController cameraController, Terrain terrainRenderer, TerrainRenderer terrainPartRenderer)
     {
         this.GBuffer = new GBuffer(device, MultiSamplingRequest.Eight);
 
@@ -28,8 +28,9 @@ internal class TitanGameLoop : IGameLoop
         this.Content = content;
         this.UserInterface = userInterface;
         this.CameraController = cameraController;
-        this.TerrainRenderer = terrainRenderer;
+        this.Terrain = terrainRenderer;
         this.Presenter = presenter;
+        this.TerrainRenderer = terrainPartRenderer;
     }
 
     public void Resize(int width, int height)
@@ -56,7 +57,8 @@ internal class TitanGameLoop : IGameLoop
         var output = this.Device.Viewport;
 
         this.Device.ImmediateContext.OM.SetRenderTargets(this.GBuffer.Group, this.GBuffer.Depth);
-        this.TerrainRenderer.Render(this.Device.ImmediateContext, this.CameraController.Camera, in transform, in output, in output);
+        this.TerrainRenderer.Setup(this.Device.ImmediateContext, this.CameraController.Camera, in transform);
+        this.TerrainRenderer.Render(this.Device.ImmediateContext, in output, in output, this.Terrain);
 
         this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();
         // TODO: tone map later when we incorporate lights
@@ -69,7 +71,6 @@ internal class TitanGameLoop : IGameLoop
             this.Presenter.Present(this.Device.ImmediateContext, this.GBuffer.Albedo);
         }
 
-        ImGui.ShowDemoWindow();
         this.UserInterface.Render();
     }
 
