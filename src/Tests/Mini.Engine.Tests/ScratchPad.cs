@@ -9,6 +9,5 @@ public static class ScratchPad
     public static void Bitshifting()
     {
         var tile = new Tile(CornerType.Raised, CornerType.Level, CornerType.Level, CornerType.Level, 0);
-
     }
 }

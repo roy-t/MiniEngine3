@@ -36,8 +36,8 @@ internal sealed class Terrain : ITerrain, IDisposable
         //var heightMap = new byte[]
         //{
         //    1, 0, 0,
-        //    1, 1, 1,
-        //    1, 1, 1
+        //    1, 1, 0,
+        //    2, 2, 1
         //};
 
         var tiles = GetTiles(heightMap, columns);
