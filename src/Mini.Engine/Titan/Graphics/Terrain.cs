@@ -14,7 +14,8 @@ namespace Mini.Engine.Titan.Graphics;
 [Service]
 internal sealed class Terrain : ITerrain, IDisposable
 {
-    private const int MaxHeight = 10;
+    private const byte MinHeight = 0;
+    private const byte MaxHeight = 20;
 
     public Terrain(Device device, Shader shader)
     {
@@ -61,29 +62,29 @@ internal sealed class Terrain : ITerrain, IDisposable
     public StructuredBuffer<Triangle> TrianglesBuffer { get; }
     public ShaderResourceView<Triangle> TrianglesView { get; }
 
-    private static float[] GenerateHeightMap(int columns, int rows)
+    private static byte[] GenerateHeightMap(int columns, int rows)
     {
-        var heights = new float[columns * rows];
+        var heights = new byte[columns * rows];
 
         Parallel.For(0, heights.Length, i =>
         {
             var (x, y) = Indexes.ToTwoDimensional(i, columns);
             var noise = FractalBrownianMotion.Generate(SimplexNoise.Noise, x * 0.001f, y * 0.001f, 1.5f, 0.9f, 5);
-            noise = Ranges.Map(noise, (-1.0f, 1.0f), (0.0f, MaxHeight));
-            heights[i] = (int)noise;
+            noise = Ranges.Map(noise, (-1.0f, 1.0f), (MinHeight, MaxHeight));
+            heights[i] = (byte)noise;
         });
 
         return heights;
     }
 
-    private static TerrainTile[] GetTiles(float[] heights, int stride)
+    private static Tile[] GetTiles(byte[] heights, int stride)
     {
         var columns = stride;
         var rows = heights.Length / stride;
-        var terrain = new TerrainTile[columns * rows];
+        var terrain = new Tile[columns * rows];
 
         // First tile
-        terrain[0] = new TerrainTile(heights[0]);
+        terrain[0] = new Tile(heights[0]);
 
         // First row
         for (var i = 1; i < columns; i++)
@@ -116,7 +117,7 @@ internal sealed class Terrain : ITerrain, IDisposable
         return terrain;
     }
 
-    private static List<TerrainVertex> GetVertices(IReadOnlyList<TerrainTile> tiles, int columns)
+    private static List<TerrainVertex> GetVertices(IReadOnlyList<Tile> tiles, int columns)
     {
         var vertices = new List<TerrainVertex>(4 * tiles.Count);
         for (var i = 0; i < tiles.Count; i++)
@@ -132,13 +133,13 @@ internal sealed class Terrain : ITerrain, IDisposable
         return vertices;
     }
 
-    private static Vector3 GetTileCornerPosition(TerrainTile tile, TileCorner corner, int tileX, int tileY)
+    private static Vector3 GetTileCornerPosition(Tile tile, TileCorner corner, int tileX, int tileY)
     {
         var offset = TileUtilities.IndexToCorner(tile, corner);
         return new Vector3(offset.X + tileX, offset.Y, offset.Z + tileY);
     }
 
-    private static List<int> GetIndices(IReadOnlyList<TerrainTile> tiles)
+    private static List<int> GetIndices(IReadOnlyList<Tile> tiles)
     {
         var indices = new List<int>(6 * tiles.Count);
 
@@ -158,7 +159,7 @@ internal sealed class Terrain : ITerrain, IDisposable
         return indices;
     }
 
-    private static int AddGrid(IReadOnlyList<TerrainTile> tiles, List<int> indices)
+    private static int AddGrid(IReadOnlyList<Tile> tiles, List<int> indices)
     {
         var length = tiles.Count * 8;
         indices.EnsureCapacity(indices.Count + length);
@@ -182,7 +183,7 @@ internal sealed class Terrain : ITerrain, IDisposable
         return length;
     }
 
-    private static List<Triangle> GetTriangles(IReadOnlyList<TerrainTile> tiles, IReadOnlyList<TerrainVertex> vertices, IReadOnlyList<int> indices)
+    private static List<Triangle> GetTriangles(IReadOnlyList<Tile> tiles, IReadOnlyList<TerrainVertex> vertices, IReadOnlyList<int> indices)
     {
         var triangles = new List<Triangle>(2 * tiles.Count);
         var palette = ColorPalette.GrassLawn;
@@ -220,7 +221,7 @@ internal sealed class Terrain : ITerrain, IDisposable
         return Colors.RGBToLinear(palette.Colors[paletteIndex]);
     }
 
-    private static void AddCliffs(IReadOnlyList<TerrainTile> tiles, List<int> indices, List<Triangle> triangles, int columns, int rows)
+    private static void AddCliffs(IReadOnlyList<Tile> tiles, List<int> indices, List<Triangle> triangles, int columns, int rows)
     {
         for (var it = 0; it < tiles.Count; it++)
         {
@@ -247,7 +248,7 @@ internal sealed class Terrain : ITerrain, IDisposable
         }
     }
 
-    private static void AddCliff(IReadOnlyList<TerrainTile> tiles, int stride, int index, TileSide side, List<int> indices, List<Triangle> triangles)
+    private static void AddCliff(IReadOnlyList<Tile> tiles, int stride, int index, TileSide side, List<int> indices, List<Triangle> triangles)
     {
         var (x, y) = Indexes.ToTwoDimensional(index, stride);
         var (nx, ny) = TileUtilities.GetNeighbourIndex(x, y, side);

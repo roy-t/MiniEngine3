@@ -3,7 +3,7 @@ using LibGame.Geometry;
 
 namespace Mini.Engine.Titan.Graphics;
 
-public enum TileSide : int
+public enum TileSide : byte
 {
     North = 0,
     East = 1,
@@ -11,7 +11,7 @@ public enum TileSide : int
     West = 3,
 }
 
-public enum TileCorner : int
+public enum TileCorner : byte
 {
     NE = 0,
     SE = 1,
@@ -21,9 +21,10 @@ public enum TileCorner : int
 
 public enum CornerType : byte
 {
-    Level,
-    Raised,
-    Lowered
+    Level = 0,
+    Raised = 1,
+    Lowered = 2,
+    Mask = 3
 }
 
 public readonly record struct Neighbours<T>(T NW, T N, T NE, T W, T C, T E, T SW, T S, T SE)
@@ -31,35 +32,81 @@ public readonly record struct Neighbours<T>(T NW, T N, T NE, T W, T C, T E, T SW
 { }
 
 // TODO: all this data can be stored in two bytes
-public readonly record struct TerrainTile(CornerType NE, CornerType SE, CornerType SW, CornerType NW, float Offset)
+public readonly struct Tile
 {
-    public TerrainTile(float offset)
+    private const byte MaskNE = 0b_00_00_00_11;
+    private const byte MaskSE = 0b_00_00_11_00;
+    private const byte MaskSW = 0b_00_11_00_00;
+    private const byte MaskNW = 0b_11_00_00_00;
+
+    private readonly byte Offset;
+    private readonly byte Corners;
+
+    public Tile(CornerType ne, CornerType se, CornerType sw, CornerType nw, byte offset)
+    {
+        this.Offset = offset;
+
+        byte corners = 0b_00_00_00_00;
+        corners |= (byte)((int)ne << 0);
+        corners |= (byte)((int)se << 2);
+        corners |= (byte)((int)sw << 4);
+        corners |= (byte)((int)nw << 6);
+
+        this.Corners = corners;
+    }
+
+    public Tile(byte offset)
         : this(CornerType.Level, CornerType.Level, CornerType.Level, CornerType.Level, offset) { }
 
-    public Vector4 GetHeightOffsets()
+    public CornerType Unpack(TileCorner corner)
     {
-        return new Vector4
+        var ic = (int)corner;
+        var mask = (byte)(MaskNE << (ic * 2));
+        return (CornerType)((this.Corners & mask) >> (ic * 2));
+    }
+
+    public (CornerType NE, CornerType SE, CornerType SW, CornerType NW) UnpackAll()
+    {
+        var ne = (CornerType)((this.Corners & MaskNE) >> 0);
+        var se = (CornerType)((this.Corners & MaskSE) >> 2);
+        var sw = (CornerType)((this.Corners & MaskSW) >> 4);
+        var nw = (CornerType)((this.Corners & MaskNW) >> 6);
+
+        return (ne, se, sw, nw);
+    }
+
+    public sbyte GetHeightOffset(TileCorner corner)
+    {
+        return TileUtilities.GetOffset(this.Unpack(corner));
+    }
+
+    public (sbyte ne, sbyte se, sbyte sw, sbyte nw) GetHeightOffsets()
+    {
+        var (ne, se, sw, nw) = this.UnpackAll();
+        return
         (
-            TileUtilities.GetOffset(this.NE),
-            TileUtilities.GetOffset(this.SE),
-            TileUtilities.GetOffset(this.SW),
-            TileUtilities.GetOffset(this.NW)
+            TileUtilities.GetOffset(ne),
+            TileUtilities.GetOffset(se),
+            TileUtilities.GetOffset(sw),
+            TileUtilities.GetOffset(nw)
         );
     }
 
-    public float GetHeightOffset(TileCorner corner)
+    public byte GetHeight(TileCorner corner)
     {
-        return this.GetHeightOffsets()[(int)corner];
+        return (byte)(this.Offset + this.GetHeightOffset(corner));
     }
 
-    public Vector4 GetHeights()
+    public (byte ne, byte se, byte sw, byte nw) GetHeights()
     {
-        return GetHeightOffsets() + Vector4.One * this.Offset;
-    }
-
-    public float GetHeight(TileCorner corner)
-    {
-        return this.GetHeights()[(int)corner];
+        var (ne, se, sw, nw) = this.GetHeightOffsets();
+        return
+        (
+            (byte)(ne + this.Offset),
+            (byte)(se + this.Offset),
+            (byte)(sw + this.Offset),
+            (byte)(nw + this.Offset)
+        );
     }
 }
 
@@ -104,13 +151,13 @@ public static class TileUtilities
         };
     }
 
-    public static float GetOffset(CornerType corner)
+    public static sbyte GetOffset(CornerType corner)
     {
         return corner switch
         {
-            CornerType.Level => 0.0f,
-            CornerType.Raised => 0.5f,
-            CornerType.Lowered => -0.5f,
+            CornerType.Level => 0,
+            CornerType.Raised => 1,
+            CornerType.Lowered => -1,
             _ => throw new ArgumentOutOfRangeException(nameof(corner)),
         };
     }
@@ -144,44 +191,44 @@ public static class TileUtilities
         return fallback;
     }
 
-    public static TerrainTile FitNorth(TerrainTile n, float heightNorthWest, float heightNorthEast, float heightWest, float heightEast, float heightSouthWest, float heightSouth, float heightSouthEast, float baseHeight)
+    public static Tile FitNorth(Tile n, byte heightNorthWest, byte heightNorthEast, byte heightWest, byte heightEast, byte heightSouthWest, byte heightSouth, byte heightSouthEast, byte baseHeight)
     {
         var hne = Fit(baseHeight, n.GetHeight(TileCorner.SE), heightNorthEast, heightEast);
         var hse = Fit(baseHeight, heightEast, heightSouthEast, heightSouth);
         var hsw = Fit(baseHeight, heightWest, heightSouthWest, heightSouth);
         var hnw = Fit(baseHeight, heightNorthWest, n.GetHeight(TileCorner.SW), heightWest);
 
-        return new TerrainTile(hne, hse, hsw, hnw, baseHeight);
+        return new Tile(hne, hse, hsw, hnw, baseHeight);
     }
 
-    public static TerrainTile FitWest(TerrainTile w, float heightNorthWest, float heightNorth, float heightNorthEast, float heightEast, float heightSouthWest, float heightSouth, float heightSouthEast, float baseHeight)
+    public static Tile FitWest(Tile w, byte heightNorthWest, byte heightNorth, byte heightNorthEast, byte heightEast, byte heightSouthWest, byte heightSouth, byte heightSouthEast, byte baseHeight)
     {
         var hne = Fit(baseHeight, heightNorth, heightNorthEast, heightEast);
         var hse = Fit(baseHeight, heightEast, heightSouthEast, heightSouth);
         var hsw = Fit(baseHeight, w.GetHeight(TileCorner.SE), heightSouthWest, heightSouth);
         var hnw = Fit(baseHeight, heightNorthWest, heightNorth, w.GetHeight(TileCorner.NE));
 
-        return new TerrainTile(hne, hse, hsw, hnw, baseHeight);
+        return new Tile(hne, hse, hsw, hnw, baseHeight);
     }
 
 
-    public static TerrainTile Fit(TerrainTile nw, TerrainTile n, TerrainTile ne, TerrainTile w, float heightEast, float heightSouthWest, float heightSouth, float heightSouthEast, float baseHeight)
+    public static Tile Fit(Tile nw, Tile n, Tile ne, Tile w, byte heightEast, byte heightSouthWest, byte heightSouth, byte heightSouthEast, byte baseHeight)
     {
         var hne = Fit(baseHeight, n.GetHeight(TileCorner.SE), ne.GetHeight(TileCorner.SW), heightEast);
         var hse = Fit(baseHeight, heightEast, heightSouthEast, heightSouth);
         var hsw = Fit(baseHeight, w.GetHeight(TileCorner.SE), heightSouthWest, heightSouth);
         var hnw = Fit(baseHeight, nw.GetHeight(TileCorner.SE), n.GetHeight(TileCorner.SW), w.GetHeight(TileCorner.NE));
 
-        return new TerrainTile(hne, hse, hsw, hnw, baseHeight);
+        return new Tile(hne, hse, hsw, hnw, baseHeight);
     }
 
-    private static CornerType Fit(float baseHeight, params float[] options)
+    private static CornerType Fit(byte baseHeight, params byte[] options)
     {
         var result = baseHeight;
         for (var i = 0; i < options.Length; i++)
         {
             var height = options[i];
-            if (IsWithin(height, baseHeight - 0.5f, baseHeight + 0.5f))
+            if (IsWithin(height, baseHeight - 1, baseHeight + 1))
             {
                 result = height;
                 break;
@@ -201,12 +248,12 @@ public static class TileUtilities
         return CornerType.Level;
     }
 
-    private static bool IsWithin(float value, float min, float max, float error = 0.01f)
+    private static bool IsWithin(int value, int min, int max)
     {
-        return value <= (max + error) || value >= (min - error);
+        return value <= max || value >= min;
     }
 
-    public static Vector3 IndexToCorner(TerrainTile tile, TileCorner c)
+    public static Vector3 IndexToCorner(Tile tile, TileCorner c)
     {
         var offset = tile.GetHeight(c);
 
@@ -220,6 +267,7 @@ public static class TileUtilities
         }; ;
     }
 
+    // TODO: unused?
     public static Vector3 IndexToCorner(TileCorner c)
     {
         return c switch
@@ -233,7 +281,7 @@ public static class TileUtilities
     }
 
 
-    public static (int a, int b, int c, int d, int e, int f) GetBestTriangleIndices(TerrainTile tile)
+    public static (int a, int b, int c, int d, int e, int f) GetBestTriangleIndices(Tile tile)
     {
 
         var offsets = tile.GetHeightOffsets();
@@ -245,7 +293,7 @@ public static class TileUtilities
         // XOO
         // OXO
         // OOX
-        if (offsets[1] == offsets[3])
+        if (offsets.se == offsets.nw)
         {
             return (ne, se, nw,
                     se, sw, nw);
@@ -264,7 +312,7 @@ public static class TileUtilities
     /// Get the normals of the two triangles given the tile type and the
     /// relative indices (a, b, c) of the first triangle and (d, e, f) of the second triangle
     /// </summary>
-    public static (Vector3 n0, Vector3 n1) GetNormals(TerrainTile tile, int a, int b, int c, int d, int e, int f)
+    public static (Vector3 n0, Vector3 n1) GetNormals(Tile tile, int a, int b, int c, int d, int e, int f)
     {
         var ca = IndexToCorner(tile, (TileCorner)a);
         var cb = IndexToCorner(tile, (TileCorner)b);
