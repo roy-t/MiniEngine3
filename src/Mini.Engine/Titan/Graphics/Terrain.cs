@@ -20,25 +20,25 @@ internal sealed class Terrain : ITerrain, IDisposable
 
     public Terrain(Device device, Shader shader)
     {
-        //const int columns = 200;
-        //const int rows = 200;
-        //var heightMap = GenerateHeightMap(columns, rows);
-        //for (var i = 0; i < heightMap.Length; i++)
-        //{
-        //    if (heightMap[i] > 5)
-        //    {
-        //        heightMap[i] = 7;
-        //    }
-        //}
-        const int columns = 3;
-        const int rows = 3;
-
-        var heightMap = new byte[]
+        const int columns = 200;
+        const int rows = 200;
+        var heightMap = GenerateHeightMap(columns, rows);
+        for (var i = 0; i < heightMap.Length; i++)
         {
-            1, 0, 0,
-            1, 1, 1,
-            1, 1, 1
-        };
+            if (heightMap[i] > 5)
+            {
+                heightMap[i] = 7;
+            }
+        }
+        //const int columns = 3;
+        //const int rows = 3;
+
+        //var heightMap = new byte[]
+        //{
+        //    1, 0, 0,
+        //    1, 1, 1,
+        //    1, 1, 1
+        //};
 
         var tiles = GetTiles(heightMap, columns);
         var vertices = GetVertices(tiles, columns);
@@ -100,16 +100,16 @@ internal sealed class Terrain : ITerrain, IDisposable
         for (var i = 1; i < columns; i++)
         {
             var leftTile = terrain[i - 1];
-            var t = TileUtilities.GetNeighboursFromGrid(i, columns, heights);
-            terrain[i] = TileUtilities.FitWest(leftTile, t.NW, t.N, t.NE, t.E, t.SW, t.S, t.SE, t.C);
+            var t = TileUtilities.GetNeighboursFromGrid(heights, columns, rows, i, heights[i]);
+            terrain[i] = TileUtilities.FitFirstRow(leftTile, t.E, t.SW, t.S, t.SE, heights[i]);
         }
 
         // First column
         for (var i = stride; i < heights.Length; i += stride)
         {
             var topTile = terrain[i - stride];
-            var t = TileUtilities.GetNeighboursFromGrid(i, columns, heights);
-            terrain[i] = TileUtilities.FitNorth(topTile, t.NW, t.NE, t.W, t.E, t.SW, t.S, t.SE, t.C);
+            var t = TileUtilities.GetNeighboursFromGrid(heights, columns, rows, i, heights[i]);
+            terrain[i] = TileUtilities.FitFirstColumn(topTile, t.NE, t.E, t.S, t.SE, heights[i]);
         }
 
         // Fill
@@ -118,9 +118,9 @@ internal sealed class Terrain : ITerrain, IDisposable
             var (x, y) = Indexes.ToTwoDimensional(i, stride);
             if (x > 0 && y > 0)
             {
-                var tt = TileUtilities.GetNeighboursFromGrid(i, columns, terrain);
-                var hh = TileUtilities.GetNeighboursFromGrid(i, columns, heights);
-                terrain[i] = TileUtilities.Fit(tt.NW, tt.N, tt.NE, tt.W, hh.E, hh.SW, hh.S, hh.SE, hh.C);
+                var tt = TileUtilities.GetNeighboursFromGrid(terrain, columns, rows, i, terrain[i]);
+                var hh = TileUtilities.GetNeighboursFromGrid(heights, columns, rows, i, heights[i]);
+                terrain[i] = TileUtilities.Fit(tt.NW, tt.N, tt.NE, tt.W, hh.E, hh.SW, hh.S, hh.SE, heights[i]);
             }
         }
 

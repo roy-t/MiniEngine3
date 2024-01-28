@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using LibGame.Geometry;
+using LibGame.Mathematics;
 
 namespace Mini.Engine.Titan.Graphics;
 
@@ -27,11 +28,10 @@ public enum CornerType : byte
     Mask = 3
 }
 
-public readonly record struct Neighbours<T>(T NW, T N, T NE, T W, T C, T E, T SW, T S, T SE)
+public readonly record struct Neighbours<T>(T NW, T N, T NE, T W, T E, T SW, T S, T SE)
     where T : struct
 { }
 
-// TODO: all this data can be stored in two bytes
 public readonly struct Tile
 {
     private const byte MaskNE = 0b_00_00_00_11;
@@ -39,7 +39,7 @@ public readonly struct Tile
     private const byte MaskSW = 0b_00_11_00_00;
     private const byte MaskNW = 0b_11_00_00_00;
 
-    private readonly byte Offset;
+    public readonly byte Offset;
     private readonly byte Corners;
 
     public Tile(CornerType ne, CornerType se, CornerType sw, CornerType nw, byte offset)
@@ -108,6 +108,12 @@ public readonly struct Tile
             (byte)(nw + this.Offset)
         );
     }
+
+    public override string ToString()
+    {
+        var (ne, se, sw, nw) = this.GetHeightOffsets();
+        return $"{this.Offset} [{ne:+#;-#;0}, {se:+#;-#;0}, {sw:+#;-#;0}, {nw:+#;-#;0}]";
+    }
 }
 
 public static class TileUtilities
@@ -163,50 +169,53 @@ public static class TileUtilities
     }
 
     // TODO: replace with a function that returns indexes instead of copies
-    public static Neighbours<T> GetNeighboursFromGrid<T>(int index, int stride, params T[] grid)
+    public static Neighbours<T> GetNeighboursFromGrid<T>(T[] grid, int columns, int rows, int index, T fallback)
         where T : struct
     {
-        var c = grid[index];
-        var nw = GetFromGrid(grid, index, -(stride + 1), c);
-        var n = GetFromGrid(grid, index, -stride, c);
-        var ne = GetFromGrid(grid, index, -(stride - 1), c);
-        var w = GetFromGrid(grid, index, -1, c);
-        var e = GetFromGrid(grid, index, 1, c);
-        var sw = GetFromGrid(grid, index, stride - 1, c);
-        var s = GetFromGrid(grid, index, stride, c);
-        var se = GetFromGrid(grid, index, stride + 1, c);
+        var nw = GetFromGrid(grid, columns, rows, index, -1, -1, fallback);
+        var n = GetFromGrid(grid, columns, rows, index, 0, -1, fallback);
+        var ne = GetFromGrid(grid, columns, rows, index, 1, -1, fallback);
+        var w = GetFromGrid(grid, columns, rows, index, -1, 0, fallback);
+        var e = GetFromGrid(grid, columns, rows, index, 1, 0, fallback);
+        var sw = GetFromGrid(grid, columns, rows, index, -1, 1, fallback);
+        var s = GetFromGrid(grid, columns, rows, index, 0, 1, fallback);
+        var se = GetFromGrid(grid, columns, rows, index, 1, 1, fallback);
 
-        return new Neighbours<T>(nw, n, ne, w, c, e, sw, s, se);
+        return new Neighbours<T>(nw, n, ne, w, e, sw, s, se);
     }
 
-    private static T GetFromGrid<T>(T[] grid, int index, int offset, T fallback)
-        where T : struct
+
+    public static T GetFromGrid<T>(T[] grid, int columns, int rows, int index, int offsetColumn, int offsetRow, T fallBack)
     {
-        var actual = index + offset;
-        if (actual >= 0 && actual < grid.Length)
+        var (c, r) = Indexes.ToTwoDimensional(index, columns);
+        c += offsetColumn;
+        r += offsetRow;
+
+        if (c >= 0 && c < columns && r >= 0 && r < rows)
         {
-            return grid[actual];
+            var i = Indexes.ToOneDimensional(c, r, columns);
+            return grid[i];
         }
 
-        return fallback;
+        return fallBack;
     }
 
-    public static Tile FitNorth(Tile n, byte heightNorthWest, byte heightNorthEast, byte heightWest, byte heightEast, byte heightSouthWest, byte heightSouth, byte heightSouthEast, byte baseHeight)
+    public static Tile FitFirstColumn(Tile n, byte heightNorthEast, byte heightEast, byte heightSouth, byte heightSouthEast, byte baseHeight)
     {
         var hne = Fit(baseHeight, n.GetHeight(TileCorner.SE), heightNorthEast, heightEast);
         var hse = Fit(baseHeight, heightEast, heightSouthEast, heightSouth);
-        var hsw = Fit(baseHeight, heightWest, heightSouthWest, heightSouth);
-        var hnw = Fit(baseHeight, heightNorthWest, n.GetHeight(TileCorner.SW), heightWest);
+        var hsw = Fit(baseHeight, heightSouth);
+        var hnw = Fit(baseHeight, n.GetHeight(TileCorner.SW));
 
         return new Tile(hne, hse, hsw, hnw, baseHeight);
     }
 
-    public static Tile FitWest(Tile w, byte heightNorthWest, byte heightNorth, byte heightNorthEast, byte heightEast, byte heightSouthWest, byte heightSouth, byte heightSouthEast, byte baseHeight)
+    public static Tile FitFirstRow(Tile w, byte heightEast, byte heightSouthWest, byte heightSouth, byte heightSouthEast, byte baseHeight)
     {
-        var hne = Fit(baseHeight, heightNorth, heightNorthEast, heightEast);
+        var hne = Fit(baseHeight, heightEast);
         var hse = Fit(baseHeight, heightEast, heightSouthEast, heightSouth);
         var hsw = Fit(baseHeight, w.GetHeight(TileCorner.SE), heightSouthWest, heightSouth);
-        var hnw = Fit(baseHeight, heightNorthWest, heightNorth, w.GetHeight(TileCorner.NE));
+        var hnw = Fit(baseHeight, w.GetHeight(TileCorner.NE));
 
         return new Tile(hne, hse, hsw, hnw, baseHeight);
     }
