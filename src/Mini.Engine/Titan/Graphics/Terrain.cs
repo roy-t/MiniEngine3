@@ -29,7 +29,7 @@ internal sealed class Terrain : ITerrain, IDisposable
             }
         }
 
-        var tiles = GetTilesFromHeightMap(heightMap, columns);
+        var tiles = GetTiles(heightMap, columns);
         var vertices = GetVertices(tiles, columns);
         var indices = GetIndices(tiles);
         var triangles = GetTriangles(tiles, vertices, indices);
@@ -76,7 +76,7 @@ internal sealed class Terrain : ITerrain, IDisposable
         return heights;
     }
 
-    private static TerrainTile[] GetTilesFromHeightMap(float[] heights, int stride)
+    private static TerrainTile[] GetTiles(float[] heights, int stride)
     {
         var columns = stride;
         var rows = heights.Length / stride;
