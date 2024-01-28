@@ -14,21 +14,31 @@ namespace Mini.Engine.Titan.Graphics;
 [Service]
 internal sealed class Terrain : ITerrain, IDisposable
 {
+    // TODO: setting a different minheight kills terrain generation?
     private const byte MinHeight = 0;
     private const byte MaxHeight = 20;
 
     public Terrain(Device device, Shader shader)
     {
-        const int columns = 200;
-        const int rows = 200;
-        var heightMap = GenerateHeightMap(columns, rows);
-        for (var i = 0; i < heightMap.Length; i++)
+        //const int columns = 200;
+        //const int rows = 200;
+        //var heightMap = GenerateHeightMap(columns, rows);
+        //for (var i = 0; i < heightMap.Length; i++)
+        //{
+        //    if (heightMap[i] > 5)
+        //    {
+        //        heightMap[i] = 7;
+        //    }
+        //}
+        const int columns = 3;
+        const int rows = 3;
+
+        var heightMap = new byte[]
         {
-            if (heightMap[i] > 5)
-            {
-                heightMap[i] = 7;
-            }
-        }
+            1, 0, 0,
+            1, 1, 1,
+            1, 1, 1
+        };
 
         var tiles = GetTiles(heightMap, columns);
         var vertices = GetVertices(tiles, columns);
