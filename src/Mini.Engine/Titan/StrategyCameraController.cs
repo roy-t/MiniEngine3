@@ -97,7 +97,7 @@ internal sealed class StrategyCameraController
         this.target = Vector3.Zero;
         this.slope = 0.5f;
         this.rotation = 0.0f;
-        this.distance = 35.0f;
+        this.distance = 350.0f;
     }
 
     private Transform GetCameraTransform()

@@ -56,9 +56,6 @@ public sealed class TerrainRenderer : IDisposable
 
         context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.TerrainRasterizerState, in viewport, in scissor, this.Shader.Ps, this.OpaqueBlendState, this.DefaultDepthStencilState);
         context.DrawIndexed(terrain.TileIndexCount, terrain.TileIndexOffset, 0);
-
-        context.Setup(this.Layout, PrimitiveTopology.LineList, this.Shader.Vs, this.GridRasterizerState, in viewport, in scissor, this.Shader.Psline, this.AlphaBlendState, this.ReadOnlyDepthStencilState);
-        context.DrawIndexed(terrain.GridIndexCount, terrain.GridIndexOffset, 0);
     }
 
     public void Dispose()

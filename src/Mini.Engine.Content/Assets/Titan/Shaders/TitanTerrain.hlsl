@@ -46,33 +46,34 @@ OUTPUT PS(PS_INPUT input, uint primitiveId : SV_PrimitiveID)
     TRIANGLE t = Triangles[primitiveId];    
     float3 albedo = t.albedo;
     float3 normal = t.normal;
-    
-    // TODO: something like this only works if the tiles are always layed out the same even if there are an odd or even number of them
-    if (input.world.x > -0.5 && input.world.x < 0.5)
-    {  
-        albedo = float3(1, 0, 0);
-    }
         
-    const float3 lightDirection = normalize(float3(-3.0, -1.0, 0.0));
-    const float3 lightColor = float3(1.0, 1.0, 1.0);
-    const float3 ambient = float3(0.1, 0.1, 0.1);
+    // Don't show grid lines on cliffs
+    float nDu = dot(normal, float3(0.0f, 1.0f, 0.0f));
+    if (nDu > 0.1f)
+    {        
+        // inspired by https://bgolus.medium.com/the-best-darn-grid-shader-yet-727f9278b9d8      
+        // TODO: try pristine grid instead of the basic one
+        float depth = input.depth * 400.0f;
+        float a = clamp(depth, 0.0f, 1.0f);
+        a = a * a;        
+        float3 darker = albedo * (1.0f - a);
+        
+        const float lineWidth = 0.05f;
+        float2 worldPos = (input.world.xz / 1.0f) + float2(0.5f, 0.5f);
+        float2 lineAa = fwidth(worldPos);
+        float2 lineUV = 1.0f - abs(frac(worldPos) * 2.0f - 1.0f);
+        float2 lines = smoothstep(lineWidth + lineAa, lineWidth - lineAa, lineUV);
+        float grid = lerp(lines.x, 1.0, lines.y);
+        albedo = lerp(albedo, darker, grid);
+    }
+          
+    const float3 lightDirection = normalize(float3(-3.0f, -1.0f, 0.0f));
+    const float3 lightColor = float3(1.0f, 1.0f, 1.0f);
+    const float3 ambient = float3(0.1f, 0.1f, 0.1f);
     
-    float3 diffuse = max(dot(normal, -lightDirection), 0.0) * lightColor;
+    float3 diffuse = max(dot(normal, -lightDirection), 0.0f) * lightColor;
     float3 color = saturate(ambient + diffuse) * albedo; // TODO: instead of saturate, just let it grow out of bounds and fix in tonemap
-    output.albedo = float4(color, 1.0);    
+    output.albedo = float4(color, 1.0f);    
 
-    return output;
-}
-    
-#pragma PixelShader
-OUTPUT PSLine(PS_INPUT input)
-{
-    OUTPUT output;
-    // TODO: arbitrary number, might need tweaking when the near/far plane of the camera are changed 
-    // or a different ViewProjection matrix is used.
-    float depth = input.depth * 100.0; 
-    float a = clamp(depth, 0.0, 1.0);
-    output.albedo = float4(0.0, 1.0, 0.0, a);
-    
     return output;
 }

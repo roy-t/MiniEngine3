@@ -21,20 +21,18 @@ internal sealed class Terrain : ITerrain, IDisposable
 
     public Terrain(Device device, Shader shader)
     {
-        const int columns = 16;
-        const int rows = 16;
+        const int columns = 320;
+        const int rows = 320;
         var heightMap = GenerateHeightMap(columns, rows);
 
         var tiles = GetTiles(heightMap, columns);
-        var vertices = GetVertices(tiles, columns, rows);
+        var vertices = GetVertices(tiles, columns);
         var indices = GetIndices(tiles);
         var triangles = GetTriangles(tiles, vertices, indices);
         AddCliffs(tiles, indices, triangles, columns, rows);
 
         this.TileIndexOffset = 0;
         this.TileIndexCount = indices.Count;
-        this.GridIndexOffset = this.TileIndexCount;
-        this.GridIndexCount = AddGrid(tiles, indices);
 
         this.Vertices = new VertexBuffer<TerrainVertex>(device, nameof(Terrain));
         this.Vertices.MapData(device.ImmediateContext, CollectionsMarshal.AsSpan(vertices));
@@ -49,8 +47,6 @@ internal sealed class Terrain : ITerrain, IDisposable
 
     public int TileIndexOffset { get; }
     public int TileIndexCount { get; }
-    public int GridIndexOffset { get; }
-    public int GridIndexCount { get; }
 
     public IndexBuffer<int> Indices { get; }
     public VertexBuffer<TerrainVertex> Vertices { get; }
@@ -117,28 +113,26 @@ internal sealed class Terrain : ITerrain, IDisposable
         return terrain;
     }
 
-    private static List<TerrainVertex> GetVertices(IReadOnlyList<Tile> tiles, int columns, int rows)
+    private static List<TerrainVertex> GetVertices(IReadOnlyList<Tile> tiles, int columns)
     {
         var vertices = new List<TerrainVertex>(4 * tiles.Count);
         for (var i = 0; i < tiles.Count; i++)
         {
             var tile = tiles[i];
             var (x, y) = Indexes.ToTwoDimensional(i, columns);
-            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NE, x, y, columns, rows)));
-            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SE, x, y, columns, rows)));
-            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SW, x, y, columns, rows)));
-            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NW, x, y, columns, rows)));
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NE, x, y)));
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SE, x, y)));
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SW, x, y)));
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NW, x, y)));
         }
 
         return vertices;
     }
 
-    private static Vector3 GetTileCornerPosition(Tile tile, TileCorner corner, int tileX, int tileY, int columns, int rows)
+    private static Vector3 GetTileCornerPosition(Tile tile, TileCorner corner, int tileX, int tileY)
     {
-        var cx = -(columns / 2.0f);
-        var cz = -(rows / 2.0f);
         var offset = TileUtilities.IndexToCorner(tile, corner);
-        return new Vector3(cx + offset.X + tileX, offset.Y, cz + offset.Z + tileY);
+        return new Vector3(offset.X + tileX, offset.Y, offset.Z + tileY);
     }
 
     private static List<int> GetIndices(IReadOnlyList<Tile> tiles)
@@ -159,30 +153,6 @@ internal sealed class Terrain : ITerrain, IDisposable
         }
 
         return indices;
-    }
-
-    private static int AddGrid(IReadOnlyList<Tile> tiles, List<int> indices)
-    {
-        var length = tiles.Count * 8;
-        indices.EnsureCapacity(indices.Count + length);
-
-        for (var i = 0; i < tiles.Count; i++)
-        {
-            var v = i * 4;
-            indices.Add(v + 0);
-            indices.Add(v + 1);
-
-            indices.Add(v + 1);
-            indices.Add(v + 2);
-
-            indices.Add(v + 2);
-            indices.Add(v + 3);
-
-            indices.Add(v + 3);
-            indices.Add(v + 0);
-        }
-
-        return length;
     }
 
     private static List<Triangle> GetTriangles(IReadOnlyList<Tile> tiles, IReadOnlyList<TerrainVertex> vertices, IReadOnlyList<int> indices)
