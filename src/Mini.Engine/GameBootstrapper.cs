@@ -105,7 +105,7 @@ public sealed class GameBootstrapper
         {
             // Main loop based on https://www.gafferongames.com/post/fix_your_timestep/            
 
-            // TOOD: this is good for sim, but makes the camera (and possibly animations) stutter
+            // TODO: this is good for sim, but makes the camera (and possibly animations) stutter
             // even if they run on the ElapsedRealWorldTime, because the position just doesn't get updated every frame then
             // these kind of things should run in the draw step!
             // this also messes with DearImGUi as NewFrame isn't called every draw
@@ -145,7 +145,7 @@ public sealed class GameBootstrapper
             stopwatch.Restart();
             accumulator += Math.Min(elapsed, 0.25);
 
-            this.metrics.Update("GameBootstrapper.Run.Millis", (float)stopwatch.Elapsed.TotalMilliseconds);
+            this.metrics.Update("GameBootstrapper.Run.Millis", (float)(elapsed * 1000.0));
             this.metrics.UpdateBuiltInGauges();
         }
 

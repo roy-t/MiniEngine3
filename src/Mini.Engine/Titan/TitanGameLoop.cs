@@ -13,14 +13,14 @@ internal class TitanGameLoop : IGameLoop
 {
     private readonly Device Device;
     private readonly ContentManager Content;
-    private readonly UICore UserInterface;
+    private readonly EditorUserInterface UserInterface;
     private readonly PresentationHelper Presenter;
     private readonly GBuffer GBuffer;
     private readonly StrategyCameraController CameraController;
     private readonly TerrainRenderer TerrainRenderer;
     private readonly Terrain Terrain;
 
-    public TitanGameLoop(Device device, ContentManager content, UICore userInterface, PresentationHelper presenter, StrategyCameraController cameraController, Terrain terrainRenderer, TerrainRenderer terrainPartRenderer)
+    public TitanGameLoop(Device device, ContentManager content, EditorUserInterface userInterface, PresentationHelper presenter, StrategyCameraController cameraController, Terrain terrainRenderer, TerrainRenderer terrainPartRenderer)
     {
         this.GBuffer = new GBuffer(device, MultiSamplingRequest.Eight);
 

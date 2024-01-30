@@ -21,8 +21,8 @@ internal sealed class Terrain : ITerrain, IDisposable
 
     public Terrain(Device device, Shader shader)
     {
-        const int columns = 512;
-        const int rows = 512;
+        const int columns = 1024;
+        const int rows = 1024;
         var heightMap = GenerateHeightMap(columns, rows);
 
         var tiles = GetTiles(heightMap, columns);
