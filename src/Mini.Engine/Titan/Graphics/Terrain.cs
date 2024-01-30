@@ -14,31 +14,16 @@ namespace Mini.Engine.Titan.Graphics;
 [Service]
 internal sealed class Terrain : ITerrain, IDisposable
 {
-    // TODO: setting a different minheight kills terrain generation?
-    private const byte MinHeight = 0;
-    private const byte MaxHeight = 20;
+    private const byte MinHeight = 50;
+    private const byte CliffStartHeight = 62;
+    private const byte CliffLength = 4;
+    private const byte MaxHeight = 70;
 
     public Terrain(Device device, Shader shader)
     {
-        const int columns = 200;
-        const int rows = 200;
+        const int columns = 512;
+        const int rows = 512;
         var heightMap = GenerateHeightMap(columns, rows);
-        for (var i = 0; i < heightMap.Length; i++)
-        {
-            if (heightMap[i] > 5)
-            {
-                heightMap[i] = 7;
-            }
-        }
-        //const int columns = 3;
-        //const int rows = 3;
-
-        //var heightMap = new byte[]
-        //{
-        //    1, 0, 0,
-        //    1, 1, 0,
-        //    2, 2, 1
-        //};
 
         var tiles = GetTiles(heightMap, columns);
         var vertices = GetVertices(tiles, columns);
@@ -75,12 +60,17 @@ internal sealed class Terrain : ITerrain, IDisposable
     private static byte[] GenerateHeightMap(int columns, int rows)
     {
         var heights = new byte[columns * rows];
-
         Parallel.For(0, heights.Length, i =>
         {
             var (x, y) = Indexes.ToTwoDimensional(i, columns);
             var noise = FractalBrownianMotion.Generate(SimplexNoise.Noise, x * 0.001f, y * 0.001f, 1.5f, 0.9f, 5);
             noise = Ranges.Map(noise, (-1.0f, 1.0f), (MinHeight, MaxHeight));
+
+            if (noise >= CliffStartHeight)
+            {
+                noise += CliffLength;
+            }
+
             heights[i] = (byte)noise;
         });
 
@@ -227,7 +217,7 @@ internal sealed class Terrain : ITerrain, IDisposable
         var yc = vertices[c].Position.Y;
 
         var heigth = Math.Max(ya, Math.Max(yb, yc));
-        var paletteIndex = (int)Ranges.Map(heigth, (0.0f, MaxHeight), (0.0f, palette.Colors.Count - 1));
+        var paletteIndex = (int)Ranges.Map(heigth, (MinHeight, MaxHeight), (0.0f, palette.Colors.Count - 1));
         return Colors.RGBToLinear(palette.Colors[paletteIndex]);
     }
 
