@@ -83,7 +83,7 @@ public sealed class InputService
     public void ProcessAllEvents(Keyboard keyboard)
     {
         while (this.ProcessEvents(keyboard))
-        {            
+        {
         }
     }
 
@@ -95,14 +95,17 @@ public sealed class InputService
 
         while (this.EventQueue.TryDequeue(out var input))
         {
-            if (input.Input.header.dwType == RIM_TYPEMOUSE)
+            if (input.HasFocus)
             {
-                this.MouseEvents.Add(input);
-            }
+                if (input.Input.header.dwType == RIM_TYPEMOUSE)
+                {
+                    this.MouseEvents.Add(input);
+                }
 
-            if (input.Input.header.dwType == RIM_TYPEKEYBOARD)
-            {
-                this.KeyboardEvents.Add(input);
+                if (input.Input.header.dwType == RIM_TYPEKEYBOARD)
+                {
+                    this.KeyboardEvents.Add(input);
+                }
             }
         }
     }
@@ -117,7 +120,6 @@ public sealed class InputService
         var size = RawInputSize;
         var rawInput = new RAWINPUT();
         GetRawInputData((HRAWINPUT)lParam, RAW_INPUT_DATA_COMMAND_FLAGS.RID_INPUT, &rawInput, ref size, RawInputHeaderSize);
-
         this.EventQueue.Enqueue(new RawInputEvent(rawInput, this.Window.HasFocus));
     }
 

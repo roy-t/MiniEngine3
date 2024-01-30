@@ -101,36 +101,29 @@ public sealed class GameBootstrapper
         var accumulator = dt;
 
         this.Device.VSync = true;
+        // Main loop based on https://www.gafferongames.com/post/fix_your_timestep/            
         while (Win32Application.PumpMessages())
         {
-            // Main loop based on https://www.gafferongames.com/post/fix_your_timestep/            
-
-            // TODO: this is good for sim, but makes the camera (and possibly animations) stutter
-            // even if they run on the ElapsedRealWorldTime, because the position just doesn't get updated every frame then
-            // these kind of things should run in the draw step!
-            // this also messes with DearImGUi as NewFrame isn't called every draw
-            // but we lose some panels if they are create in an update
             while (accumulator >= dt)
             {
                 accumulator -= dt;
+                this.gameLoop.Simulation();
+            }
 
-                this.InputService.NextFrame();
-
-                while (this.InputService.ProcessEvents(this.Keyboard))
+            // Note: input should be handled in the draw method, not the simulation method
+            this.InputService.NextFrame();
+            while (this.InputService.ProcessEvents(this.Keyboard))
+            {
+                if (this.Keyboard.Pressed(Escape))
                 {
-                    if (this.Keyboard.Pressed(Escape))
-                    {
-                        this.Window.Dispose();
-                    }
+                    this.Window.Dispose();
                 }
-
-                this.gameLoop.Update((float)dt);
             }
 
             var alpha = accumulator / dt;
 
             this.Device.ImmediateContext.ClearBackBuffer();
-            this.gameLoop.Draw((float)alpha, (float)elapsed); // alpha signifies how much to lerp between current and future state
+            this.gameLoop.Frame((float)alpha, (float)elapsed); // alpha signifies how much to lerp between current and future state
 
             this.Device.Present();
 
@@ -143,7 +136,7 @@ public sealed class GameBootstrapper
 
             elapsed = stopwatch.Elapsed.TotalSeconds;
             stopwatch.Restart();
-            accumulator += Math.Min(elapsed, 0.25);
+            accumulator += Math.Min(elapsed, 0.1); // cap elapsed on some worst case value to not explode anything
 
             this.metrics.Update("GameBootstrapper.Run.Millis", (float)(elapsed * 1000.0));
             this.metrics.UpdateBuiltInGauges();

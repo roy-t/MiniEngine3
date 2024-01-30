@@ -64,17 +64,21 @@ internal sealed class GameLoop : IGameLoop
         this.UpdatePipeline = updatePipelineV2;
     }
 
-    public void Update(float elapsedSimulationTime)
+    public void Simulation()
     {
         this.Stopwatch.Restart();
-
-        this.FrameService.ElapsedGameTime = elapsedSimulationTime;
-
         this.SceneManager.CheckChangeScene();
         this.Content.ReloadChangedContent();
-        this.EditorState.Update();
 
+        this.EditorState.Update();
         this.UpdatePipeline.Run();
+
+        this.MetricService.Update("GameLoop.Update.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
+    }
+
+    public void Frame(float alpha, float elapsedRealWorldTime)
+    {
+        this.Stopwatch.Restart();
 
         while (this.InputService.ProcessEvents(this.Keyboard))
         {
@@ -84,15 +88,9 @@ internal sealed class GameLoop : IGameLoop
             }
         }
 
-        this.MetricService.Update("GameLoop.Update.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
-    }
-
-    public void Draw(float alpha, float elapsedRealWorldTime)
-    {
-        this.Stopwatch.Restart();
         this.UserInterface.NewFrame();
 
-
+        this.FrameService.ElapsedRealWorldTime = elapsedRealWorldTime;
         this.FrameService.Alpha = alpha;
         this.FrameService.PBuffer.Swap(ref this.FrameService.GetPrimaryCamera());
         ClearBuffersSystem.Clear(this.Device.ImmediateContext, this.FrameService);

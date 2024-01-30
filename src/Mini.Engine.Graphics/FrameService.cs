@@ -27,7 +27,7 @@ public sealed class FrameService : IDisposable
         this.PBuffer = new PostProcessingBuffer(device);
         this.Administrator = administrator;
         this.Cameras = cameras;
-        this.Transforms = transforms;       
+        this.Transforms = transforms;
     }
 
     /// <summary>
@@ -35,10 +35,7 @@ public sealed class FrameService : IDisposable
     /// </summary>
     public float Alpha { get; set; }
 
-    /// <summary>
-    /// How much simulation time has passed since the last frame
-    /// </summary>
-    public float ElapsedGameTime { get; set; }
+    public float ElapsedRealWorldTime { get; set; }
 
     //public Vector2 CameraJitter => this.PBuffer.Jitter;
     //public Vector2 PreviousCameraJitter => this.PBuffer.PreviousJitter;
@@ -71,7 +68,7 @@ public sealed class FrameService : IDisposable
 
     public void Resize(Device device)
     {
-        this.Dispose();        
+        this.Dispose();
         this.GBuffer = new GeometryBuffer(device);
         this.LBuffer = new LightBuffer(device);
         this.PBuffer = new PostProcessingBuffer(device);

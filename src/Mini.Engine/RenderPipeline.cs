@@ -2,28 +2,30 @@
 using System.Drawing;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
+using Mini.Engine.Diesel.v2.Terrain;
+using Mini.Engine.ECS.Systems;
 using Mini.Engine.Graphics;
-using Mini.Engine.Graphics.Primitives;
+using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Graphics.Lighting.ImageBasedLights;
 using Mini.Engine.Graphics.Lighting.PointLights;
 using Mini.Engine.Graphics.Lighting.ShadowingLights;
 using Mini.Engine.Graphics.Lines;
 using Mini.Engine.Graphics.Models;
 using Mini.Engine.Graphics.PostProcessing;
-using Mini.Engine.ECS.Systems;
-using Mini.Engine.Diesel.v2.Terrain;
+using Mini.Engine.Graphics.Primitives;
 
 namespace Mini.Engine;
 
 [Service]
 internal sealed record class RenderSystems
 (
+    CameraSystem Camera,
     TerrainUpdateSystem Terrain,
     InstancesSystem Instances,
     PrimitiveSystem Primitive,
     ModelSystem Model,
     ImageBasedLightSystem ImageBasedLight,
-    SunLightSystem SunLight,    
+    SunLightSystem SunLight,
     CascadedShadowMapSystem CascadedShadowMap,
     PointLightSystem PointLight,
     SkyboxSystem Skybox,
@@ -53,6 +55,7 @@ internal sealed class RenderPipeline
     {
         this.Stopwatch.Restart();
 
+        this.Systems.Camera.Update();
         // We sometimes need to prepare containers before drawing can begin
         // preparing these containers can run in parallel, but has to complete
         // before the render systems read the data
@@ -64,7 +67,7 @@ internal sealed class RenderPipeline
         // To make sure this works well systems should not modify their components
         // while preparing a command list, as this could create dependencies between systems
         this.RunGeometryStage(in viewport, in scissor, alpha);
-        this.RunLightStage(in viewport, in scissor, alpha);        
+        this.RunLightStage(in viewport, in scissor, alpha);
         this.RunPostProcessStage(in viewport, in scissor);
 
         this.ProcessQueue();
@@ -76,7 +79,7 @@ internal sealed class RenderPipeline
     {
         this.Enqueue(this.Systems.CascadedShadowMap.Update());
         this.Enqueue(this.Systems.Terrain.Update());
-        this.Enqueue(this.Systems.Instances.UpdateInstances());        
+        this.Enqueue(this.Systems.Instances.UpdateInstances());
     }
 
     private void RunGeometryStage(in Rectangle viewport, in Rectangle scissor, float alpha)
@@ -98,7 +101,7 @@ internal sealed class RenderPipeline
 
     private void RunPostProcessStage(in Rectangle viewport, in Rectangle scissor)
     {
-        this.Enqueue(this.Systems.PostProcessing.Render(viewport, scissor));        
+        this.Enqueue(this.Systems.PostProcessing.Render(viewport, scissor));
     }
 
     private void ProcessQueue()

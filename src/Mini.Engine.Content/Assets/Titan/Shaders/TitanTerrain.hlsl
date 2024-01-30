@@ -6,6 +6,7 @@ struct VS_INPUT
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
+    float3 world : TEXCOORD1;
     float depth : TEXCOORD0; // TODO: depth only required for PSLine
 };
     
@@ -32,6 +33,7 @@ PS_INPUT VS(VS_INPUT input)
 {
     PS_INPUT output;      
     output.position = mul(WorldViewProjection, float4(input.position, 1.0));
+    output.world = input.position.xyz;
     output.depth = output.position.z / output.position.w;
     return output;
 }
@@ -44,6 +46,12 @@ OUTPUT PS(PS_INPUT input, uint primitiveId : SV_PrimitiveID)
     TRIANGLE t = Triangles[primitiveId];    
     float3 albedo = t.albedo;
     float3 normal = t.normal;
+    
+    // TODO: something like this only works if the tiles are always layed out the same even if there are an odd or even number of them
+    if (input.world.x > -0.5 && input.world.x < 0.5)
+    {  
+        albedo = float3(1, 0, 0);
+    }
         
     const float3 lightDirection = normalize(float3(-3.0, -1.0, 0.0));
     const float3 lightColor = float3(1.0, 1.0, 1.0);

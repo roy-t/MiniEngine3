@@ -40,12 +40,12 @@ internal class TitanGameLoop : IGameLoop
         this.CameraController.Resize(width, height);
     }
 
-    public void Update(float elapsedSimulationTime)
+    public void Simulation()
     {
         this.Content.ReloadChangedContent();
     }
 
-    public void Draw(float alpha, float elapsedRealWorldTime)
+    public void Frame(float alpha, float elapsedRealWorldTime)
     {
         this.UserInterface.NewFrame();
 

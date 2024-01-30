@@ -21,12 +21,12 @@ internal sealed class Terrain : ITerrain, IDisposable
 
     public Terrain(Device device, Shader shader)
     {
-        const int columns = 1024;
-        const int rows = 1024;
+        const int columns = 16;
+        const int rows = 16;
         var heightMap = GenerateHeightMap(columns, rows);
 
         var tiles = GetTiles(heightMap, columns);
-        var vertices = GetVertices(tiles, columns);
+        var vertices = GetVertices(tiles, columns, rows);
         var indices = GetIndices(tiles);
         var triangles = GetTriangles(tiles, vertices, indices);
         AddCliffs(tiles, indices, triangles, columns, rows);
@@ -117,26 +117,28 @@ internal sealed class Terrain : ITerrain, IDisposable
         return terrain;
     }
 
-    private static List<TerrainVertex> GetVertices(IReadOnlyList<Tile> tiles, int columns)
+    private static List<TerrainVertex> GetVertices(IReadOnlyList<Tile> tiles, int columns, int rows)
     {
         var vertices = new List<TerrainVertex>(4 * tiles.Count);
         for (var i = 0; i < tiles.Count; i++)
         {
             var tile = tiles[i];
             var (x, y) = Indexes.ToTwoDimensional(i, columns);
-            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NE, x, y)));
-            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SE, x, y)));
-            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SW, x, y)));
-            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NW, x, y)));
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NE, x, y, columns, rows)));
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SE, x, y, columns, rows)));
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.SW, x, y, columns, rows)));
+            vertices.Add(new TerrainVertex(GetTileCornerPosition(tile, TileCorner.NW, x, y, columns, rows)));
         }
 
         return vertices;
     }
 
-    private static Vector3 GetTileCornerPosition(Tile tile, TileCorner corner, int tileX, int tileY)
+    private static Vector3 GetTileCornerPosition(Tile tile, TileCorner corner, int tileX, int tileY, int columns, int rows)
     {
+        var cx = -(columns / 2.0f);
+        var cz = -(rows / 2.0f);
         var offset = TileUtilities.IndexToCorner(tile, corner);
-        return new Vector3(offset.X + tileX, offset.Y, offset.Z + tileY);
+        return new Vector3(cx + offset.X + tileX, offset.Y, cz + offset.Z + tileY);
     }
 
     private static List<int> GetIndices(IReadOnlyList<Tile> tiles)

@@ -21,7 +21,7 @@ internal sealed class StrategyCameraController
     private static readonly ushort KeyRotateCW = InputService.GetScanCode(VK_OEM_COMMA);
     private static readonly ushort KeyRotateCCW = InputService.GetScanCode(VK_OEM_PERIOD);
 
-    private const float DistanceMin = 1.0f;
+    private const float DistanceMin = 10.0f;
     private const float DistanceMax = 1000.0f;
     private const float ZoomSpeed = 75.0f;
     private const float ClimbSpeed = 1.0f;
@@ -88,7 +88,7 @@ internal sealed class StrategyCameraController
         scrollAccumulator = Math.Clamp(scrollAccumulator, -1.0f, 1.0f);
 
         var zoomProgress = Ranges.Map(this.distance, (0.0f, DistanceMax), (0.0f, 1.0f));
-        this.UpdateTarget(scrollAccumulator * zoomProgress * ZoomSpeed, in viewport);
+        this.UpdateTarget(scrollAccumulator * zoomProgress * ZoomSpeed * 0.5f, in viewport);
         this.Transform = this.GetCameraTransform();
     }
 
