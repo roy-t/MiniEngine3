@@ -37,6 +37,25 @@ PS_INPUT VS(VS_INPUT input)
     output.depth = output.position.z / output.position.w;
     return output;
 }
+      
+// From https://bgolus.medium.com/the-best-darn-grid-shader-yet-727f9278b9d8      
+float PristineGrid(float2 uv, float2 lineWidth)
+{
+    lineWidth = saturate(lineWidth);
+    float4 uvDDXY = float4(ddx(uv), ddy(uv));
+    float2 uvDeriv = float2(length(uvDDXY.xz), length(uvDDXY.yw));
+    bool2 invertLine = lineWidth > 0.5;
+    float2 targetWidth = invertLine ? 1.0 - lineWidth : lineWidth;
+    float2 drawWidth = clamp(targetWidth, uvDeriv, 0.5);
+    float2 lineAA = max(uvDeriv, 0.000001) * 1.5;
+    float2 gridUV = abs(frac(uv) * 2.0 - 1.0);
+    gridUV = invertLine ? gridUV : 1.0 - gridUV;
+    float2 grid2 = smoothstep(drawWidth + lineAA, drawWidth - lineAA, gridUV);
+    grid2 *= saturate(targetWidth / drawWidth);
+    grid2 = lerp(grid2, targetWidth, saturate(uvDeriv * 2.0 - 1.0));
+    grid2 = invertLine ? 1.0 - grid2 : grid2;
+    return lerp(grid2.x, 1.0, grid2.y);
+}    
     
 #pragma PixelShader
 OUTPUT PS(PS_INPUT input, uint primitiveId : SV_PrimitiveID)
@@ -51,20 +70,10 @@ OUTPUT PS(PS_INPUT input, uint primitiveId : SV_PrimitiveID)
     float nDu = dot(normal, float3(0.0f, 1.0f, 0.0f));
     if (nDu > 0.1f)
     {        
-        // inspired by https://bgolus.medium.com/the-best-darn-grid-shader-yet-727f9278b9d8      
-        // TODO: try pristine grid instead of the basic one
-        float depth = input.depth * 400.0f;
-        float a = clamp(depth, 0.0f, 1.0f);
-        a = a * a;        
-        float3 darker = albedo * (1.0f - a);
-        
-        const float lineWidth = 0.05f;
-        float2 worldPos = (input.world.xz / 1.0f) + float2(0.5f, 0.5f);
-        float2 lineAa = fwidth(worldPos);
-        float2 lineUV = 1.0f - abs(frac(worldPos) * 2.0f - 1.0f);
-        float2 lines = smoothstep(lineWidth + lineAa, lineWidth - lineAa, lineUV);
-        float grid = lerp(lines.x, 1.0, lines.y);
-        albedo = lerp(albedo, darker, grid);
+        float3 lineColor = albedo * 0.2f;
+        float2 world = input.world.xz + float2(0.5f, 0.5f);
+        float grid = PristineGrid(world, 0.05f);        
+        albedo = lerp(albedo, lineColor, grid);           
     }
           
     const float3 lightDirection = normalize(float3(-3.0f, -1.0f, 0.0f));
