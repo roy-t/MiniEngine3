@@ -14,10 +14,10 @@ public sealed class ZoneTerrainColorizer : ITerrainColorizer
 
     private readonly int[] Owners;
     private Modes mode;
-    private bool expand;
     private int back;
     private int front;
     private int zone;
+    private bool matchAbove;
 
     public ZoneTerrainColorizer(Tile[] tiles, int columns, int rows)
     {
@@ -25,7 +25,6 @@ public sealed class ZoneTerrainColorizer : ITerrainColorizer
 
         this.Owners = new int[columns * rows];
         this.mode = Modes.Explore;
-        this.expand = false;
         this.back = 0;
         this.front = 0;
         this.zone = 0;
@@ -62,6 +61,7 @@ public sealed class ZoneTerrainColorizer : ITerrainColorizer
                     }
                     else
                     {
+
                         this.mode = Modes.Catchup;
                     }
 
@@ -101,31 +101,48 @@ public sealed class ZoneTerrainColorizer : ITerrainColorizer
                         var connected = front.Offset == back.Offset &&
                             front.IsLevel() && back.IsLevel();
 
-                        if (eol)
-                        {
-                            this.front += 1;
-                            this.mode = Modes.Catchup;
-                        }
-                        else if (connected)
+                        if (connected && !eol)
                         {
                             this.front += 1;
                         }
                         else
                         {
+                            var zoneBackN = this.Owners[(this.back + offset) - columns];
+                            var zoneFrontN = this.Owners[(this.front + offset) - columns];
+                            this.matchAbove = zoneBackN == zoneFrontN;
+
+
+                            if (this.back > 0)
+                            {
+                                var zoneBackNW = this.Owners[((this.back + offset) - columns) - 1];
+                                this.matchAbove = this.matchAbove && (zoneBackNW != zoneBackN);
+                            }
+                            if (this.front < (columns - 1))
+                            {
+                                var zoneFrontNE = this.Owners[((this.front + offset) - columns) + 1];
+                                this.matchAbove = this.matchAbove && (zoneFrontNE != zoneBackN);
+                            }
+
                             this.mode = Modes.Catchup;
+                            if (eol) { this.front += 1; }
                         }
 
                         break;
 
                     case Modes.Catchup:
+                        var zone = this.zone;
+                        if (this.matchAbove)
+                        {
+                            zone = this.Owners[(this.back + offset) - columns];
+                        }
                         if (this.back < this.front)
                         {
-                            this.Owners[this.back + offset] = this.zone;
+                            this.Owners[this.back + offset] = zone;
                             this.back += 1;
                         }
                         else
                         {
-                            this.zone += 1;
+                            this.zone += this.matchAbove ? 0 : 1;
                             this.front += 1;
                             this.mode = Modes.Explore;
                         }
