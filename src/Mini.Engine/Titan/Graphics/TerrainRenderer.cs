@@ -27,7 +27,7 @@ public sealed class TerrainRenderer : IDisposable
 
         this.BlendState = device.BlendStates.Opaque;
         this.DepthStencilState = device.DepthStencilStates.ReverseZ;
-        this.RasterizerState = device.RasterizerStates.WireFrame;
+        this.RasterizerState = device.RasterizerStates.Default;
         this.User = shader.CreateUserFor<Terrain>();
         this.Shader = shader;
     }

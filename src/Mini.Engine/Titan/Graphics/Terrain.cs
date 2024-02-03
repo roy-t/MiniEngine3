@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using LibGame.Graphics;
 using LibGame.Mathematics;
 using LibGame.Noise;
 using Mini.Engine.Configuration;
@@ -26,7 +25,8 @@ internal sealed class Terrain : ITerrain, IDisposable
         const int rows = 128;
         var heightMap = GenerateHeightMap(columns, rows);
         var tiles = GetTiles(heightMap, columns);
-        var colorizer = new DefaultTerrainColorizer(ColorPalette.GrassLawn, MinHeight, MaxHeight);
+        //var colorizer = new DefaultTerrainColorizer(ColorPalette.GrassLawn, MinHeight, MaxHeight);
+        var colorizer = new ZoneTerrainColorizer(tiles, columns, rows);
         var builder = new DefaultTerrainBuilder();
         var mesh = builder.Build(tiles, colorizer, columns, rows);
 

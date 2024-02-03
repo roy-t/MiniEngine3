@@ -111,7 +111,7 @@ public readonly struct Tile
 
     public bool IsLevel()
     {
-        return this.Offset == 0;
+        return this.Corners == 0;
     }
 
     public override string ToString()
