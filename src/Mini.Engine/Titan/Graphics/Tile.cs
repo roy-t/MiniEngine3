@@ -109,6 +109,11 @@ public readonly struct Tile
         );
     }
 
+    public bool IsLevel()
+    {
+        return this.Offset == 0;
+    }
+
     public override string ToString()
     {
         var (ne, se, sw, nw) = this.GetHeightOffsets();

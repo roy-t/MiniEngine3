@@ -15,6 +15,8 @@ public struct Gauge
     internal float NextMax;
     internal float Total;
     internal float Measurements;
+
+    internal DateTime LastSwap;
 }
 
 [Service]
@@ -24,7 +26,6 @@ public sealed class MetricService : IDisposable
     private const string HostGpuUsage = "Host.GPU.Usage.%";
     private const string HostCpuMemoryUsage = "Host.CPU.MemoryUsage.MiB";
     private const string HostCpuUsage = "Host.CPU.Usage.%";
-    private const int Memory = 50;
 
     private readonly PerformanceCounters Counters;
     private Gauge[] gauges;
@@ -79,16 +80,18 @@ public sealed class MetricService : IDisposable
         gauge.Total += value;
 
         gauge.Measurements += 1;
-        if (gauge.Measurements >= Memory)
+
+        if ((DateTime.Now - gauge.LastSwap) > TimeSpan.FromSeconds(0.25))
         {
             gauge.Min = gauge.NextMin;
             gauge.Max = gauge.NextMax;
-            gauge.Average = gauge.Total / Memory;
+            gauge.Average = gauge.Total / gauge.Measurements;
 
             gauge.NextMin = float.MaxValue;
             gauge.NextMax = float.MinValue;
             gauge.Total = 0;
             gauge.Measurements = 0;
+            gauge.LastSwap = DateTime.Now;
         }
     }
 

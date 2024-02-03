@@ -14,29 +14,20 @@ namespace Mini.Engine.Titan.Graphics;
 [Service]
 public sealed class TerrainRenderer : IDisposable
 {
-    private const int bias = -10000;
-
     private readonly InputLayout Layout;
     private readonly Shader Shader;
     private readonly Shader.User User;
-    private readonly BlendState OpaqueBlendState;
-    private readonly BlendState AlphaBlendState;
-    private readonly DepthStencilState DefaultDepthStencilState;
-    private readonly DepthStencilState ReadOnlyDepthStencilState;
-    private readonly RasterizerState GridRasterizerState;
-    private readonly RasterizerState TerrainRasterizerState;
+    private readonly BlendState BlendState;
+    private readonly DepthStencilState DepthStencilState;
+    private readonly RasterizerState RasterizerState;
 
     public TerrainRenderer(Device device, Shader shader)
     {
         this.Layout = shader.CreateInputLayoutForVs(TerrainVertex.Elements);
 
-        this.OpaqueBlendState = device.BlendStates.Opaque;
-        this.AlphaBlendState = device.BlendStates.NonPreMultiplied;
-        this.DefaultDepthStencilState = device.DepthStencilStates.ReverseZ;
-        this.ReadOnlyDepthStencilState = device.DepthStencilStates.ReverseZReadOnly;
-        this.GridRasterizerState = device.RasterizerStates.CullNone;
-        // Make sure the terrain is always the lowest object so it doesn't interfer with the grid
-        this.TerrainRasterizerState = RasterizerStates.CreateBiased(device, device.RasterizerStates.Default, bias);
+        this.BlendState = device.BlendStates.Opaque;
+        this.DepthStencilState = device.DepthStencilStates.ReverseZ;
+        this.RasterizerState = device.RasterizerStates.WireFrame;
         this.User = shader.CreateUserFor<Terrain>();
         this.Shader = shader;
     }
@@ -54,7 +45,7 @@ public sealed class TerrainRenderer : IDisposable
         context.IA.SetVertexBuffer(terrain.Vertices);
         context.IA.SetIndexBuffer(terrain.Indices);
 
-        context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.TerrainRasterizerState, in viewport, in scissor, this.Shader.Ps, this.OpaqueBlendState, this.DefaultDepthStencilState);
+        context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.RasterizerState, in viewport, in scissor, this.Shader.Ps, this.BlendState, this.DepthStencilState);
         context.DrawIndexed(terrain.TileIndexCount, terrain.TileIndexOffset, 0);
     }
 
@@ -62,6 +53,5 @@ public sealed class TerrainRenderer : IDisposable
     {
         this.User.Dispose();
         this.Layout.Dispose();
-        this.TerrainRasterizerState.Dispose();
     }
 }
