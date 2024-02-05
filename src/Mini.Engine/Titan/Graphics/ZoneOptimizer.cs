@@ -2,111 +2,89 @@
 
 namespace Mini.Engine.Titan.Graphics;
 
+public readonly record struct Zone(int StartColumn, int EndColumn, int StartRow, int EndRow);
+
+public sealed record class ZoneLookup(IReadOnlyList<int> Owners, IReadOnlyList<Zone> Zones);
+
 public sealed class ZoneOptimizer
 {
-    public enum Modes
+    public static ZoneLookup Optimize(IReadOnlyList<Tile> tiles, int columns, int rows)
     {
-        Explore,
-        Catchup,
-    }
+        var owners = new int[columns * rows];
+        var zones = new List<Zone>();
+        var nextZone = 0;
 
-    public readonly record struct Zone(int StartColumn, int EndColumn, int StartRow, int EndRow);
-
-    public class State(int columns, int rows)
-    {
-        public int[] Owners { get; } = new int[columns * rows];
-        public List<Zone> Zones { get; } = new List<Zone>();
-
-        internal Modes Mode = Modes.Explore;
-        internal int Back = 0;
-        internal int Front = 0;
-        internal int Zone = 0;
-        internal bool MatchVertical = false;
-    }
-
-    public static State Optimize(IReadOnlyList<Tile> tiles, int columns, int rows)
-    {
-        var state = new State(columns, rows);
         for (var r = 0; r < rows; r++)
         {
             var offset = columns * r;
-            state.Back = 0;
-            state.Front = 0;
+            var back = 0;
+            var front = 0;
 
-            while (state.Back < columns)
+            while (back < columns)
             {
-
-                if (r > 0)
+                while (CanAdvanceFront(tiles, back, front, offset, columns))
                 {
-
+                    front += 1;
                 }
-                switch (state.Mode)
+
+                var zone = nextZone;
+                var canExpand = CanExpandNorthernZone(tiles, owners, back, front, offset, columns);
+                if (canExpand)
                 {
-                    case Modes.Explore:
-
-                        var canAdvance = CanAdvanceFront(in state, tiles, offset, columns);
-                        if (canAdvance)
-                        {
-                            state.Front += 1;
-                        }
-                        else
-                        {
-                            state.MatchVertical = CanExpandNorthernZone(in state, tiles, offset, columns);
-                            state.Mode = Modes.Catchup;
-                        }
-
-                        break;
-
-                    case Modes.Catchup:
-                        var zone = state.Zone;
-                        if (state.MatchVertical)
-                        {
-                            zone = state.Owners[(state.Back + offset) - columns];
-                        }
-                        if (state.Back < state.Front || state.Front == (columns - 1))
-                        {
-                            state.Owners[state.Back + offset] = zone;
-                            state.Back += 1;
-                        }
-                        else
-                        {
-                            state.Zone += state.MatchVertical ? 0 : 1;
-                            state.Front += 1;
-                            state.Mode = Modes.Explore;
-                        }
-                        break;
+                    zone = owners[(back + offset) - columns];
                 }
+                else
+                {
+                    zones.Add(new Zone());// TODO: update actual zones! Clean-up this zone stuff in a method!
+                }
+
+                while (CanAdvanceBack(back, front, columns))
+                {
+                    owners[back + offset] = zone;
+                    back += 1;
+                }
+
+                nextZone += canExpand ? 0 : 1;
+                front += 1;
             }
         }
 
-        return state;
+        return new ZoneLookup(owners, zones);
     }
 
-    private static bool CanAdvanceFront(in State state, IReadOnlyList<Tile> tiles, int offset, int columns)
+    private static bool CanAdvanceBack(int back, int front, int columns)
     {
-        var hasNext = state.Front < (columns - 1);
-        var back = tiles[state.Back + offset];
-        var front = tiles[state.Front + offset];
-
-        return front.Offset == back.Offset &&
-            front.IsLevel() && back.IsLevel() && hasNext;
+        return (back < columns) && ((back < front) || (front == (columns - 1)));
     }
 
+    private static bool CanAdvanceFront(IReadOnlyList<Tile> tiles, int back, int front, int offset, int columns)
+    {
+        if (front >= columns)
+        {
+            return false;
+        }
 
-    private static bool CanExpandNorthernZone(in State state, IReadOnlyList<Tile> tiles, int offset, int columns)
+        var b = tiles[back + offset];
+        var f = tiles[front + offset];
+
+        return f.Offset == b.Offset &&
+               f.IsLevel() && b.IsLevel();
+    }
+
+    private static bool CanExpandNorthernZone(IReadOnlyList<Tile> tiles, IList<int> Owners, int back, int front, int offset, int columns)
     {
         // There should be a row to the north
-        var (_, y) = Indexes.ToTwoDimensional(state.Front + offset, columns);
+        var (_, y) = Indexes.ToTwoDimensional(back + offset, columns);
         if (y == 0)
         {
             return false;
         }
 
         // Remember: front has already advanced to a position that doesn't match
-        var f = (state.Front - 1);
-        var b = state.Back;
+        var f = front - 1;
+        var b = back;
 
-        // Special case for 1x1 strips, they could be on a slope in which case we don't want to add them to a zone
+        // Special case for 1x1 strips, they could be on a slope in which case we don't want to add them to any other zone
         if (b == f)
         {
             var t = tiles[f + offset];
@@ -126,8 +104,8 @@ public sealed class ZoneOptimizer
         }
 
         // The zone north of our front and back should be the same
-        var zoneBackN = state.Owners[(b + offset) - columns];
-        var zoneFrontN = state.Owners[(f + offset) - columns];
+        var zoneBackN = Owners[(b + offset) - columns];
+        var zoneFrontN = Owners[(f + offset) - columns];
 
         if (zoneBackN != zoneFrontN)
         {
@@ -137,7 +115,7 @@ public sealed class ZoneOptimizer
         // The zone NW of back should be different, if it exists
         if (b > 0)
         {
-            var zoneBackNW = state.Owners[((b + offset) - columns) - 1];
+            var zoneBackNW = Owners[((b + offset) - columns) - 1];
             if (zoneBackNW == zoneBackN)
             {
                 return false;
@@ -147,7 +125,7 @@ public sealed class ZoneOptimizer
         // The zone NE of front should be different, if it exists
         if (f < (columns - 1))
         {
-            var zoneFrontNE = state.Owners[((f + offset) - columns) + 1];
+            var zoneFrontNE = Owners[((f + offset) - columns) + 1];
             if (zoneFrontNE == zoneFrontN)
             {
                 return false;

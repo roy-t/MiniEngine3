@@ -24,6 +24,7 @@ internal sealed class Terrain : ITerrain, IDisposable
         const int columns = 128;
         const int rows = 128;
         var heightMap = GenerateHeightMap(columns, rows);
+        //var heightMap = new byte[columns * rows];
         var tiles = GetTiles(heightMap, columns);
         //var colorizer = new DefaultTerrainColorizer(ColorPalette.GrassLawn, MinHeight, MaxHeight);
         var colorizer = new ZoneTerrainColorizer(tiles, columns, rows);

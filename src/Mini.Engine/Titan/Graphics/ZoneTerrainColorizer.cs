@@ -4,8 +4,9 @@ using LibGame.Mathematics;
 namespace Mini.Engine.Titan.Graphics;
 public sealed class ZoneTerrainColorizer : ITerrainColorizer
 {
-    private readonly ZoneOptimizer.State State;
+    private readonly ZoneLookup State;
     private readonly ColorLinear[] AllColors;
+    private readonly Random Random = new Random(0);
     public ZoneTerrainColorizer(Tile[] tiles, int columns, int rows)
     {
         this.State = ZoneOptimizer.Optimize(tiles, columns, rows);
@@ -25,12 +26,14 @@ public sealed class ZoneTerrainColorizer : ITerrainColorizer
                 }
             }
         }
+
+        this.Random.Shuffle(this.AllColors);
     }
 
     public ColorLinear GetColor(IReadOnlyList<Tile> tiles, int i, IReadOnlyList<TerrainVertex> vertices, int a, int b, int c)
     {
         var owner = this.State.Owners[i];
-        var index = (int)Ranges.Map(owner, (0.0f, this.State.Zone), (0.0f, (256.0f * 256.0f * 256.0f) - 1.0f));
+        var index = (int)Ranges.Map(owner, (0.0f, this.State.Zones.Count - 1.0f), (0.0f, (256.0f * 256.0f * 256.0f) - 1.0f));
         return this.AllColors[index];
     }
 }
