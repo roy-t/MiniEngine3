@@ -6,19 +6,18 @@ public readonly record struct Zone(int StartColumn, int EndColumn, int StartRow,
 
 public sealed record class ZoneLookup(IReadOnlyList<int> Owners, IReadOnlyList<Zone> Zones);
 
-public sealed class ZoneOptimizer
+public static class ZoneOptimizer
 {
     public static ZoneLookup Optimize(IReadOnlyList<Tile> tiles, int columns, int rows)
     {
         var owners = new int[columns * rows];
         var zones = new List<Zone>();
-        var nextZone = 0;
 
         for (var r = 0; r < rows; r++)
         {
             var offset = columns * r;
-            var back = 0;
-            var front = 0;
+            var back = 0; // inclusive start of connected tiles
+            var front = 0; // exclusive end of connected tile
 
             while (back < columns)
             {
@@ -27,24 +26,24 @@ public sealed class ZoneOptimizer
                     front += 1;
                 }
 
-                var zone = nextZone;
+                var zoneId = zones.Count;
                 var canExpand = CanExpandNorthernZone(tiles, owners, back, front, offset, columns);
                 if (canExpand)
                 {
-                    zone = owners[(back + offset) - columns];
+                    zoneId = owners[(back + offset) - columns];
+                    zones[zoneId] = zones[zoneId] with { EndRow = r };
                 }
                 else
                 {
-                    zones.Add(new Zone());// TODO: update actual zones! Clean-up this zone stuff in a method!
+                    zones.Add(new Zone(back, front - 1, r, r));// TODO: update actual zones! Clean-up this zone stuff in a method!
                 }
 
                 while (CanAdvanceBack(back, front, columns))
                 {
-                    owners[back + offset] = zone;
+                    owners[back + offset] = zoneId;
                     back += 1;
                 }
 
-                nextZone += canExpand ? 0 : 1;
                 front += 1;
             }
         }
