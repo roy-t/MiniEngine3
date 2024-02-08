@@ -340,5 +340,53 @@ public static class TileUtilities
 
         return (n0, n1);
     }
+
+    /// <summary>
+    /// Verifies if the normals of the two tiles align. This can be used as part of test to see
+    /// if two tiles can be part of a larger rectangle.
+    /// </summary>
+    public static bool AreNormalsAligned(Tile t0, Tile t1, float precision = 0.95f)
+    {
+        // If the pseudo normals of two tile don't match up, the zone is invalid
+        var (a, b, c, d, e, f) = GetBestTriangleIndices(t0);
+        var (n0, n1) = GetNormals(t0, a, b, c, d, e, f);
+
+        (a, b, c, d, e, f) = GetBestTriangleIndices(t1);
+        var (n2, n3) = GetNormals(t1, a, b, c, d, e, f);
+
+        var d0 = Vector3.Dot(n0, n2);
+        var d1 = Vector3.Dot(n0, n3);
+        var d2 = Vector3.Dot(n1, n2);
+        var d3 = Vector3.Dot(n1, n3);
+
+
+        return d0 >= precision && d1 >= precision && d2 >= precision && d3 >= precision;
+    }
+
+    public static bool AreSidesAligned(Tile a, Tile b, TileSide tileASide)
+    {
+        switch (tileASide)
+        {
+            case TileSide.North:
+                return AreCornersAligned(a, TileCorner.NW, b, TileCorner.SW) &&
+                       AreCornersAligned(a, TileCorner.NE, b, TileCorner.SE);
+            case TileSide.East:
+                return AreCornersAligned(a, TileCorner.NE, b, TileCorner.NW) &&
+                       AreCornersAligned(a, TileCorner.SE, b, TileCorner.SW);
+            case TileSide.South:
+                return AreCornersAligned(a, TileCorner.SW, b, TileCorner.NW) &&
+                       AreCornersAligned(a, TileCorner.SE, b, TileCorner.NE);
+            case TileSide.West:
+                return AreCornersAligned(a, TileCorner.NW, b, TileCorner.NE) &&
+                       AreCornersAligned(a, TileCorner.SW, b, TileCorner.SE);
+            default:
+                throw new ArgumentOutOfRangeException(nameof(tileASide));
+        }
+    }
+
+    public static bool AreCornersAligned(Tile a, TileCorner a0, Tile b, TileCorner b0)
+    {
+        return a.GetHeight(a0) == b.GetHeight(b0);
+    }
 }
 

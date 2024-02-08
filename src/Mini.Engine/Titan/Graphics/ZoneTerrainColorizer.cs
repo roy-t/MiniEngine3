@@ -1,4 +1,5 @@
-﻿using LibGame.Graphics;
+﻿using System.Diagnostics;
+using LibGame.Graphics;
 using LibGame.Mathematics;
 
 namespace Mini.Engine.Titan.Graphics;
@@ -9,7 +10,11 @@ public sealed class ZoneTerrainColorizer : ITerrainColorizer
     private readonly Random Random = new Random(0);
     public ZoneTerrainColorizer(Tile[] tiles, int columns, int rows)
     {
+        this.State = ZoneOptimizer.OptimizeFlat(tiles, columns, rows);
+        Debug.WriteLine($"OptimizeFlat produced {this.State.Zones.Count} zones");
+
         this.State = ZoneOptimizer.Optimize(tiles, columns, rows);
+        Debug.WriteLine($"Optimize produced {this.State.Zones.Count} zones");
 
         this.AllColors = new ColorLinear[256 * 256 * 256];
 
@@ -33,6 +38,10 @@ public sealed class ZoneTerrainColorizer : ITerrainColorizer
     public ColorLinear GetColor(IReadOnlyList<Tile> tiles, int i, IReadOnlyList<TerrainVertex> vertices, int a, int b, int c)
     {
         var owner = this.State.Owners[i];
+        if (owner == 0)
+        {
+            return new ColorLinear(0, 0, 0);
+        }
         var index = (int)Ranges.Map(owner, (0.0f, this.State.Zones.Count - 1.0f), (0.0f, (256.0f * 256.0f * 256.0f) - 1.0f));
         return this.AllColors[index];
     }
