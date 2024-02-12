@@ -40,7 +40,7 @@ public readonly struct Tile
     private const byte MaskNW = 0b_11_00_00_00;
 
     public readonly byte Offset;
-    private readonly byte Corners;
+    public readonly byte Corners;
 
     public Tile(CornerType ne, CornerType se, CornerType sw, CornerType nw, byte offset)
     {
@@ -339,28 +339,6 @@ public static class TileUtilities
         var n1 = Triangles.GetNormal(cd, ce, cf);
 
         return (n0, n1);
-    }
-
-    /// <summary>
-    /// Verifies if the normals of the two tiles align. This can be used as part of test to see
-    /// if two tiles can be part of a larger rectangle.
-    /// </summary>
-    public static bool AreNormalsAligned(Tile t0, Tile t1, float precision = 0.95f)
-    {
-        // If the pseudo normals of two tile don't match up, the zone is invalid
-        var (a, b, c, d, e, f) = GetBestTriangleIndices(t0);
-        var (n0, n1) = GetNormals(t0, a, b, c, d, e, f);
-
-        (a, b, c, d, e, f) = GetBestTriangleIndices(t1);
-        var (n2, n3) = GetNormals(t1, a, b, c, d, e, f);
-
-        var d0 = Vector3.Dot(n0, n2);
-        var d1 = Vector3.Dot(n0, n3);
-        var d2 = Vector3.Dot(n1, n2);
-        var d3 = Vector3.Dot(n1, n3);
-
-
-        return d0 >= precision && d1 >= precision && d2 >= precision && d3 >= precision;
     }
 
     public static bool AreSidesAligned(Tile a, Tile b, TileSide tileASide)

@@ -10,9 +10,6 @@ public sealed class ZoneTerrainColorizer : ITerrainColorizer
     private readonly Random Random = new Random(0);
     public ZoneTerrainColorizer(Tile[] tiles, int columns, int rows)
     {
-        this.State = ZoneOptimizer.OptimizeFlat(tiles, columns, rows);
-        Debug.WriteLine($"OptimizeFlat produced {this.State.Zones.Count} zones");
-
         this.State = ZoneOptimizer.Optimize(tiles, columns, rows);
         Debug.WriteLine($"Optimize produced {this.State.Zones.Count} zones");
 
