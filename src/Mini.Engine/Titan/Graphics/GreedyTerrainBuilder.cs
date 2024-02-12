@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using LibGame.Geometry;
 using LibGame.Mathematics;
 using Mini.Engine.Configuration;
 using Triangle = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TRIANGLE;
@@ -50,16 +51,25 @@ public sealed class GreedyTerrainBuilder
         var s = zone.EndRow;
         var w = zone.StartColumn;
 
-        this.AddVertex(tiles, e, n, TileCorner.NE);
-        this.AddVertex(tiles, e, s, TileCorner.SE);
-        this.AddVertex(tiles, w, s, TileCorner.SW);
+        // What about get best triangle offset?
 
-        this.AddVertex(tiles, w, s, TileCorner.SW);
-        this.AddVertex(tiles, w, n, TileCorner.NW);
-        this.AddVertex(tiles, e, n, TileCorner.NE);
+        var a = this.AddVertex(tiles, e, n, TileCorner.NE);
+        var b = this.AddVertex(tiles, e, s, TileCorner.SE);
+        var c = this.AddVertex(tiles, w, s, TileCorner.SW);
+
+        var d = this.AddVertex(tiles, w, s, TileCorner.SW);
+        var e = this.AddVertex(tiles, w, n, TileCorner.NW);
+        var f = this.AddVertex(tiles, e, n, TileCorner.NE);
+
+        var n0 = Triangles.GetNormal(this.vertices[a].Position, this.vertices[b].Position, this.vertices[c].Position);
+        var n1 = Triangles.GetNormal(this.vertices[d].Position, this.vertices[e].Position, this.vertices[f].Position);
+
+        // TODO: get color
+        this.triangles.Add(new Triangle() { Normal = n0, Albedo = ...});
+        this.triangles.Add(new Triangle() { Normal = n1, Albedo = ...});
     }
 
-    private void AddVertex(IReadOnlyList<Tile> tiles, int column, int row, TileCorner corner)
+    private int AddVertex(IReadOnlyList<Tile> tiles, int column, int row, TileCorner corner)
     {
         var (columnOffset, rowOffset) = corner switch
         {
@@ -74,7 +84,10 @@ public sealed class GreedyTerrainBuilder
         if (this.vertexMap[i] != 0)
         {
             // We remove 1 since we use 0 to signal the map is unset
-            this.indices.Add(this.vertexMap[i] - 1);
+            var index = this.vertexMap[i] - 1;
+            this.indices.Add(index);
+
+            return index;
         }
         else
         {
@@ -84,11 +97,11 @@ public sealed class GreedyTerrainBuilder
             var index = this.vertices.Count;
             this.vertices.Add(vertex);
 
-            throw new Exception("TODO: double check code and add triangles!");
-
             // We add 1 since we use 0 to signal the map is unset
             this.vertexMap[i] = index + 1;
             this.indices.Add(index);
+
+            return index;
         }
     }
 
