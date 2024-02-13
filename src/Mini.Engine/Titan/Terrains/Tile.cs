@@ -2,7 +2,7 @@
 using LibGame.Geometry;
 using LibGame.Mathematics;
 
-namespace Mini.Engine.Titan.Graphics;
+namespace Mini.Engine.Titan.Terrains;
 
 public enum TileSide : byte
 {
@@ -61,8 +61,8 @@ public readonly struct Tile
     public CornerType Unpack(TileCorner corner)
     {
         var ic = (int)corner;
-        var mask = (byte)(MaskNE << (ic * 2));
-        return (CornerType)((this.Corners & mask) >> (ic * 2));
+        var mask = (byte)(MaskNE << ic * 2);
+        return (CornerType)((this.Corners & mask) >> ic * 2);
     }
 
     public (CornerType NE, CornerType SE, CornerType SW, CornerType NW) UnpackAll()

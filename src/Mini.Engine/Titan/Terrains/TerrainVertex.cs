@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using Vortice.Direct3D11;
 
-namespace Mini.Engine.Titan.Graphics;
+namespace Mini.Engine.Titan.Terrains;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public readonly struct TerrainVertex(Vector3 position)

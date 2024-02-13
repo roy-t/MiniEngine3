@@ -1,7 +1,7 @@
 ﻿using Mini.Engine.DirectX.Buffers;
 using Triangle = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TRIANGLE;
 
-namespace Mini.Engine.Titan.Graphics;
+namespace Mini.Engine.Titan.Terrains;
 
 public interface ITerrain
 {
@@ -12,4 +12,6 @@ public interface ITerrain
     public VertexBuffer<TerrainVertex> Vertices { get; }
     public StructuredBuffer<Triangle> TrianglesBuffer { get; }
     public ShaderResourceView<Triangle> TrianglesView { get; }
+
+    public IReadOnlyList<Tile> Tiles { get; }
 }

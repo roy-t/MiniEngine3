@@ -25,7 +25,7 @@ internal sealed class StrategyCameraController
     private const float DistanceMax = 1000.0f;
     private const float ZoomSpeed = 75.0f;
     private const float ClimbSpeed = 1.0f;
-    private const float RotateSpeed = MathHelper.TwoPi;
+    private const float RotateSpeed = MathHelper.TwoPi * 0.5f;
 
     private readonly InputService InputService;
     private readonly Keyboard Keyboard;
@@ -62,6 +62,7 @@ internal sealed class StrategyCameraController
             this.ResetParameters();
         }
 
+        // TODO: it would be better if this rotates around the current mouse position
         var rotationAccumulator = 0.0f;
         rotationAccumulator += this.Keyboard.AsFloat(InputState.Held, KeyRotateCW);
         rotationAccumulator -= this.Keyboard.AsFloat(InputState.Held, KeyRotateCCW);

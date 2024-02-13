@@ -1,6 +1,6 @@
 ﻿using LibGame.Mathematics;
 
-namespace Mini.Engine.Titan.Graphics;
+namespace Mini.Engine.Titan.Terrains;
 
 public readonly record struct Zone(int StartColumn, int EndColumn, int StartRow, int EndRow);
 

@@ -4,6 +4,7 @@ using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.Graphics.PostProcessing;
 using Mini.Engine.Titan.Graphics;
+using Mini.Engine.Titan.Terrains;
 using Mini.Engine.UI;
 
 namespace Mini.Engine.Titan;

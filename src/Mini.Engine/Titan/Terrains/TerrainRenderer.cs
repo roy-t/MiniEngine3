@@ -9,7 +9,7 @@ using Mini.Engine.Graphics.Cameras;
 using Vortice.Direct3D;
 using Shader = Mini.Engine.Content.Shaders.Generated.TitanTerrain;
 
-namespace Mini.Engine.Titan.Graphics;
+namespace Mini.Engine.Titan.Terrains;
 
 [Service]
 public sealed class TerrainRenderer : IDisposable

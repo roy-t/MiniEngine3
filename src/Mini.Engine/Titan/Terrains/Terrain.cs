@@ -7,41 +7,40 @@ using Mini.Engine.DirectX.Buffers;
 using Shader = Mini.Engine.Content.Shaders.Generated.TitanTerrain;
 using Triangle = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TRIANGLE;
 
-namespace Mini.Engine.Titan.Graphics;
+namespace Mini.Engine.Titan.Terrains;
 
 [Service]
 internal sealed class Terrain : ITerrain, IDisposable
 {
-    // Performance before optimization: 4ms for a 1024x1024 scene in full view
-
+    private const int Columns = 1024;
+    private const int Rows = 1024;
     private const byte MinHeight = 50;
     private const byte CliffStartHeight = 62;
     private const byte CliffLength = 4;
     private const byte MaxHeight = 70;
 
+    private readonly TerrainBuilder Builder;
+
     public Terrain(Device device, Shader shader)
     {
-        const int columns = 128;
-        const int rows = 128;
-        var heightMap = GenerateHeightMap(columns, rows);
-        //var heightMap = new byte[columns * rows];
-        var tiles = GetTiles(heightMap, columns);
-        //var colorizer = new DefaultTerrainColorizer(ColorPalette.GrassLawn, MinHeight, MaxHeight);
-        var colorizer = new ZoneTerrainColorizer(tiles, columns, rows);
-        var builder = new DefaultTerrainBuilder();
-        var mesh = builder.Build(tiles, colorizer, columns, rows);
+        this.Builder = new TerrainBuilder(Columns, Rows);
+
+        var heightMap = GenerateHeightMap(Columns, Rows);
+        this.Tiles = GetTiles(heightMap, Columns);
+
+        this.Builder.Update(this.Tiles);
 
         this.TileIndexOffset = 0;
-        this.TileIndexCount = mesh.Indices.Count;
+        this.TileIndexCount = this.Builder.Indices.Count;
 
         this.Vertices = new VertexBuffer<TerrainVertex>(device, nameof(Terrain));
-        this.Vertices.MapData(device.ImmediateContext, CollectionsMarshal.AsSpan(mesh.Vertices));
+        this.Vertices.MapData(device.ImmediateContext, CollectionsMarshal.AsSpan(this.Builder.Vertices));
 
         this.Indices = new IndexBuffer<int>(device, nameof(Terrain));
-        this.Indices.MapData(device.ImmediateContext, CollectionsMarshal.AsSpan(mesh.Indices));
+        this.Indices.MapData(device.ImmediateContext, CollectionsMarshal.AsSpan(this.Builder.Indices));
 
-        this.TrianglesBuffer = new StructuredBuffer<Triangle>(device, nameof(Terrain), mesh.Triangles.Count);
-        this.TrianglesBuffer.MapData(device.ImmediateContext, CollectionsMarshal.AsSpan(mesh.Triangles));
+        this.TrianglesBuffer = new StructuredBuffer<Triangle>(device, nameof(Terrain), this.Builder.Triangles.Count);
+        this.TrianglesBuffer.MapData(device.ImmediateContext, CollectionsMarshal.AsSpan(this.Builder.Triangles));
         this.TrianglesView = this.TrianglesBuffer.CreateShaderResourceView();
     }
 
@@ -52,6 +51,8 @@ internal sealed class Terrain : ITerrain, IDisposable
     public VertexBuffer<TerrainVertex> Vertices { get; }
     public StructuredBuffer<Triangle> TrianglesBuffer { get; }
     public ShaderResourceView<Triangle> TrianglesView { get; }
+
+    public IReadOnlyList<Tile> Tiles { get; }
 
     private static byte[] GenerateHeightMap(int columns, int rows)
     {
