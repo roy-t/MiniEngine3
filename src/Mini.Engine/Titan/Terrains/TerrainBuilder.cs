@@ -9,6 +9,7 @@ public sealed class TerrainBuilder
 {
     private readonly ColorLinear[] Palette;
     private readonly VertexCache Cache;
+    private readonly ZoneOptimizer Optimizer;
 
     private readonly int Columns;
     private readonly int Rows;
@@ -26,6 +27,7 @@ public sealed class TerrainBuilder
         }
 
         this.Cache = new VertexCache(columns, rows);
+        this.Optimizer = new ZoneOptimizer(columns, rows);
         this.Indices = new List<int>();
         this.Triangles = new List<Triangle>();
     }
@@ -37,11 +39,13 @@ public sealed class TerrainBuilder
     public void Update(IReadOnlyList<Tile> tiles)
     {
         this.Cache.Clear();
+        this.Optimizer.Clear();
         this.Indices.Clear();
         this.Triangles.Clear();
 
-        var (_, zones) = ZoneOptimizer.Optimize(tiles, this.Columns, this.Rows);
+        this.Optimizer.Optimize(tiles, this.Columns, this.Rows);
 
+        var zones = this.Optimizer.Zones;
         for (var i = 0; i < zones.Count; i++)
         {
             var zone = zones[i];

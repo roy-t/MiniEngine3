@@ -9,11 +9,28 @@ using Triangle = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TRIANGLE;
 
 namespace Mini.Engine.Titan.Terrains;
 
+/// <summary>
+/// This class creates a tile-map like terrain by:
+/// - Generating a heightmap using simplex noise and Fractal Browniam Motion
+/// - Generating a tile map from the height map
+/// - Optimizing the tile map into zones
+/// - Generating and uploading the render data to the GPU
+///
+/// The idea of this class is that it is easy to completely regenerate the entire map every time
+/// one of the tiles changes, using the terrain builder. For this The terrain builder keeps all
+/// its working buffers intact, so that frequently rebuilding the terrain doesn't put stress on
+/// the GC, or slows down because of many small allocations.
+///
+/// If the terrain gets very large it will still be computationally expensive to completely regenerate
+/// it on any change. Therefor we should create a 'SuperTerrain' class that consists of many smaller
+/// regions that can be individually rebuild. While the 'SuperTerrain' class allows us to treat the
+/// many regions, as if its just one bigger terrain.
+/// </summary>
 [Service]
-internal sealed class Terrain : ITerrain, IDisposable
+public sealed class Terrain : IDisposable
 {
-    private const int Columns = 1024;
-    private const int Rows = 1024;
+    private const int Columns = 128;
+    private const int Rows = 128;
     private const byte MinHeight = 50;
     private const byte CliffStartHeight = 62;
     private const byte CliffLength = 4;

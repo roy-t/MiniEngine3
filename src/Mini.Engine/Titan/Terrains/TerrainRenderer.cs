@@ -39,7 +39,7 @@ public sealed class TerrainRenderer : IDisposable
         this.User.MapConstants(context, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
     }
 
-    public void Render(DeviceContext context, in Rectangle viewport, in Rectangle scissor, ITerrain terrain)
+    public void Render(DeviceContext context, in Rectangle viewport, in Rectangle scissor, Terrain terrain)
     {
         context.PS.SetBuffer(Shader.Triangles, terrain.TrianglesView);
         context.IA.SetVertexBuffer(terrain.Vertices);
