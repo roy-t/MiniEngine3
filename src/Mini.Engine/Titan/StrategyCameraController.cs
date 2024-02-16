@@ -87,7 +87,6 @@ internal sealed class StrategyCameraController
             }
         }
         scrollAccumulator = Math.Clamp(scrollAccumulator, -1.0f, 1.0f);
-
         var zoomProgress = Ranges.Map(this.distance, (0.0f, DistanceMax), (0.0f, 1.0f));
         this.UpdateTarget(scrollAccumulator * zoomProgress * ZoomSpeed * 0.5f, in viewport);
         this.Transform = this.GetCameraTransform();
@@ -117,26 +116,32 @@ internal sealed class StrategyCameraController
 
     private void UpdateTarget(float distanceChange, in Rectangle viewport)
     {
-        if (distanceChange < 0.0f)
+        if (distanceChange != 0.0f)
         {
             var cursor = this.InputService.GetCursorPosition();
+            if (IsMouseCursorInsideViewport(cursor, in viewport))
+            {
+                if (distanceChange < 0.0f)
+                {
+                    var transform = this.GetCameraTransform();
+                    var viewProjection = this.Camera.GetViewProjection(transform);
+                    var world = GetWorldPositionUnderMouseCursor(cursor, in viewProjection, in viewport, this.target);
 
-            var transform = this.GetCameraTransform();
-            var viewProjection = this.Camera.GetViewProjection(transform);
-            var world = GetWorldPositionUnderMouseCursor(cursor, in viewProjection, in viewport, this.target);
+                    this.distance = Math.Clamp(this.distance + distanceChange, DistanceMin, DistanceMax);
 
-            this.distance = Math.Clamp(this.distance + distanceChange, DistanceMin, DistanceMax);
+                    transform = this.GetCameraTransform();
+                    viewProjection = this.Camera.GetViewProjection(transform);
+                    var newWorld = GetWorldPositionUnderMouseCursor(cursor, in viewProjection, in viewport, this.target);
+                    var change = newWorld - world;
 
-            transform = this.GetCameraTransform();
-            viewProjection = this.Camera.GetViewProjection(transform);
-            var newWorld = GetWorldPositionUnderMouseCursor(cursor, in viewProjection, in viewport, this.target);
-            var change = newWorld - world;
-
-            this.target -= change;
-        }
-        else
-        {
-            this.distance = Math.Clamp(this.distance + distanceChange, DistanceMin, DistanceMax);
+                    // TODO: clamp target to the terrain so users can't scroll off the map
+                    this.target -= change;
+                }
+                else
+                {
+                    this.distance = Math.Clamp(this.distance + distanceChange, DistanceMin, DistanceMax);
+                }
+            }
         }
     }
 
@@ -152,6 +157,11 @@ internal sealed class StrategyCameraController
         }
 
         return fallback;
+    }
+
+    private static bool IsMouseCursorInsideViewport(Vector2 cursor, in Rectangle viewport)
+    {
+        return viewport.Contains((int)cursor.X, (int)cursor.Y);
     }
 
     private static PerspectiveCamera CreateCamera(float width, float height)

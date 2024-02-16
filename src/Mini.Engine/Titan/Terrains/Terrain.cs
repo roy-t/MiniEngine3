@@ -29,8 +29,8 @@ namespace Mini.Engine.Titan.Terrains;
 [Service]
 public sealed class Terrain : IDisposable
 {
-    private const int Columns = 128;
-    private const int Rows = 128;
+    private const int Columns = 256;
+    private const int Rows = 256;
     private const byte MinHeight = 50;
     private const byte CliffStartHeight = 62;
     private const byte CliffLength = 4;
@@ -44,6 +44,7 @@ public sealed class Terrain : IDisposable
 
         var heightMap = GenerateHeightMap(Columns, Rows);
         this.Tiles = GetTiles(heightMap, Columns);
+        this.Bounds = new TerrainBVH(this.Tiles, Columns, Rows);
 
         this.Builder.Update(this.Tiles);
 
@@ -70,6 +71,8 @@ public sealed class Terrain : IDisposable
     public ShaderResourceView<Triangle> TrianglesView { get; }
 
     public IReadOnlyList<Tile> Tiles { get; }
+
+    public TerrainBVH Bounds { get; }
 
     private static byte[] GenerateHeightMap(int columns, int rows)
     {

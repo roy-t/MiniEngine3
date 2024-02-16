@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using LibGame.Geometry;
 using LibGame.Mathematics;
 
 namespace Mini.Engine.Titan.Terrains;
@@ -173,7 +172,6 @@ public static class TileUtilities
         };
     }
 
-    // TODO: replace with a function that returns indexes instead of copies
     public static Neighbours<T> GetNeighboursFromGrid<T>(T[] grid, int columns, int rows, int index, T fallback)
         where T : struct
     {
@@ -279,66 +277,6 @@ public static class TileUtilities
             TileCorner.NW => new Vector3(-0.5f, offset, -0.5f),
             _ => throw new IndexOutOfRangeException(),
         }; ;
-    }
-
-    // TODO: unused?
-    public static Vector3 IndexToCorner(TileCorner c)
-    {
-        return c switch
-        {
-            TileCorner.NE => new Vector3(0.5f, 0.0f, -0.5f),
-            TileCorner.SE => new Vector3(0.5f, 0.0f, 0.5f),
-            TileCorner.SW => new Vector3(-0.5f, 0.0f, 0.5f),
-            TileCorner.NW => new Vector3(-0.5f, 0.0f, -0.5f),
-            _ => throw new IndexOutOfRangeException(),
-        }; ;
-    }
-
-
-    public static (int a, int b, int c, int d, int e, int f) GetBestTriangleIndices(Tile tile)
-    {
-
-        var offsets = tile.GetHeightOffsets();
-        var ne = 0;
-        var se = 1;
-        var sw = 2;
-        var nw = 3;
-
-        // XOO
-        // OXO
-        // OOX
-        if (offsets.se == offsets.nw)
-        {
-            return (ne, se, nw,
-                    se, sw, nw);
-        }
-        // OOX
-        // OXO
-        // XOO
-        else
-        {
-            return (ne, se, sw,
-                    sw, nw, ne);
-        }
-    }
-
-    /// <summary>
-    /// Get the normals of the two triangles given the tile type and the
-    /// relative indices (a, b, c) of the first triangle and (d, e, f) of the second triangle
-    /// </summary>
-    public static (Vector3 n0, Vector3 n1) GetNormals(Tile tile, int a, int b, int c, int d, int e, int f)
-    {
-        var ca = IndexToCorner(tile, (TileCorner)a);
-        var cb = IndexToCorner(tile, (TileCorner)b);
-        var cc = IndexToCorner(tile, (TileCorner)c);
-        var cd = IndexToCorner(tile, (TileCorner)d);
-        var ce = IndexToCorner(tile, (TileCorner)e);
-        var cf = IndexToCorner(tile, (TileCorner)f);
-
-        var n0 = Triangles.GetNormal(ca, cb, cc);
-        var n1 = Triangles.GetNormal(cd, ce, cf);
-
-        return (n0, n1);
     }
 
     public static bool AreSidesAligned(Tile a, Tile b, TileSide tileASide)
