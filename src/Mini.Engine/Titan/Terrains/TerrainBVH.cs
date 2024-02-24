@@ -52,28 +52,19 @@ public sealed class TerrainBVH
 
     public bool CheckTileHit(Ray ray, out int tileIndex, out Vector3 point)
     {
-        if (this.CheckBVHHit(ray))
+        var best = this.CheckTileHit(ray, 0, 0, 1);
+        if (best.HasValue)
         {
-            var best = this.CheckTileHit(ray, 0, 0, 1);
-            if (best.HasValue)
-            {
-                point = ray.Position + (ray.Direction * best.Value);
-                var column = Math.Clamp((int)point.X, 0, this.Dimensions - 1);
-                var row = Math.Clamp((int)point.Z, 0, this.Dimensions - 1);
-                tileIndex = Indexes.ToOneDimensional(column, row, this.Dimensions);
-                return true;
-            }
+            point = ray.Position + (ray.Direction * best.Value);
+            var column = Math.Clamp((int)point.X, 0, this.Dimensions - 1);
+            var row = Math.Clamp((int)point.Z, 0, this.Dimensions - 1);
+            tileIndex = Indexes.ToOneDimensional(column, row, this.Dimensions);
+            return true;
         }
 
         tileIndex = -1;
         point = Vector3.Zero;
         return false;
-    }
-
-    public bool CheckBVHHit(Ray ray)
-    {
-        var bounds = this.GetBounds(0, 0, 1);
-        return ray.Intersects(bounds).HasValue;
     }
 
     private float? CheckTileHit(Ray ray, int column, int row, int dimensions)
