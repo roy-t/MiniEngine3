@@ -75,10 +75,12 @@ public sealed class TerrainBuilder
         Vector3 n0;
         Vector3 n1;
 
+        // Note: changing the triangulation should also change the BHV
+
         // XOO
         // OXO
         // OOX
-        if (pSE == pNW)
+        if (pSE.Y == pNW.Y)
         {
             this.Indices.Add(ne);
             this.Indices.Add(se);

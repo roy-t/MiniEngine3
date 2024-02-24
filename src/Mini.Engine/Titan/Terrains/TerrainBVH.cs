@@ -8,6 +8,7 @@ public sealed class TerrainBVH
 {
     private readonly int Dimensions;
     private readonly byte[] Bounds;
+    private readonly IReadOnlyList<Tile> Tiles;
 
     public TerrainBVH(IReadOnlyList<Tile> tiles, int columns, int rows)
     {
@@ -16,6 +17,7 @@ public sealed class TerrainBVH
             throw new NotSupportedException("The BVH requires that there are an equal number of columns and rows");
         }
 
+        this.Tiles = tiles;
         this.Dimensions = columns;
 
         var totalSize = GetSize(columns);
@@ -49,6 +51,114 @@ public sealed class TerrainBVH
         }
     }
 
+    public bool CheckTileHit(Ray ray, out int tileIndex, out Vector3 point)
+    {
+        if (this.CheckBHVHit(ray))
+        {
+            var column = 0;
+            var row = 0;
+            for (var dimension = 2; dimension <= this.Dimensions; dimension *= 2)
+            {
+                column *= 2;
+                row *= 2;
+                if (this.CheckTileHit(ray, column, row, dimension, out var hitColumn, out var hitRow))
+                {
+                    column = hitColumn;
+                    row = hitRow;
+                }
+                else
+                {
+                    tileIndex = -1;
+                    point = Vector3.Zero;
+                    return false;
+                }
+            }
+
+            tileIndex = Indexes.ToOneDimensional(column, row, this.Dimensions);
+            var tile = this.Tiles[tileIndex];
+            var ne = TileUtilities.GetCornerPosition(column, row, tile, TileCorner.NE);
+            var se = TileUtilities.GetCornerPosition(column, row, tile, TileCorner.SE);
+            var sw = TileUtilities.GetCornerPosition(column, row, tile, TileCorner.SW);
+            var nw = TileUtilities.GetCornerPosition(column, row, tile, TileCorner.NW);
+
+            // Note: ray.Intersects expected a CW triangle, but uses OpenGL conventions (Z+ is forward)
+            //       so we have to provide the arguments in CCW order.
+
+            // Note: how we triangulate the tile depends on the shape of the tile, see TerrainBuilder
+
+            // XOO
+            // OXO
+            // OOX
+            if (se.Y == nw.Y)
+            {
+                return ray.Intersects(in nw, in se, in ne, out point) || ray.Intersects(in nw, in sw, in se, out point);
+            }
+            // OOX
+            // OXO
+            // XOO
+            else
+            {
+                return ray.Intersects(in sw, in se, in ne, out point) || ray.Intersects(in ne, in nw, in sw, out point);
+            }
+        }
+
+        tileIndex = -1;
+        point = Vector3.Zero;
+        return false;
+    }
+
+
+    private bool CheckBHVHit(Ray ray)
+    {
+        var bounds = this.GetBounds(0, 0, 1);
+        return ray.Intersects(bounds).HasValue;
+    }
+
+    private bool CheckTileHit(Ray ray, int column, int row, int dimensions, out int hitColumn, out int hitRow)
+    {
+        var ne = this.GetBounds(column + 1, row + 0, dimensions);
+        var se = this.GetBounds(column + 1, row + 1, dimensions);
+        var sw = this.GetBounds(column + 0, row + 1, dimensions);
+        var nw = this.GetBounds(column + 0, row + 0, dimensions);
+
+        var best = float.MaxValue;
+        hitColumn = 1;
+        hitRow = 0;
+        var intersectNorthEast = ray.Intersects(ne);
+        if (intersectNorthEast.HasValue && intersectNorthEast.Value < best)
+        {
+            best = intersectNorthEast.Value;
+            hitColumn = column + 1;
+            hitRow = row + 0;
+        }
+
+        var intersectSouthEast = ray.Intersects(se);
+        if (intersectSouthEast.HasValue && intersectSouthEast.Value < best)
+        {
+            best = intersectSouthEast.Value;
+            hitColumn = column + 1;
+            hitRow = row + 1;
+        }
+
+        var intersectSouthWest = ray.Intersects(sw);
+        if (intersectSouthWest.HasValue && intersectSouthWest.Value < best)
+        {
+            best = intersectSouthWest.Value;
+            hitColumn = column + 0;
+            hitRow = row + 1;
+        }
+
+        var intersectNorthWest = ray.Intersects(nw);
+        if (intersectNorthWest.HasValue && intersectNorthWest.Value < best)
+        {
+            best = intersectNorthWest.Value;
+            hitColumn = column + 0;
+            hitRow = row + 0;
+        }
+
+        return best != float.MaxValue;
+    }
+
     public byte GetHeight(int column, int row, int dimensions)
     {
         Debug.Assert(dimensions <= this.Dimensions);
@@ -73,7 +183,7 @@ public sealed class TerrainBVH
         return new BoundingBox(min, max);
     }
 
-    private (int startColumn, int endColumn, int startRow, int endRow) GetCoverage(int column, int row, int dimensions)
+    public (int startColumn, int endColumn, int startRow, int endRow) GetCoverage(int column, int row, int dimensions)
     {
         Debug.Assert(int.IsPow2(dimensions));
         Debug.Assert(dimensions <= this.Dimensions);
@@ -86,7 +196,7 @@ public sealed class TerrainBVH
         // 2 ^ 3 = 8, and indeed there are 4 8x8 patches in a 32x32 terrain
         var steps = MathF.Log2(this.Dimensions / dimensions);
         var span = (int)MathF.Pow(2, steps);
-        return (column, column + span - 1, row, row + span - 1);
+        return (column * span, ((column + 1) * span) - 1, (row * span), ((row + 1) * span) - 1);
     }
 
     private static int GetSize(int dimensions)

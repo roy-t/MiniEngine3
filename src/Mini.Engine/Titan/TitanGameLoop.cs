@@ -63,8 +63,7 @@ internal class TitanGameLoop : IGameLoop
         this.TerrainRenderer.Setup(this.Device.ImmediateContext, this.CameraController.Camera, in transform);
         this.TerrainRenderer.Render(this.Device.ImmediateContext, in output, in output, this.Terrain);
 
-
-        this.TerrainEditor.CaptureMouse();
+        this.TerrainEditor.CaptureMouse(this.Terrain, in output, this.CameraController.Camera, in transform);
         this.TerrainEditor.Setup(this.Device.ImmediateContext, this.CameraController.Camera, in transform);
         this.TerrainEditor.Render(this.Device.ImmediateContext, in output, in output);
 

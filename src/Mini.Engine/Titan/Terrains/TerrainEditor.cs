@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Numerics;
+using LibGame.Mathematics;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
@@ -7,7 +8,9 @@ using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
 using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.Graphics.Cameras;
+using Mini.Engine.Windows;
 using Vortice.Direct3D;
+using Vortice.Mathematics;
 using Shader = Mini.Engine.Content.Shaders.Generated.TitanGizmo;
 
 namespace Mini.Engine.Titan.Terrains;
@@ -16,6 +19,7 @@ public sealed class TerrainEditor
 {
     private readonly InputLayout Layout;
     private readonly Shader Shader;
+    private readonly InputService InputService;
     private readonly Shader.User User;
     private readonly BlendState BlendState;
     private readonly DepthStencilState DepthStencilState;
@@ -24,7 +28,11 @@ public sealed class TerrainEditor
     private readonly VertexBuffer<GizmoVertex> Vertices;
     private readonly IndexBuffer<int> Indices;
 
-    public TerrainEditor(Device device, Shader shader)
+    private readonly Mouse Mouse;
+
+    private Vector3 position;
+
+    public TerrainEditor(Device device, Shader shader, InputService inputService)
     {
         this.Layout = shader.CreateInputLayoutForVs(GizmoVertex.Elements);
 
@@ -33,6 +41,8 @@ public sealed class TerrainEditor
         this.RasterizerState = device.RasterizerStates.Default;
         this.User = shader.CreateUserFor<TerrainEditor>();
         this.Shader = shader;
+        this.InputService = inputService;
+        this.Mouse = new Mouse();
 
         var vertices = new GizmoVertex[]
         {
@@ -81,9 +91,33 @@ public sealed class TerrainEditor
         this.Indices.MapData(device.ImmediateContext, indices);
     }
 
-    public void CaptureMouse()
+    public void CaptureMouse(Terrain terrain, in Rectangle viewport, in PerspectiveCamera camera, in Transform cameraTransform)
     {
-        throw new Exception("Figure out on which tile the mouse is and then move the indicator on top of it");
+        var click = false;
+        while (this.InputService.ProcessEvents(this.Mouse))
+        {
+            if (this.Mouse.Pressed(MouseButtons.Left))
+            {
+                click = true;
+            }
+        }
+
+        var cursor = this.InputService.GetCursorPosition();
+        if (viewport.Contains((int)cursor.X, (int)cursor.Y))
+        {
+            if (click)
+            {
+
+            }
+
+            var wvp = camera.GetViewProjection(in cameraTransform);
+            var (position, direction) = Picking.CalculateCursorRay(cursor, in viewport, in wvp);
+            var ray = new Ray(position, direction);
+            if (terrain.Bounds.CheckTileHit(ray, out var tileIndex, out var pit))
+            {
+                this.position = pit;
+            }
+        }
     }
 
     public void Setup(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform)
@@ -91,7 +125,7 @@ public sealed class TerrainEditor
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
         context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
 
-        var world = Matrix4x4.CreateScale(100.0f);
+        var world = Matrix4x4.CreateTranslation(this.position);
         var wvp = Matrix4x4.Multiply(world, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
         this.User.MapConstants(context, wvp);
     }

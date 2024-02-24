@@ -6,11 +6,9 @@ using static Xunit.Assert;
 namespace Mini.Engine.Tests;
 public class TerrainBVHTests
 {
-
-    [Fact]
-    public void BVH()
+    private static IReadOnlyList<Tile> CreateTiles()
     {
-        var tiles = new Tile[]
+        return new Tile[]
         {
             new Tile(10),
             new Tile(9),
@@ -33,6 +31,41 @@ public class TerrainBVHTests
             new Tile(11),
         };
 
+    }
+
+    [Fact]
+    public void BVHCoverage()
+    {
+        var tiles = CreateTiles();
+        var bvh = new TerrainBVH(tiles, 4, 4);
+
+        var startColumn = 0;
+        var endColumn = 0;
+        var startRow = 0;
+        var endRow = 0;
+        (startColumn, endColumn, startRow, endRow) = bvh.GetCoverage(0, 0, 1);
+        Equal(0, startColumn);
+        Equal(3, endColumn);
+        Equal(0, startRow);
+        Equal(3, endRow);
+
+        (startColumn, endColumn, startRow, endRow) = bvh.GetCoverage(1, 1, 2);
+        Equal(2, startColumn);
+        Equal(3, endColumn);
+        Equal(2, startRow);
+        Equal(3, endRow);
+
+        (startColumn, endColumn, startRow, endRow) = bvh.GetCoverage(3, 3, 4);
+        Equal(3, startColumn);
+        Equal(3, endColumn);
+        Equal(3, startRow);
+        Equal(3, endRow);
+    }
+
+    [Fact]
+    public void BVH()
+    {
+        var tiles = CreateTiles();
         var bvh = new TerrainBVH(tiles, 4, 4);
 
         Equal(10, bvh.GetHeight(0, 0, 4));
@@ -58,5 +91,12 @@ public class TerrainBVHTests
         var expectedSingle = new BoundingBox(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 10.0f, 1.0f));
         var actualSingle = bvh.GetBounds(0, 0, 4);
         Equal(expectedSingle, actualSingle);
+
+        var ray = new Ray(new Vector3(2.5f, 1000.0f, 1.5f), new Vector3(0.0f, -1.0f, 0.0f));
+        var hit = bvh.CheckTileHit(ray, out var index, out var position);
+
+        True(hit);
+        Equal(6, index);
+        Equal(new Vector3(2.5f, 18.0f, 1.5f), position);
     }
 }
