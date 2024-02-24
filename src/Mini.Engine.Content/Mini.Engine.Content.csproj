@@ -3,6 +3,7 @@
     <None Remove="Assets\Shaders\Includes\FXAA.hlsl" />
     <None Remove="Assets\Shaders\Includes\TAA.hlsl" />
     <None Remove="Assets\Shaders\Lighting\BrdfLutCompute.hlsl" />
+    <None Remove="Assets\Titan\Shaders\TitanGizmo.hlsl" />
     <None Remove="Assets\Titan\Shaders\TitanTerrain.hlsl" />
   </ItemGroup> 
   <ItemGroup>
@@ -48,6 +49,7 @@
     <AdditionalFiles Include="Assets\Shaders\ColorShader.hlsl" />
     <AdditionalFiles Include="Assets\Shaders\UserInterface.hlsl" />
 	<AdditionalFiles Include="Assets\Shaders\Primitive.hlsl" />
+	<AdditionalFiles Include="Assets\Titan\Shaders\TitanGizmo.hlsl" />
 	<AdditionalFiles Include="Assets\Titan\Shaders\TitanTerrain.hlsl" />
   </ItemGroup>
   <ItemGroup>

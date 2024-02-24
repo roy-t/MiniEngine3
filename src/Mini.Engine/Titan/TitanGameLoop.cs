@@ -19,9 +19,10 @@ internal class TitanGameLoop : IGameLoop
     private readonly GBuffer GBuffer;
     private readonly StrategyCameraController CameraController;
     private readonly TerrainRenderer TerrainRenderer;
+    private readonly TerrainEditor TerrainEditor;
     private readonly Terrain Terrain;
 
-    public TitanGameLoop(Device device, ContentManager content, EditorUserInterface userInterface, PresentationHelper presenter, StrategyCameraController cameraController, Terrain terrainRenderer, TerrainRenderer terrainPartRenderer)
+    public TitanGameLoop(Device device, ContentManager content, EditorUserInterface userInterface, PresentationHelper presenter, StrategyCameraController cameraController, Terrain terrainRenderer, TerrainRenderer terrainPartRenderer, TerrainEditor terrainEditor)
     {
         this.GBuffer = new GBuffer(device, MultiSamplingRequest.Eight);
 
@@ -32,6 +33,7 @@ internal class TitanGameLoop : IGameLoop
         this.Terrain = terrainRenderer;
         this.Presenter = presenter;
         this.TerrainRenderer = terrainPartRenderer;
+        this.TerrainEditor = terrainEditor;
     }
 
     public void Resize(int width, int height)
@@ -60,6 +62,9 @@ internal class TitanGameLoop : IGameLoop
         this.Device.ImmediateContext.OM.SetRenderTargets(this.GBuffer.Group, this.GBuffer.Depth);
         this.TerrainRenderer.Setup(this.Device.ImmediateContext, this.CameraController.Camera, in transform);
         this.TerrainRenderer.Render(this.Device.ImmediateContext, in output, in output, this.Terrain);
+
+        this.TerrainEditor.Setup(this.Device.ImmediateContext, this.CameraController.Camera, in transform);
+        this.TerrainEditor.Render(this.Device.ImmediateContext, in output, in output);
 
         this.Device.ImmediateContext.OM.SetRenderTargetToBackBuffer();
         // TODO: tone map later when we incorporate lights

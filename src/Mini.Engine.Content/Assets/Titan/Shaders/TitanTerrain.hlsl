@@ -7,7 +7,6 @@ struct PS_INPUT
 {
     float4 position : SV_POSITION;
     float3 world : TEXCOORD1;
-    float depth : TEXCOORD0; // TODO: depth only required for PSLine
 };
     
 struct OUTPUT
@@ -34,7 +33,6 @@ PS_INPUT VS(VS_INPUT input)
     PS_INPUT output;      
     output.position = mul(WorldViewProjection, float4(input.position, 1.0));
     output.world = input.position.xyz;
-    output.depth = output.position.z / output.position.w;
     return output;
 }
       
