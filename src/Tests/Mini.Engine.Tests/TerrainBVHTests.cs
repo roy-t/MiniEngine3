@@ -1,4 +1,6 @@
-﻿using Mini.Engine.Titan.Terrains;
+﻿using System.Numerics;
+using Mini.Engine.Titan.Terrains;
+using Vortice.Mathematics;
 using Xunit;
 using static Xunit.Assert;
 namespace Mini.Engine.Tests;
@@ -45,9 +47,16 @@ public class TerrainBVHTests
 
         Equal(20, bvh.GetHeight(0, 0, 1));
 
+        var expectedFull = new BoundingBox(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(4.0f, 20.0f, 4.0f));
+        var actualFull = bvh.GetBounds(0, 0, 1);
+        Equal(expectedFull, actualFull);
 
-        var foo = bvh.GetBounds(0, 0, 2);
+        var expectedQuarter = new BoundingBox(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(2.0f, 20.0f, 2.0f));
+        var actualQuarter = bvh.GetBounds(0, 0, 2);
+        Equal(expectedQuarter, actualQuarter);
 
-        Equal(??, foo);
+        var expectedSingle = new BoundingBox(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 10.0f, 1.0f));
+        var actualSingle = bvh.GetBounds(0, 0, 4);
+        Equal(expectedSingle, actualSingle);
     }
 }

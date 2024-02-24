@@ -61,14 +61,14 @@ public sealed class TerrainBVH
 
     public BoundingBox GetBounds(int column, int row, int dimensions)
     {
-        throw new Exception("TODO: DOUBLE CHECK and CLEAN UP, but I think its right")
-        // Note: A terrain of 1 tile would center around (0, 0) and span from column -0.5 to 0.5 and row -0.5 to 0.5
-
-        var (startColum, columnSpan, startRow, rowSpan) = this.GetCoverage(column, row, dimensions);
+        // Note: a terrain with a single tile of height 1 would have the following bounds:
+        // min: (0, 0, 0)
+        // max: (1, 1, 1)
+        var (startColum, endColumn, startRow, endRow) = this.GetCoverage(column, row, dimensions);
 
         var height = this.GetHeight(column, row, dimensions);
-        var min = new Vector3(startColum - 0.5f, 0.0f, startRow - 0.5f);
-        var max = new Vector3(startColum + columnSpan - 0.5f, height, startRow + rowSpan - 0.5f);
+        var min = new Vector3(startColum, 0.0f, startRow);
+        var max = new Vector3(endColumn + 1.0f, height, endRow + 1.0f);
 
         return new BoundingBox(min, max);
     }

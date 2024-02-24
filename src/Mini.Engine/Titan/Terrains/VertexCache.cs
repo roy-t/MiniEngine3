@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using LibGame.Mathematics;
+﻿using LibGame.Mathematics;
 
 namespace Mini.Engine.Titan.Terrains;
 public sealed class VertexCache
@@ -22,8 +21,11 @@ public sealed class VertexCache
 
         var height = tile.GetHeight(corner);
         var index = Indexes.ToOneDimensional(column + columnOffset, row + rowOffset, this.Columns + 1);
+
         var array = this.Cache[index];
 
+        // TODO: we can add evil unsafe code here that stores the index instead of the array pointer
+        // if there's only one entry
         if (array == null)
         {
             this.Cache[index] = new int[1];
@@ -52,20 +54,13 @@ public sealed class VertexCache
     private int AddVertex(int[] indices, Tile tile, TileCorner corner, int column, int row)
     {
         var index = this.Vertices.Count;
-        var position = GetTileCornerPosition(tile, corner, column, row);
+        var position = TileUtilities.GetCornerPosition(column, row, tile, corner);
         this.Vertices.Add(new TerrainVertex(position));
 
         indices[^1] = index;
 
         return index;
     }
-
-    private static Vector3 GetTileCornerPosition(Tile tile, TileCorner corner, int column, int row)
-    {
-        var offset = TileUtilities.IndexToCorner(tile, corner);
-        return new Vector3(offset.X + column, offset.Y, offset.Z + row);
-    }
-
 
     private static (int columnOffset, int rowOffset) GetCornerOffset(TileCorner corner)
     {

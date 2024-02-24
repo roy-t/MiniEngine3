@@ -265,16 +265,16 @@ public static class TileUtilities
         return value <= max || value >= min;
     }
 
-    public static Vector3 IndexToCorner(Tile tile, TileCorner c)
+    public static Vector3 GetCornerPosition(int column, int row, Tile tile, TileCorner c)
     {
         var offset = tile.GetHeight(c);
 
         return c switch
         {
-            TileCorner.NE => new Vector3(0.5f, offset, -0.5f),
-            TileCorner.SE => new Vector3(0.5f, offset, 0.5f),
-            TileCorner.SW => new Vector3(-0.5f, offset, 0.5f),
-            TileCorner.NW => new Vector3(-0.5f, offset, -0.5f),
+            TileCorner.NE => new Vector3(column + 1.0f, offset, row + 0.0f),
+            TileCorner.SE => new Vector3(column + 1.0f, offset, row + 1.0f),
+            TileCorner.SW => new Vector3(column + 0.0f, offset, row + 1.0f),
+            TileCorner.NW => new Vector3(column + 0.0f, offset, row + 0.0f),
             _ => throw new IndexOutOfRangeException(),
         }; ;
     }

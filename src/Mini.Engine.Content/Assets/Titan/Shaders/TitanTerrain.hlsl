@@ -71,8 +71,7 @@ OUTPUT PS(PS_INPUT input, uint primitiveId : SV_PrimitiveID)
     if (nDu > 0.1f)
     {        
         float3 lineColor = albedo * 0.2f;
-        float2 world = input.world.xz + float2(0.5f, 0.5f);
-        float grid = PristineGrid(world, 0.05f);        
+        float grid = PristineGrid(input.world.xz, 0.05f);
         albedo = lerp(albedo, lineColor, grid);           
     }
           

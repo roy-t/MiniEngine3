@@ -62,8 +62,6 @@ public sealed class TerrainBuilder
         var south = zone.EndRow;
         var west = zone.StartColumn;
 
-        // What about get best triangle offset?
-
         var ne = this.AddVertex(tiles, east, north, TileCorner.NE);
         var se = this.AddVertex(tiles, east, south, TileCorner.SE);
         var sw = this.AddVertex(tiles, west, south, TileCorner.SW);
