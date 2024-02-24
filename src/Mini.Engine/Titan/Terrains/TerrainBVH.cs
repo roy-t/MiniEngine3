@@ -55,50 +55,40 @@ public sealed class TerrainBVH
     {
         if (this.CheckBHVHit(ray))
         {
-            var column = 0;
-            var row = 0;
-            for (var dimension = 2; dimension <= this.Dimensions; dimension *= 2)
+            var best = this.CheckTileBoundingBoxHit(ray, 0, 0, 1);
+            if (best.HasValue)
             {
-                column *= 2;
-                row *= 2;
-                if (this.CheckTileHit(ray, column, row, dimension, out var hitColumn, out var hitRow))
+                point = ray.Position + (ray.Direction * best.Value);
+                var column = (int)point.X;
+                var row = (int)point.Z;
+                tileIndex = Indexes.ToOneDimensional(column, row, this.Dimensions);
+                var tile = this.Tiles[tileIndex];
+                var ne = TileUtilities.GetCornerPosition(column, row, tile, TileCorner.NE);
+                var se = TileUtilities.GetCornerPosition(column, row, tile, TileCorner.SE);
+                var sw = TileUtilities.GetCornerPosition(column, row, tile, TileCorner.SW);
+                var nw = TileUtilities.GetCornerPosition(column, row, tile, TileCorner.NW);
+
+                // Note: ray.Intersects expected a CW triangle, but uses OpenGL conventions (Z+ is forward)
+                //       so we have to provide the arguments in CCW order.
+
+                // Note: how we triangulate the tile depends on the shape of the tile, see TerrainBuilder
+
+                // XOO
+                // OXO
+                // OOX
+                if (se.Y == nw.Y)
                 {
-                    column = hitColumn;
-                    row = hitRow;
+                    return ray.Intersects(in nw, in se, in ne, out point)
+                        || ray.Intersects(in nw, in sw, in se, out point);
                 }
+                // OOX
+                // OXO
+                // XOO
                 else
                 {
-                    tileIndex = -1;
-                    point = Vector3.Zero;
-                    return false;
+                    return ray.Intersects(in sw, in se, in ne, out point)
+                        || ray.Intersects(in ne, in nw, in sw, out point);
                 }
-            }
-
-            tileIndex = Indexes.ToOneDimensional(column, row, this.Dimensions);
-            var tile = this.Tiles[tileIndex];
-            var ne = TileUtilities.GetCornerPosition(column, row, tile, TileCorner.NE);
-            var se = TileUtilities.GetCornerPosition(column, row, tile, TileCorner.SE);
-            var sw = TileUtilities.GetCornerPosition(column, row, tile, TileCorner.SW);
-            var nw = TileUtilities.GetCornerPosition(column, row, tile, TileCorner.NW);
-
-            // Note: ray.Intersects expected a CW triangle, but uses OpenGL conventions (Z+ is forward)
-            //       so we have to provide the arguments in CCW order.
-
-            // Note: how we triangulate the tile depends on the shape of the tile, see TerrainBuilder
-
-            // XOO
-            // OXO
-            // OOX
-            if (se.Y == nw.Y)
-            {
-                return ray.Intersects(in nw, in se, in ne, out point) || ray.Intersects(in nw, in sw, in se, out point);
-            }
-            // OOX
-            // OXO
-            // XOO
-            else
-            {
-                return ray.Intersects(in sw, in se, in ne, out point) || ray.Intersects(in ne, in nw, in sw, out point);
             }
         }
 
@@ -107,56 +97,82 @@ public sealed class TerrainBVH
         return false;
     }
 
+    private float? CheckTileBoundingBoxHit(Ray ray, int column, int row, int dimensions)
+    {
+        var bounds = this.GetBounds(column, row, dimensions);
+        var hit = ray.Intersects(bounds);
+        if (hit.HasValue)
+        {
+            if (dimensions >= this.Dimensions)
+            {
+                var point = ray.Position + (ray.Direction * hit.Value);
+                var c = Math.Clamp((int)point.X, 0, this.Dimensions - 1);
+                var r = Math.Clamp((int)point.Z, 0, this.Dimensions - 1);
+                var index = Indexes.ToOneDimensional(c, r, this.Dimensions);
+                var tile = this.Tiles[index];
+                var nep = TileUtilities.GetCornerPosition(c, r, tile, TileCorner.NE);
+                var sep = TileUtilities.GetCornerPosition(c, r, tile, TileCorner.SE);
+                var swp = TileUtilities.GetCornerPosition(c, r, tile, TileCorner.SW);
+                var nwp = TileUtilities.GetCornerPosition(c, r, tile, TileCorner.NW);
+
+                // Note: ray.Intersects expected a CW triangle, but uses OpenGL conventions (Z+ is forward)
+                //       so we have to provide the arguments in CCW order.
+
+                // Note: how we triangulate the tile depends on the shape of the tile, see TerrainBuilder
+
+                // XOO
+                // OXO
+                // OOX
+                if (sep.Y == nwp.Y)
+                {
+                    var detA = Intersects(in ray, in nwp, in sep, in nep).GetValueOrDefault(float.MaxValue);
+                    var detB = Intersects(in ray, in nwp, in swp, in sep).GetValueOrDefault(float.MaxValue);
+                    var detMin = Math.Min(detA, detB);
+                    if (detMin != float.MaxValue)
+                    {
+                        return detMin;
+                    }
+                }
+                // OOX
+                // OXO
+                // XOO
+                else
+                {
+                    var detA = Intersects(in ray, in swp, in sep, in nep).GetValueOrDefault(float.MaxValue);
+                    var detB = Intersects(in ray, in nep, in nwp, in swp).GetValueOrDefault(float.MaxValue);
+                    var detMin = Math.Min(detA, detB);
+                    if (detMin != float.MaxValue)
+                    {
+                        return detMin;
+                    }
+                }
+
+                return null;
+            }
+
+            column *= 2;
+            row *= 2;
+            dimensions *= 2;
+            var ne = this.CheckTileBoundingBoxHit(ray, column + 1, row + 0, dimensions).GetValueOrDefault(float.MaxValue);
+            var se = this.CheckTileBoundingBoxHit(ray, column + 1, row + 1, dimensions).GetValueOrDefault(float.MaxValue);
+            var sw = this.CheckTileBoundingBoxHit(ray, column + 0, row + 1, dimensions).GetValueOrDefault(float.MaxValue);
+            var nw = this.CheckTileBoundingBoxHit(ray, column + 0, row + 0, dimensions).GetValueOrDefault(float.MaxValue);
+
+            var best = Math.Min(ne, Math.Min(se, Math.Min(sw, nw)));
+            if (best != float.MaxValue)
+            {
+                return best;
+            }
+
+        }
+
+        return null;
+    }
 
     private bool CheckBHVHit(Ray ray)
     {
         var bounds = this.GetBounds(0, 0, 1);
         return ray.Intersects(bounds).HasValue;
-    }
-
-    private bool CheckTileHit(Ray ray, int column, int row, int dimensions, out int hitColumn, out int hitRow)
-    {
-        var ne = this.GetBounds(column + 1, row + 0, dimensions);
-        var se = this.GetBounds(column + 1, row + 1, dimensions);
-        var sw = this.GetBounds(column + 0, row + 1, dimensions);
-        var nw = this.GetBounds(column + 0, row + 0, dimensions);
-
-        var best = float.MaxValue;
-        hitColumn = 1;
-        hitRow = 0;
-        var intersectNorthEast = ray.Intersects(ne);
-        if (intersectNorthEast.HasValue && intersectNorthEast.Value < best)
-        {
-            best = intersectNorthEast.Value;
-            hitColumn = column + 1;
-            hitRow = row + 0;
-        }
-
-        var intersectSouthEast = ray.Intersects(se);
-        if (intersectSouthEast.HasValue && intersectSouthEast.Value < best)
-        {
-            best = intersectSouthEast.Value;
-            hitColumn = column + 1;
-            hitRow = row + 1;
-        }
-
-        var intersectSouthWest = ray.Intersects(sw);
-        if (intersectSouthWest.HasValue && intersectSouthWest.Value < best)
-        {
-            best = intersectSouthWest.Value;
-            hitColumn = column + 0;
-            hitRow = row + 1;
-        }
-
-        var intersectNorthWest = ray.Intersects(nw);
-        if (intersectNorthWest.HasValue && intersectNorthWest.Value < best)
-        {
-            best = intersectNorthWest.Value;
-            hitColumn = column + 0;
-            hitRow = row + 0;
-        }
-
-        return best != float.MaxValue;
     }
 
     public byte GetHeight(int column, int row, int dimensions)
@@ -215,5 +231,64 @@ public sealed class TerrainBVH
     private static byte Max(byte a, byte b, byte c, byte d)
     {
         return Math.Max(a, Math.Max(b, Math.Max(c, d)));
+    }
+
+    /// <summary>
+    /// This does a ray cast on a triangle to see if there is an intersection.
+    /// This ONLY works on CW wound triangles.
+    /// </summary>
+    /// <param name="v0">Triangle Corner 1</param>
+    /// <param name="v1">Triangle Corner 2</param>
+    /// <param name="v2">Triangle Corner 3</param>
+    /// <param name="pointInTriangle">Intersection point if boolean returns true</param>
+    /// <returns></returns>
+    private static float? Intersects(in Ray ray, in Vector3 v0, in Vector3 v1, in Vector3 v2)
+    {
+        // Code origin can no longer be determined.
+        // was adapted from C++ code.
+
+        // compute normal
+        var edgeA = v1 - v0;
+        var edgeB = v2 - v0;
+
+        var normal = Vector3.Cross(ray.Direction, edgeB);
+
+        // find determinant
+        var det = Vector3.Dot(edgeA, normal);
+
+        // if perpendicular, exit
+        if (det < MathHelper.NearZeroEpsilon)
+        {
+            return null;
+        }
+        det = 1.0f / det;
+
+        // calculate distance from vertex0 to ray origin
+        var s = ray.Position - v0;
+        var u = det * Vector3.Dot(s, normal);
+
+        if (u < -MathHelper.NearZeroEpsilon || u > 1.0f + MathHelper.NearZeroEpsilon)
+        {
+            return null;
+        }
+
+        var r = Vector3.Cross(s, edgeA);
+        var v = det * Vector3.Dot(ray.Direction, r);
+        if (v < -MathHelper.NearZeroEpsilon || u + v > 1.0f + MathHelper.NearZeroEpsilon)
+        {
+            return null;
+        }
+
+        // distance from ray to triangle
+        det *= Vector3.Dot(edgeB, r);
+
+        // Vector3 endPosition;
+        // we dont want the point that is behind the ray cast.
+        if (det < 0.0f)
+        {
+            return null;
+        }
+
+        return det;
     }
 }

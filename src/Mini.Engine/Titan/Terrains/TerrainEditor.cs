@@ -105,7 +105,6 @@ public sealed class TerrainEditor
         var cursor = this.InputService.GetCursorPosition();
         if (viewport.Contains((int)cursor.X, (int)cursor.Y))
         {
-            throw new Exception("In some cases it still doesn't work, for example try slowly moving mouse down from top left first column");
             if (click)
             {
 
