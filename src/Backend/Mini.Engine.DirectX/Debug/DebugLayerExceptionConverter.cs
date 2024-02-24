@@ -1,11 +1,12 @@
-﻿using Serilog.Events;
-using System.Runtime.ExceptionServices;
+﻿using System.Runtime.ExceptionServices;
+using Serilog.Events;
 using Vortice.DXGI.Debug;
 
 namespace Mini.Engine.DirectX.Debugging;
 
 internal sealed class DebugLayerExceptionConverter
 {
+    private const string Path = "DebugLayerLog.txt";
     private readonly List<IDebugMessageProvider> Providers;
     private readonly LogEventLevel LogEventLevel;
 
@@ -15,12 +16,14 @@ internal sealed class DebugLayerExceptionConverter
         this.LogEventLevel = minLogEventLevel;
 
         AppDomain.CurrentDomain.FirstChanceException += this.CheckExceptions;
+
+        File.Create(Path);
     }
 
     public void Register(IDXGIInfoQueue infoQueue, Guid producer)
     {
         this.Providers.Add(new DxgiDebugMessageProvider(infoQueue, producer));
-    }    
+    }
 
     public void CheckExceptions()
     {
@@ -49,9 +52,9 @@ internal sealed class DebugLayerExceptionConverter
             }
         }
 
-        if (exceptions.Any())
+        if (exceptions.Count != 0)
         {
-            File.WriteAllLines("DebugLayerLog.txt", buffer.Select(m => m.ToString()));
+            File.WriteAllLines(Path, buffer.Select(m => m.ToString()));
         }
 
         if (exceptions.Count == 1)

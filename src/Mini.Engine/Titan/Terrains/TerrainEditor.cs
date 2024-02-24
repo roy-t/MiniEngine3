@@ -14,8 +14,9 @@ using Vortice.Mathematics;
 using Shader = Mini.Engine.Content.Shaders.Generated.TitanGizmo;
 
 namespace Mini.Engine.Titan.Terrains;
+
 [Service]
-public sealed class TerrainEditor
+public sealed class TerrainEditor : IDisposable
 {
     private readonly InputLayout Layout;
     private readonly Shader Shader;
@@ -105,11 +106,6 @@ public sealed class TerrainEditor
         var cursor = this.InputService.GetCursorPosition();
         if (viewport.Contains((int)cursor.X, (int)cursor.Y))
         {
-            if (click)
-            {
-
-            }
-
             var wvp = camera.GetViewProjection(in cameraTransform);
             var (position, direction) = Picking.CalculateCursorRay(cursor, in viewport, in wvp);
             var ray = new Ray(position, direction);
