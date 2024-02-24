@@ -29,7 +29,7 @@ public sealed class TerrainEditor
         this.Layout = shader.CreateInputLayoutForVs(GizmoVertex.Elements);
 
         this.BlendState = device.BlendStates.Opaque;
-        this.DepthStencilState = device.DepthStencilStates.ReverseZ;
+        this.DepthStencilState = device.DepthStencilStates.None;
         this.RasterizerState = device.RasterizerStates.Default;
         this.User = shader.CreateUserFor<TerrainEditor>();
         this.Shader = shader;
@@ -79,6 +79,11 @@ public sealed class TerrainEditor
 
         this.Indices = new IndexBuffer<int>(device, nameof(TerrainEditor));
         this.Indices.MapData(device.ImmediateContext, indices);
+    }
+
+    public void CaptureMouse()
+    {
+        throw new Exception("Figure out on which tile the mouse is and then move the indicator on top of it");
     }
 
     public void Setup(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform)
