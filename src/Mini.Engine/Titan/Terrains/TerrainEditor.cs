@@ -29,8 +29,6 @@ public sealed class TerrainEditor : IDisposable
     private readonly VertexBuffer<GizmoVertex> Vertices;
     private readonly IndexBuffer<int> Indices;
 
-    private readonly Mouse Mouse;
-
     private Vector3 position;
 
     public TerrainEditor(Device device, Shader shader, InputService inputService)
@@ -43,7 +41,6 @@ public sealed class TerrainEditor : IDisposable
         this.User = shader.CreateUserFor<TerrainEditor>();
         this.Shader = shader;
         this.InputService = inputService;
-        this.Mouse = new Mouse();
 
         var vertices = new GizmoVertex[]
         {
@@ -94,15 +91,6 @@ public sealed class TerrainEditor : IDisposable
 
     public void CaptureMouse(Terrain terrain, in Rectangle viewport, in PerspectiveCamera camera, in Transform cameraTransform)
     {
-        var click = false;
-        while (this.InputService.ProcessEvents(this.Mouse))
-        {
-            if (this.Mouse.Pressed(MouseButtons.Left))
-            {
-                click = true;
-            }
-        }
-
         var cursor = this.InputService.GetCursorPosition();
         if (viewport.Contains((int)cursor.X, (int)cursor.Y))
         {
