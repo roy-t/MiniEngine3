@@ -1,6 +1,5 @@
 ﻿using System.Drawing;
 using System.Numerics;
-using LibGame.Mathematics;
 using LibGame.Physics;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
@@ -10,7 +9,6 @@ using Mini.Engine.DirectX.Contexts.States;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Windows;
 using Vortice.Direct3D;
-using Vortice.Mathematics;
 using Shader = Mini.Engine.Content.Shaders.Generated.TitanGizmo;
 
 namespace Mini.Engine.Titan.Terrains;
@@ -20,7 +18,6 @@ public sealed class TerrainEditor : IDisposable
 {
     private readonly InputLayout Layout;
     private readonly Shader Shader;
-    private readonly InputService InputService;
     private readonly Shader.User User;
     private readonly BlendState BlendState;
     private readonly DepthStencilState DepthStencilState;
@@ -29,9 +26,9 @@ public sealed class TerrainEditor : IDisposable
     private readonly VertexBuffer<GizmoVertex> Vertices;
     private readonly IndexBuffer<int> Indices;
 
-    private Vector3 position;
+    private readonly RaiseTerrainStateMachine RaiseTerrain;
 
-    public TerrainEditor(Device device, Shader shader, InputService inputService)
+    public TerrainEditor(Device device, Shader shader, Terrain terrain, InputService input)
     {
         this.Layout = shader.CreateInputLayoutForVs(GizmoVertex.Elements);
 
@@ -40,7 +37,6 @@ public sealed class TerrainEditor : IDisposable
         this.RasterizerState = device.RasterizerStates.Default;
         this.User = shader.CreateUserFor<TerrainEditor>();
         this.Shader = shader;
-        this.InputService = inputService;
 
         var vertices = new GizmoVertex[]
         {
@@ -87,40 +83,37 @@ public sealed class TerrainEditor : IDisposable
 
         this.Indices = new IndexBuffer<int>(device, nameof(TerrainEditor));
         this.Indices.MapData(device.ImmediateContext, indices);
+
+        this.RaiseTerrain = new RaiseTerrainStateMachine(input, terrain);
     }
 
-    public void CaptureMouse(Terrain terrain, in Rectangle viewport, in PerspectiveCamera camera, in Transform cameraTransform)
+    public void CaptureMouse(in Rectangle viewport, in PerspectiveCamera camera, in Transform cameraTransform)
     {
-        var cursor = this.InputService.GetCursorPosition();
-        if (viewport.Contains((int)cursor.X, (int)cursor.Y))
-        {
-            var wvp = camera.GetViewProjection(in cameraTransform);
-            var (position, direction) = Picking.CalculateCursorRay(cursor, in viewport, in wvp);
-            var ray = new Ray(position, direction);
-            if (terrain.Bounds.CheckTileHit(ray, out var tileIndex, out var pit))
-            {
-                this.position = pit;
-            }
-        }
+        this.RaiseTerrain.Update(in viewport, in camera, in cameraTransform);
     }
 
     public void Setup(DeviceContext context, in PerspectiveCamera camera, in Transform cameraTransform)
     {
-        context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
-        context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
+        if (this.RaiseTerrain.ShouldDrawTarget())
+        {
+            context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
+            context.VS.SetConstantBuffer(Shader.ConstantsSlot, this.User.ConstantsBuffer);
 
-        var world = Matrix4x4.CreateTranslation(this.position);
-        var wvp = Matrix4x4.Multiply(world, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
-        this.User.MapConstants(context, wvp);
+            var wvp = Matrix4x4.Multiply(this.RaiseTerrain.TargetTransform, camera.GetInfiniteReversedZViewProjection(in cameraTransform));
+            this.User.MapConstants(context, wvp);
+        }
     }
 
     public void Render(DeviceContext context, in Rectangle viewport, in Rectangle scissor)
     {
-        context.IA.SetVertexBuffer(this.Vertices);
-        context.IA.SetIndexBuffer(this.Indices);
+        if (this.RaiseTerrain.ShouldDrawTarget())
+        {
+            context.IA.SetVertexBuffer(this.Vertices);
+            context.IA.SetIndexBuffer(this.Indices);
 
-        context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.RasterizerState, in viewport, in scissor, this.Shader.Ps, this.BlendState, this.DepthStencilState);
-        context.DrawIndexed(this.Indices.Length, 0, 0);
+            context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.RasterizerState, in viewport, in scissor, this.Shader.Ps, this.BlendState, this.DepthStencilState);
+            context.DrawIndexed(this.Indices.Length, 0, 0);
+        }
     }
 
     public void Dispose()

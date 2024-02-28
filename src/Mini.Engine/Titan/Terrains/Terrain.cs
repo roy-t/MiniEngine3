@@ -29,8 +29,6 @@ namespace Mini.Engine.Titan.Terrains;
 [Service]
 public sealed class Terrain : IDisposable
 {
-    private const int Columns = 256;
-    private const int Rows = 256;
     private const byte MinHeight = 50;
     private const byte CliffStartHeight = 62;
     private const byte CliffLength = 4;
@@ -40,11 +38,13 @@ public sealed class Terrain : IDisposable
 
     public Terrain(Device device, Shader shader)
     {
-        this.Builder = new TerrainBuilder(Columns, Rows);
+        this.Columns = 256;
+        this.Rows = 256;
+        this.Builder = new TerrainBuilder(this.Columns, this.Rows);
 
-        var heightMap = GenerateHeightMap(Columns, Rows);
-        this.Tiles = GetTiles(heightMap, Columns);
-        this.Bounds = new TerrainBVH(this.Tiles, Columns, Rows);
+        var heightMap = GenerateHeightMap(this.Columns, this.Rows);
+        this.Tiles = GetTiles(heightMap, this.Columns);
+        this.Bounds = new TerrainBVH(this.Tiles, this.Columns, this.Rows);
 
         this.Builder.Update(this.Tiles);
 
@@ -64,6 +64,9 @@ public sealed class Terrain : IDisposable
 
     public int TileIndexOffset { get; }
     public int TileIndexCount { get; }
+
+    public int Columns { get; }
+    public int Rows { get; }
 
     public IndexBuffer<int> Indices { get; }
     public VertexBuffer<TerrainVertex> Vertices { get; }
