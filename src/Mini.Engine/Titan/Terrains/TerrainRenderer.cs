@@ -41,9 +41,11 @@ public sealed class TerrainRenderer : IDisposable
 
     public void Render(DeviceContext context, in Rectangle viewport, in Rectangle scissor, Terrain terrain)
     {
-        context.PS.SetBuffer(Shader.Triangles, terrain.TrianglesView);
-        context.IA.SetVertexBuffer(terrain.Vertices);
-        context.IA.SetIndexBuffer(terrain.Indices);
+        var (vertices, indices, triangles) = terrain.GetRenderData(context);
+
+        context.IA.SetVertexBuffer(vertices);
+        context.IA.SetIndexBuffer(indices);
+        context.PS.SetBuffer(Shader.Triangles, triangles);
 
         context.Setup(this.Layout, PrimitiveTopology.TriangleList, this.Shader.Vs, this.RasterizerState, in viewport, in scissor, this.Shader.Ps, this.BlendState, this.DepthStencilState);
         context.DrawIndexed(terrain.TileIndexCount, terrain.TileIndexOffset, 0);

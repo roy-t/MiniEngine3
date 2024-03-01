@@ -16,24 +16,24 @@ public sealed class TerrainBVH
 
     private readonly int Dimensions;
     private readonly MinMax[] Bounds;
-    private readonly IReadOnlyList<Tile> Tiles;
+    private readonly IReadOnlyGrid<Tile> Tiles;
 
-    public TerrainBVH(IReadOnlyList<Tile> tiles, int columns, int rows)
+    public TerrainBVH(IReadOnlyGrid<Tile> tiles)
     {
-        if (columns != rows)
+        if (tiles.Columns != tiles.Rows)
         {
             throw new NotSupportedException("This BVH works only on square terrains, columns and rows should be of equal length");
         }
 
-        if (!int.IsPow2(columns))
+        if (!int.IsPow2(tiles.Columns))
         {
             throw new NotSupportedException("This BVH works only if both dimensions are a power of 2");
         }
 
         this.Tiles = tiles;
-        this.Dimensions = columns;
+        this.Dimensions = tiles.Columns;
 
-        var totalLength = GetLength(columns);
+        var totalLength = GetLength(this.Dimensions);
         this.Bounds = new MinMax[totalLength];
 
         // The first level in the hierarchy stores the minimum and maximum height of every single tile
@@ -44,8 +44,8 @@ public sealed class TerrainBVH
 
         // Every next level stores the minimum and maximum height of four elements in the level below it.
         // The highest level is a single element that stores the minimum and maximum height of the entire terrain.
-        var offset = columns * columns;
-        var dimensions = columns / 2;
+        var offset = this.Dimensions * this.Dimensions;
+        var dimensions = this.Dimensions / 2;
         while (dimensions > 0)
         {
             var length = dimensions * dimensions;
@@ -62,6 +62,33 @@ public sealed class TerrainBVH
             }
 
             offset += length;
+            dimensions /= 2;
+        }
+    }
+
+    /// <summary>
+    /// Conservatively updates the entire BVH hierarchy for the tile at the given position.
+    /// Using this method will only make the BVH 'grow' as for shrinking we would need to
+    /// check every tile.
+    /// </summary>
+    public void Update(int column, int row)
+    {
+        var offset = 0;
+        var dimensions = this.Dimensions;
+
+        var tile = this.Tiles[column, row];
+        var (min, max) = GetMinMax(tile);
+
+        while (dimensions > 0)
+        {
+            var i = Indexes.ToOneDimensional(column, row, dimensions);
+
+            var (cmin, cmax) = this.Bounds[i + offset];
+            this.Bounds[i + offset] = new MinMax(Math.Min(min, cmin), Math.Max(max, cmax));
+
+            offset += dimensions * dimensions;
+            column /= 2;
+            row /= 2;
             dimensions /= 2;
         }
     }

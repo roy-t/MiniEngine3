@@ -6,9 +6,9 @@ using static Xunit.Assert;
 namespace Mini.Engine.Tests;
 public class TerrainBVHTests
 {
-    private static IReadOnlyList<Tile> CreateTiles()
+    private static IReadOnlyGrid<Tile> CreateTiles()
     {
-        return new Tile[]
+        var tiles = new Tile[]
         {
             new Tile(10),
             new Tile(9),
@@ -30,14 +30,14 @@ public class TerrainBVHTests
             new Tile(6),
             new Tile(11),
         };
-
+        return new Grid<Tile>(tiles, 4, 4);
     }
 
     [Fact]
     public void BVH()
     {
         var tiles = CreateTiles();
-        var bvh = new TerrainBVH(tiles, 4, 4);
+        var bvh = new TerrainBVH(tiles);
 
         //Equal(10, bvh.GetHeight(0, 0, 4));
         //Equal(9, bvh.GetHeight(1, 0, 4));

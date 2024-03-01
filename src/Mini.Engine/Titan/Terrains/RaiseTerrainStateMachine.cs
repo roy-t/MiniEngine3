@@ -34,11 +34,10 @@ public sealed class RaiseTerrainStateMachine
 
     public void Update(in Rectangle viewport, in PerspectiveCamera camera, in Transform transform)
     {
-        var cursor = Vector2.Zero;
+        var cursor = this.Input.GetCursorPosition();
         if (this.state == State.Target)
         {
             this.hasTarget = false;
-            cursor = this.Input.GetCursorPosition();
             if (viewport.Contains((int)cursor.X, (int)cursor.Y))
             {
                 var wvp = camera.GetViewProjection(in transform);
@@ -84,10 +83,9 @@ public sealed class RaiseTerrainStateMachine
             this.state = State.Raise;
         }
 
+        var diff = MathF.Floor((this.cursorStartPosition.Y - cursor.Y) * 0.05f);
         if (this.state == State.Raise)
         {
-            var currentCursorPositon = this.Input.GetCursorPosition();
-            var diff = MathF.Floor((this.cursorStartPosition.Y - currentCursorPositon.Y) * 0.05f);
             var tile = this.Terrain.Tiles[Indexes.ToOneDimensional(this.targetColumn, this.targetRow, this.Terrain.Columns)];
 
             if (this.targetCorner != null)
@@ -102,8 +100,16 @@ public sealed class RaiseTerrainStateMachine
 
         if (this.state == State.Raise && released)
         {
-            throw new Exception("Commit the changes");
-            // TODO: Commit the changes
+            // Commit changes
+            if (this.targetCorner != null)
+            {
+                this.Terrain.MoveTileCorner(this.targetColumn, this.targetRow, this.targetCorner.Value, (int)diff);
+            }
+            else
+            {
+                this.Terrain.MoveTile(this.targetColumn, this.targetRow, (int)diff);
+            }
+
         }
 
         if (released)
@@ -116,7 +122,9 @@ public sealed class RaiseTerrainStateMachine
 
     private static Matrix4x4 CreateCornerTransform(Tile tile, TileCorner corner, int column, int row, float offset = 0.0f)
     {
-        var position = TileUtilities.GetCornerPosition(column, row, tile, corner);
+        var cornerPosition = TileUtilities.GetCornerPosition(column, row, tile, corner);
+        var tilePosition = GetTileCenter(tile, column, row);
+        var position = Vector3.Lerp(cornerPosition, tilePosition, 0.3f);
         var scale = new Vector3(0.2f, 0.1f, 0.2f);
         return Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(position + (Vector3.UnitY * offset));
     }

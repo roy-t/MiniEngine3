@@ -7,17 +7,18 @@ namespace Mini.Engine.Titan.Terrains;
 
 public sealed class TerrainBuilder
 {
+    private readonly object Lock;
+
+    private readonly IReadOnlyGrid<Tile> Tiles;
     private readonly ColorLinear[] Palette;
     private readonly VertexCache Cache;
     private readonly ZoneOptimizer Optimizer;
 
-    private readonly int Columns;
-    private readonly int Rows;
+    private int version;
 
-    public TerrainBuilder(int columns, int rows)
+    public TerrainBuilder(IReadOnlyGrid<Tile> tiles)
     {
-        this.Columns = columns;
-        this.Rows = rows;
+        this.Lock = new object();
 
         this.Palette = new ColorLinear[byte.MaxValue];
         for (var i = 0; i < this.Palette.Length; i++)
@@ -26,36 +27,52 @@ public sealed class TerrainBuilder
             this.Palette[i] = new ColorLinear(shade, shade, shade);
         }
 
-        this.Cache = new VertexCache(columns, rows);
-        this.Optimizer = new ZoneOptimizer(columns, rows);
+        this.Cache = new VertexCache(tiles.Columns, tiles.Rows);
+        this.Optimizer = new ZoneOptimizer(tiles.Columns, tiles.Rows);
         this.Indices = new List<int>();
         this.Triangles = new List<Triangle>();
+        this.Tiles = tiles;
     }
 
     public List<int> Indices { get; }
     public List<Triangle> Triangles { get; }
     public List<TerrainVertex> Vertices => this.Cache.Vertices;
 
-    public void Update(IReadOnlyList<Tile> tiles)
+    public bool IsUpToDate(int targetVersion)
     {
-        this.Cache.Clear();
-        this.Optimizer.Clear();
-        this.Indices.Clear();
-        this.Triangles.Clear();
-
-        this.Optimizer.Optimize(tiles, this.Columns, this.Rows);
-
-        var zones = this.Optimizer.Zones;
-        for (var i = 0; i < zones.Count; i++)
-        {
-            var zone = zones[i];
-            this.CreateRectangle(tiles, in zone);
-        }
-
-        this.AddCliffs(tiles);
+        return this.version == targetVersion;
     }
 
-    private void CreateRectangle(IReadOnlyList<Tile> tiles, in Zone zone)
+    public void Update(int targetVersion)
+    {
+        lock (this.Lock)
+        {
+            if (targetVersion <= this.version)
+            {
+                return;
+            }
+
+            this.Cache.Clear();
+            this.Optimizer.Clear();
+            this.Indices.Clear();
+            this.Triangles.Clear();
+
+            this.Optimizer.Optimize(this.Tiles);
+
+            var zones = this.Optimizer.Zones;
+            for (var i = 0; i < zones.Count; i++)
+            {
+                var zone = zones[i];
+                this.CreateRectangle(this.Tiles, in zone);
+            }
+
+            this.AddCliffs(this.Tiles);
+
+            this.version = targetVersion;
+        }
+    }
+
+    private void CreateRectangle(IReadOnlyGrid<Tile> tiles, in Zone zone)
     {
         var north = zone.StartRow;
         var east = zone.EndColumn;
@@ -117,50 +134,49 @@ public sealed class TerrainBuilder
         this.Triangles.Add(new Triangle() { Normal = n1, Albedo = albedo });
     }
 
-    private int AddVertex(IReadOnlyList<Tile> tiles, int column, int row, TileCorner corner)
+    private int AddVertex(IReadOnlyGrid<Tile> tiles, int column, int row, TileCorner corner)
     {
-        var tile = tiles[Indexes.ToOneDimensional(column, row, this.Columns)];
+        var tile = tiles[column, row];
         var index = this.Cache.AddVertex(tile, corner, column, row);
 
         return index;
     }
 
-    public void AddCliffs(IReadOnlyList<Tile> tiles)
+    private void AddCliffs(IReadOnlyGrid<Tile> tiles)
     {
         for (var it = 0; it < tiles.Count; it++)
         {
-            var (x, y) = Indexes.ToTwoDimensional(it, this.Columns);
-            if (x > 0)
+            var (column, row) = Indexes.ToTwoDimensional(it, this.Tiles.Columns);
+            if (column > 0)
             {
-                this.AddCliff(tiles, it, TileSide.West);
+                this.AddCliff(tiles, column, row, TileSide.West);
             }
 
-            if (x < this.Columns - 1)
+            if (column < this.Tiles.Columns - 1)
             {
-                this.AddCliff(tiles, it, TileSide.East);
+                this.AddCliff(tiles, column, row, TileSide.East);
             }
 
-            if (y > 0)
+            if (row > 0)
             {
-                this.AddCliff(tiles, it, TileSide.North);
+                this.AddCliff(tiles, column, row, TileSide.North);
             }
 
-            if (y < this.Rows - 1)
+            if (row < this.Tiles.Rows - 1)
             {
-                this.AddCliff(tiles, it, TileSide.South);
+                this.AddCliff(tiles, column, row, TileSide.South);
             }
         }
     }
 
-    private void AddCliff(IReadOnlyList<Tile> tiles, int index, TileSide side)
+    private void AddCliff(IReadOnlyGrid<Tile> tiles, int column, int row, TileSide side)
     {
-        var (x, y) = Indexes.ToTwoDimensional(index, this.Columns);
-        var (nx, ny) = TileUtilities.GetNeighbourIndex(x, y, side);
+        var (nx, ny) = TileUtilities.GetNeighbourIndex(column, row, side);
 
         // Note: variables are named as if neighbour is current's northern neighbour, but this function works for any neighbour/side
 
-        var cTile = tiles[Indexes.ToOneDimensional(x, y, this.Columns)];
-        var nTile = tiles[Indexes.ToOneDimensional(nx, ny, this.Columns)];
+        var cTile = tiles[column, row];
+        var nTile = tiles[nx, ny];
 
         (var cNWCorner, var cNECorner) = TileUtilities.TileSideToTileCorners(side);
         (var nSECorner, var nSWCorner) = TileUtilities.TileSideToTileCorners(TileUtilities.GetOppositeSide(side));
@@ -174,8 +190,8 @@ public sealed class TerrainBuilder
         // We only care about our sides being higher, the other situations will be taken care of by working on the other tile's sides
         if (cNWHeight > nSWHeight || cNEHeight > nSEHeight) // Cliff
         {
-            var cNWIndex = this.Cache.AddVertex(cTile, cNWCorner, x, y);
-            var cNEIndex = this.Cache.AddVertex(cTile, cNECorner, x, y);
+            var cNWIndex = this.Cache.AddVertex(cTile, cNWCorner, column, row);
+            var cNEIndex = this.Cache.AddVertex(cTile, cNECorner, column, row);
             var nSEIndex = this.Cache.AddVertex(nTile, nSECorner, nx, ny);
             var nSWIndex = this.Cache.AddVertex(nTile, nSWCorner, nx, ny);
 

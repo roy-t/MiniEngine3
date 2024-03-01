@@ -24,8 +24,10 @@ public sealed class ZoneOptimizer
         this.Zones.Clear();
     }
 
-    public ZoneLookup Optimize(IReadOnlyList<Tile> tiles, int columns, int rows)
+    public ZoneLookup Optimize(IReadOnlyGrid<Tile> tiles)
     {
+        var columns = tiles.Columns;
+        var rows = tiles.Rows;
         for (var row = 0; row < rows; row++)
         {
             var zone = new Zone(0, 0, row, row);
@@ -66,15 +68,15 @@ public sealed class ZoneOptimizer
         return new ZoneLookup(this.Owners, this.Zones);
     }
 
-    private static bool CanExpandEast(IReadOnlyList<Tile> tiles, in Zone zone, int columns)
+    private static bool CanExpandEast(IReadOnlyGrid<Tile> tiles, in Zone zone, int columns)
     {
         if (zone.EndColumn + 1 >= columns)
         {
             return false;
         }
 
-        var t0 = tiles[Indexes.ToOneDimensional(zone.EndColumn + 0, zone.EndRow, columns)];
-        var t1 = tiles[Indexes.ToOneDimensional(zone.EndColumn + 1, zone.EndRow, columns)];
+        var t0 = tiles[zone.EndColumn + 0, zone.EndRow];
+        var t1 = tiles[zone.EndColumn + 1, zone.EndRow];
 
         if (t0.Corners != t1.Corners)
         {
@@ -89,15 +91,15 @@ public sealed class ZoneOptimizer
         return true;
     }
 
-    private static bool CanExpandSouth(IReadOnlyList<Tile> tiles, in Zone zone, int columns, int rows)
+    private static bool CanExpandSouth(IReadOnlyGrid<Tile> tiles, in Zone zone, int columns, int rows)
     {
         if (zone.EndRow + 1 >= rows)
         {
             return false;
         }
 
-        var t0 = tiles[Indexes.ToOneDimensional(zone.EndColumn, zone.EndRow + 0, columns)];
-        var t1 = tiles[Indexes.ToOneDimensional(zone.EndColumn, zone.EndRow + 1, columns)];
+        var t0 = tiles[zone.EndColumn, zone.EndRow + 0];
+        var t1 = tiles[zone.EndColumn, zone.EndRow + 1];
 
         if (t0.Corners != t1.Corners)
         {

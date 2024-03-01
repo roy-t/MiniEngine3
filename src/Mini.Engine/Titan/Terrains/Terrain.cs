@@ -4,6 +4,7 @@ using LibGame.Noise;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
+using Mini.Engine.DirectX.Contexts;
 using Shader = Mini.Engine.Content.Shaders.Generated.TitanTerrain;
 using Triangle = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TRIANGLE;
 
@@ -34,46 +35,65 @@ public sealed class Terrain : IDisposable
     private const byte CliffLength = 4;
     private const byte MaxHeight = 70;
 
+    private readonly IndexBuffer<int> Indices;
+    private readonly VertexBuffer<TerrainVertex> Vertices;
+    private readonly StructuredBuffer<Triangle> TrianglesBuffer;
+    private readonly ShaderResourceView<Triangle> TrianglesView;
+
+    private readonly Grid<Tile> ModifiableTiles;
     private readonly TerrainBuilder Builder;
+
+    private int simulationVersion;
+    private int uploadedVersion;
 
     public Terrain(Device device, Shader shader)
     {
         this.Columns = 256;
         this.Rows = 256;
-        this.Builder = new TerrainBuilder(this.Columns, this.Rows);
+
+        this.uploadedVersion = 0;
+        this.simulationVersion = 1;
 
         var heightMap = GenerateHeightMap(this.Columns, this.Rows);
-        this.Tiles = GetTiles(heightMap, this.Columns);
-        this.Bounds = new TerrainBVH(this.Tiles, this.Columns, this.Rows);
+        this.ModifiableTiles = GetTiles(heightMap, this.Columns);
 
-        this.Builder.Update(this.Tiles);
-
-        this.TileIndexOffset = 0;
-        this.TileIndexCount = this.Builder.Indices.Count;
+        this.Builder = new TerrainBuilder(this.Tiles);
+        this.Bounds = new TerrainBVH(this.Tiles);
 
         this.Vertices = new VertexBuffer<TerrainVertex>(device, nameof(Terrain));
-        this.Vertices.MapData(device.ImmediateContext, CollectionsMarshal.AsSpan(this.Builder.Vertices));
-
         this.Indices = new IndexBuffer<int>(device, nameof(Terrain));
-        this.Indices.MapData(device.ImmediateContext, CollectionsMarshal.AsSpan(this.Builder.Indices));
-
-        this.TrianglesBuffer = new StructuredBuffer<Triangle>(device, nameof(Terrain), this.Builder.Triangles.Count);
-        this.TrianglesBuffer.MapData(device.ImmediateContext, CollectionsMarshal.AsSpan(this.Builder.Triangles));
+        this.TrianglesBuffer = new StructuredBuffer<Triangle>(device, nameof(Terrain), this.Columns * this.Rows * 2);
         this.TrianglesView = this.TrianglesBuffer.CreateShaderResourceView();
     }
 
-    public int TileIndexOffset { get; }
-    public int TileIndexCount { get; }
+    public int TileIndexOffset { get; private set; }
+    public int TileIndexCount { get; private set; }
 
     public int Columns { get; }
     public int Rows { get; }
 
-    public IndexBuffer<int> Indices { get; }
-    public VertexBuffer<TerrainVertex> Vertices { get; }
-    public StructuredBuffer<Triangle> TrianglesBuffer { get; }
-    public ShaderResourceView<Triangle> TrianglesView { get; }
+    public (VertexBuffer<TerrainVertex> Vertices, IndexBuffer<int> Indices, ShaderResourceView<Triangle> Triangles) GetRenderData(DeviceContext context)
+    {
+        var simulationVersion = this.simulationVersion;
+        var uploadedVersion = this.uploadedVersion;
+        if (this.Builder.IsUpToDate(simulationVersion))
+        {
+            if (simulationVersion > uploadedVersion)
+            {
+                this.CopyDataToGPU(context);
+                this.uploadedVersion = simulationVersion;
+            }
+        }
+        else
+        {
+            // TODO: this puts a lot of threads in a queue if it takes more than 1 frame to update the builder
+            ThreadPool.QueueUserWorkItem(_ => this.Builder.Update(simulationVersion));
+        }
 
-    public IReadOnlyList<Tile> Tiles { get; }
+        return (this.Vertices, this.Indices, this.TrianglesView);
+    }
+
+    public IReadOnlyGrid<Tile> Tiles => this.ModifiableTiles;
 
     public TerrainBVH Bounds { get; }
 
@@ -97,7 +117,7 @@ public sealed class Terrain : IDisposable
         return heights;
     }
 
-    private static Tile[] GetTiles(byte[] heights, int stride)
+    private static Grid<Tile> GetTiles(byte[] heights, int stride)
     {
         var columns = stride;
         var rows = heights.Length / stride;
@@ -134,7 +154,7 @@ public sealed class Terrain : IDisposable
             }
         }
 
-        return terrain;
+        return new Grid<Tile>(terrain, columns, rows);
     }
 
     public void Dispose()
@@ -144,5 +164,35 @@ public sealed class Terrain : IDisposable
 
         this.TrianglesView.Dispose();
         this.TrianglesBuffer.Dispose();
+    }
+
+    public void MoveTile(int column, int row, int diff)
+    {
+        var original = this.Tiles[column, row];
+        var (ne, se, sw, nw) = original.UnpackAll();
+        var offset = (byte)Math.Clamp(original.Offset + diff, byte.MinValue, byte.MaxValue);
+        this.ModifiableTiles[column, row] = new Tile(ne, se, sw, nw, offset);
+        this.Update(column, row);
+    }
+
+    public void MoveTileCorner(int targetColumn, int targetRow, TileCorner value, int diff)
+    {
+
+    }
+
+    private void Update(int column, int row)
+    {
+        this.Bounds.Update(column, row);
+        this.simulationVersion++;
+    }
+
+    private void CopyDataToGPU(DeviceContext context)
+    {
+        this.Vertices.MapData(context, CollectionsMarshal.AsSpan(this.Builder.Vertices));
+        this.Indices.MapData(context, CollectionsMarshal.AsSpan(this.Builder.Indices));
+        this.TrianglesBuffer.MapData(context, CollectionsMarshal.AsSpan(this.Builder.Triangles));
+
+        this.TileIndexOffset = 0;
+        this.TileIndexCount = this.Builder.Indices.Count;
     }
 }
