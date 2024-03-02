@@ -169,12 +169,21 @@ public sealed class TerrainBVH
         // OOX
         if (se.Y == nw.Y)
         {
-            var detA = Intersections.RayTriangle(in ray.Position, in ray.Direction, in ne, in se, in nw).GetValueOrDefault(float.MaxValue);
-            var detB = Intersections.RayTriangle(in ray.Position, in ray.Direction, in se, in sw, in nw).GetValueOrDefault(float.MaxValue);
-            var detMin = Math.Min(detA, detB);
-            if (detMin != float.MaxValue)
+            var hitA = Intersections.RayTriangle(in ray.Position, in ray.Direction, in ne, in se, in nw, out var detA);
+            var hitB = Intersections.RayTriangle(in ray.Position, in ray.Direction, in se, in sw, in nw, out var detB);
+            if (hitA && hitB)
             {
-                return detMin;
+                return Math.Min(detA, detB);
+            }
+
+            if (hitA)
+            {
+                return detA;
+            }
+
+            if (hitB)
+            {
+                return detB;
             }
         }
         // OOX
@@ -182,12 +191,21 @@ public sealed class TerrainBVH
         // XOO
         else
         {
-            var detA = Intersections.RayTriangle(in ray.Position, in ray.Direction, in ne, in se, in sw).GetValueOrDefault(float.MaxValue);
-            var detB = Intersections.RayTriangle(in ray.Position, in ray.Direction, in sw, in nw, in ne).GetValueOrDefault(float.MaxValue);
-            var detMin = Math.Min(detA, detB);
-            if (detMin != float.MaxValue)
+            var hitA = Intersections.RayTriangle(in ray.Position, in ray.Direction, in ne, in se, in sw, out var detA);
+            var hitB = Intersections.RayTriangle(in ray.Position, in ray.Direction, in sw, in nw, in ne, out var detB);
+            if (hitA && hitB)
             {
-                return detMin;
+                return Math.Min(detA, detB);
+            }
+
+            if (hitA)
+            {
+                return detA;
+            }
+
+            if (hitB)
+            {
+                return detB;
             }
         }
 

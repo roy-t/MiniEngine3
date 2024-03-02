@@ -177,7 +177,8 @@ public sealed class Terrain : IDisposable
 
     public void MoveTileCorner(int targetColumn, int targetRow, TileCorner value, int diff)
     {
-
+        // TODO ALSO: double think about the whole threading mechanism
+        throw new Exception("TODO: move a single corner!");
     }
 
     private void Update(int column, int row)
