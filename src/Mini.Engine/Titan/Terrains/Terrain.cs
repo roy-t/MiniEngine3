@@ -84,15 +84,16 @@ public sealed class Terrain : IDisposable
         // so make sure we chop Terrain into smaller chuncks so we can
         // upload smaller pieces whenever something changes. Or figure out if we can do it async?
 
-        // Since this method is only called by one thread, we can be sure that
-        // uploadedVersion and simulationVersion don't change here.
-        if (this.uploadedVersion < this.simulationVersion)
+        var simulationVersion = this.simulationVersion;
+        var uploadedVersion = this.uploadedVersion;
+        if (uploadedVersion < simulationVersion)
         {
-            this.Job.RunIfOutOfDate(this.simulationVersion);
-            if (this.Job.DoIfUpToDate(this.simulationVersion, () => this.CopyDataToGPU(context)))
+            this.Job.RunIfOutOfDate(simulationVersion);
+            this.Job.DoIfUpToDate(simulationVersion, () =>
             {
-                this.uploadedVersion = this.simulationVersion;
-            }
+                this.CopyDataToGPU(context);
+                this.uploadedVersion = simulationVersion;
+            });
         }
     }
 
@@ -226,6 +227,7 @@ public sealed class Terrain : IDisposable
 
         var bOffset = (byte)Math.Clamp(original.Offset + offset, byte.MinValue, byte.MaxValue);
 
+        // TODO: verify performance https://stackoverflow.com/questions/78113377/what-is-the-most-efficient-way-to-create-a-temporary-collection-differences-bet
         var (ne, se, sw, nw) = original.UnpackAll();
         Span<CornerType> corners = [ne, se, sw, nw];
         corners[(int)corner] = newCorner;
