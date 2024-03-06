@@ -24,7 +24,7 @@ public sealed class ZoneOptimizer
         this.Zones.Clear();
     }
 
-    public ZoneLookup Optimize(IReadOnlyGrid<Tile> tiles)
+    public void Optimize(CancellationToken cancellationToken, IReadOnlyGrid<Tile> tiles)
     {
         var columns = tiles.Columns;
         var rows = tiles.Rows;
@@ -33,6 +33,11 @@ public sealed class ZoneOptimizer
             var zone = new Zone(0, 0, row, row);
             while (zone.EndColumn < columns)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 if (CanExpandEast(tiles, in zone, columns))
                 {
                     zone = new Zone(zone.StartColumn, zone.EndColumn + 1, row, row);
@@ -64,8 +69,6 @@ public sealed class ZoneOptimizer
                 }
             }
         }
-
-        return new ZoneLookup(this.Owners, this.Zones);
     }
 
     private static bool CanExpandEast(IReadOnlyGrid<Tile> tiles, in Zone zone, int columns)

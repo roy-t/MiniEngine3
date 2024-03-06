@@ -7,19 +7,14 @@ namespace Mini.Engine.Titan.Terrains;
 
 public sealed class TerrainBuilder
 {
-    private readonly object Lock;
-
     private readonly IReadOnlyGrid<Tile> Tiles;
     private readonly ColorLinear[] Palette;
     private readonly VertexCache Cache;
     private readonly ZoneOptimizer Optimizer;
 
-    private int version;
-
     public TerrainBuilder(IReadOnlyGrid<Tile> tiles)
     {
-        this.Lock = new object();
-
+        // TODO: use a more interesting palette
         this.Palette = new ColorLinear[byte.MaxValue];
         for (var i = 0; i < this.Palette.Length; i++)
         {
@@ -38,100 +33,20 @@ public sealed class TerrainBuilder
     public List<Triangle> Triangles { get; }
     public List<TerrainVertex> Vertices => this.Cache.Vertices;
 
-    public bool IsUpToDate(int targetVersion)
+    /// <summary>
+    /// Updates the render data for the terrain mesh. If cancelled the render data can be invalid
+    /// </summary>
+    public void Update(CancellationToken cancellationToken)
     {
-        return this.version == targetVersion;
-    }
+        this.Cache.Clear();
+        this.Optimizer.Clear();
+        this.Indices.Clear();
+        this.Triangles.Clear();
 
-    public void Update(int targetVersion)
-    {
-        lock (this.Lock)
-        {
-            if (targetVersion <= this.version)
-            {
-                return;
-            }
+        this.Optimizer.Optimize(cancellationToken, this.Tiles);
 
-            this.Cache.Clear();
-            this.Optimizer.Clear();
-            this.Indices.Clear();
-            this.Triangles.Clear();
-
-            this.Optimizer.Optimize(this.Tiles);
-
-            var zones = this.Optimizer.Zones;
-            for (var i = 0; i < zones.Count; i++)
-            {
-                var zone = zones[i];
-                this.CreateRectangle(this.Tiles, in zone);
-            }
-
-            this.AddCliffs(this.Tiles);
-
-            this.version = targetVersion;
-        }
-    }
-
-    private void CreateRectangle(IReadOnlyGrid<Tile> tiles, in Zone zone)
-    {
-        var north = zone.StartRow;
-        var east = zone.EndColumn;
-        var south = zone.EndRow;
-        var west = zone.StartColumn;
-
-        var ne = this.AddVertex(tiles, east, north, TileCorner.NE);
-        var se = this.AddVertex(tiles, east, south, TileCorner.SE);
-        var sw = this.AddVertex(tiles, west, south, TileCorner.SW);
-        var nw = this.AddVertex(tiles, west, north, TileCorner.NW);
-
-        var pNE = this.Cache.Vertices[ne].Position;
-        var pSE = this.Cache.Vertices[se].Position;
-        var pSW = this.Cache.Vertices[sw].Position;
-        var pNW = this.Cache.Vertices[nw].Position;
-
-        Vector3 n0;
-        Vector3 n1;
-
-        // Note: changing the triangulation should also change the BHV
-
-        // XOO
-        // OXO
-        // OOX
-        if (pSE.Y == pNW.Y)
-        {
-            this.Indices.Add(ne);
-            this.Indices.Add(se);
-            this.Indices.Add(nw);
-
-            this.Indices.Add(se);
-            this.Indices.Add(sw);
-            this.Indices.Add(nw);
-
-            n0 = LibGame.Geometry.Triangles.GetNormal(pNE, pSE, pNW);
-            n1 = LibGame.Geometry.Triangles.GetNormal(pSE, pSW, pNW);
-        }
-        // OOX
-        // OXO
-        // XOO
-        else
-        {
-            this.Indices.Add(ne);
-            this.Indices.Add(se);
-            this.Indices.Add(sw);
-
-            this.Indices.Add(sw);
-            this.Indices.Add(nw);
-            this.Indices.Add(ne);
-
-            n0 = LibGame.Geometry.Triangles.GetNormal(pNE, pSE, pSW);
-            n1 = LibGame.Geometry.Triangles.GetNormal(pSW, pNW, pNE);
-        }
-
-        var y = Math.Max(pNE.Y, Math.Max(pSE.Y, Math.Max(pSW.Y, pNW.Y)));
-        var albedo = this.Palette[(int)y];
-
-        this.Triangles.Add(new Triangle() { Normal = n0, Albedo = albedo });
-        this.Triangles.Add(new Triangle() { Normal = n1, Albedo = albedo });
+        this.AddPlanes(cancellationToken);
+        this.AddCliffs(cancellationToken);
     }
 
     private int AddVertex(IReadOnlyGrid<Tile> tiles, int column, int row, TileCorner corner)
@@ -142,29 +57,49 @@ public sealed class TerrainBuilder
         return index;
     }
 
-    private void AddCliffs(IReadOnlyGrid<Tile> tiles)
+    private void AddPlanes(CancellationToken cancellationToken)
     {
-        for (var it = 0; it < tiles.Count; it++)
+        var zones = this.Optimizer.Zones;
+        for (var i = 0; i < zones.Count; i++)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            var zone = zones[i];
+            this.CreateRectangle(this.Tiles, in zone);
+        }
+    }
+
+    private void AddCliffs(CancellationToken cancellationToken)
+    {
+        for (var it = 0; it < this.Tiles.Count; it++)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             var (column, row) = Indexes.ToTwoDimensional(it, this.Tiles.Columns);
             if (column > 0)
             {
-                this.AddCliff(tiles, column, row, TileSide.West);
+                this.AddCliff(this.Tiles, column, row, TileSide.West);
             }
 
             if (column < this.Tiles.Columns - 1)
             {
-                this.AddCliff(tiles, column, row, TileSide.East);
+                this.AddCliff(this.Tiles, column, row, TileSide.East);
             }
 
             if (row > 0)
             {
-                this.AddCliff(tiles, column, row, TileSide.North);
+                this.AddCliff(this.Tiles, column, row, TileSide.North);
             }
 
             if (row < this.Tiles.Rows - 1)
             {
-                this.AddCliff(tiles, column, row, TileSide.South);
+                this.AddCliff(this.Tiles, column, row, TileSide.South);
             }
         }
     }
@@ -240,5 +175,67 @@ public sealed class TerrainBuilder
                 throw new Exception("Unexpected case");
             }
         }
+    }
+
+    private void CreateRectangle(IReadOnlyGrid<Tile> tiles, in Zone zone)
+    {
+        var north = zone.StartRow;
+        var east = zone.EndColumn;
+        var south = zone.EndRow;
+        var west = zone.StartColumn;
+
+        var ne = this.AddVertex(tiles, east, north, TileCorner.NE);
+        var se = this.AddVertex(tiles, east, south, TileCorner.SE);
+        var sw = this.AddVertex(tiles, west, south, TileCorner.SW);
+        var nw = this.AddVertex(tiles, west, north, TileCorner.NW);
+
+        var pNE = this.Cache.Vertices[ne].Position;
+        var pSE = this.Cache.Vertices[se].Position;
+        var pSW = this.Cache.Vertices[sw].Position;
+        var pNW = this.Cache.Vertices[nw].Position;
+
+        Vector3 n0;
+        Vector3 n1;
+
+        // Note: changing the triangulation should also change the BHV
+
+        // XOO
+        // OXO
+        // OOX
+        if (pSE.Y == pNW.Y)
+        {
+            this.Indices.Add(ne);
+            this.Indices.Add(se);
+            this.Indices.Add(nw);
+
+            this.Indices.Add(se);
+            this.Indices.Add(sw);
+            this.Indices.Add(nw);
+
+            n0 = LibGame.Geometry.Triangles.GetNormal(pNE, pSE, pNW);
+            n1 = LibGame.Geometry.Triangles.GetNormal(pSE, pSW, pNW);
+        }
+        // OOX
+        // OXO
+        // XOO
+        else
+        {
+            this.Indices.Add(ne);
+            this.Indices.Add(se);
+            this.Indices.Add(sw);
+
+            this.Indices.Add(sw);
+            this.Indices.Add(nw);
+            this.Indices.Add(ne);
+
+            n0 = LibGame.Geometry.Triangles.GetNormal(pNE, pSE, pSW);
+            n1 = LibGame.Geometry.Triangles.GetNormal(pSW, pNW, pNE);
+        }
+
+        var y = Math.Max(pNE.Y, Math.Max(pSE.Y, Math.Max(pSW.Y, pNW.Y)));
+        var albedo = this.Palette[(int)y];
+
+        this.Triangles.Add(new Triangle() { Normal = n0, Albedo = albedo });
+        this.Triangles.Add(new Triangle() { Normal = n1, Albedo = albedo });
     }
 }

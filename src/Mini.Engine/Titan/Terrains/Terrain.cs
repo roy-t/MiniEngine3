@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using LibGame.Mathematics;
 using LibGame.Noise;
+using LibGame.Threading;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
@@ -35,21 +36,19 @@ public sealed class Terrain : IDisposable
     private const byte CliffLength = 4;
     private const byte MaxHeight = 70;
 
-    private readonly IndexBuffer<int> Indices;
-    private readonly VertexBuffer<TerrainVertex> Vertices;
     private readonly StructuredBuffer<Triangle> TrianglesBuffer;
-    private readonly ShaderResourceView<Triangle> TrianglesView;
 
     private readonly Grid<Tile> ModifiableTiles;
     private readonly TerrainBuilder Builder;
+    private readonly ExpirableJobScheduler Job;
 
     private int simulationVersion;
     private int uploadedVersion;
 
     public Terrain(Device device, Shader shader)
     {
-        this.Columns = 256;
-        this.Rows = 256;
+        this.Columns = 1024;
+        this.Rows = 1024;
 
         this.uploadedVersion = 0;
         this.simulationVersion = 1;
@@ -64,7 +63,14 @@ public sealed class Terrain : IDisposable
         this.Indices = new IndexBuffer<int>(device, nameof(Terrain));
         this.TrianglesBuffer = new StructuredBuffer<Triangle>(device, nameof(Terrain), this.Columns * this.Rows * 2);
         this.TrianglesView = this.TrianglesBuffer.CreateShaderResourceView();
+
+        this.Job = new ExpirableJobScheduler(this.Builder.Update);
     }
+
+    public IndexBuffer<int> Indices { get; }
+    public VertexBuffer<TerrainVertex> Vertices { get; }
+    public ShaderResourceView<Triangle> TrianglesView { get; }
+
 
     public int TileIndexOffset { get; private set; }
     public int TileIndexCount { get; private set; }
@@ -72,25 +78,22 @@ public sealed class Terrain : IDisposable
     public int Columns { get; }
     public int Rows { get; }
 
-    public (VertexBuffer<TerrainVertex> Vertices, IndexBuffer<int> Indices, ShaderResourceView<Triangle> Triangles) GetRenderData(DeviceContext context)
+    public void UpdateRenderData(DeviceContext context)
     {
-        var simulationVersion = this.simulationVersion;
-        var uploadedVersion = this.uploadedVersion;
-        if (this.Builder.IsUpToDate(simulationVersion))
+        // TODO: CopyDataToGPU is quite expensive, (1s for a 1024x1024 terrain)
+        // so make sure we chop Terrain into smaller chuncks so we can
+        // upload smaller pieces whenever something changes. Or figure out if we can do it async?
+
+        // Since this method is only called by one thread, we can be sure that
+        // uploadedVersion and simulationVersion don't change here.
+        if (this.uploadedVersion < this.simulationVersion)
         {
-            if (simulationVersion > uploadedVersion)
+            this.Job.RunIfOutOfDate(this.simulationVersion);
+            if (this.Job.DoIfUpToDate(this.simulationVersion, () => this.CopyDataToGPU(context)))
             {
-                this.CopyDataToGPU(context);
-                this.uploadedVersion = simulationVersion;
+                this.uploadedVersion = this.simulationVersion;
             }
         }
-        else
-        {
-            // TODO: this puts a lot of threads in a queue if it takes more than 1 frame to update the builder
-            ThreadPool.QueueUserWorkItem(_ => this.Builder.Update(simulationVersion));
-        }
-
-        return (this.Vertices, this.Indices, this.TrianglesView);
     }
 
     public IReadOnlyGrid<Tile> Tiles => this.ModifiableTiles;

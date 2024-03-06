@@ -12,6 +12,9 @@ namespace Mini.Engine.Windows;
 // as to not miss the first down/up event. But helds should be handled only once otherwise you run into duplication
 // another caveat is that helds don't generate events, so you'll miss them if you do it in the process loop
 
+// TODO: moving the mouse a lot causes extreme slowdowns, we don't need super raw mouse input,
+// we actually only need the current mouse position, replace the whole InputService?
+
 public sealed class InputService
 {
     private readonly record struct RawInputEvent(RAWINPUT Input, bool HasFocus);
