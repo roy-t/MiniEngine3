@@ -47,8 +47,8 @@ public sealed class Terrain : IDisposable
 
     public Terrain(Device device, Shader shader)
     {
-        this.Columns = 1024;
-        this.Rows = 1024;
+        this.Columns = 128;
+        this.Rows = 128;
 
         this.uploadedVersion = 0;
         this.simulationVersion = 1;
@@ -178,10 +178,60 @@ public sealed class Terrain : IDisposable
         this.Update(column, row);
     }
 
-    public void MoveTileCorner(int targetColumn, int targetRow, TileCorner value, int diff)
+    public void MoveTileCorner(int column, int row, TileCorner corner, int diff)
     {
-        // TODO ALSO: double think about the whole threading mechanism
-        throw new Exception("TODO: move a single corner!");
+        var original = this.Tiles[column, row];
+
+        var oldCorner = original.Unpack(corner);
+        var newCorner = CornerType.Level;
+
+        var remainder = diff;
+        var offset = 0;
+        if (diff >= 1)
+        {
+            if (oldCorner == CornerType.Lowered)
+            {
+                newCorner = CornerType.Level;
+            }
+            else if (oldCorner == CornerType.Level)
+            {
+                newCorner = CornerType.Raised;
+            }
+            else // CornerType.Raised
+            {
+                newCorner = CornerType.Level;
+                offset = -1;
+            }
+
+            offset += diff - 1;
+        }
+        else if (diff <= -1)
+        {
+            if (oldCorner == CornerType.Raised)
+            {
+                newCorner = CornerType.Level;
+            }
+            else if (oldCorner == CornerType.Level)
+            {
+                newCorner = CornerType.Lowered;
+            }
+            else // CornerType.Lowered
+            {
+                newCorner = CornerType.Level;
+                offset = +1;
+            }
+
+            offset += diff + 1;
+        }
+
+        var bOffset = (byte)Math.Clamp(original.Offset + offset, byte.MinValue, byte.MaxValue);
+
+        var (ne, se, sw, nw) = original.UnpackAll();
+        Span<CornerType> corners = [ne, se, sw, nw];
+        corners[(int)corner] = newCorner;
+
+        this.ModifiableTiles[column, row] = new Tile(corners[0], corners[1], corners[2], corners[3], bOffset);
+        this.Update(column, row);
     }
 
     private void Update(int column, int row)

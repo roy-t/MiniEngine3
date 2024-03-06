@@ -98,7 +98,7 @@ public sealed class RaiseTerrainStateMachine
             }
         }
 
-        if (this.state == State.Raise && released)
+        if (diff != 0 && this.state == State.Raise && released)
         {
             // Commit changes
             if (this.targetCorner != null)
