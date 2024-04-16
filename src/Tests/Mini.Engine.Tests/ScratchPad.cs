@@ -1,4 +1,4 @@
-﻿using Mini.Engine.Titan.Terrains;
+﻿using LibGame.Tiles;
 using Xunit;
 
 namespace Mini.Engine.Tests;

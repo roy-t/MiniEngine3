@@ -1,6 +1,8 @@
 ﻿using System.Numerics;
+using LibGame.Collections;
 using LibGame.Graphics;
 using LibGame.Mathematics;
+using LibGame.Tiles;
 using Triangle = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TRIANGLE;
 
 namespace Mini.Engine.Titan.Terrains;
@@ -106,7 +108,7 @@ public sealed class TerrainBuilder
 
     private void AddCliff(IReadOnlyGrid<Tile> tiles, int column, int row, TileSide side)
     {
-        var (nx, ny) = TileUtilities.GetNeighbourIndex(column, row, side);
+        var (nx, ny) = tiles.GetNeighbourIndex(column, row, side);
 
         // Note: variables are named as if neighbour is current's northern neighbour, but this function works for any neighbour/side
 

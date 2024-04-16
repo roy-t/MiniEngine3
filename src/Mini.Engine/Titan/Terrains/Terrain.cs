@@ -1,12 +1,13 @@
 ﻿using System.Runtime.InteropServices;
+using LibGame.Collections;
 using LibGame.Mathematics;
 using LibGame.Noise;
 using LibGame.Threading;
+using LibGame.Tiles;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.DirectX.Buffers;
 using Mini.Engine.DirectX.Contexts;
-using Shader = Mini.Engine.Content.Shaders.Generated.TitanTerrain;
 using Triangle = Mini.Engine.Content.Shaders.Generated.TitanTerrain.TRIANGLE;
 
 namespace Mini.Engine.Titan.Terrains;
@@ -45,7 +46,7 @@ public sealed class Terrain : IDisposable
     private int simulationVersion;
     private int uploadedVersion;
 
-    public Terrain(Device device, Shader shader)
+    public Terrain(Device device)
     {
         this.Columns = 128;
         this.Rows = 128;
@@ -54,10 +55,10 @@ public sealed class Terrain : IDisposable
         this.simulationVersion = 1;
 
         var heightMap = GenerateHeightMap(this.Columns, this.Rows);
-        this.ModifiableTiles = GetTiles(heightMap, this.Columns);
+        this.ModifiableTiles = TileBuilder.FromHeightMap(heightMap);
 
         this.Builder = new TerrainBuilder(this.Tiles);
-        this.Bounds = new TerrainBVH(this.Tiles);
+        this.Bounds = new TileBVH(this.Tiles);
 
         this.Vertices = new VertexBuffer<TerrainVertex>(device, nameof(Terrain));
         this.Indices = new IndexBuffer<int>(device, nameof(Terrain));
@@ -99,9 +100,9 @@ public sealed class Terrain : IDisposable
 
     public IReadOnlyGrid<Tile> Tiles => this.ModifiableTiles;
 
-    public TerrainBVH Bounds { get; }
+    public TileBVH Bounds { get; }
 
-    private static byte[] GenerateHeightMap(int columns, int rows)
+    private static Grid<byte> GenerateHeightMap(int columns, int rows)
     {
         var heights = new byte[columns * rows];
         Parallel.For(0, heights.Length, i =>
@@ -118,47 +119,7 @@ public sealed class Terrain : IDisposable
             heights[i] = (byte)noise;
         });
 
-        return heights;
-    }
-
-    private static Grid<Tile> GetTiles(byte[] heights, int stride)
-    {
-        var columns = stride;
-        var rows = heights.Length / stride;
-        var terrain = new Tile[columns * rows];
-
-        // First tile
-        terrain[0] = new Tile(heights[0]);
-
-        // First row
-        for (var i = 1; i < columns; i++)
-        {
-            var leftTile = terrain[i - 1];
-            var t = TileUtilities.GetNeighboursFromGrid(heights, columns, rows, i, heights[i]);
-            terrain[i] = TileUtilities.FitFirstRow(leftTile, t.E, t.SW, t.S, t.SE, heights[i]);
-        }
-
-        // First column
-        for (var i = stride; i < heights.Length; i += stride)
-        {
-            var topTile = terrain[i - stride];
-            var t = TileUtilities.GetNeighboursFromGrid(heights, columns, rows, i, heights[i]);
-            terrain[i] = TileUtilities.FitFirstColumn(topTile, t.NE, t.E, t.S, t.SE, heights[i]);
-        }
-
-        // Fill
-        for (var i = 0; i < heights.Length; i++)
-        {
-            var (x, y) = Indexes.ToTwoDimensional(i, stride);
-            if (x > 0 && y > 0)
-            {
-                var tt = TileUtilities.GetNeighboursFromGrid(terrain, columns, rows, i, terrain[i]);
-                var hh = TileUtilities.GetNeighboursFromGrid(heights, columns, rows, i, heights[i]);
-                terrain[i] = TileUtilities.Fit(tt.NW, tt.N, tt.NE, tt.W, hh.E, hh.SW, hh.S, hh.SE, heights[i]);
-            }
-        }
-
-        return new Grid<Tile>(terrain, columns, rows);
+        return new Grid<byte>(heights, columns, rows);
     }
 
     public void Dispose()
@@ -173,8 +134,8 @@ public sealed class Terrain : IDisposable
     public void MoveTile(int column, int row, int diff)
     {
         var original = this.Tiles[column, row];
-        var (ne, se, sw, nw) = original.UnpackAll();
-        var offset = (byte)Math.Clamp(original.Offset + diff, byte.MinValue, byte.MaxValue);
+        var (ne, se, sw, nw) = original.GetAllCorners();
+        var offset = (byte)Math.Clamp(original.Height + diff, byte.MinValue, byte.MaxValue);
         this.ModifiableTiles[column, row] = new Tile(ne, se, sw, nw, offset);
         this.Update(column, row);
     }
@@ -183,7 +144,7 @@ public sealed class Terrain : IDisposable
     {
         var original = this.Tiles[column, row];
 
-        var oldCorner = original.Unpack(corner);
+        var oldCorner = original.GetCorner(corner);
         var newCorner = CornerType.Level;
 
         var remainder = diff;
@@ -225,10 +186,10 @@ public sealed class Terrain : IDisposable
             offset += diff + 1;
         }
 
-        var bOffset = (byte)Math.Clamp(original.Offset + offset, byte.MinValue, byte.MaxValue);
+        var bOffset = (byte)Math.Clamp(original.Height + offset, byte.MinValue, byte.MaxValue);
 
         // TODO: verify performance https://stackoverflow.com/questions/78113377/what-is-the-most-efficient-way-to-create-a-temporary-collection-differences-bet
-        var (ne, se, sw, nw) = original.UnpackAll();
+        var (ne, se, sw, nw) = original.GetAllCorners();
         Span<CornerType> corners = [ne, se, sw, nw];
         corners[(int)corner] = newCorner;
 

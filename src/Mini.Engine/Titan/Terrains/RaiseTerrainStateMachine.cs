@@ -2,6 +2,7 @@
 using System.Numerics;
 using LibGame.Mathematics;
 using LibGame.Physics;
+using LibGame.Tiles;
 using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Windows;
 using Vortice.Mathematics;

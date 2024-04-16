@@ -1,4 +1,5 @@
 ﻿using LibGame.Mathematics;
+using LibGame.Tiles;
 
 namespace Mini.Engine.Titan.Terrains;
 public sealed class VertexCache

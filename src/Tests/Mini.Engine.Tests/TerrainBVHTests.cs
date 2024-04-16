@@ -1,4 +1,6 @@
 ﻿using System.Numerics;
+using LibGame.Collections;
+using LibGame.Tiles;
 using Mini.Engine.Titan.Terrains;
 using Vortice.Mathematics;
 using Xunit;
@@ -37,7 +39,7 @@ public class TerrainBVHTests
     public void BVH()
     {
         var tiles = CreateTiles();
-        var bvh = new TerrainBVH(tiles);
+        var bvh = new TileBVH(tiles);
 
         //Equal(10, bvh.GetHeight(0, 0, 4));
         //Equal(9, bvh.GetHeight(1, 0, 4));
