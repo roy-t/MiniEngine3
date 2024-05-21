@@ -16,12 +16,15 @@ public sealed class RaiseTerrainStateMachine
     private readonly Terrain Terrain;
     private readonly Mouse Mouse;
 
+    private Vector2 cursorStartPosition;
+    private TileCorner? targetCorner;
     private bool hasTarget;
     private int targetColumn;
     private int targetRow;
-    private TileCorner? targetCorner;
-    private Vector2 cursorStartPosition;
+    private float delta;
+
     private State state;
+
 
     public RaiseTerrainStateMachine(InputService input, Terrain terrain)
     {
@@ -36,16 +39,17 @@ public sealed class RaiseTerrainStateMachine
     public void Update(in Rectangle viewport, in PerspectiveCamera camera, in Transform transform)
     {
         var cursor = this.Input.GetCursorPosition();
+        var (p, d) = Picking.CalculateCursorRay(cursor, in viewport, camera.GetViewProjection(in transform));
+        var ray = new Ray(p, d);
+
         if (this.state == State.Target)
         {
             this.hasTarget = false;
             if (viewport.Contains((int)cursor.X, (int)cursor.Y))
             {
-                var wvp = camera.GetViewProjection(in transform);
-                var (p, d) = Picking.CalculateCursorRay(cursor, in viewport, in wvp);
-                var ray = new Ray(p, d);
-                if (this.Terrain.Bounds.CheckTileHit(ray, out var tileIndex, out var pit))
+                if (this.Terrain.Bounds.CheckTileHit(ray, out var tileIndex, out var dist))
                 {
+                    var pit = ray.Position + (ray.Direction * dist);
                     var tile = this.Terrain.Tiles[tileIndex];
                     var (c, r) = Indexes.ToTwoDimensional(tileIndex, this.Terrain.Columns);
 
@@ -53,12 +57,12 @@ public sealed class RaiseTerrainStateMachine
                     if (distance < 0.15f)
                     {
                         this.targetCorner = corner;
-                        this.TargetTransform = CreateCornerTransform(tile, corner, c, r);
+                        this.TargetTransform = CreateCornerTransform(tile, corner, c, r, 0.0f);
                     }
                     else
                     {
                         this.targetCorner = null;
-                        this.TargetTransform = CreateWholeTileTransform(tile, c, r);
+                        this.TargetTransform = CreateWholeTileTransform(tile, c, r, 0.0f);
                     }
 
                     this.hasTarget = true;
@@ -84,31 +88,33 @@ public sealed class RaiseTerrainStateMachine
             this.state = State.Raise;
         }
 
-        var diff = MathF.Floor((this.cursorStartPosition.Y - cursor.Y) * 0.05f);
+
         if (this.state == State.Raise)
         {
             var tile = this.Terrain.Tiles[Indexes.ToOneDimensional(this.targetColumn, this.targetRow, this.Terrain.Columns)];
 
             if (this.targetCorner != null)
             {
-                this.TargetTransform = CreateCornerTransform(tile, this.targetCorner.Value, this.targetColumn, this.targetRow, diff);
+                this.delta = GetCornerDelta(tile, this.targetCorner.Value, this.targetColumn, this.targetRow, ray);
+                this.TargetTransform = CreateCornerTransform(tile, this.targetCorner.Value, this.targetColumn, this.targetRow, this.delta);
             }
             else
             {
-                this.TargetTransform = CreateWholeTileTransform(tile, this.targetColumn, this.targetRow, diff);
+                this.delta = GetWholeTileDelta(tile, this.targetColumn, this.targetRow, ray);
+                this.TargetTransform = CreateWholeTileTransform(tile, this.targetColumn, this.targetRow, this.delta);
             }
         }
 
-        if (diff != 0 && this.state == State.Raise && released)
+        if (Math.Abs(this.delta) >= 1.0f && this.state == State.Raise && released)
         {
             // Commit changes
             if (this.targetCorner != null)
             {
-                this.Terrain.MoveTileCorner(this.targetColumn, this.targetRow, this.targetCorner.Value, (int)diff);
+                this.Terrain.MoveTileCorner(this.targetColumn, this.targetRow, this.targetCorner.Value, (int)this.delta);
             }
             else
             {
-                this.Terrain.MoveTile(this.targetColumn, this.targetRow, (int)diff);
+                this.Terrain.MoveTile(this.targetColumn, this.targetRow, (int)this.delta);
             }
 
         }
@@ -121,20 +127,35 @@ public sealed class RaiseTerrainStateMachine
     }
 
 
-    private static Matrix4x4 CreateCornerTransform(Tile tile, TileCorner corner, int column, int row, float offset = 0.0f)
+    private static float GetCornerDelta(Tile tile, TileCorner corner, int column, int row, Ray ray)
+    {
+        var cornerPosition = TileUtilities.GetCornerPosition(column, row, tile, corner);
+        return Dragging.ComputeDragDeltaY(cornerPosition, ray);
+    }
+
+    private static float GetWholeTileDelta(Tile tile, int column, int row, Ray ray)
+    {
+        var position = GetTileCenter(tile, column, row);
+        return Dragging.ComputeDragDeltaY(position, ray);
+    }
+
+
+    private static Matrix4x4 CreateCornerTransform(Tile tile, TileCorner corner, int column, int row, float delta)
     {
         var cornerPosition = TileUtilities.GetCornerPosition(column, row, tile, corner);
         var tilePosition = GetTileCenter(tile, column, row);
         var position = Vector3.Lerp(cornerPosition, tilePosition, 0.3f);
         var scale = new Vector3(0.2f, 0.1f, 0.2f);
-        return Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(position + (Vector3.UnitY * offset));
+
+        return Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(position + (Vector3.UnitY * (int)delta));
     }
 
-    private static Matrix4x4 CreateWholeTileTransform(Tile tile, int column, int row, float offset = 0.0f)
+    private static Matrix4x4 CreateWholeTileTransform(Tile tile, int column, int row, float delta)
     {
         var position = GetTileCenter(tile, column, row);
         var scale = new Vector3(0.45f, 0.1f, 0.45f);
-        return Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(position + (Vector3.UnitY * offset));
+
+        return Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(position + (Vector3.UnitY * (int)delta));
     }
 
     public bool ShouldDrawTarget()

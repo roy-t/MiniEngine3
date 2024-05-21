@@ -66,7 +66,8 @@ public class TerrainBVHTests
         //Equal(expectedSingle, actualSingle);
 
         var ray = new Ray(new Vector3(2.5f, 1000.0f, 1.5f), new Vector3(0.0f, -1.0f, 0.0f));
-        var hit = bvh.CheckTileHit(ray, out var index, out var position);
+        var hit = bvh.CheckTileHit(ray, out var index, out var distance);
+        var position = ray.Position + (ray.Direction * distance);
 
         True(hit);
         Equal(6, index);

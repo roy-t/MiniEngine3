@@ -18,6 +18,7 @@
     <ProjectReference Include="..\Mini.Engine.ECS\Mini.Engine.ECS.csproj" />
     <ProjectReference Include="..\Mini.Engine.Graphics\Mini.Engine.Graphics.csproj" />
     <ProjectReference Include="..\Mini.Engine.Modelling\Mini.Engine.Modelling.csproj" />
+    <ProjectReference Include="..\Titan\Titan.Logic\Titan.Logic.csproj" />
   </ItemGroup>
 
 </Project>
