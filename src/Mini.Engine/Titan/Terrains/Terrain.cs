@@ -133,6 +133,11 @@ public sealed class Terrain : IDisposable
 
     public void MoveTile(int column, int row, int diff)
     {
+        if (Math.Abs(diff) < 1)
+        {
+            return;
+        }
+
         var original = this.Tiles[column, row];
         var (ne, se, sw, nw) = original.GetAllCorners();
         var offset = (byte)Math.Clamp(original.Height + diff, byte.MinValue, byte.MaxValue);
@@ -142,6 +147,11 @@ public sealed class Terrain : IDisposable
 
     public void MoveTileCorner(int column, int row, TileCorner corner, int diff)
     {
+        if (Math.Abs(diff) < 1)
+        {
+            return;
+        }
+
         var original = this.Tiles[column, row];
 
         var oldCorner = original.GetCorner(corner);

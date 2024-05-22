@@ -66,6 +66,10 @@ public sealed class InputService
         return this.cursorPosition;
     }
 
+    /// <summary>
+    /// Processes all new events, note that some states, like a button being 'held' doesn't
+    /// happen because of an event so checking for that in a ProcessEvents loop doesn't work.
+    /// </summary>
     public bool ProcessEvents(Mouse mouse)
     {
         return ProcessEvents(mouse, this.MouseEvents);
