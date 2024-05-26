@@ -10,21 +10,13 @@ using Vortice.Mathematics;
 namespace Mini.Engine.Titan.Terrains;
 public sealed class RaiseTerrainStateMachine
 {
-    public interface ITargetLock
-    {
-        Vector3 GetPosition();
-        float GetDelta(Ray ray);
-        Matrix4x4 GetTransform(Ray ray);
-        void Commit(Terrain terrain, Ray ray);
-    }
-
     private enum State { Select, Raise, Commit };
 
     private readonly InputService Input;
     private readonly Terrain Terrain;
     private readonly Mouse Mouse;
+    private readonly TileTarget Target;
 
-    private ITargetLock? TargetLock;
     private State state;
 
     public RaiseTerrainStateMachine(InputService input, Terrain terrain)
@@ -33,6 +25,7 @@ public sealed class RaiseTerrainStateMachine
         this.Input = input;
         this.Terrain = terrain;
         this.Mouse = new Mouse();
+        this.Target = new TileTarget();
     }
 
     public Matrix4x4 TargetTransform { get; private set; }
@@ -48,13 +41,12 @@ public sealed class RaiseTerrainStateMachine
             var cursor = this.Input.GetCursorPosition();
             var ray = CreateCursorRay(cursor, in viewport, in camera, in transform);
 
-            this.TargetLock = LockTarget(this.Terrain, viewport, cursor, ray);
-            if (this.TargetLock != null)
+            if (LockTarget(this.Terrain, viewport, cursor, ray, this.Target))
             {
-                this.TargetTransform = this.TargetLock.GetTransform(ray);
+                this.TargetTransform = this.Target.GetTransform(ray);
             }
 
-            if (pressed && this.TargetLock != null)
+            if (pressed && this.Target.HasTarget)
             {
                 this.state = State.Raise;
             }
@@ -62,12 +54,12 @@ public sealed class RaiseTerrainStateMachine
 
         if (this.state == State.Raise)
         {
-            if ((pressed || held) && this.TargetLock != null)
+            if ((pressed || held) && this.Target.HasTarget)
             {
                 var cursor = this.Input.GetCursorPosition();
                 var ray = CreateCursorRay(cursor, in viewport, in camera, in transform);
 
-                this.TargetTransform = this.TargetLock.GetTransform(ray);
+                this.TargetTransform = this.Target.GetTransform(ray);
             }
             else
             {
@@ -77,11 +69,11 @@ public sealed class RaiseTerrainStateMachine
 
         if (this.state == State.Commit)
         {
-            if (this.TargetLock != null)
+            if (this.Target.HasTarget)
             {
                 var cursor = this.Input.GetCursorPosition();
                 var ray = CreateCursorRay(cursor, in viewport, in camera, in transform);
-                this.TargetLock.Commit(this.Terrain, ray);
+                this.Target.Commit(this.Terrain, ray);
             }
 
             this.state = State.Select;
@@ -94,7 +86,7 @@ public sealed class RaiseTerrainStateMachine
         return new Ray(p, d);
     }
 
-    private static ITargetLock? LockTarget(Terrain terrain, Rectangle viewport, Vector2 cursor, Ray ray)
+    private static bool LockTarget(Terrain terrain, Rectangle viewport, Vector2 cursor, Ray ray, TileTarget target)
     {
         if (viewport.Contains((int)cursor.X, (int)cursor.Y))
         {
@@ -107,80 +99,134 @@ public sealed class RaiseTerrainStateMachine
                 var (corner, distance) = TileUtilities.GetClosestCorner(tile, c, r, pit);
                 if (distance < 0.15f)
                 {
-                    return new TileCornerTargetLock(c, r, tile, corner);
+                    target.LockTileCorner(c, r, tile, corner);
                 }
                 else
                 {
-                    return new TileTargetLock(c, r, tile);
+                    target.LockTileCenter(c, r, tile);
                 }
+
+                return true;
             }
         }
 
-        return null;
+        target.UnLock();
+
+        return false;
     }
 
     public bool ShouldDrawTarget()
     {
-        return this.TargetLock != null;
+        return this.Target.HasTarget;
     }
 
-    private sealed record class TileCornerTargetLock(int Column, int Row, Tile Tile, TileCorner Corner) : ITargetLock
+    private sealed class TileTarget
     {
+        private enum LockType { Unlocked, Center, Corner }
+
+        private int column;
+        private int row;
+        private Tile tile;
+        private TileCorner corner;
+        private LockType lockType;
+
+        public TileTarget()
+        {
+            this.column = 0;
+            this.row = 0;
+            this.tile = default;
+            this.corner = default;
+            this.lockType = LockType.Unlocked;
+        }
+
+        public bool HasTarget => this.lockType != LockType.Unlocked;
+
+        public void UnLock()
+        {
+            this.lockType = LockType.Unlocked;
+        }
+
+        public void LockTileCenter(int column, int row, Tile tile)
+        {
+            this.column = column;
+            this.row = row;
+            this.tile = tile;
+            this.lockType = LockType.Center;
+        }
+
+        public void LockTileCorner(int column, int row, Tile tile, TileCorner corner)
+        {
+            this.column = column;
+            this.row = row;
+            this.tile = tile;
+            this.corner = corner;
+            this.lockType = LockType.Corner;
+        }
+
         public Vector3 GetPosition()
         {
-            return TileUtilities.GetCornerPosition(this.Column, this.Row, this.Tile, this.Corner);
+            return this.lockType switch
+            {
+                LockType.Center => TileUtilities.GetCenterPosition(this.tile, this.column, this.row),
+                LockType.Corner => TileUtilities.GetCornerPosition(this.column, this.row, this.tile, this.corner),
+                _ => throw new ArgumentOutOfRangeException(nameof(this.lockType)),
+            };
         }
 
         public float GetDelta(Ray ray)
         {
-            var cornerPosition = TileUtilities.GetCornerPosition(this.Column, this.Row, this.Tile, this.Corner);
-            return Dragging.ComputeDragDeltaY(cornerPosition, ray);
+            return this.lockType switch
+            {
+                LockType.Center => Dragging.ComputeDragDeltaY(TileUtilities.GetCenterPosition(this.tile, this.column, this.row), ray),
+                LockType.Corner => Dragging.ComputeDragDeltaY(TileUtilities.GetCornerPosition(this.column, this.row, this.tile, this.corner), ray),
+                _ => throw new ArgumentOutOfRangeException(nameof(this.lockType)),
+            };
         }
 
         public Matrix4x4 GetTransform(Ray ray)
         {
-            var delta = this.GetDelta(ray);
-            var cornerPosition = TileUtilities.GetCornerPosition(this.Column, this.Row, this.Tile, this.Corner);
-            var tilePosition = TileUtilities.GetCenterPosition(this.Tile, this.Column, this.Row);
-            var position = Vector3.Lerp(cornerPosition, tilePosition, 0.3f);
-            var scale = new Vector3(0.2f, 0.1f, 0.2f);
-
-            return Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(position + (Vector3.UnitY * (int)delta));
+            return this.lockType switch
+            {
+                LockType.Center => this.GetWholeTileTransform(ray),
+                LockType.Corner => this.GetCornerTransform(ray),
+                _ => throw new ArgumentOutOfRangeException(nameof(this.lockType)),
+            };
         }
 
         public void Commit(Terrain terrain, Ray ray)
         {
             var delta = this.GetDelta(ray);
-            terrain.MoveTileCorner(this.Column, this.Row, this.Corner, (int)delta);
-        }
-    }
-
-    private sealed record class TileTargetLock(int Column, int Row, Tile Tile) : ITargetLock
-    {
-        public Vector3 GetPosition()
-        {
-            return TileUtilities.GetCenterPosition(this.Tile, this.Column, this.Row);
-        }
-
-        public float GetDelta(Ray ray)
-        {
-            var position = TileUtilities.GetCenterPosition(this.Tile, this.Column, this.Row);
-            return Dragging.ComputeDragDeltaY(position, ray);
+            switch (this.lockType)
+            {
+                case LockType.Center:
+                    terrain.MoveTile(this.column, this.row, (int)delta);
+                    break;
+                case LockType.Corner:
+                    terrain.MoveTileCorner(this.column, this.row, this.corner, (int)delta);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(this.lockType));
+            };
         }
 
-        public Matrix4x4 GetTransform(Ray ray)
+        private Matrix4x4 GetWholeTileTransform(Ray ray)
         {
             var delta = this.GetDelta(ray);
-            var position = TileUtilities.GetCenterPosition(this.Tile, this.Column, this.Row);
+            var position = TileUtilities.GetCenterPosition(this.tile, this.column, this.row);
             var scale = new Vector3(0.45f, 0.1f, 0.45f);
 
             return Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(position + (Vector3.UnitY * (int)delta));
         }
 
-        public void Commit(Terrain terrain, Ray ray)
+        private Matrix4x4 GetCornerTransform(Ray ray)
         {
             var delta = this.GetDelta(ray);
-            terrain.MoveTile(this.Column, this.Row, (int)delta);
+            var cornerPosition = TileUtilities.GetCornerPosition(this.column, this.row, this.tile, this.corner);
+            var tilePosition = TileUtilities.GetCenterPosition(this.tile, this.column, this.row);
+            var position = Vector3.Lerp(cornerPosition, tilePosition, 0.3f);
+            var scale = new Vector3(0.2f, 0.1f, 0.2f);
+
+            return Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(position + (Vector3.UnitY * (int)delta));
         }
     }
 }
