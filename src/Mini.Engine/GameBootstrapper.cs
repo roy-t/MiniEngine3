@@ -42,8 +42,6 @@ public sealed class GameBootstrapper
         this.width = this.Window.Width;
         this.height = this.Window.Height;
 
-        this.LoadRenderDoc(services);
-
         this.LifetimeManager = new LifetimeManager(this.Logger);
         this.LifetimeManager.PushFrame(nameof(GameBootstrapper));
 
@@ -149,22 +147,5 @@ public sealed class GameBootstrapper
     {
         this.Device.Resize(this.width, this.height);
         this.gameLoop.Resize(this.width, this.height);
-    }
-
-    private void LoadRenderDoc(Services services)
-    {
-        if (StartupArguments.EnableRenderDoc)
-        {
-            var loaded = RenderDoc.Load(out var renderDoc);
-            if (loaded)
-            {
-                services.Register<RenderDoc?>(renderDoc);
-                this.Logger.Information("Started RenderDoc");
-            }
-            else
-            {
-                this.Logger.Warning("Could not start RenderDoc");
-            }
-        }
     }
 }
