@@ -11,13 +11,10 @@ internal sealed class SingleFrameLoop : IGameLoop
     private readonly Win32Window Window;
     private readonly RenderDoc? RenderDoc;
 
-    public SingleFrameLoop(Win32Window window, Services services)
+    public SingleFrameLoop(Win32Window window, RenderDoc? renderDoc = null)
     {
         this.Window = window;
-        if (services.TryResolve<RenderDoc>(out var instance))
-        {
-            this.RenderDoc = instance;
-        }
+        this.RenderDoc = renderDoc;
     }
 
     private void DrawExperiment()

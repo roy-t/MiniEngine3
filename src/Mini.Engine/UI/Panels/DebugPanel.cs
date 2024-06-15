@@ -17,26 +17,23 @@ internal sealed class DebugPanel : IEditorPanel
 
     private uint nextCaptureToOpen;
 
-    public DebugPanel(Device device, FrameService frameService, Services services)
+    public DebugPanel(Device device, FrameService frameService, RenderDoc? renderDoc = null)
     {
         this.Device = device;
         this.FrameService = frameService;
-    
-        if (services.TryResolve<RenderDoc>(out var instance))
-        {
-            this.RenderDoc = instance;
-            this.nextCaptureToOpen = uint.MaxValue;
-        }
+
+        this.RenderDoc = renderDoc;
+        this.nextCaptureToOpen = uint.MaxValue;
     }
 
     public string Title => "Debug";
 
     public void Update()
-    {                
+    {
         this.ShowVSync();
         this.ShowAA();
         this.ShowRenderDoc();
-    } 
+    }
 
     private void ShowRenderDoc()
     {
@@ -45,7 +42,7 @@ internal sealed class DebugPanel : IEditorPanel
             ImGui.TextUnformatted("RenderDoc has been disabled");
         }
         else
-        {           
+        {
             if (ImGui.Button("Capture"))
             {
                 this.nextCaptureToOpen = this.RenderDoc.GetNumCaptures() + 1;
@@ -86,7 +83,7 @@ internal sealed class DebugPanel : IEditorPanel
 
         if (ImGui.Combo("Anti Aliasing", ref this.AAIndex, AANames, AANames.Length))
         {
-            this.FrameService.PBuffer.AntiAliasing = AATypes[this.AAIndex];            
+            this.FrameService.PBuffer.AntiAliasing = AATypes[this.AAIndex];
         }
     }
 }

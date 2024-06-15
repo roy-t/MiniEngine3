@@ -1,11 +1,9 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.UI;
-using Mini.Engine.Windows;
 using Serilog;
 
 namespace Mini.Engine;
@@ -20,14 +18,12 @@ internal sealed class LoadingScreen
     private readonly ILogger Logger;
     private readonly Device Device;
     private readonly UICore UI;
-    private readonly Services Services;
 
-    public LoadingScreen(ILogger logger, Device device, UICore ui, Services services)
+    public LoadingScreen(ILogger logger, Device device, UICore ui)
     {
         this.Logger = logger.ForContext<LoadingScreen>();
         this.Device = device;
         this.UI = ui;
-        this.Services = services;
     }
 
     public void Load(IReadOnlyList<LoadAction> actions, string description)
@@ -50,14 +46,14 @@ internal sealed class LoadingScreen
             stopwatch.Restart();
             actions[i].Load();
             var elapsed = stopwatch.Elapsed;
-            this.Logger.Information("- Action {@index}/{@count}: {@description} took {@ms}ms",i + 1, actions.Count, actions[i].Description, elapsed.TotalMilliseconds);
+            this.Logger.Information("- Action {@index}/{@count}: {@description} took {@ms}ms", i + 1, actions.Count, actions[i].Description, elapsed.TotalMilliseconds);
             totalTime += elapsed;
             accumulator += elapsed;
         }
 
         this.RenderWindow("Completed", 1.0f);
 
-        this.Logger.Information("### Loading {@description} took {@ms}ms", description, totalTime.TotalMilliseconds);        
+        this.Logger.Information("### Loading {@description} took {@ms}ms", description, totalTime.TotalMilliseconds);
     }
 
     private void RenderWindow(string message, float progress)

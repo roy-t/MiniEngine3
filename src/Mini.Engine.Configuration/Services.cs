@@ -1,51 +1,51 @@
-﻿using LightInject;
+﻿//using LightInject;
 
-namespace Mini.Engine.Configuration;
+//namespace Mini.Engine.Configuration;
 
-public sealed class Services
-{
-    private readonly ServiceContainer Container;
+//public sealed class Services
+//{
+//    private readonly ServiceContainer Container;
 
-    public Services(ServiceContainer container)
-    {
-        this.Container = container;
-    }
+//    public Services(ServiceContainer container)
+//    {
+//        this.Container = container;
+//    }
 
-    public object Resolve(Type type)
-    {
-        return this.Container.GetInstance(type);
-    }
+//    public object Resolve(Type type)
+//    {
+//        return this.Container.GetInstance(type);
+//    }
 
-    public T Resolve<T>()
-    {
-        return this.Container.GetInstance<T>();
-    }
+//    public T Resolve<T>()
+//    {
+//        return this.Container.GetInstance<T>();
+//    }
 
-    public T Resolve<T>(Type subType)
-    {
-        return (T)this.Container.GetInstance(subType);
-    }    
+//    public T Resolve<T>(Type subType)
+//    {
+//        return (T)this.Container.GetInstance(subType);
+//    }
 
-    public bool TryResolve<T>(out T instance)
-    {
-        instance = this.Container.TryGetInstance<T>();
-        return instance != null;
-    }
+//    public bool TryResolve<T>(out T instance)
+//    {
+//        instance = this.Container.TryGetInstance<T>();
+//        return instance != null;
+//    }
 
-    public T? ResolveOrDefault<T>(T? @default = null)
-        where T : class
-    {
-        return this.Container.TryGetInstance<T>() ?? @default;
-    }
+//    public T? ResolveOrDefault<T>(T? @default = null)
+//        where T : class
+//    {
+//        return this.Container.TryGetInstance<T>() ?? @default;
+//    }
 
-    public void Register<T>(T instance)
-    {
-        this.Container.RegisterInstance(instance);
-    }
+//    public void Register<T>(T instance)
+//    {
+//        this.Container.RegisterInstance(instance);
+//    }
 
-    public void RegisterAs<TSource, TTarget>(TSource instance)
-        where TSource : TTarget
-    {
-        this.Container.RegisterInstance<TTarget>(instance);
-    }
-}
+//    public void RegisterAs<TSource, TTarget>(TSource instance)
+//        where TSource : TTarget
+//    {
+//        this.Container.RegisterInstance<TTarget>(instance);
+//    }
+//}

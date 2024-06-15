@@ -13,10 +13,10 @@ internal class DeviceMenu : IEditorMenu
 
     private uint nextCaptureToOpen;
 
-    public DeviceMenu(Device device, Services services)
+    public DeviceMenu(Device device, RenderDoc? renderDoc = null)
     {
         this.Device = device;
-        this.RenderDoc = services.ResolveOrDefault<RenderDoc>();
+        this.RenderDoc = renderDoc;
         this.nextCaptureToOpen = uint.MaxValue;
     }
 
@@ -42,7 +42,7 @@ internal class DeviceMenu : IEditorMenu
             ImGui.EndDisabled();
         }
         else
-        {            
+        {
             if (ImGui.MenuItem("Capture Frame"))
             {
                 this.nextCaptureToOpen = this.RenderDoc.GetNumCaptures() + 1;

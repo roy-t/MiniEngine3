@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using LightInject;
 using Mini.Engine.Configuration;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.Debugging;
@@ -31,56 +32,58 @@ public sealed class GameBootstrapper
     private int width;
     private int height;
 
-    public GameBootstrapper(ILogger logger, Services services)
+    public GameBootstrapper(ILogger logger, Win32Window window, Device device, LifetimeManager lifetimeManager, IServiceRegistry registry, IServiceFactory factory)
     {
         var stopWatch = Stopwatch.StartNew();
 
         this.Logger = logger.ForContext<GameBootstrapper>();
 
-        this.Window = Win32Application.Initialize("Mini.Engine");
+        //this.Window = Win32Application.Initialize("Mini.Engine");
+        this.Window = window;
+        this.width = window.Width;
+        this.height = window.Height;
 
-        this.width = this.Window.Width;
-        this.height = this.Window.Height;
-
-        this.LifetimeManager = new LifetimeManager(this.Logger);
+        //this.LifetimeManager = new LifetimeManager(this.Logger);
+        this.LifetimeManager = lifetimeManager;
         this.LifetimeManager.PushFrame(nameof(GameBootstrapper));
 
-        this.Device = new Device(this.Window.Handle, this.width, this.height, this.LifetimeManager);
+        //this.Device = new Device(this.Window.Handle, this.width, this.height, this.LifetimeManager);
+        this.Device = device;
         this.InputService = new InputService(this.Window);
         this.Keyboard = new Keyboard();
         this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
 
         // Handle ownership/lifetime control over to LightInject
-        services.Register(this.LifetimeManager);
-        services.Register(this.Device);
-        services.Register(this.InputService);
-        services.Register(this.Window);
-        services.RegisterAs<DiskFileSystem, IVirtualFileSystem>(this.FileSystem);
+        registry.RegisterInstance(this.LifetimeManager);
+        registry.RegisterInstance(this.Device);
+        registry.RegisterInstance(this.InputService);
+        registry.RegisterInstance(this.Window);
+        registry.RegisterInstance<IVirtualFileSystem>(this.FileSystem);
 
 
         // Load everything we need to display something
         var gameLoopType = Type.GetType(StartupArguments.GameLoopType, true, true)
             ?? throw new Exception($"Unable to find game loop {StartupArguments.GameLoopType}");
 
-        this.RunLoadingScreenAndLoad(gameLoopType, services);
+        this.RunLoadingScreenAndLoad(gameLoopType, factory);
 
         this.Logger.Information("Bootstrapping {@gameLoop} took: {@milliseconds}ms", gameLoopType, stopWatch.ElapsedMilliseconds);
     }
 
     [MemberNotNull(nameof(gameLoop), nameof(metrics))]
-    private void RunLoadingScreenAndLoad(Type gameLoopType, Services services)
+    private void RunLoadingScreenAndLoad(Type gameLoopType, IServiceFactory factory)
     {
-        var loadingScreen = services.Resolve<LoadingScreen>();
+        var loadingScreen = factory.GetInstance<LoadingScreen>();
         var initializationOrder = InjectableDependencies.CreateInitializationOrder(gameLoopType);
-        var serviceActions = initializationOrder.Select(t => new LoadAction(t.Name, () => services.Resolve(t)));
+        var serviceActions = initializationOrder.Select(t => new LoadAction(t.Name, () => factory.GetInstance(t)));
 
         IGameLoop? gameLoop = null;
         MetricService? metrics = null;
 
         var actions = new List<LoadAction>(serviceActions)
         {
-            new LoadAction(gameLoopType.Name, () => gameLoop = services.Resolve<IGameLoop>(gameLoopType)),
-            new LoadAction(nameof(MetricService), () => metrics = services.Resolve<MetricService>())
+            new LoadAction(gameLoopType.Name, () => gameLoop = (IGameLoop)factory.GetInstance(gameLoopType)),
+            new LoadAction(nameof(MetricService), () => metrics = factory.GetInstance<MetricService>())
         };
 
         loadingScreen.Load(actions, "gameloop");

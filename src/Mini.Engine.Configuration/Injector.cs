@@ -27,13 +27,20 @@ public sealed class Injector : IDisposable
 
         var options = new ContainerOptions()
         {
-            LogFactory = (type) => logEntry => this.Logger.Debug(logEntry.Message)
+            LogFactory = (type) => logEntry => this.Logger.Debug(logEntry.Message),
+            EnableOptionalArguments = true
         };
 
-        this.Container = new ServiceContainer(options);        
+
+        this.Container = new ServiceContainer(options);
+
+        this.Registry = new ServiceRegistryShim(this.Container);
+        this.Factory = new ServiceFactoryShim(this.Container);
+
         this.Container.SetDefaultLifetime<PerContainerLifetime>()
-            .RegisterInstance(Log.Logger)
-            .RegisterInstance(new Services(this.Container));
+            .RegisterInstance(this.Registry)
+            .RegisterInstance(this.Factory)
+            .RegisterInstance(Log.Logger);
 
         var assemblies = this.LoadAssembliesInCurrentDirectory();
         this.RegisterTypesFromAssemblies(assemblies);
@@ -49,13 +56,12 @@ public sealed class Injector : IDisposable
         this.Container.RegisterInstance(this.Components);
     }
 
-    public T Get<T>() where T : class
-    {
-        return this.Container.Create<T>();
-    }
+    public IServiceRegistry Registry { get; }
+    public IServiceFactory Factory { get; }
 
     public void Dispose()
     {
+
         this.Container?.Dispose();
     }
 
@@ -142,8 +148,8 @@ public sealed class Injector : IDisposable
     }
 
     private void RegisterContainerFor(Type containerType, Type componentType)
-    {        
-        containerType = containerType.MakeGenericType(componentType);        
+    {
+        containerType = containerType.MakeGenericType(componentType);
         var parameters = containerType
             .GetConstructors()[0]
             .GetParameters()
