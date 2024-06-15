@@ -18,6 +18,7 @@ public class Program
         registry.RegisterFrom<IOCompositionRoot>();
         registry.RegisterFrom<WindowsCompositionRoot>();
         registry.RegisterFrom<GraphicsCompositionRoot>();
+        registry.RegisterFrom<DebugCompositionRoot>();
 
         var bootstrapper = injector.Factory.Create<GameBootstrapper>();
         bootstrapper.Run();
@@ -25,7 +26,6 @@ public class Program
 
         //throw new Exception("TODO");
         //// - Create a new GraphicsBootrapper that enables a Window, DirectX, and then RenderDoc if needed
-        //// - Then remove the code from GameBootstrapper
         //// - Then create a new SceneBootstrapper
         //// - - Add a way to switch scenes.
         //// - - Start with a loading screen and main menu

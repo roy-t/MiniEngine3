@@ -5,7 +5,6 @@ using Mini.Engine.Configuration;
 using Mini.Engine.Core.Lifetime;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
-using Mini.Engine.IO;
 using Mini.Engine.Windows;
 using static Windows.Win32.UI.Input.KeyboardAndMouse.VIRTUAL_KEY;
 
@@ -19,7 +18,6 @@ public sealed class GameBootstrapper
     private readonly LifetimeManager LifetimeManager;
     private readonly Win32Window Window;
     private readonly Device Device;
-    private readonly IVirtualFileSystem FileSystem;
 
     private MetricService metrics;
     private IGameLoop gameLoop;
@@ -30,13 +28,12 @@ public sealed class GameBootstrapper
     private int width;
     private int height;
 
-    public GameBootstrapper(Win32Window window, IVirtualFileSystem fileSystem, InputService inputService, LifetimeManager lifetimeManager, Device device, IServiceFactory factory)
+    public GameBootstrapper(Win32Window window, InputService inputService, LifetimeManager lifetimeManager, Device device, IServiceFactory factory)
     {
         this.Window = window;
         this.width = window.Width;
         this.height = window.Height;
 
-        this.FileSystem = fileSystem;
         this.InputService = inputService;
 
         this.LifetimeManager = lifetimeManager;

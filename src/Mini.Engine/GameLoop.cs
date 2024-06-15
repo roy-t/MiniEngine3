@@ -6,7 +6,6 @@ using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.PostProcessing;
-using Mini.Engine.Scenes;
 using Mini.Engine.UI;
 using Mini.Engine.Windows;
 using static Windows.Win32.UI.Input.KeyboardAndMouse.VIRTUAL_KEY;
@@ -27,7 +26,7 @@ internal sealed class GameLoop : IGameLoop
     private readonly LifetimeManager LifetimeManager;
     private readonly EditorState EditorState;
     private readonly PresentationHelper Presenter;
-    private readonly SceneManager SceneManager;
+    private readonly Scenes.SceneManager SceneManager;
     private readonly FrameService FrameService;
     private readonly ContentManager Content;
 
@@ -37,7 +36,7 @@ internal sealed class GameLoop : IGameLoop
     private bool enableUI;
     private readonly Stopwatch Stopwatch;
 
-    public GameLoop(Device device, EditorUserInterface userInterface, InputService inputService, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, SceneManager sceneManager, FrameService frameService, ContentManager content, MetricService metricService, RenderPipeline renderPipelineV2, UpdatePipeline updatePipelineV2)
+    public GameLoop(Device device, EditorUserInterface userInterface, InputService inputService, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, Scenes.SceneManager sceneManager, FrameService frameService, ContentManager content, MetricService metricService, RenderPipeline renderPipelineV2, UpdatePipeline updatePipelineV2)
     {
         this.Device = device;
         this.UserInterface = userInterface;

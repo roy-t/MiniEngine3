@@ -5,11 +5,11 @@ namespace Mini.Engine.Configuration;
 /// <summary>
 /// Wrapper around ServiceContainer, which doesn't include IDispose to prevent double disposes
 /// </summary>
-internal sealed class ServiceRegistryShim : IServiceRegistry
+internal sealed class ServiceRegistryAdapter : IServiceRegistry
 {
     private readonly ServiceContainer Container;
 
-    public ServiceRegistryShim(ServiceContainer container)
+    public ServiceRegistryAdapter(ServiceContainer container)
     {
         this.Container = container;
     }

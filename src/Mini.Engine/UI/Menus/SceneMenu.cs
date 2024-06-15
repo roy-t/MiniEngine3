@@ -10,10 +10,10 @@ internal sealed class SceneMenu : IEditorMenu
     private readonly SkyboxManager SkyboxManager;
     private readonly string[] Selections;
 
-    private readonly SceneManager SceneManager;
+    private readonly Scenes.SceneManager SceneManager;
     private int currentItem;
 
-    public SceneMenu(SceneManager sceneManager, SkyboxManager skyboxManager)
+    public SceneMenu(Scenes.SceneManager sceneManager, SkyboxManager skyboxManager)
     {
         this.SceneManager = sceneManager;
         this.SkyboxManager = skyboxManager;

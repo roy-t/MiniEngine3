@@ -34,8 +34,8 @@ public sealed class Injector : IDisposable
 
         this.Container = new ServiceContainer(options);
 
-        this.Registry = new ServiceRegistryShim(this.Container);
-        this.Factory = new ServiceFactoryShim(this.Container);
+        this.Registry = new ServiceRegistryAdapter(this.Container);
+        this.Factory = new ServiceFactoryAdapter(this.Container);
 
         this.Container.SetDefaultLifetime<PerContainerLifetime>()
             .RegisterInstance(this.Registry)

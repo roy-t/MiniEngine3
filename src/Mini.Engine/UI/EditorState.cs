@@ -11,13 +11,13 @@ internal class EditorState
 {
     private const string Path = "editor.blob";
     private readonly FrameService FrameService;
-    private readonly SceneManager SceneManager;
+    private readonly Scenes.SceneManager SceneManager;
     
     private Transform preferredTransform = Transform.Identity;
 
     private bool shouldUpdate = false;
 
-    public EditorState(FrameService frameService, SceneManager sceneManager)
+    public EditorState(FrameService frameService, Scenes.SceneManager sceneManager)
     {
         this.FrameService = frameService;
         this.SceneManager = sceneManager;

@@ -1,6 +1,6 @@
 ﻿namespace Mini.Engine;
 
-internal interface IGameLoop : IDisposable
+public interface IGameLoop : IDisposable
 {
     /// <summary>
     /// Perform one step in the simulation, independent of external input or framerate
