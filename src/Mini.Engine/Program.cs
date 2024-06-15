@@ -15,6 +15,7 @@ public class Program
 
         var registry = injector.Registry;
         registry.RegisterFrom<CoreCompositionRoot>();
+        registry.RegisterFrom<IOCompositionRoot>();
         registry.RegisterFrom<WindowsCompositionRoot>();
         registry.RegisterFrom<GraphicsCompositionRoot>();
 

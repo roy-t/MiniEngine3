@@ -7,7 +7,6 @@ using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Mini.Engine.IO;
 using Mini.Engine.Windows;
-using Serilog;
 using static Windows.Win32.UI.Input.KeyboardAndMouse.VIRTUAL_KEY;
 
 namespace Mini.Engine;
@@ -20,8 +19,7 @@ public sealed class GameBootstrapper
     private readonly LifetimeManager LifetimeManager;
     private readonly Win32Window Window;
     private readonly Device Device;
-    private readonly DiskFileSystem FileSystem;
-    private readonly ILogger Logger;
+    private readonly IVirtualFileSystem FileSystem;
 
     private MetricService metrics;
     private IGameLoop gameLoop;
@@ -32,42 +30,27 @@ public sealed class GameBootstrapper
     private int width;
     private int height;
 
-    public GameBootstrapper(ILogger logger, Win32Window window, Device device, LifetimeManager lifetimeManager, IServiceRegistry registry, IServiceFactory factory)
+    public GameBootstrapper(Win32Window window, IVirtualFileSystem fileSystem, InputService inputService, LifetimeManager lifetimeManager, Device device, IServiceFactory factory)
     {
-        var stopWatch = Stopwatch.StartNew();
-
-        this.Logger = logger.ForContext<GameBootstrapper>();
-
-        //this.Window = Win32Application.Initialize("Mini.Engine");
         this.Window = window;
         this.width = window.Width;
         this.height = window.Height;
 
-        //this.LifetimeManager = new LifetimeManager(this.Logger);
+        this.FileSystem = fileSystem;
+        this.InputService = inputService;
+
         this.LifetimeManager = lifetimeManager;
         this.LifetimeManager.PushFrame(nameof(GameBootstrapper));
 
-        //this.Device = new Device(this.Window.Handle, this.width, this.height, this.LifetimeManager);
         this.Device = device;
-        this.InputService = new InputService(this.Window);
+
         this.Keyboard = new Keyboard();
-        this.FileSystem = new DiskFileSystem(logger, StartupArguments.ContentRoot);
-
-        // Handle ownership/lifetime control over to LightInject
-        registry.RegisterInstance(this.LifetimeManager);
-        registry.RegisterInstance(this.Device);
-        registry.RegisterInstance(this.InputService);
-        registry.RegisterInstance(this.Window);
-        registry.RegisterInstance<IVirtualFileSystem>(this.FileSystem);
-
 
         // Load everything we need to display something
         var gameLoopType = Type.GetType(StartupArguments.GameLoopType, true, true)
             ?? throw new Exception($"Unable to find game loop {StartupArguments.GameLoopType}");
 
         this.RunLoadingScreenAndLoad(gameLoopType, factory);
-
-        this.Logger.Information("Bootstrapping {@gameLoop} took: {@milliseconds}ms", gameLoopType, stopWatch.ElapsedMilliseconds);
     }
 
     [MemberNotNull(nameof(gameLoop), nameof(metrics))]
@@ -94,6 +77,7 @@ public sealed class GameBootstrapper
 
     public void Run()
     {
+
         var stopwatch = new Stopwatch();
         const double dt = 1.0 / 60.0; // constant tick rate of simulation
 
@@ -143,7 +127,7 @@ public sealed class GameBootstrapper
             this.metrics.UpdateBuiltInGauges();
         }
 
-        this.LifetimeManager.Clear();
+        this.LifetimeManager.PopFrame(nameof(GameBootstrapper));
     }
 
     private void ResizeDeviceResources()
