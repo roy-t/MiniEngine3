@@ -1,6 +1,7 @@
 ﻿using LightInject;
 using Mini.Engine.Composition;
 using Mini.Engine.Configuration;
+using Mini.Engine.Core.Lifetime;
 using Mini.Engine.ECS.Components;
 
 namespace Mini.Engine;
@@ -20,8 +21,13 @@ public class Program
         registry.RegisterFrom<GraphicsCompositionRoot>();
         registry.RegisterFrom<DebugCompositionRoot>();
 
-        var bootstrapper = injector.Factory.Create<GameBootstrapper2>();
+        var lifeTimeManager = injector.Factory.GetInstance<LifetimeManager>();
+        lifeTimeManager.PushFrame(nameof(Program));
+
+        var bootstrapper = injector.Factory.Create<GameBootstrapper>();
         bootstrapper.Bootstrap();
+
+        lifeTimeManager.PopFrame(nameof(Program));
 
         //throw new Exception("TODO");
         //// - Create a new GraphicsBootrapper that enables a Window, DirectX, and then RenderDoc if needed

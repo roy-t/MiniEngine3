@@ -6,32 +6,44 @@ namespace Mini.Engine;
 [Service]
 public sealed class SceneStack : IEnumerable<IGameLoop>
 {
-    private readonly Stack<IGameLoop> Scenes;
+    private readonly LinkedList<IGameLoop> Scenes;
 
     public SceneStack()
     {
-        this.Scenes = new Stack<IGameLoop>(10);
+        this.Scenes = new LinkedList<IGameLoop>();
     }
 
     public void Push(IGameLoop scene)
     {
-        this.Scenes.Push(scene);
+        this.Scenes.AddFirst(scene);
     }
 
     public IGameLoop Peek()
     {
-        return this.Scenes.Peek();
+        if (this.Scenes.First == null)
+        {
+            throw new InvalidOperationException("Stack is empty");
+        }
+        return this.Scenes.First.Value;
     }
 
     public void ReplaceTop(IGameLoop scene)
     {
-        this.Scenes.Pop();
-        this.Scenes.Push(scene);
+        if (this.Scenes.First == null)
+        {
+            throw new InvalidOperationException("Stack is empty");
+        }
+        this.Scenes.First.Value = scene;
     }
 
     public void Pop()
     {
-        this.Scenes.Pop();
+        if (this.Scenes.First == null)
+        {
+            throw new InvalidOperationException("Stack is empty");
+        }
+
+        this.Scenes.RemoveFirst();
     }
 
     public IEnumerator<IGameLoop> GetEnumerator()

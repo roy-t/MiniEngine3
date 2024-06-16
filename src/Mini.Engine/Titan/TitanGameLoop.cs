@@ -34,8 +34,6 @@ internal class TitanGameLoop : IGameLoop
         this.Presenter = presenter;
         this.TerrainRenderer = terrainPartRenderer;
         this.TerrainEditor = terrainEditor;
-
-        //Thread.Sleep(5000);
     }
 
     public void Resize(int width, int height)

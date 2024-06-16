@@ -8,8 +8,7 @@ using Serilog;
 
 namespace Mini.Engine;
 
-public sealed record LoadAction(string Description, Action Load);
-
+[Obsolete("Superseded by LoadingGameLoop")]
 [Service]
 internal sealed class LoadingScreen
 {
