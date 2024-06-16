@@ -63,7 +63,7 @@ internal sealed class GameLoop : IGameLoop
         this.UpdatePipeline = updatePipelineV2;
     }
 
-    public void Simulation()
+    public void Simulate()
     {
         this.Stopwatch.Restart();
         this.SceneManager.CheckChangeScene();
@@ -75,10 +75,8 @@ internal sealed class GameLoop : IGameLoop
         this.MetricService.Update("GameLoop.Update.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
     }
 
-    public void Frame(float alpha, float elapsedRealWorldTime)
+    public void HandleInput(float elapsedRealWorldTime)
     {
-        this.Stopwatch.Restart();
-
         while (this.InputService.ProcessEvents(this.Keyboard))
         {
             if (this.Keyboard.Pressed(F1))
@@ -86,6 +84,11 @@ internal sealed class GameLoop : IGameLoop
                 this.enableUI = !this.enableUI;
             }
         }
+    }
+
+    public void Frame(float alpha, float elapsedRealWorldTime)
+    {
+        this.Stopwatch.Restart();
 
         this.UserInterface.NewFrame();
 

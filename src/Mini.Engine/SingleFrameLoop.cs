@@ -22,7 +22,12 @@ internal sealed class SingleFrameLoop : IGameLoop
         // ...
     }
 
-    public void Simulation() { }
+    public void HandleInput(float elapsedRealWorldTime)
+    {
+
+    }
+
+    public void Simulate() { }
 
     public void Frame(float alpha, float elapsedRealWorldTime)
     {

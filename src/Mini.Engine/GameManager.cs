@@ -1,48 +1,27 @@
 ﻿using System.Diagnostics;
+using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
 using Mini.Engine.Windows;
 
 namespace Mini.Engine;
 
-
-public sealed class SceneStack : ISceneStack
-{
-    private readonly Stack<IGameLoop> Scenes;
-
-    public SceneStack()
-    {
-        this.Scenes = new Stack<IGameLoop>(10);
-    }
-
-    public void Push(IGameLoop scene)
-    {
-        this.Scenes.Push(scene);
-    }
-
-    public void ReplaceTop(IGameLoop scene)
-    {
-        this.Scenes.Pop();
-        this.Scenes.Push(scene);
-    }
-
-    public void Pop()
-    {
-        this.Scenes.Pop();
-    }
-}
-
-public sealed class SceneManager
+[Service]
+public sealed class GameManager
 {
     private readonly Device Device;
     private readonly Win32Window Window;
+    private readonly InputService Input;
     private readonly MetricService Metrics;
+    private readonly SceneStack Scenes;
 
-    public SceneManager(Device device, Win32Window window, MetricService metrics)
+    public GameManager(Device device, Win32Window window, InputService input, MetricService metrics, SceneStack sceneStack)
     {
         this.Device = device;
         this.Window = window;
+        this.Input = input;
         this.Metrics = metrics;
+        this.Scenes = sceneStack;
     }
 
     public void Run()
@@ -62,9 +41,13 @@ public sealed class SceneManager
                 accumulator -= dt;
                 this.Simulate();
             }
+
             var alpha = accumulator / dt;
 
             this.Device.ImmediateContext.ClearBackBuffer();
+
+            this.Input.NextFrame();
+            this.HandleInput((float)elapsed);
 
             this.Frame((float)alpha, (float)elapsed); // alpha signifies how much to lerp between current and future state
 
@@ -79,24 +62,42 @@ public sealed class SceneManager
             stopwatch.Restart();
             accumulator += Math.Min(elapsed, 0.1); // cap elapsed on some worst case value to not explode anything
 
-            this.Metrics.Update(nameof(SceneManager) + ".Run.Millis", (float)(elapsed * 1000.0));
+            this.Metrics.Update(nameof(GameManager) + ".Run.Millis", (float)(elapsed * 1000.0));
             this.Metrics.UpdateBuiltInGauges();
         }
     }
 
+    // Simulate any active scene as they might only partially overlap
     private void Simulate()
     {
-        throw new NotImplementedException();
+        foreach (var scene in this.Scenes)
+        {
+            scene.Simulate();
+        }
     }
 
+    // Only the top scene gets to handle input
+    private void HandleInput(float elapsedRealWorldTime)
+    {
+        this.Scenes.Peek().HandleInput(elapsedRealWorldTime);
+    }
+
+    // Render any active scene as they might only partially overlap
     private void Frame(float alpha, float elapsed)
     {
-        throw new NotImplementedException();
+        foreach (var scene in this.Scenes)
+        {
+            scene.Frame(alpha, elapsed);
+        }
     }
 
     private void ResizeDeviceResources()
     {
         this.Device.Resize(this.Window.Width, this.Window.Height);
-        throw new NotImplementedException(); //this.gameLoop.Resize(this.width, this.height);
+
+        foreach (var scene in this.Scenes)
+        {
+            scene.Resize(this.Window.Width, this.Window.Height);
+        }
     }
 }

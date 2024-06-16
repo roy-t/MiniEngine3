@@ -20,9 +20,8 @@ public class Program
         registry.RegisterFrom<GraphicsCompositionRoot>();
         registry.RegisterFrom<DebugCompositionRoot>();
 
-        var bootstrapper = injector.Factory.Create<GameBootstrapper>();
-        bootstrapper.Run();
-
+        var bootstrapper = injector.Factory.Create<GameBootstrapper2>();
+        bootstrapper.Bootstrap();
 
         //throw new Exception("TODO");
         //// - Create a new GraphicsBootrapper that enables a Window, DirectX, and then RenderDoc if needed

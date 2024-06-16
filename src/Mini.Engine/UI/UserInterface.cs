@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using System.Management;
+using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Debugging;
 using Mini.Engine.UI.Menus;
@@ -96,7 +96,7 @@ internal abstract class UserInterface
                 }
             }
 
-            ImGui.TextUnformatted($"Perf {this.GetGameBootStrapperAverageMillis():F2} ms");
+            this.DrawPerfWidget();
             ImGui.EndMainMenuBar();
         }
 
@@ -118,17 +118,33 @@ internal abstract class UserInterface
         this.Metrics.Update("UserInterface.Run.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
     }
 
-    private float GetGameBootStrapperAverageMillis()
+    private void DrawPerfWidget()
     {
+        var max = 0.0f;
         foreach (var gauge in this.Metrics.Gauges)
         {
-            if (gauge.Tag == "GameBootstrapper.Run.Millis")
+            if (gauge.Tag == "GameManager.Run.Millis")
             {
-                return gauge.Average;
+                max = gauge.Max;
+                break;
             }
         }
 
-        return 0.0f;
+        var color = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+        if (max > 15.0f)
+        {
+            color = new Vector4(1.0f, 0.15f, 0.0f, 1.0f);
+        }
+        if (max > 16.67f)
+        {
+            color = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+        }
+
+        var text = $"{max:F2} ms";
+        var width = ImGui.CalcTextSize(text).X;
+
+        ImGui.SameLine(ImGui.GetWindowWidth() - width - 15);
+        ImGui.TextColored(color, text);
     }
 
     public void Render()

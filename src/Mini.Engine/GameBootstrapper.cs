@@ -89,7 +89,7 @@ public sealed class GameBootstrapper
             while (accumulator >= dt)
             {
                 accumulator -= dt;
-                this.gameLoop.Simulation();
+                this.gameLoop.Simulate();
             }
 
             // Note: input should be handled in the draw method, not the simulation method

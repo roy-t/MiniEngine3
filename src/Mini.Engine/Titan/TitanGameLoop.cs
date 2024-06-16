@@ -34,6 +34,8 @@ internal class TitanGameLoop : IGameLoop
         this.Presenter = presenter;
         this.TerrainRenderer = terrainPartRenderer;
         this.TerrainEditor = terrainEditor;
+
+        //Thread.Sleep(5000);
     }
 
     public void Resize(int width, int height)
@@ -43,16 +45,19 @@ internal class TitanGameLoop : IGameLoop
         this.CameraController.Resize(width, height);
     }
 
-    public void Simulation()
+    public void Simulate()
     {
         this.Content.ReloadChangedContent();
+    }
+
+    public void HandleInput(float elapsedRealWorldTime)
+    {
+        this.CameraController.Update(elapsedRealWorldTime, this.Device.Viewport);
     }
 
     public void Frame(float alpha, float elapsedRealWorldTime)
     {
         this.UserInterface.NewFrame();
-
-        this.CameraController.Update(elapsedRealWorldTime, this.Device.Viewport);
 
         this.GBuffer.Clear();
 

@@ -10,10 +10,17 @@ public static class StartupArguments
 
     public static string GameLoopType => GetArgumentValueOrDefault("--gameloop", "Mini.Engine.GameLoop");
 
+    public static bool EnableVSync => IsPresent("--vsync");
+
     private static bool IsPresent(string argument)
     {
         var args = Environment.GetCommandLineArgs();
         return args.Any(a => a.Equals(argument, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool IsNotPresent(string argument)
+    {
+        return !IsPresent(argument);
     }
 
     private static string GetArgumentValueOrDefault(string argument, string def)
