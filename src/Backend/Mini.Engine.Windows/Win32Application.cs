@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Mini.Engine.Windows.Events;
 using Windows.Win32.Foundation;
@@ -10,8 +9,10 @@ namespace Mini.Engine.Windows;
 
 public static class Win32Application
 {
-    public static readonly WindowEvents WindowEvents = new WindowEvents();
     public static readonly RawEvents RawEvents = new RawEvents();
+
+    private static readonly WindowEvents WindowEvents = new WindowEvents();
+
 
     public static unsafe Win32Window Initialize(string title)
     {
@@ -36,7 +37,10 @@ public static class Win32Application
             RegisterClassEx(wndClass);
         }
 
-        return new Win32Window(title, WindowEvents);
+        var window = new Win32Window(title);
+        WindowEvents.Register(window);
+        window.Show(true);
+        return window;
     }
 
     public static void RegisterMessageListener(uint message, Action<UIntPtr, IntPtr> handler)
@@ -53,7 +57,7 @@ public static class Win32Application
     public static bool PumpMessages()
     {
         var @continue = true;
-        while (PeekMessage(out var msg, (global::Windows.Win32.Foundation.HWND)IntPtr.Zero, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE))
+        while (PeekMessage(out var msg, (HWND)IntPtr.Zero, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE))
         {
             TranslateMessage(msg);
             DispatchMessage(msg);
@@ -63,8 +67,10 @@ public static class Win32Application
         return @continue;
     }
 
+
+
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
-    public static global::Windows.Win32.Foundation.LRESULT WndProc(global::Windows.Win32.Foundation.HWND hWnd, uint msg, global::Windows.Win32.Foundation.WPARAM wParam, global::Windows.Win32.Foundation.LPARAM lParam)
+    public static LRESULT WndProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam)
     {
         // TODO: ideally we never want to expose these events, right now its necessary for input
         // but we should replace it with input system similar to what ImGui uses
@@ -78,6 +84,12 @@ public static class Win32Application
                 PostQuitMessage(0);
                 break;
         }
+
+
+        // TODO: move the stuff from the IMGUI WndProc here, taking care of capturing and uncapturing the mouse
+        // add a method for setting the cursor
+        // if we do everything well we no longer have to expose the method below and the ImGuiInputHandler can do everything
+        // via an api with this application!
 
         return DefWindowProc(hWnd, msg, wParam, lParam);
     }

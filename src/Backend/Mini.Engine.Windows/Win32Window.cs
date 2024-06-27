@@ -1,8 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Json;
-using Mini.Engine.Windows.Events;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 using static Windows.Win32.PInvoke;
@@ -13,7 +10,7 @@ public sealed class Win32Window : IDisposable
 {
     private const string WindowSettingsFile = "window.json";
 
-    internal unsafe Win32Window(string title, WindowEvents windowEvents)
+    internal unsafe Win32Window(string title)
     {
         this.Title = title;
 
@@ -42,19 +39,12 @@ public sealed class Win32Window : IDisposable
             (HWND)IntPtr.Zero, null, null, null);
 
         this.Handle = hwnd;
+    }
 
-        windowEvents.OnResize += (o, e) =>
-        {
-            this.IsMinimized = e.Width == 0 && e.Height == 0;
-            this.Width = e.Width;
-            this.Height = e.Height;
-        };
-
-        windowEvents.OnFocus += (o, e) => this.HasFocus = e;
-        windowEvents.OnDestroy += (o, e) => TrySerializeWindowPosition(this.Handle);
-
+    public void Show(bool restorePreviousPosition)
+    {
         var show = SHOW_WINDOW_CMD.SW_NORMAL;
-        if (TryDeserializeWindowPosition(out var pos))
+        if (restorePreviousPosition && TryDeserializeWindowPosition(out var pos))
         {
             SetWindowPlacement(this.Handle, pos);
             show = pos.showCmd;
@@ -69,6 +59,23 @@ public sealed class Win32Window : IDisposable
     public HWND Handle { get; private set; }
     public bool IsMinimized { get; private set; }
     public bool HasFocus { get; private set; }
+
+    internal void OnSizeChanged(int width, int height)
+    {
+        this.IsMinimized = width == 0 && height == 0;
+        this.Width = width;
+        this.Height = height;
+    }
+
+    internal void OnFocusChanged(bool hasFocus)
+    {
+        this.HasFocus = hasFocus;
+    }
+
+    internal void OnDestroyed()
+    {
+        TrySerializeWindowPosition(this.Handle);
+    }
 
     public void Dispose()
     {
