@@ -152,10 +152,10 @@ internal sealed class ImGuiInputHandler
                     if (msg == WM_RBUTTONDOWN || msg == WM_RBUTTONDBLCLK) { button = 1; }
                     if (msg == WM_MBUTTONDOWN || msg == WM_MBUTTONDBLCLK) { button = 2; }
                     if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONDBLCLK) { button = (GET_XBUTTON_WPARAM(wParam) == 1) ? 3 : 4; }
-                    if (!ImGui.IsAnyMouseDown() && GetCapture() == IntPtr.Zero)
-                    {
-                        SetCapture(this.HWND);
-                    }
+                    //if (!ImGui.IsAnyMouseDown() && GetCapture() == IntPtr.Zero)
+                    //{
+                    //    SetCapture(this.HWND);
+                    //}
 
                     io.MouseDown[button] = true;
                     return false;
@@ -171,10 +171,10 @@ internal sealed class ImGuiInputHandler
                     if (msg == WM_MBUTTONUP) { button = 2; }
                     if (msg == WM_XBUTTONUP) { button = (GET_XBUTTON_WPARAM(wParam) == 1) ? 3 : 4; }
                     io.MouseDown[button] = false;
-                    if (!ImGui.IsAnyMouseDown() && GetCapture() == this.HWND)
-                    {
-                        ReleaseCapture();
-                    }
+                    //if (!ImGui.IsAnyMouseDown() && GetCapture() == this.HWND)
+                    //{
+                    //    ReleaseCapture();
+                    //}
 
                     return false;
                 }

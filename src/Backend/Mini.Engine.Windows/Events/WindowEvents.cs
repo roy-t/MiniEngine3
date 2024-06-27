@@ -1,15 +1,10 @@
-﻿using System.Diagnostics;
-using Windows.Win32.Foundation;
+﻿using Windows.Win32.Foundation;
 using static Windows.Win32.PInvoke;
 
 namespace Mini.Engine.Windows.Events;
 
 public sealed class WindowEvents
 {
-    //public EventHandler<SizeEventArgs>? OnResize;
-    //public EventHandler<bool>? OnFocus;
-    //public EventHandler? OnDestroy;
-
     private readonly Dictionary<HWND, Win32Window> Windows;
 
     public WindowEvents()
@@ -22,11 +17,6 @@ public sealed class WindowEvents
         this.Windows.Add(window.Handle, window);
     }
 
-    private void Remove(Win32Window window)
-    {
-        this.Windows.Remove(window.Handle);
-    }
-
     internal void FireWindowEvents(HWND hWnd, uint msg, UIntPtr wParam, IntPtr lParam)
     {
         if (this.Windows.TryGetValue(hWnd, out var window))
@@ -34,11 +24,11 @@ public sealed class WindowEvents
             switch (msg)
             {
                 case WM_SIZE:
-                    var lp = (int)lParam;
+                    var lp = lParam.ToInt32();
                     var width = Loword(lp);
                     var height = Hiword(lp);
 
-                    switch ((uint)wParam)
+                    switch (wParam.ToUInt32())
                     {
                         case SIZE_RESTORED:
                         case SIZE_MAXIMIZED:
@@ -64,11 +54,33 @@ public sealed class WindowEvents
                     window.OnDestroyed();
                     this.Windows.Remove(window.Handle);
                     break;
+
+                case WM_LBUTTONDOWN:
+                case WM_LBUTTONDBLCLK:
+                case WM_RBUTTONDOWN:
+                case WM_RBUTTONDBLCLK:
+                case WM_MBUTTONDOWN:
+                case WM_MBUTTONDBLCLK:
+                case WM_XBUTTONDOWN:
+                case WM_XBUTTONDBLCLK:
+                    if (!window.HasMouseCapture)
+                    {
+                        SetCapture(hWnd);
+                        window.OnMouseCapture(true);
+                    }
+                    break;
+
+                case WM_LBUTTONUP:
+                case WM_RBUTTONUP:
+                case WM_MBUTTONUP:
+                case WM_XBUTTONUP:
+                    if (window.HasMouseCapture)
+                    {
+                        ReleaseCapture();
+                        window.OnMouseCapture(false);
+                    }
+                    break;
             }
-        }
-        else
-        {
-            Debug.WriteLine($"Window not registered: {msg}");
         }
     }
 
@@ -82,3 +94,4 @@ public sealed class WindowEvents
         return number >> 16;
     }
 }
+

@@ -59,6 +59,7 @@ public sealed class Win32Window : IDisposable
     public HWND Handle { get; private set; }
     public bool IsMinimized { get; private set; }
     public bool HasFocus { get; private set; }
+    public bool HasMouseCapture { get; private set; }
 
     internal void OnSizeChanged(int width, int height)
     {
@@ -75,6 +76,11 @@ public sealed class Win32Window : IDisposable
     internal void OnDestroyed()
     {
         TrySerializeWindowPosition(this.Handle);
+    }
+
+    internal void OnMouseCapture(bool hasMouseCapture)
+    {
+        this.HasMouseCapture = hasMouseCapture;
     }
 
     public void Dispose()

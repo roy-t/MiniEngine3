@@ -16,10 +16,7 @@ public static class Win32Application
 
     public static unsafe Win32Window Initialize(string title)
     {
-#nullable disable
-        var moduleHandle = GetModuleHandle((string)null);
-#nullable restore
-        var cursor = LoadCursor((HINSTANCE)IntPtr.Zero, IDC_ARROW);
+        var moduleHandle = GetModuleHandle(string.Empty);
         fixed (char* ptrClassName = "WndClass")
         {
             var wndClass = new WNDCLASSEXW
@@ -28,10 +25,10 @@ public static class Win32Application
                 style = WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW | WNDCLASS_STYLES.CS_OWNDC,
                 lpfnWndProc = &WndProc,
                 hInstance = (HINSTANCE)moduleHandle.DangerousGetHandle(),
-                hCursor = cursor,
-                hbrBackground = (global::Windows.Win32.Graphics.Gdi.HBRUSH)IntPtr.Zero,
-                hIcon = (HICON)IntPtr.Zero,
-                lpszClassName = new PCWSTR(ptrClassName)
+                hCursor = HCURSOR.Null,
+                hbrBackground = global::Windows.Win32.Graphics.Gdi.HBRUSH.Null,
+                hIcon = HICON.Null,
+                lpszClassName = new PCWSTR(ptrClassName),
             };
 
             RegisterClassEx(wndClass);

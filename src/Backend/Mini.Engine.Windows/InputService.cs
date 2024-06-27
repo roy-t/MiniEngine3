@@ -13,7 +13,8 @@ namespace Mini.Engine.Windows;
 // another caveat is that helds don't generate events, so you'll miss them if you do it in the process loop
 
 // TODO: moving the mouse a lot causes extreme slowdowns, we don't need super raw mouse input,
-// we actually only need the current mouse position, replace the whole InputService?
+// we actually only need the current mouse position, replace the whole InputService and use the regular
+// WM_SETCURSOR events? Also typing words is hard and should probably be handled by WM_CHAR instead of raw relations
 
 public sealed class InputService
 {
