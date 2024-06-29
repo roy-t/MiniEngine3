@@ -102,5 +102,3 @@ RAWINPUT
 
 // Virtual Key enum
 VIRTUAL_KEY
-
-ToUnicode
