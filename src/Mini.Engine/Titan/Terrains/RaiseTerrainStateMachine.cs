@@ -33,8 +33,8 @@ public sealed class RaiseTerrainStateMachine
     public void Update(in Rectangle viewport, in PerspectiveCamera camera, in Transform transform)
     {
         this.Input.ProcessAllEvents(this.Mouse);
-        var pressed = this.Mouse.Pressed(MouseButtons.Left);
-        var held = this.Mouse.Held(MouseButtons.Left);
+        var pressed = this.Mouse.Pressed(MouseButton.Left);
+        var held = this.Mouse.Held(MouseButton.Left);
 
         if (this.state == State.Select)
         {

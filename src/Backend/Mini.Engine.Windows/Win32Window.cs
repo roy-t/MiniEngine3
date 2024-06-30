@@ -1,12 +1,13 @@
 ﻿using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Json;
+using Mini.Engine.Windows.Events;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 using static Windows.Win32.PInvoke;
 
 namespace Mini.Engine.Windows;
 
-public sealed class Win32Window : IDisposable
+public sealed class Win32Window : IWindowEventListener, IDisposable
 {
     private const string WindowSettingsFile = "window.json";
 
@@ -61,24 +62,24 @@ public sealed class Win32Window : IDisposable
     public bool HasFocus { get; private set; }
     public bool HasMouseCapture { get; private set; }
 
-    internal void OnSizeChanged(int width, int height)
+    public void OnSizeChanged(int width, int height)
     {
         this.IsMinimized = width == 0 && height == 0;
         this.Width = width;
         this.Height = height;
     }
 
-    internal void OnFocusChanged(bool hasFocus)
+    public void OnFocusChanged(bool hasFocus)
     {
         this.HasFocus = hasFocus;
     }
 
-    internal void OnDestroyed()
+    public void OnDestroyed()
     {
         TrySerializeWindowPosition(this.Handle);
     }
 
-    internal void OnMouseCapture(bool hasMouseCapture)
+    public void OnMouseCapture(bool hasMouseCapture)
     {
         this.HasMouseCapture = hasMouseCapture;
     }

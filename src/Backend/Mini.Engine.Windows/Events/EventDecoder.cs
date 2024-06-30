@@ -5,16 +5,16 @@ internal static class EventDecoder
 {
     private const int WheelDelta = 120;
 
-    public static MouseButtons GetMouseButton(uint msg, UIntPtr wParam, IntPtr lParam)
+    public static MouseButton GetMouseButton(uint msg, UIntPtr wParam, IntPtr lParam)
     {
         return msg switch
         {
-            WM_LBUTTONDOWN or WM_LBUTTONDBLCLK or WM_LBUTTONUP => MouseButtons.Left,
-            WM_RBUTTONDOWN or WM_RBUTTONDBLCLK or WM_RBUTTONUP => MouseButtons.Right,
-            WM_MBUTTONDOWN or WM_MBUTTONDBLCLK or WM_MBUTTONUP => MouseButtons.Middle,
+            WM_LBUTTONDOWN or WM_LBUTTONDBLCLK or WM_LBUTTONUP => MouseButton.Left,
+            WM_RBUTTONDOWN or WM_RBUTTONDBLCLK or WM_RBUTTONUP => MouseButton.Right,
+            WM_MBUTTONDOWN or WM_MBUTTONDBLCLK or WM_MBUTTONUP => MouseButton.Middle,
             WM_XBUTTONDOWN or WM_XBUTTONDBLCLK or WM_XBUTTONUP => GetXButtonWParam(wParam) == 1
-                                ? MouseButtons.Four
-                                : MouseButtons.Five,
+                                ? MouseButton.Four
+                                : MouseButton.Five,
             _ => throw new ArgumentOutOfRangeException(nameof(msg)),
         };
     }
@@ -22,6 +22,11 @@ internal static class EventDecoder
     public static float GetMouseWheelDelta(UIntPtr wParam)
     {
         return GetWheelDelta(wParam) / WheelDelta;
+    }
+
+    public static VirtualKeyCode GetKeyCode(UIntPtr wParam)
+    {
+        return new VirtualKeyCode((byte)wParam);
     }
 
     private static int GetXButtonWParam(UIntPtr wParam)

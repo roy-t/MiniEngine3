@@ -11,7 +11,7 @@ public static class Win32Application
 {
     public static readonly RawEvents RawEvents = new RawEvents();
 
-    private static readonly WindowEvents WindowEvents = new WindowEvents();
+    private static readonly ProcessEvents ProcessEvents = new ProcessEvents();
 
 
     public static unsafe Win32Window Initialize(string title)
@@ -35,7 +35,7 @@ public static class Win32Application
         }
 
         var window = new Win32Window(title);
-        WindowEvents.Register(window);
+        ProcessEvents.Register(window);
         window.Show(true);
         return window;
     }
@@ -74,7 +74,7 @@ public static class Win32Application
 
         // TODO: maybe we can move the input classes here and make ImGui use RawInputController?
         RawEvents.FireWindowEvents(hWnd, msg, wParam, lParam);
-        WindowEvents.FireWindowEvents(hWnd, msg, wParam, lParam);
+        ProcessEvents.FireWindowEvents(hWnd, msg, wParam, lParam);
         switch (msg)
         {
             case WM_DESTROY:

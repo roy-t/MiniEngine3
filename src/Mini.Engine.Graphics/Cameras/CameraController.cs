@@ -95,7 +95,7 @@ public sealed class CameraController
             movement += this.Mouse.Movement;
             scroll += this.Mouse.ScrolledUp ? 1 : 0;
             scroll -= this.Mouse.ScrolledDown ? 1 : 0;
-            rightButtonDown |= this.Mouse.Held(MouseButtons.Right);
+            rightButtonDown |= this.Mouse.Held(MouseButton.Right);
         }
 
         if (movement.LengthSquared() > 0 && rightButtonDown)

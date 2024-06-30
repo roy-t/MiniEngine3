@@ -3,7 +3,7 @@ using Windows.Win32.UI.Input;
 
 namespace Mini.Engine.Windows;
 
-public enum MouseButtons : ushort
+public enum MouseButton : ushort
 {
     Left = 0,
     Right = 1,
@@ -23,7 +23,7 @@ public sealed class Mouse : InputDevice
 
     private Direction scrollDirection;
 
-    public Mouse() : base(Enum.GetValues<MouseButtons>().Length) { }
+    public Mouse() : base(Enum.GetValues<MouseButton>().Length) { }
 
     /// <summary>
     /// Relative movement per event, higher DPI mice send more events per inch moved
@@ -43,7 +43,7 @@ public sealed class Mouse : InputDevice
     /// <summary>
     /// If the given button state changed to pressed this event
     /// </summary>        
-    public bool Pressed(MouseButtons button)
+    public bool Pressed(MouseButton button)
     {
         return this.States[(int)button] == InputState.Pressed;
     }
@@ -51,7 +51,7 @@ public sealed class Mouse : InputDevice
     /// <summary>
     /// If the given button was pressed both the previous and current event
     /// </summary>        
-    public bool Held(MouseButtons button)
+    public bool Held(MouseButton button)
     {
         return this.States[(int)button] == InputState.Held;
     }
@@ -59,7 +59,7 @@ public sealed class Mouse : InputDevice
     /// <summary>
     /// If the given button state changed to released this event
     /// </summary>
-    public bool Released(MouseButtons button)
+    public bool Released(MouseButton button)
     {
         return this.States[(int)button] == InputState.Released;
     }
@@ -67,7 +67,7 @@ public sealed class Mouse : InputDevice
     internal override void NextFrame()
     {
         this.scrollDirection = Direction.None;
-        this.Movement = Vector2.Zero;        
+        this.Movement = Vector2.Zero;
 
         Decay(this.States);
     }
@@ -76,38 +76,38 @@ public sealed class Mouse : InputDevice
     {
         this.Movement = MouseDecoder.GetPosition(input);
         var buttons = MouseDecoder.GetButtons(input);
-                
+
         switch (buttons)
         {
             case ButtonFlags.LeftDown:
-                if (hasFocus) { this.States[(int)MouseButtons.Left] = InputState.Pressed; }
+                if (hasFocus) { this.States[(int)MouseButton.Left] = InputState.Pressed; }
                 break;
             case ButtonFlags.LeftUp:
-                this.States[(int)MouseButtons.Left] = InputState.Released;
+                this.States[(int)MouseButton.Left] = InputState.Released;
                 break;
             case ButtonFlags.RightDown:
-                if (hasFocus) { this.States[(int)MouseButtons.Right] = InputState.Pressed; }
+                if (hasFocus) { this.States[(int)MouseButton.Right] = InputState.Pressed; }
                 break;
             case ButtonFlags.RightUp:
-                this.States[(int)MouseButtons.Right] = InputState.Released;
+                this.States[(int)MouseButton.Right] = InputState.Released;
                 break;
             case ButtonFlags.MiddleDown:
-                if (hasFocus) { this.States[(int)MouseButtons.Middle] = InputState.Pressed; }
+                if (hasFocus) { this.States[(int)MouseButton.Middle] = InputState.Pressed; }
                 break;
             case ButtonFlags.MiddleUp:
-                this.States[(int)MouseButtons.Middle] = InputState.Released;
+                this.States[(int)MouseButton.Middle] = InputState.Released;
                 break;
             case ButtonFlags.Button4Down:
-                if (hasFocus) { this.States[(int)MouseButtons.Four] = InputState.Pressed; }
+                if (hasFocus) { this.States[(int)MouseButton.Four] = InputState.Pressed; }
                 break;
             case ButtonFlags.Button4Up:
-                this.States[(int)MouseButtons.Four] = InputState.Released;
+                this.States[(int)MouseButton.Four] = InputState.Released;
                 break;
             case ButtonFlags.Button5Down:
-                if (hasFocus) { this.States[(int)MouseButtons.Five] = InputState.Pressed; }
+                if (hasFocus) { this.States[(int)MouseButton.Five] = InputState.Pressed; }
                 break;
             case ButtonFlags.Button5Up:
-                this.States[(int)MouseButtons.Five] = InputState.Released;
+                this.States[(int)MouseButton.Five] = InputState.Released;
                 break;
             case ButtonFlags.MouseWheel:
                 if (hasFocus)

@@ -5,37 +5,48 @@ namespace Mini.Engine.Windows.Events;
 
 public interface IInputEventListener
 {
-    void OnButtonDown(MouseButtons button);
-    void OnButtonUp(MouseButtons button);
+    void OnButtonDown(MouseButton button);
+    void OnButtonUp(MouseButton button);
     void OnScroll(float v);
     void OnHScroll(float v);
     void OnChar(char wParam);
+    void OnKeyDown(VirtualKeyCode virtualKeyCode);
+    void OnKeyUp(VirtualKeyCode virtualKeyCode);
 }
 
-public sealed class WindowEvents
+public interface IWindowEventListener
 {
-    private readonly Dictionary<HWND, Win32Window> Windows;
+    bool HasMouseCapture { get; }
+    void OnSizeChanged(int width, int height);
+    void OnFocusChanged(bool hasFocus);
+    void OnDestroyed();
+    void OnMouseCapture(bool hasMouseCapture);
+}
+
+public sealed class ProcessEvents
+{
+    private readonly Dictionary<HWND, IWindowEventListener> WindowEventListeners;
     private readonly Dictionary<HWND, IInputEventListener> InputEventListeners;
 
-    public WindowEvents()
+    public ProcessEvents()
     {
-        this.Windows = new Dictionary<HWND, Win32Window>();
+        this.WindowEventListeners = new Dictionary<HWND, IWindowEventListener>();
         this.InputEventListeners = new Dictionary<HWND, IInputEventListener>();
     }
 
     public void Register(Win32Window window)
     {
-        this.Windows.Add(window.Handle, window);
+        this.WindowEventListeners.Add(window.Handle, window);
     }
 
-    public void Register(Win32Window window, IInputEventListener listener)
+    public void Register(HWND windowHandle, IInputEventListener listener)
     {
-        this.InputEventListeners.Add(window.Handle, listener);
+        this.InputEventListeners.Add(windowHandle, listener);
     }
 
     internal void FireWindowEvents(HWND hWnd, uint msg, UIntPtr wParam, IntPtr lParam)
     {
-        this.Windows.TryGetValue(hWnd, out var window);
+        this.WindowEventListeners.TryGetValue(hWnd, out var window);
         this.InputEventListeners.TryGetValue(hWnd, out var listener);
 
         switch (msg)
@@ -72,7 +83,7 @@ public sealed class WindowEvents
                 if (window != null)
                 {
                     window.OnDestroyed();
-                    this.Windows.Remove(window.Handle);
+                    this.WindowEventListeners.Remove(hWnd);
                 }
                 break;
 
@@ -91,11 +102,7 @@ public sealed class WindowEvents
                     window.OnMouseCapture(true);
                 }
 
-                if (listener != null)
-                {
-                    var button = EventDecoder.GetMouseButton(msg, wParam, lParam);
-                    listener.OnButtonDown(button);
-                }
+                listener?.OnButtonDown(EventDecoder.GetMouseButton(msg, wParam, lParam));
                 break;
 
             case WM_LBUTTONUP:
@@ -108,38 +115,37 @@ public sealed class WindowEvents
                     window.OnMouseCapture(false);
                 }
 
-                if (listener != null)
-                {
-                    var button = EventDecoder.GetMouseButton(msg, wParam, lParam);
-                    listener.OnButtonUp(button);
-                }
+                listener?.OnButtonUp(EventDecoder.GetMouseButton(msg, wParam, lParam));
                 break;
 
 
             case WM_MOUSEWHEEL:
-                if (listener != null)
-                {
-                    listener.OnScroll(EventDecoder.GetMouseWheelDelta(wParam));
-                }
+                listener?.OnScroll(EventDecoder.GetMouseWheelDelta(wParam));
                 break;
 
             case WM_MOUSEHWHEEL:
-                if (listener != null)
-                {
-                    listener.OnHScroll(EventDecoder.GetMouseWheelDelta(wParam));
-                }
+                listener?.OnHScroll(EventDecoder.GetMouseWheelDelta(wParam));
                 break;
 
             // Keyboard
             case WM_CHAR:
-                if (listener != null)
-                {
-                    // TODO: is this always correct?
-                    listener.OnChar((char)wParam);
-                }
+                listener?.OnChar((char)wParam);
                 break;
 
-                // TODO: key down/up
+
+            case WM_KEYDOWN:
+            case WM_SYSKEYDOWN:
+                listener?.OnKeyDown(EventDecoder.GetKeyCode(wParam));
+                break;
+            case WM_KEYUP:
+            case WM_SYSKEYUP:
+                listener?.OnKeyUp(EventDecoder.GetKeyCode(wParam));
+                break;
+
+            case WM_SETCURSOR:
+                // TODO: We ignore WM_SETCURSOR, but that might be useful in the future to detect when a uncaptured mouse
+                // first enters the screen so that we can change the cursor icon.
+                break;
 
         }
     }

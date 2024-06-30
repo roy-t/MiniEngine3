@@ -3,6 +3,8 @@ using Windows.Win32.UI.Input;
 
 namespace Mini.Engine.Windows;
 
+public readonly record struct VirtualKeyCode(byte Value);
+
 public sealed class Keyboard : InputDevice
 {
     public Keyboard() : base(256) { }
