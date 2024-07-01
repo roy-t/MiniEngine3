@@ -7,11 +7,11 @@ public interface IInputEventListener
 {
     void OnButtonDown(MouseButton button);
     void OnButtonUp(MouseButton button);
-    void OnScroll(float v);
-    void OnHScroll(float v);
-    void OnChar(char wParam);
-    void OnKeyDown(VirtualKeyCode virtualKeyCode);
-    void OnKeyUp(VirtualKeyCode virtualKeyCode);
+    void OnScroll(float delta);
+    void OnHScroll(float delta);
+    void OnChar(char character);
+    void OnKeyDown(VirtualKeyCode key);
+    void OnKeyUp(VirtualKeyCode key);
 }
 
 public interface IWindowEventListener
