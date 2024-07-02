@@ -19,6 +19,8 @@ public static class Win32Application
         var moduleHandle = GetModuleHandle(string.Empty);
         fixed (char* ptrClassName = "WndClass")
         {
+            var cursor = LoadCursor((HINSTANCE)IntPtr.Zero, IDC_ARROW);
+
             var wndClass = new WNDCLASSEXW
             {
                 cbSize = (uint)Marshal.SizeOf<WNDCLASSEXW>(),
@@ -37,7 +39,31 @@ public static class Win32Application
         var window = new Win32Window(title);
         ProcessEvents.Register(window);
         window.Show(true);
+
+        SetMouseCursor(Cursor.Arrow);
+
         return window;
+    }
+
+    public static void RegisterInputEventListener(Win32Window window, IInputEventListener listener)
+    {
+        ProcessEvents.Register(window.Handle, listener);
+    }
+
+
+    public static void SetMouseCursor(Cursor cursor)
+    {
+        if (cursor == Cursor.Default)
+        {
+            SetCursor(null);
+        }
+
+        unsafe
+        {
+            PCWSTR resource = (char*)(int)cursor;
+            var hCursor = LoadCursor((HINSTANCE)IntPtr.Zero, resource);
+            SetCursor(hCursor);
+        }
     }
 
     public static void RegisterMessageListener(uint message, Action<UIntPtr, IntPtr> handler)

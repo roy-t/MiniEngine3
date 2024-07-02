@@ -21,6 +21,8 @@ public interface IWindowEventListener
     void OnFocusChanged(bool hasFocus);
     void OnDestroyed();
     void OnMouseCapture(bool hasMouseCapture);
+    void OnMouseMove();
+    void OnMouseLeave();
 }
 
 public sealed class ProcessEvents
@@ -140,6 +142,14 @@ public sealed class ProcessEvents
             case WM_KEYUP:
             case WM_SYSKEYUP:
                 listener?.OnKeyUp(EventDecoder.GetKeyCode(wParam));
+                break;
+
+            case WM_MOUSEMOVE:
+                window?.OnMouseMove();
+                break;
+
+            case WM_MOUSELEAVE:
+                window?.OnMouseLeave();
                 break;
 
             case WM_SETCURSOR:

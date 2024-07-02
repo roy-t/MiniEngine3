@@ -1,7 +1,9 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Json;
 using Mini.Engine.Windows.Events;
 using Windows.Win32.Foundation;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
 using static Windows.Win32.PInvoke;
 
@@ -10,6 +12,10 @@ namespace Mini.Engine.Windows;
 public sealed class Win32Window : IWindowEventListener, IDisposable
 {
     private const string WindowSettingsFile = "window.json";
+
+    private bool isCursorDirty = true;
+    private bool isMouseInsideWindowBorders = false;
+    private Vector2 cursorPosition;
 
     internal unsafe Win32Window(string title)
     {
@@ -52,6 +58,8 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
         }
 
         ShowWindow(this.Handle, show);
+
+        this.isCursorDirty = true;
     }
 
     public string Title { get; }
@@ -82,6 +90,51 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
     public void OnMouseCapture(bool hasMouseCapture)
     {
         this.HasMouseCapture = hasMouseCapture;
+    }
+
+    public void OnMouseMove()
+    {
+        this.isCursorDirty = true;
+        if (!this.isMouseInsideWindowBorders)
+        {
+            Win32Application.SetMouseCursor(Cursor.Arrow);
+            this.isMouseInsideWindowBorders = true;
+        }
+
+        unsafe
+        {
+            var tme = new TRACKMOUSEEVENT()
+            {
+                cbSize = (uint)Marshal.SizeOf<TRACKMOUSEEVENT>(),
+                dwFlags = TRACKMOUSEEVENT_FLAGS.TME_LEAVE,
+                hwndTrack = this.Handle,
+            };
+            TrackMouseEvent(ref tme);
+        }
+    }
+
+    public void OnMouseLeave()
+    {
+        this.isMouseInsideWindowBorders = false;
+        Win32Application.SetMouseCursor(Cursor.Default);
+    }
+
+    public Vector2 GetCursorPosition()
+    {
+        if (this.isCursorDirty && GetCursorPos(out var pos) && ScreenToClient(this.Handle, ref pos))
+        {
+            this.cursorPosition = new Vector2(pos.X, pos.Y);
+            this.isCursorDirty = true;
+        }
+
+        return this.cursorPosition;
+    }
+
+    public void SetCursorPosition(Vector2 position)
+    {
+        var pos = new System.Drawing.Point((int)position.X, (int)position.Y);
+        ClientToScreen(this.Handle, ref pos);
+        SetCursorPos(pos.X, pos.Y);
     }
 
     public void Dispose()

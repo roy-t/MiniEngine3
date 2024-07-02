@@ -13,6 +13,9 @@ IDC_SIZENS
 IDC_SIZENWSE
 IDC_SIZEWE
 
+// Make more cursors
+MAKEINTRESOURCE
+
 // MapVirtualKey uMapType constants that governs the translation used
 MAP_VIRTUAL_KEY_TYPE
 
@@ -34,6 +37,8 @@ WM_LBUTTONDOWN
 WM_LBUTTONUP
 WM_MBUTTONDBLCLK
 WM_MBUTTONDOWN
+WM_MOUSEMOVE
+WM_MOUSELEAVE
 WM_MBUTTONUP
 WM_MOUSEHWHEEL
 WM_MOUSEWHEEL
@@ -49,6 +54,8 @@ WM_SYSKEYUP
 WM_XBUTTONDBLCLK
 WM_XBUTTONDOWN
 WM_XBUTTONUP
+
+TrackMouseEvent
 
 //////////////////////////////////////////
 // Windows.Win32.PInvoke
