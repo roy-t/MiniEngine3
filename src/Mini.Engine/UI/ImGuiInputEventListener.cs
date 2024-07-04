@@ -8,6 +8,7 @@ namespace Mini.Engine.UI;
 // https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_win32.cpp
 public sealed class ImGuiInputEventListener : IInputEventListener
 {
+    private const float WHEEL_DELTA = 120.0f;
     private static readonly int VK_SHIFT = 0x10;
     private static readonly int VK_CONTROL = 0x11;
     private static readonly int VK_ALT = 0x12;
@@ -123,16 +124,16 @@ public sealed class ImGuiInputEventListener : IInputEventListener
         io.AddInputCharacter(character);
     }
 
-    public void OnScroll(float delta)
+    public void OnScroll(int delta)
     {
         var io = ImGui.GetIO();
-        io.MouseWheel += delta;
+        io.MouseWheel += (delta / WHEEL_DELTA);
     }
 
-    public void OnHScroll(float delta)
+    public void OnHScroll(int delta)
     {
         var io = ImGui.GetIO();
-        io.MouseWheelH += delta;
+        io.MouseWheelH += (delta / WHEEL_DELTA);
     }
 
     public void OnKeyDown(VirtualKeyCode key)

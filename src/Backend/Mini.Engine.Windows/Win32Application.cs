@@ -9,10 +9,7 @@ namespace Mini.Engine.Windows;
 
 public static class Win32Application
 {
-    public static readonly RawEvents RawEvents = new RawEvents();
-
     private static readonly EventProcessor ProcessEvents = new EventProcessor();
-
 
     public static unsafe Win32Window Initialize(string title)
     {
@@ -64,17 +61,6 @@ public static class Win32Application
             var hCursor = LoadCursor((HINSTANCE)IntPtr.Zero, resource);
             SetCursor(hCursor);
         }
-    }
-
-    public static void RegisterMessageListener(uint message, Action<UIntPtr, IntPtr> handler)
-    {
-        RawEvents.OnEvent += (o, e) =>
-        {
-            if (e.Msg == message)
-            {
-                handler(e.WParam, e.LParam);
-            }
-        };
     }
 
     public static bool PumpMessages()
