@@ -11,7 +11,7 @@ public static class Win32Application
 {
     public static readonly RawEvents RawEvents = new RawEvents();
 
-    private static readonly ProcessEvents ProcessEvents = new ProcessEvents();
+    private static readonly EventProcessor ProcessEvents = new EventProcessor();
 
 
     public static unsafe Win32Window Initialize(string title)

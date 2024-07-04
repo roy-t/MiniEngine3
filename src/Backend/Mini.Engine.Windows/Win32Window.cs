@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Json;
 using Mini.Engine.Windows.Events;
 using Windows.Win32.Foundation;
-using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
 using static Windows.Win32.PInvoke;
 
@@ -14,7 +13,6 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
     private const string WindowSettingsFile = "window.json";
 
     private bool isCursorDirty = true;
-    private bool isMouseInsideWindowBorders = false;
     private Vector2 cursorPosition;
 
     internal unsafe Win32Window(string title)
@@ -68,7 +66,6 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
     public HWND Handle { get; private set; }
     public bool IsMinimized { get; private set; }
     public bool HasFocus { get; private set; }
-    public bool HasMouseCapture { get; private set; }
 
     public void OnSizeChanged(int width, int height)
     {
@@ -87,35 +84,18 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
         TrySerializeWindowPosition(this.Handle);
     }
 
-    public void OnMouseCapture(bool hasMouseCapture)
-    {
-        this.HasMouseCapture = hasMouseCapture;
-    }
-
     public void OnMouseMove()
     {
         this.isCursorDirty = true;
-        if (!this.isMouseInsideWindowBorders)
-        {
-            Win32Application.SetMouseCursor(Cursor.Arrow);
-            this.isMouseInsideWindowBorders = true;
-        }
+    }
 
-        unsafe
-        {
-            var tme = new TRACKMOUSEEVENT()
-            {
-                cbSize = (uint)Marshal.SizeOf<TRACKMOUSEEVENT>(),
-                dwFlags = TRACKMOUSEEVENT_FLAGS.TME_LEAVE,
-                hwndTrack = this.Handle,
-            };
-            TrackMouseEvent(ref tme);
-        }
+    public void OnMouseEnter()
+    {
+        Win32Application.SetMouseCursor(Cursor.Arrow);
     }
 
     public void OnMouseLeave()
     {
-        this.isMouseInsideWindowBorders = false;
         Win32Application.SetMouseCursor(Cursor.Default);
     }
 

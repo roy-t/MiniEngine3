@@ -13,9 +13,6 @@ IDC_SIZENS
 IDC_SIZENWSE
 IDC_SIZEWE
 
-// Make more cursors
-MAKEINTRESOURCE
-
 // MapVirtualKey uMapType constants that governs the translation used
 MAP_VIRTUAL_KEY_TYPE
 

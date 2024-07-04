@@ -13,7 +13,6 @@ namespace Mini.Engine.UI;
 public sealed class UICore : IDisposable
 {
     private readonly ImGuiRenderer Renderer;
-    //private readonly ImGuiInputHandler Input;
     private readonly ImGuiInputEventListener Input;
     private readonly ImGuiIOPtr IO;
     private readonly Stopwatch Stopwatch;
@@ -24,7 +23,6 @@ public sealed class UICore : IDisposable
 
         this.IO = ImGui.GetIO();
         this.Renderer = new ImGuiRenderer(device, textureRegistry, shader);
-        //this.Input = new ImGuiInputHandler(window.Handle);
         this.Input = new ImGuiInputEventListener(window);
         Win32Application.RegisterInputEventListener(window, this.Input);
 
