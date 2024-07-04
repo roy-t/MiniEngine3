@@ -9,7 +9,7 @@ namespace Mini.Engine.Windows;
 
 public static class Win32Application
 {
-    private static readonly EventProcessor ProcessEvents = new EventProcessor();
+    private static readonly EventProcessor EventProcessor = new EventProcessor();
 
     public static unsafe Win32Window Initialize(string title)
     {
@@ -34,7 +34,7 @@ public static class Win32Application
         }
 
         var window = new Win32Window(title);
-        ProcessEvents.Register(window);
+        EventProcessor.Register(window.Handle, window);
         window.Show(true);
 
         SetMouseCursor(Cursor.Arrow);
@@ -44,9 +44,8 @@ public static class Win32Application
 
     public static void RegisterInputEventListener(Win32Window window, IInputEventListener listener)
     {
-        ProcessEvents.Register(window.Handle, listener);
+        EventProcessor.Register(window.Handle, listener);
     }
-
 
     public static void SetMouseCursor(Cursor cursor)
     {
@@ -81,24 +80,13 @@ public static class Win32Application
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
     public static LRESULT WndProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam)
     {
-        // TODO: ideally we never want to expose these events, right now its necessary for input
-        // but we should replace it with input system similar to what ImGui uses
-
-        // TODO: maybe we can move the input classes here and make ImGui use RawInputController?
-        RawEvents.FireWindowEvents(hWnd, msg, wParam, lParam);
-        ProcessEvents.FireWindowEvents(hWnd, msg, wParam, lParam);
+        EventProcessor.FireWindowEvents(hWnd, msg, wParam, lParam);
         switch (msg)
         {
             case WM_DESTROY:
                 PostQuitMessage(0);
                 break;
         }
-
-
-        // TODO: move the stuff from the IMGUI WndProc here, taking care of capturing and uncapturing the mouse
-        // add a method for setting the cursor
-        // if we do everything well we no longer have to expose the method below and the ImGuiInputHandler can do everything
-        // via an api with this application!
 
         return DefWindowProc(hWnd, msg, wParam, lParam);
     }

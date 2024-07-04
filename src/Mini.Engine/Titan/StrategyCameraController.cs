@@ -8,18 +8,16 @@ using Mini.Engine.Graphics.Cameras;
 using Mini.Engine.Windows;
 using Vortice.Mathematics;
 
-using static Windows.Win32.UI.Input.KeyboardAndMouse.VIRTUAL_KEY;
-
 namespace Mini.Engine.Titan;
 
 [Service]
 internal sealed class StrategyCameraController
 {
-    private static readonly ushort KeyReset = InputService.GetScanCode(VK_R);
-    private static readonly ushort KeyRotateUp = InputService.GetScanCode(VK_OEM_7); // '
-    private static readonly ushort KeyRotateDown = InputService.GetScanCode(VK_OEM_2); // ?
-    private static readonly ushort KeyRotateCW = InputService.GetScanCode(VK_OEM_COMMA);
-    private static readonly ushort KeyRotateCCW = InputService.GetScanCode(VK_OEM_PERIOD);
+    private static readonly VirtualKeyCode KeyReset = VirtualKeyCode.VK_R;
+    private static readonly VirtualKeyCode KeyRotateUp = VirtualKeyCode.VK_OEM_7; // '
+    private static readonly VirtualKeyCode KeyRotateDown = VirtualKeyCode.VK_OEM_2; // ?
+    private static readonly VirtualKeyCode KeyRotateCW = VirtualKeyCode.VK_OEM_COMMA;
+    private static readonly VirtualKeyCode KeyRotateCCW = VirtualKeyCode.VK_OEM_PERIOD;
 
     private const float DistanceMin = 10.0f;
     private const float DistanceMax = 1000.0f;
@@ -27,20 +25,18 @@ internal sealed class StrategyCameraController
     private const float ClimbSpeed = 1.0f;
     private const float RotateSpeed = MathHelper.TwoPi * 0.5f;
 
-    private readonly InputService InputService;
-    private readonly Keyboard Keyboard;
-    private readonly Mouse Mouse;
+    private readonly SimpleKeyboard Keyboard;
+    private readonly SimpleMouse Mouse;
 
     private Vector3 target;
     private float slope;
     private float rotation;
     private float distance;
 
-    public StrategyCameraController(Device device, InputService inputService)
+    public StrategyCameraController(Device device, SimpleInputService inputService)
     {
-        this.Keyboard = new Keyboard();
-        this.Mouse = new Mouse();
-        this.InputService = inputService;
+        this.Keyboard = inputService.Keyboard;
+        this.Mouse = inputService.Mouse;
         this.Camera = CreateCamera(device.Width, device.Height);
 
         this.ResetParameters();
@@ -56,7 +52,6 @@ internal sealed class StrategyCameraController
 
     public void Update(float elapsedRealWorldTime, in Rectangle viewport)
     {
-        this.InputService.ProcessAllEvents(this.Keyboard);
         if (this.Keyboard.Pressed(KeyReset))
         {
             this.ResetParameters();
@@ -73,19 +68,7 @@ internal sealed class StrategyCameraController
         slopeAccumulator -= this.Keyboard.AsFloat(InputState.Held, KeyRotateDown);
         this.slope = Math.Clamp(this.slope + (slopeAccumulator * elapsedRealWorldTime * ClimbSpeed), 0.1f, 0.9f);
 
-        var scrollAccumulator = 0.0f;
-        while (this.InputService.ProcessEvents(this.Mouse))
-        {
-            if (this.Mouse.ScrolledDown)
-            {
-                scrollAccumulator -= 1.0f;
-            }
-
-            if (this.Mouse.ScrolledUp)
-            {
-                scrollAccumulator += 1.0f;
-            }
-        }
+        var scrollAccumulator = (float)this.Mouse.ScrollDelta;
         scrollAccumulator = Math.Clamp(scrollAccumulator, -1.0f, 1.0f);
         var zoomProgress = Ranges.Map(this.distance, (0.0f, DistanceMax), (0.0f, 1.0f));
         this.UpdateTarget(scrollAccumulator * zoomProgress * ZoomSpeed * 0.5f, in viewport);
@@ -118,7 +101,7 @@ internal sealed class StrategyCameraController
     {
         if (distanceChange != 0.0f)
         {
-            var cursor = this.InputService.GetCursorPosition();
+            var cursor = this.Mouse.Position;
             if (IsMouseCursorInsideViewport(cursor, in viewport))
             {
                 if (distanceChange < 0.0f)

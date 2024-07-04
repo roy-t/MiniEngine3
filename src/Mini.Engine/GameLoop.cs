@@ -8,19 +8,17 @@ using Mini.Engine.Graphics;
 using Mini.Engine.Graphics.PostProcessing;
 using Mini.Engine.UI;
 using Mini.Engine.Windows;
-using static Windows.Win32.UI.Input.KeyboardAndMouse.VIRTUAL_KEY;
 
 namespace Mini.Engine;
 
 [Service]
 internal sealed class GameLoop : IGameLoop
 {
-    private static readonly ushort F1 = InputService.GetScanCode(VK_F1);
+    private static readonly VirtualKeyCode F1 = VirtualKeyCode.VK_F1;
 
     private readonly Device Device;
     private readonly EditorUserInterface UserInterface;
-    private readonly InputService InputService;
-    private readonly Keyboard Keyboard;
+    private readonly SimpleKeyboard Keyboard;
 
     private readonly MetricService MetricService;
     private readonly LifetimeManager LifetimeManager;
@@ -36,12 +34,11 @@ internal sealed class GameLoop : IGameLoop
     private bool enableUI;
     private readonly Stopwatch Stopwatch;
 
-    public GameLoop(Device device, EditorUserInterface userInterface, InputService inputService, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, Scenes.SceneManager sceneManager, FrameService frameService, ContentManager content, MetricService metricService, RenderPipeline renderPipelineV2, UpdatePipeline updatePipelineV2)
+    public GameLoop(Device device, EditorUserInterface userInterface, SimpleInputService inputService, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, Scenes.SceneManager sceneManager, FrameService frameService, ContentManager content, MetricService metricService, RenderPipeline renderPipelineV2, UpdatePipeline updatePipelineV2)
     {
         this.Device = device;
         this.UserInterface = userInterface;
-        this.InputService = inputService;
-        this.Keyboard = new Keyboard();
+        this.Keyboard = inputService.Keyboard;
 
         this.LifetimeManager = lifetimeManager;
         this.EditorState = editorState;
@@ -77,12 +74,9 @@ internal sealed class GameLoop : IGameLoop
 
     public void HandleInput(float elapsedRealWorldTime)
     {
-        while (this.InputService.ProcessEvents(this.Keyboard))
+        if (this.Keyboard.Pressed(F1))
         {
-            if (this.Keyboard.Pressed(F1))
-            {
-                this.enableUI = !this.enableUI;
-            }
+            this.enableUI = !this.enableUI;
         }
     }
 

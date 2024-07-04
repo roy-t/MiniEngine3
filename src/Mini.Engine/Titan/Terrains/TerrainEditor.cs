@@ -28,7 +28,7 @@ public sealed class TerrainEditor : IDisposable
 
     private readonly RaiseTerrainStateMachine RaiseTerrain;
 
-    public TerrainEditor(Device device, Shader shader, Terrain terrain, InputService input)
+    public TerrainEditor(Device device, Shader shader, Terrain terrain, SimpleInputService input)
     {
         this.Layout = shader.CreateInputLayoutForVs(GizmoVertex.Elements);
 

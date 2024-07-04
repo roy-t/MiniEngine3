@@ -4,19 +4,17 @@ using LibGame.Physics;
 using Mini.Engine.Configuration;
 using Mini.Engine.Windows;
 
-using static Windows.Win32.UI.Input.KeyboardAndMouse.VIRTUAL_KEY;
-
 namespace Mini.Engine.Graphics.Cameras;
 [Service]
 public sealed class CameraController
 {
-    private static readonly ushort CodeLeft = InputService.GetScanCode(VK_A);
-    private static readonly ushort CodeRight = InputService.GetScanCode(VK_D);
-    private static readonly ushort CodeForward = InputService.GetScanCode(VK_W);
-    private static readonly ushort CodeBackward = InputService.GetScanCode(VK_S);
-    private static readonly ushort CodeUp = InputService.GetScanCode(VK_SPACE);
-    private static readonly ushort CodeDown = InputService.GetScanCode(VK_C);
-    private static readonly ushort CodeReset = InputService.GetScanCode(VK_R);
+    private static readonly VirtualKeyCode CodeLeft = VirtualKeyCode.VK_A;
+    private static readonly VirtualKeyCode CodeRight = VirtualKeyCode.VK_D;
+    private static readonly VirtualKeyCode CodeForward = VirtualKeyCode.VK_W;
+    private static readonly VirtualKeyCode CodeBackward = VirtualKeyCode.VK_S;
+    private static readonly VirtualKeyCode CodeUp = VirtualKeyCode.VK_SPACE;
+    private static readonly VirtualKeyCode CodeDown = VirtualKeyCode.VK_C;
+    private static readonly VirtualKeyCode CodeReset = VirtualKeyCode.VK_R;
 
     private const float MinLinearVelocity = 1.0f;
     private const float MaxLinearVelocity = 25.0f;
@@ -25,17 +23,15 @@ public sealed class CameraController
 
     private float linearVelocity = 5.0f;
 
-    private readonly Mouse Mouse;
-    private readonly Keyboard Keyboard;
-    private readonly InputService InputController;
+    private readonly SimpleKeyboard Keyboard;
+    private readonly SimpleMouse Mouse;
     private readonly Stopwatch Stopwatch;
 
-    public CameraController(InputService inputController)
+    public CameraController(SimpleInputService inputController)
     {
-        this.InputController = inputController;
+        this.Keyboard = inputController.Keyboard;
+        this.Mouse = inputController.Mouse;
 
-        this.Mouse = new Mouse();
-        this.Keyboard = new Keyboard();
         this.Stopwatch = Stopwatch.StartNew();
     }
 
@@ -44,11 +40,8 @@ public sealed class CameraController
         var elapsed = (float)this.Stopwatch.Elapsed.TotalSeconds;
         this.Stopwatch.Restart();
 
-        var reset = false;
-        while (this.InputController.ProcessEvents(this.Keyboard))
-        {
-            reset |= this.Keyboard.Pressed(CodeReset);
-        }
+        var reset = this.Keyboard.Pressed(CodeReset);
+
 
         // If a key is held it will not generate new events
         var horizontal = this.Keyboard.AsVector(InputState.Held, CodeForward, CodeLeft, CodeBackward, CodeRight);
@@ -86,17 +79,9 @@ public sealed class CameraController
             cameraTransform = cameraTransform.AddTranslation(translation);
         }
 
-        var movement = Vector2.Zero;
-        var scroll = 0;
-        var rightButtonDown = false;
-
-        while (this.InputController.ProcessEvents(this.Mouse))
-        {
-            movement += this.Mouse.Movement;
-            scroll += this.Mouse.ScrolledUp ? 1 : 0;
-            scroll -= this.Mouse.ScrolledDown ? 1 : 0;
-            rightButtonDown |= this.Mouse.Held(MouseButton.Right);
-        }
+        var movement = this.Mouse.Movement;
+        var scroll = this.Mouse.ScrollDelta;
+        var rightButtonDown = this.Mouse.Held(MouseButton.Right);
 
         if (movement.LengthSquared() > 0 && rightButtonDown)
         {

@@ -171,8 +171,8 @@ public sealed class Terrain : IDisposable
             }
             else // CornerType.Raised
             {
-                newCorner = CornerType.Level;
-                offset = -1;
+                newCorner = CornerType.Raised;
+                offset = 1;
             }
 
             offset += diff - 1;
@@ -189,8 +189,8 @@ public sealed class Terrain : IDisposable
             }
             else // CornerType.Lowered
             {
-                newCorner = CornerType.Level;
-                offset = +1;
+                newCorner = CornerType.Lowered;
+                offset = -1;
             }
 
             offset += diff + 1;
@@ -198,7 +198,6 @@ public sealed class Terrain : IDisposable
 
         var bOffset = (byte)Math.Clamp(original.Height + offset, byte.MinValue, byte.MaxValue);
 
-        // TODO: verify performance https://stackoverflow.com/questions/78113377/what-is-the-most-efficient-way-to-create-a-temporary-collection-differences-bet
         var (ne, se, sw, nw) = original.GetAllCorners();
         Span<CornerType> corners = [ne, se, sw, nw];
         corners[(int)corner] = newCorner;

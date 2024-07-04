@@ -9,9 +9,6 @@ namespace Mini.Engine.UI;
 public sealed class ImGuiInputEventListener : IInputEventListener
 {
     private const float WHEEL_DELTA = 120.0f;
-    private static readonly int VK_SHIFT = 0x10;
-    private static readonly int VK_CONTROL = 0x11;
-    private static readonly int VK_ALT = 0x12;
 
     private readonly Win32Window Window;
     private ImGuiMouseCursor lastCursor;
@@ -54,7 +51,7 @@ public sealed class ImGuiInputEventListener : IInputEventListener
         if (mouseCursor != this.lastCursor)
         {
             this.lastCursor = mouseCursor;
-            this.UpdateMouseCursor();
+            UpdateMouseCursor();
         }
     }
 
@@ -73,7 +70,7 @@ public sealed class ImGuiInputEventListener : IInputEventListener
         }
     }
 
-    private void UpdateMouseCursor()
+    private static void UpdateMouseCursor()
     {
         var io = ImGui.GetIO();
         if ((io.ConfigFlags & ImGuiConfigFlags.NoMouseCursorChange) != 0)
@@ -139,20 +136,20 @@ public sealed class ImGuiInputEventListener : IInputEventListener
     public void OnKeyDown(VirtualKeyCode key)
     {
         var io = ImGui.GetIO();
-        io.KeysDown[key.Value] = true;
+        io.KeysDown[(int)key] = true;
 
-        if (key.Value == VK_ALT) { io.KeyAlt = true; }
-        if (key.Value == VK_CONTROL) { io.KeyCtrl = true; }
-        if (key.Value == VK_SHIFT) { io.KeyShift = true; }
+        if (key == VirtualKeyCode.VK_MENU) { io.KeyAlt = true; }
+        if (key == VirtualKeyCode.VK_CONTROL) { io.KeyCtrl = true; }
+        if (key == VirtualKeyCode.VK_SHIFT) { io.KeyShift = true; }
     }
 
     public void OnKeyUp(VirtualKeyCode key)
     {
         var io = ImGui.GetIO();
-        io.KeysDown[key.Value] = false;
+        io.KeysDown[(int)key] = false;
 
-        if (key.Value == VK_ALT) { io.KeyAlt = false; }
-        if (key.Value == VK_CONTROL) { io.KeyCtrl = false; }
-        if (key.Value == VK_SHIFT) { io.KeyShift = false; }
+        if (key == VirtualKeyCode.VK_MENU) { io.KeyAlt = false; }
+        if (key == VirtualKeyCode.VK_CONTROL) { io.KeyCtrl = false; }
+        if (key == VirtualKeyCode.VK_SHIFT) { io.KeyShift = false; }
     }
 }

@@ -3,8 +3,6 @@
 namespace Mini.Engine.Windows.Events;
 internal static class EventDecoder
 {
-    private const int WheelDelta = 120;
-
     public static MouseButton GetMouseButton(uint msg, UIntPtr wParam, IntPtr lParam)
     {
         return msg switch
@@ -24,7 +22,7 @@ internal static class EventDecoder
     /// </summary>
     public static int GetMouseWheelDelta(UIntPtr wParam)
     {
-        return GetWheelDelta(wParam) / WheelDelta;
+        return GetWheelDelta(wParam);
     }
 
     public static VirtualKeyCode GetKeyCode(UIntPtr wParam)

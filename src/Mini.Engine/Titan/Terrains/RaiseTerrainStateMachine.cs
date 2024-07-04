@@ -12,19 +12,17 @@ public sealed class RaiseTerrainStateMachine
 {
     private enum State { Select, Raise, Commit };
 
-    private readonly InputService Input;
     private readonly Terrain Terrain;
-    private readonly Mouse Mouse;
+    private readonly SimpleMouse Mouse;
     private readonly TileTarget Target;
 
     private State state;
 
-    public RaiseTerrainStateMachine(InputService input, Terrain terrain)
+    public RaiseTerrainStateMachine(SimpleInputService input, Terrain terrain)
     {
         this.state = State.Select;
-        this.Input = input;
         this.Terrain = terrain;
-        this.Mouse = new Mouse();
+        this.Mouse = input.Mouse;
         this.Target = new TileTarget();
     }
 
@@ -32,13 +30,12 @@ public sealed class RaiseTerrainStateMachine
 
     public void Update(in Rectangle viewport, in PerspectiveCamera camera, in Transform transform)
     {
-        this.Input.ProcessAllEvents(this.Mouse);
         var pressed = this.Mouse.Pressed(MouseButton.Left);
         var held = this.Mouse.Held(MouseButton.Left);
 
         if (this.state == State.Select)
         {
-            var cursor = this.Input.GetCursorPosition();
+            var cursor = this.Mouse.Position;
             var ray = CreateCursorRay(cursor, in viewport, in camera, in transform);
 
             if (LockTarget(this.Terrain, viewport, cursor, ray, this.Target))
@@ -56,7 +53,7 @@ public sealed class RaiseTerrainStateMachine
         {
             if ((pressed || held) && this.Target.HasTarget)
             {
-                var cursor = this.Input.GetCursorPosition();
+                var cursor = this.Mouse.Position;
                 var ray = CreateCursorRay(cursor, in viewport, in camera, in transform);
 
                 this.TargetTransform = this.Target.GetTransform(ray);
@@ -71,7 +68,7 @@ public sealed class RaiseTerrainStateMachine
         {
             if (this.Target.HasTarget)
             {
-                var cursor = this.Input.GetCursorPosition();
+                var cursor = this.Mouse.Position;
                 var ray = CreateCursorRay(cursor, in viewport, in camera, in transform);
                 this.Target.Commit(this.Terrain, ray);
             }
@@ -169,7 +166,7 @@ public sealed class RaiseTerrainStateMachine
             {
                 LockType.Center => TileUtilities.GetCenterPosition(this.tile, this.column, this.row),
                 LockType.Corner => TileUtilities.GetCornerPosition(this.column, this.row, this.tile, this.corner),
-                _ => throw new ArgumentOutOfRangeException(nameof(this.lockType)),
+                _ => throw new ArgumentOutOfRangeException(),
             };
         }
 
@@ -179,7 +176,7 @@ public sealed class RaiseTerrainStateMachine
             {
                 LockType.Center => Dragging.ComputeDragDeltaY(TileUtilities.GetCenterPosition(this.tile, this.column, this.row), ray),
                 LockType.Corner => Dragging.ComputeDragDeltaY(TileUtilities.GetCornerPosition(this.column, this.row, this.tile, this.corner), ray),
-                _ => throw new ArgumentOutOfRangeException(nameof(this.lockType)),
+                _ => throw new ArgumentOutOfRangeException(),
             };
         }
 
@@ -189,7 +186,7 @@ public sealed class RaiseTerrainStateMachine
             {
                 LockType.Center => this.GetWholeTileTransform(ray),
                 LockType.Corner => this.GetCornerTransform(ray),
-                _ => throw new ArgumentOutOfRangeException(nameof(this.lockType)),
+                _ => throw new ArgumentOutOfRangeException(),
             };
         }
 

@@ -7,119 +7,83 @@ namespace Mini.Engine.Windows.Events;
 
 public sealed class EventProcessor
 {
-    private class WindowState(IWindowEventListener listener)
+    private class WindowState(HWND target, IWindowEventListener listener)
     {
-        public IWindowEventListener Listener { get; set; } = listener;
+        public HWND Target { get; } = target;
+        public IWindowEventListener Listener { get; } = listener;
         public bool IsMouseCaptured { get; set; }
         public bool HasMouseEntered { get; set; }
     }
 
-    private readonly Dictionary<HWND, WindowState> WindowEventListeners;
-    private readonly Dictionary<HWND, IInputEventListener> InputEventListeners;
+    private class InputState(HWND target, IInputEventListener listener)
+    {
+        public HWND Target { get; } = target;
+        public IInputEventListener Listener { get; } = listener;
+    }
+
+    private readonly List<WindowState> WindowEventListeners;
+    private readonly List<InputState> InputEventListeners;
 
     public EventProcessor()
     {
-        this.WindowEventListeners = new Dictionary<HWND, WindowState>();
-        this.InputEventListeners = new Dictionary<HWND, IInputEventListener>();
+        this.WindowEventListeners = [];
+        this.InputEventListeners = [];
     }
 
-    public void Register(Win32Window window)
+    public void Register(HWND windowHandle, IWindowEventListener listener)
     {
-        var state = new WindowState(window);
-        this.WindowEventListeners.Add(window.Handle, state);
+        var state = new WindowState(windowHandle, listener);
+        this.WindowEventListeners.Add(state);
     }
 
     public void Register(HWND windowHandle, IInputEventListener listener)
     {
-        this.InputEventListeners.Add(windowHandle, listener);
+        var state = new InputState(windowHandle, listener);
+        this.InputEventListeners.Add(state);
     }
 
     internal void FireWindowEvents(HWND hWnd, uint msg, UIntPtr wParam, IntPtr lParam)
     {
-        this.WindowEventListeners.TryGetValue(hWnd, out var window);
-        this.InputEventListeners.TryGetValue(hWnd, out var listener);
-
-        switch (msg)
+        for (var i = this.WindowEventListeners.Count - 1; i >= 0; i--)
         {
-            // Window
-            case WM_SIZE:
-                var lp = lParam.ToInt32();
-                var width = EventDecoder.Loword(lp);
-                var height = EventDecoder.Hiword(lp);
+            var window = this.WindowEventListeners[i];
+            if (window.Target != hWnd) { continue; }
 
-                switch (wParam.ToUInt32())
-                {
-                    case SIZE_RESTORED:
-                    case SIZE_MAXIMIZED:
-                    case SIZE_MINIMIZED:
-                        window?.Listener.OnSizeChanged(width, height);
-                        break;
-                }
-                break;
+            switch (msg)
+            {
+                case WM_SIZE:
+                    var lp = lParam.ToInt32();
+                    var width = EventDecoder.Loword(lp);
+                    var height = EventDecoder.Hiword(lp);
 
-            case WM_SETFOCUS:
-                window?.Listener.OnFocusChanged(true);
-                break;
+                    switch (wParam.ToUInt32())
+                    {
+                        case SIZE_RESTORED:
+                        case SIZE_MAXIMIZED:
+                        case SIZE_MINIMIZED:
+                            window.Listener.OnSizeChanged(width, height);
+                            break;
+                    }
+                    break;
 
-            case WM_KILLFOCUS:
-                window?.Listener.OnFocusChanged(false);
-                break;
+                case WM_SETFOCUS:
+                    window.Listener.OnFocusChanged(true);
+                    break;
 
-            case WM_ACTIVATE:
-                window?.Listener.OnFocusChanged(EventDecoder.Loword((int)wParam) != 0);
-                break;
+                case WM_KILLFOCUS:
+                    window.Listener.OnFocusChanged(false);
+                    break;
 
-            case WM_DESTROY:
-                if (window != null)
-                {
+                case WM_ACTIVATE:
+                    window.Listener.OnFocusChanged(EventDecoder.Loword((int)wParam) != 0);
+                    break;
+
+                case WM_DESTROY:
                     window.Listener.OnDestroyed();
-                    this.WindowEventListeners.Remove(hWnd);
-                }
-                break;
+                    this.WindowEventListeners.RemoveAt(i);
+                    break;
 
-            // Mouse
-            case WM_LBUTTONDOWN:
-            case WM_LBUTTONDBLCLK:
-            case WM_RBUTTONDOWN:
-            case WM_RBUTTONDBLCLK:
-            case WM_MBUTTONDOWN:
-            case WM_MBUTTONDBLCLK:
-            case WM_XBUTTONDOWN:
-            case WM_XBUTTONDBLCLK:
-                if (window != null && !window.IsMouseCaptured)
-                {
-                    SetCapture(hWnd);
-                    window.IsMouseCaptured = true;
-                }
-
-                listener?.OnButtonDown(EventDecoder.GetMouseButton(msg, wParam, lParam));
-                break;
-
-            case WM_LBUTTONUP:
-            case WM_RBUTTONUP:
-            case WM_MBUTTONUP:
-            case WM_XBUTTONUP:
-                if (window != null && window.IsMouseCaptured)
-                {
-                    ReleaseCapture();
-                    window.IsMouseCaptured = false;
-                }
-
-                listener?.OnButtonUp(EventDecoder.GetMouseButton(msg, wParam, lParam));
-                break;
-
-
-            case WM_MOUSEWHEEL:
-                listener?.OnScroll(EventDecoder.GetMouseWheelDelta(wParam));
-                break;
-
-            case WM_MOUSEHWHEEL:
-                listener?.OnHScroll(EventDecoder.GetMouseWheelDelta(wParam));
-                break;
-
-            case WM_MOUSEMOVE:
-                if (window != null)
-                {
+                case WM_MOUSEMOVE:
                     if (!window.HasMouseEntered)
                     {
                         unsafe
@@ -137,31 +101,88 @@ public sealed class EventProcessor
                         window.HasMouseEntered = true;
                     }
                     window.Listener.OnMouseMove();
-                }
-                break;
+                    break;
 
-            case WM_MOUSELEAVE:
-                if (window != null)
-                {
+                case WM_MOUSELEAVE:
                     window.Listener.OnMouseMove();
                     window.Listener.OnMouseLeave();
                     window.HasMouseEntered = false;
-                }
-                break;
 
-            // Keyboard
-            case WM_CHAR:
-                listener?.OnChar((char)wParam);
-                break;
+                    break;
 
-            case WM_KEYDOWN:
-            case WM_SYSKEYDOWN:
-                listener?.OnKeyDown(EventDecoder.GetKeyCode(wParam));
-                break;
-            case WM_KEYUP:
-            case WM_SYSKEYUP:
-                listener?.OnKeyUp(EventDecoder.GetKeyCode(wParam));
-                break;
+                // Mouse
+                case WM_LBUTTONDOWN:
+                case WM_LBUTTONDBLCLK:
+                case WM_RBUTTONDOWN:
+                case WM_RBUTTONDBLCLK:
+                case WM_MBUTTONDOWN:
+                case WM_MBUTTONDBLCLK:
+                case WM_XBUTTONDOWN:
+                case WM_XBUTTONDBLCLK:
+                    SetCapture(hWnd);
+                    window.IsMouseCaptured = true;
+
+                    break;
+
+                case WM_LBUTTONUP:
+                case WM_RBUTTONUP:
+                case WM_MBUTTONUP:
+                case WM_XBUTTONUP:
+                    ReleaseCapture();
+                    window.IsMouseCaptured = false;
+
+                    break;
+
+            }
+        }
+
+        for (var i = this.InputEventListeners.Count - 1; i >= 0; i--)
+        {
+            var input = this.InputEventListeners[i];
+            if (input.Target != hWnd) { continue; }
+
+            switch (msg)
+            {
+                case WM_MOUSEWHEEL:
+                    input.Listener.OnScroll(EventDecoder.GetMouseWheelDelta(wParam));
+                    break;
+
+                case WM_MOUSEHWHEEL:
+                    input.Listener.OnHScroll(EventDecoder.GetMouseWheelDelta(wParam));
+                    break;
+
+                case WM_CHAR:
+                    input.Listener.OnChar((char)wParam);
+                    break;
+
+                case WM_KEYDOWN:
+                case WM_SYSKEYDOWN:
+                    input.Listener.OnKeyDown(EventDecoder.GetKeyCode(wParam));
+                    break;
+
+                case WM_KEYUP:
+                case WM_SYSKEYUP:
+                    input.Listener.OnKeyUp(EventDecoder.GetKeyCode(wParam));
+                    break;
+
+                case WM_LBUTTONDOWN:
+                case WM_LBUTTONDBLCLK:
+                case WM_RBUTTONDOWN:
+                case WM_RBUTTONDBLCLK:
+                case WM_MBUTTONDOWN:
+                case WM_MBUTTONDBLCLK:
+                case WM_XBUTTONDOWN:
+                case WM_XBUTTONDBLCLK:
+                    input.Listener.OnButtonDown(EventDecoder.GetMouseButton(msg, wParam, lParam));
+                    break;
+
+                case WM_LBUTTONUP:
+                case WM_RBUTTONUP:
+                case WM_MBUTTONUP:
+                case WM_XBUTTONUP:
+                    input.Listener.OnButtonUp(EventDecoder.GetMouseButton(msg, wParam, lParam));
+                    break;
+            }
         }
     }
 }

@@ -6,10 +6,15 @@ namespace Mini.Engine.Windows;
 
 public sealed class SimpleInputService : IInputEventListener
 {
-    public SimpleInputService()
+    private readonly Win32Window Window;
+
+    public SimpleInputService(Win32Window window)
     {
+        this.Window = window;
         this.Keyboard = new SimpleKeyboard();
         this.Mouse = new SimpleMouse();
+
+        Win32Application.RegisterInputEventListener(window, this);
     }
 
     public SimpleKeyboard Keyboard { get; }
@@ -54,6 +59,8 @@ public sealed class SimpleInputService : IInputEventListener
     {
         this.Keyboard.NextFrame();
         this.Mouse.NextFrame();
+
+        this.Mouse.UpdatePosition(this.Window.GetCursorPosition());
     }
 
     public static uint GetScanCode(VirtualKeyCode key)

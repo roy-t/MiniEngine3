@@ -11,11 +11,11 @@ public sealed class GameManager
 {
     private readonly Device Device;
     private readonly Win32Window Window;
-    private readonly InputService Input;
+    private readonly SimpleInputService Input;
     private readonly MetricService Metrics;
     private readonly SceneStack Scenes;
 
-    public GameManager(Device device, Win32Window window, InputService input, MetricService metrics, SceneStack sceneStack)
+    public GameManager(Device device, Win32Window window, SimpleInputService input, MetricService metrics, SceneStack sceneStack)
     {
         this.Device = device;
         this.Window = window;
