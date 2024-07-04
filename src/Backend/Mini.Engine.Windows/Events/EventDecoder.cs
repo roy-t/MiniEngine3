@@ -19,7 +19,9 @@ internal static class EventDecoder
         };
     }
 
-    // Note: that Microsoft defines one 'notch' on the scroll wheel as 120 units of movements
+    /// <summary>
+    /// Note: that Microsoft defines one 'notch' on the scroll wheel as 120 units of movements
+    /// </summary>
     public static int GetMouseWheelDelta(UIntPtr wParam)
     {
         return GetWheelDelta(wParam) / WheelDelta;
@@ -27,7 +29,7 @@ internal static class EventDecoder
 
     public static VirtualKeyCode GetKeyCode(UIntPtr wParam)
     {
-        return new VirtualKeyCode((byte)wParam);
+        return (VirtualKeyCode)wParam;
     }
 
     private static int GetXButtonWParam(UIntPtr wParam)
