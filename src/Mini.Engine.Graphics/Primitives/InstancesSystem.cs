@@ -14,14 +14,14 @@ public sealed class InstancesSystem : IDisposable
     private record WorkItem(Entity Entity, List<Matrix4x4> InstanceList);
 
     private readonly DeferredDeviceContext Context;
-    private readonly ImmediateDeviceContext CompletionContext;    
+    private readonly ImmediateDeviceContext CompletionContext;
     private readonly IComponentContainer<InstancesComponent> Instances;
 
     private readonly Queue<WorkItem> Queue;
 
     public InstancesSystem(Device device, IComponentContainer<InstancesComponent> instances)
-    {        
-        this.Instances = instances;        
+    {
+        this.Instances = instances;
         this.Context = device.CreateDeferredContextFor<InstancesSystem>();
         this.CompletionContext = device.ImmediateContext;
 
@@ -37,12 +37,12 @@ public sealed class InstancesSystem : IDisposable
     {
         return Task.Run(() =>
         {
-            while(this.Queue.Count > 0)
+            while (this.Queue.Count > 0)
             {
                 var item = this.Queue.Dequeue();
                 ref var component = ref this.Instances[item.Entity];
                 Instancing.MapInstanceData(this.Context, ref component.Value, item.InstanceList);
-            }            
+            }
             return CompletableCommandList.Create(this.CompletionContext, this.Context.FinishCommandList());
         });
     }

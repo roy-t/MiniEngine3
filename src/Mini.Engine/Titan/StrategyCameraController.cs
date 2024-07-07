@@ -19,6 +19,8 @@ internal sealed class StrategyCameraController
     private static readonly VirtualKeyCode KeyRotateCW = VirtualKeyCode.VK_OEM_COMMA;
     private static readonly VirtualKeyCode KeyRotateCCW = VirtualKeyCode.VK_OEM_PERIOD;
 
+    // TODO: it could be nice if we can stafe with WASD and rotate with QE, but what keys to use for tilt?
+
     private const float DistanceMin = 10.0f;
     private const float DistanceMax = 1000.0f;
     private const float ZoomSpeed = 75.0f;

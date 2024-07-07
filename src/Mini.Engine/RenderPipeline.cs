@@ -79,7 +79,7 @@ internal sealed class RenderPipeline
     {
         this.Enqueue(this.Systems.CascadedShadowMap.Update());
         this.Enqueue(this.Systems.Terrain.Update());
-        this.Enqueue(this.Systems.Instances.UpdateInstances());
+        //this.Enqueue(this.Systems.Instances.UpdateInstances());
     }
 
     private void RunGeometryStage(in Rectangle viewport, in Rectangle scissor, float alpha)

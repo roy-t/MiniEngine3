@@ -35,13 +35,20 @@ public sealed class LoadingGameLoop : IGameLoop
         this.Queue.Enqueue(action);
     }
 
+    public void AddRange(IEnumerable<LoadAction> actions)
+    {
+        foreach (var action in actions)
+        {
+            this.Queue.Enqueue(action);
+        }
+    }
+
+
     public void Simulate() { }
     public void HandleInput(float elapsedRealWorldTime) { }
 
     public void Frame(float alpha, float elapsedRealWorldTime)
     {
-        this.UserInterface.NewFrame();
-
         var message = "Initializing";
 
         // If total is zero this means we just entered the loading screen

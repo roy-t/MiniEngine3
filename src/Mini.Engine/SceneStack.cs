@@ -1,16 +1,17 @@
-﻿using System.Collections;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
 
 namespace Mini.Engine;
 
 [Service]
-public sealed class SceneStack : IEnumerable<IGameLoop>
+public sealed class SceneStack
 {
     private readonly LinkedList<IGameLoop> Scenes;
+    private readonly LoadingGameLoop LoadingGameLoop;
 
-    public SceneStack()
+    public SceneStack(LoadingGameLoop loadingGameLoop)
     {
         this.Scenes = new LinkedList<IGameLoop>();
+        this.LoadingGameLoop = loadingGameLoop;
     }
 
     public void Push(IGameLoop scene)
@@ -46,13 +47,14 @@ public sealed class SceneStack : IEnumerable<IGameLoop>
         this.Scenes.RemoveFirst();
     }
 
-    public IEnumerator<IGameLoop> GetEnumerator()
+    // Iterate while allowing modifications to be made
+    public void ForEach(Action<IGameLoop> action)
     {
-        return this.Scenes.GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return this.Scenes.GetEnumerator();
+        var node = this.Scenes.First;
+        while (node != null)
+        {
+            action(node.Value);
+            node = node.Next;
+        }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
@@ -15,7 +14,6 @@ public sealed class UICore : IDisposable
     private readonly ImGuiRenderer Renderer;
     private readonly ImGuiInputEventListener Input;
     private readonly ImGuiIOPtr IO;
-    private readonly Stopwatch Stopwatch;
 
     public UICore(Win32Window window, Device device, UITextureRegistry textureRegistry, Shader shader)
     {
@@ -27,8 +25,6 @@ public sealed class UICore : IDisposable
         Win32Application.RegisterInputEventListener(window, this.Input);
 
         this.Resize(window.Width, window.Height);
-
-        this.Stopwatch = Stopwatch.StartNew();
     }
 
     public void Resize(int width, int height)
@@ -36,11 +32,8 @@ public sealed class UICore : IDisposable
         this.IO.DisplaySize = new Vector2(width, height);
     }
 
-    public void NewFrame()
+    public void NewFrame(float elapsed)
     {
-        var elapsed = (float)this.Stopwatch.Elapsed.TotalSeconds;
-        this.Stopwatch.Restart();
-
         this.IO.DeltaTime = elapsed;
         this.Input.Update();
         ImGui.NewFrame();

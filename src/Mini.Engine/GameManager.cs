@@ -2,6 +2,7 @@
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
 using Mini.Engine.DirectX;
+using Mini.Engine.UI;
 using Mini.Engine.Windows;
 
 namespace Mini.Engine;
@@ -11,14 +12,16 @@ public sealed class GameManager
 {
     private readonly Device Device;
     private readonly Win32Window Window;
+    private readonly UICore UserInterfaceCore;
     private readonly SimpleInputService Input;
     private readonly MetricService Metrics;
     private readonly SceneStack Scenes;
 
-    public GameManager(Device device, Win32Window window, SimpleInputService input, MetricService metrics, SceneStack sceneStack)
+    public GameManager(Device device, Win32Window window, UICore uiCore, SimpleInputService input, MetricService metrics, SceneStack sceneStack)
     {
         this.Device = device;
         this.Window = window;
+        this.UserInterfaceCore = uiCore;
         this.Input = input;
         this.Metrics = metrics;
         this.Scenes = sceneStack;
@@ -47,6 +50,7 @@ public sealed class GameManager
             this.Device.ImmediateContext.ClearBackBuffer();
 
             this.Input.NextFrame();
+
             this.HandleInput((float)elapsed);
 
             this.Frame((float)alpha, (float)elapsed); // alpha signifies how much to lerp between current and future state
@@ -64,16 +68,20 @@ public sealed class GameManager
 
             this.Metrics.Update(nameof(GameManager) + ".Run.Millis", (float)(elapsed * 1000.0));
             this.Metrics.UpdateBuiltInGauges();
+
+#if DEBUG   // Instant quit on ESC
+            if (this.Input.Keyboard.Pressed(VirtualKeyCode.VK_ESCAPE))
+            {
+                this.Window.Dispose();
+            }
+#endif
         }
     }
 
     // Simulate any active scene as they might only partially overlap
     private void Simulate()
     {
-        foreach (var scene in this.Scenes)
-        {
-            scene.Simulate();
-        }
+        this.Scenes.ForEach(s => s.Simulate());
     }
 
     // Only the top scene gets to handle input
@@ -85,19 +93,13 @@ public sealed class GameManager
     // Render any active scene as they might only partially overlap
     private void Frame(float alpha, float elapsed)
     {
-        foreach (var scene in this.Scenes)
-        {
-            scene.Frame(alpha, elapsed);
-        }
+        this.UserInterfaceCore.NewFrame(elapsed);
+        this.Scenes.ForEach(s => s.Frame(alpha, elapsed));
     }
 
     private void ResizeDeviceResources()
     {
         this.Device.Resize(this.Window.Width, this.Window.Height);
-
-        foreach (var scene in this.Scenes)
-        {
-            scene.Resize(this.Window.Width, this.Window.Height);
-        }
+        this.Scenes.ForEach(s => s.Resize(this.Window.Width, this.Window.Height));
     }
 }
