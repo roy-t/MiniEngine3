@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Json;
 using Mini.Engine.Windows.Events;
@@ -43,27 +44,27 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
             windowRect.left, windowRect.top, this.Width, this.Height,
             (HWND)IntPtr.Zero, null, null, null);
 
-        this.Handle = hwnd;
+        this.Hwnd = hwnd;
     }
 
-    public void Show(bool restorePreviousPosition)
+    public void Show(bool restorePreviousPosition = true)
     {
-        var show = SHOW_WINDOW_CMD.SW_NORMAL;
-        if (restorePreviousPosition && TryDeserializeWindowPosition(out var pos))
+        if (restorePreviousPosition)
         {
-            SetWindowPlacement(this.Handle, pos);
-            show = pos.showCmd;
+            RestoreWindowPosition(this.Hwnd);
         }
 
-        ShowWindow(this.Handle, show);
+        ShowWindow(this.Hwnd, SHOW_WINDOW_CMD.SW_NORMAL);
 
         this.isCursorDirty = true;
     }
 
+    public nint Handle => this.Hwnd;
+    internal HWND Hwnd { get; }
+
     public string Title { get; }
     public int Width { get; private set; }
     public int Height { get; private set; }
-    public HWND Handle { get; private set; }
     public bool IsMinimized { get; private set; }
     public bool HasFocus { get; private set; }
 
@@ -81,7 +82,7 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
 
     public void OnDestroyed()
     {
-        TrySerializeWindowPosition(this.Handle);
+        SerializeWindowPosition(this.Hwnd);
     }
 
     public void OnMouseMove()
@@ -101,7 +102,7 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
 
     public Vector2 GetCursorPosition()
     {
-        if (this.isCursorDirty && GetCursorPos(out var pos) && ScreenToClient(this.Handle, ref pos))
+        if (this.isCursorDirty && GetCursorPos(out var pos) && ScreenToClient(this.Hwnd, ref pos))
         {
             this.cursorPosition = new Vector2(pos.X, pos.Y);
             this.isCursorDirty = true;
@@ -113,26 +114,27 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
     public void SetCursorPosition(Vector2 position)
     {
         var pos = new System.Drawing.Point((int)position.X, (int)position.Y);
-        ClientToScreen(this.Handle, ref pos);
+        ClientToScreen(this.Hwnd, ref pos);
         SetCursorPos(pos.X, pos.Y);
     }
 
     public void Dispose()
     {
-        DestroyWindow(this.Handle);
+        DestroyWindow(this.Hwnd);
     }
 
-    private static void TrySerializeWindowPosition(HWND handle)
+    private static void SerializeWindowPosition(HWND handle)
     {
         try
         {
             var placement = new WINDOWPLACEMENT() { length = (uint)Marshal.SizeOf<WINDOWPLACEMENT>() };
             var success = GetWindowPlacement(handle, ref placement);
-            if (success)
+            if (success && placement.showCmd == SHOW_WINDOW_CMD.SW_NORMAL)
             {
+                var rectangle = new Rectangle(placement.rcNormalPosition.X, placement.rcNormalPosition.Y, placement.rcNormalPosition.Width, placement.rcNormalPosition.Height);
                 using var stream = File.Create(WindowSettingsFile);
-                var serializer = new DataContractJsonSerializer(typeof(WINDOWPLACEMENT));
-                serializer.WriteObject(stream, placement);
+                var serializer = new DataContractJsonSerializer(typeof(Rectangle));
+                serializer.WriteObject(stream, rectangle);
             }
         }
         catch
@@ -141,19 +143,26 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
         }
     }
 
-    private static bool TryDeserializeWindowPosition(out WINDOWPLACEMENT placement)
+    private static void RestoreWindowPosition(HWND hwnd)
     {
         try
         {
             using var stream = File.OpenRead(WindowSettingsFile);
-            var deserializer = new DataContractJsonSerializer(typeof(WINDOWPLACEMENT));
-            placement = (WINDOWPLACEMENT?)deserializer.ReadObject(stream) ?? throw new IOException();
-            return true;
+            var deserializer = new DataContractJsonSerializer(typeof(Rectangle));
+            var rectangle = (Rectangle?)deserializer.ReadObject(stream) ?? throw new IOException();
+            var pos = new WINDOWPLACEMENT()
+            {
+                length = (uint)Marshal.SizeOf<WINDOWPLACEMENT>(),
+                showCmd = SHOW_WINDOW_CMD.SW_NORMAL,
+                ptMinPosition = new Point(-1, -1),
+                ptMaxPosition = new Point(-1, -1),
+                rcNormalPosition = new RECT(rectangle)
+            };
+            SetWindowPlacement(hwnd, pos);
         }
         catch
         {
-            placement = default;
-            return false;
+
         }
     }
 }

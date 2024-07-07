@@ -30,15 +30,15 @@ public sealed class EventProcessor
         this.InputEventListeners = [];
     }
 
-    public void Register(HWND windowHandle, IWindowEventListener listener)
+    public void Register(Win32Window window, IWindowEventListener listener)
     {
-        var state = new WindowState(windowHandle, listener);
+        var state = new WindowState(window.Hwnd, listener);
         this.WindowEventListeners.Add(state);
     }
 
-    public void Register(HWND windowHandle, IInputEventListener listener)
+    public void Register(Win32Window window, IInputEventListener listener)
     {
-        var state = new InputState(windowHandle, listener);
+        var state = new InputState(window.Hwnd, listener);
         this.InputEventListeners.Add(state);
     }
 

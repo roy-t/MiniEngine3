@@ -21,7 +21,7 @@ public sealed class Device : IDisposable
     private const Format BackBufferFormat = Format.R8G8B8A8_UNorm;
     private const Format RenderTargetViewFormat = Format.R8G8B8A8_UNorm_SRgb;
 
-    private readonly IntPtr WindowHandle;
+    private readonly nint WindowHandle;
 
     private readonly IDXGIFactory4 DXGIFactory;
     private readonly bool PresentAllowTearing;
@@ -37,7 +37,7 @@ public sealed class Device : IDisposable
         private static readonly DeviceCreationFlags Flags = DeviceCreationFlags.None;
 #endif
 
-    public Device(IntPtr windowHandle, int width, int height, LifetimeManager lifetimeManager)
+    public Device(nint windowHandle, int width, int height, LifetimeManager lifetimeManager)
     {
         this.WindowHandle = windowHandle;
         this.Viewport = new Rectangle(0, 0, width, height);
@@ -129,7 +129,7 @@ public sealed class Device : IDisposable
 
     public bool IsMultiSamplingSupported(Format format, int count)
     {
-        return this.ID3D11Device.CheckMultisampleQualityLevels(format, count) > 0;        
+        return this.ID3D11Device.CheckMultisampleQualityLevels(format, count) > 0;
     }
 
     private void CreateBackBuffer()

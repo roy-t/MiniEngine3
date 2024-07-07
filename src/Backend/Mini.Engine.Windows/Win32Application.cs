@@ -34,8 +34,8 @@ public static class Win32Application
         }
 
         var window = new Win32Window(title);
-        EventProcessor.Register(window.Handle, window);
-        window.Show(true);
+        EventProcessor.Register(window, window);
+        window.Show();
 
         SetMouseCursor(Cursor.Arrow);
 
@@ -44,7 +44,7 @@ public static class Win32Application
 
     public static void RegisterInputEventListener(Win32Window window, IInputEventListener listener)
     {
-        EventProcessor.Register(window.Handle, listener);
+        EventProcessor.Register(window, listener);
     }
 
     public static void SetMouseCursor(Cursor cursor)
@@ -78,7 +78,7 @@ public static class Win32Application
 
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
-    public static LRESULT WndProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam)
+    internal static LRESULT WndProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam)
     {
         EventProcessor.FireWindowEvents(hWnd, msg, wParam, lParam);
         switch (msg)
