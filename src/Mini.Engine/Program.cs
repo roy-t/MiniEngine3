@@ -22,20 +22,11 @@ public class Program
         registry.RegisterFrom<DebugCompositionRoot>();
 
         var lifeTimeManager = injector.Factory.GetInstance<LifetimeManager>();
-        lifeTimeManager.PushFrame(nameof(Program));
-
-        var bootstrapper = injector.Factory.Create<GameBootstrapper>();
-        bootstrapper.Bootstrap();
-
-        lifeTimeManager.PopFrame(nameof(Program));
-
-        //throw new Exception("TODO");
-        //// - Create a new GraphicsBootrapper that enables a Window, DirectX, and then RenderDoc if needed
-        //// - Then create a new SceneBootstrapper
-        //// - - Add a way to switch scenes.
-        //// - - Start with a loading screen and main menu
-        //// - - Then create an ACTUAL game screen
-        //// - - Then a way to push/pop screens for example in case of a desync, pause etc..
-
+        var programFrame = lifeTimeManager.PushFrame();
+        {
+            var bootstrapper = injector.Factory.Create<GameBootstrapper>();
+            bootstrapper.Bootstrap();
+        }
+        lifeTimeManager.PopFrame(programFrame);
     }
 }

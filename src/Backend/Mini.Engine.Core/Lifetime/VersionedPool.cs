@@ -13,6 +13,8 @@ internal sealed class VersionedPool
         this.Records = new ReferencePool<Record>(InitialCapacity);
     }
 
+    public int Count => this.Records.Count;
+
     public IDisposable this[ILifetime resource]
     {
         get
