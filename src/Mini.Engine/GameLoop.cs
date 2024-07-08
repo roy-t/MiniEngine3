@@ -34,8 +34,6 @@ internal sealed class GameLoop : IGameLoop
     private bool enableUI;
     private readonly Stopwatch Stopwatch;
 
-    private readonly LifeTimeFrame LifeTimeFrame;
-
     public GameLoop(Device device, EditorUserInterface userInterface, SimpleInputService inputService, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, Scenes.SceneManager sceneManager, FrameService frameService, ContentManager content, MetricService metricService, RenderPipeline renderPipelineV2, UpdatePipeline updatePipelineV2)
     {
         this.Device = device;
@@ -49,8 +47,6 @@ internal sealed class GameLoop : IGameLoop
         this.FrameService = frameService;
         this.Content = content;
 
-        this.LifeTimeFrame = this.LifetimeManager.PushFrame();
-
         this.EditorState.Restore();
         this.SceneManager.Set(this.EditorState.PreferredScene);
 
@@ -60,8 +56,6 @@ internal sealed class GameLoop : IGameLoop
         this.Stopwatch = new Stopwatch();
         this.RenderPipeline = renderPipelineV2;
         this.UpdatePipeline = updatePipelineV2;
-
-        this.FrameService.InitializePrimaryCamera();
     }
 
     public void Simulate()
@@ -113,10 +107,18 @@ internal sealed class GameLoop : IGameLoop
         this.UserInterface.Resize(width, height);
     }
 
-    public void Dispose()
+    public void Enter()
+    {
+        this.FrameService.InitializePrimaryCamera();
+    }
+
+    public void Exit()
     {
         this.SceneManager.ClearScene();
-        this.LifetimeManager.PopFrame(this.LifeTimeFrame);
+    }
+
+    public void Dispose()
+    {
         this.EditorState.Save();
     }
 }

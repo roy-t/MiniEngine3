@@ -1,5 +1,4 @@
 ﻿using LightInject;
-using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 
 namespace Mini.Engine;
@@ -34,22 +33,7 @@ public sealed class GameBootstrapper
         var gameLoopType = Type.GetType(StartupArguments.GameLoopType, true, true)
             ?? throw new Exception($"Unable to find game loop {StartupArguments.GameLoopType}");
 
-        var dependencies = InjectableDependencies.CreateInitializationOrder(gameLoopType);
-        foreach (var dependency in dependencies)
-        {
-            var action = new LoadAction(dependency.Name, () => this.Factory.GetInstance(dependency));
-            this.LoadingGameLoop.Add(action);
-        }
-
-        this.LoadingGameLoop.Add(new LoadAction("Game Loop", () =>
-        {
-            var gameLoop = (IGameLoop)this.Factory.Create(gameLoopType);
-
-            // Replace the loading screen with the actual game
-            this.Scenes.ReplaceTop(gameLoop);
-        }));
-
-        this.Scenes.Push(this.LoadingGameLoop);
+        this.LoadingGameLoop.PushLoadReplace(gameLoopType);
     }
 
     private void SetGraphicsSettings()

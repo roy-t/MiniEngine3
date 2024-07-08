@@ -84,6 +84,9 @@ internal class TitanGameLoop : IGameLoop
         this.UserInterface.Render();
     }
 
+    public void Enter() { }
+    public void Exit() { }
+
     public void Dispose()
     {
         this.GBuffer.Dispose();

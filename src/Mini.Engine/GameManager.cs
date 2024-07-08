@@ -76,6 +76,8 @@ public sealed class GameManager
             }
 #endif
         }
+
+        this.Scenes.Clear();
     }
 
     // Simulate any active scene as they might only partially overlap

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 using ImGuiNET;
+using LightInject;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
 using Mini.Engine.UI;
@@ -16,18 +17,53 @@ public sealed class LoadingGameLoop : IGameLoop
     private static readonly TimeSpan ReportDelta = TimeSpan.FromSeconds(1.0 / 60.0);
 
     private readonly ILogger Logger;
+    private readonly IServiceFactory Factory;
     private readonly Device Device;
     private readonly UICore UserInterface;
+    private readonly SceneStack SceneStack;
     private readonly Queue<LoadAction> Queue;
 
     private int total;
 
-    public LoadingGameLoop(ILogger logger, Device device, UICore ui)
+    public LoadingGameLoop(ILogger logger, IServiceFactory factory, Device device, UICore ui, SceneStack sceneStack)
     {
         this.Logger = logger;
+        this.Factory = factory;
         this.Device = device;
         this.UserInterface = ui;
+        this.SceneStack = sceneStack;
         this.Queue = new Queue<LoadAction>();
+    }
+
+    public void PushLoadPop(IEnumerable<LoadAction> actions)
+    {
+        this.AddRange(actions);
+        this.Add(new LoadAction(nameof(PushLoadPop), () => this.SceneStack.Pop()));
+
+        this.SceneStack.Push(this);
+    }
+
+    public void PushLoadReplace<T>() where T : IGameLoop
+    {
+        this.PushLoadReplace(typeof(T));
+    }
+
+    public void PushLoadReplace(Type gameLoopType)
+    {
+        var dependencies = InjectableDependencies.CreateInitializationOrder(gameLoopType);
+        foreach (var dependency in dependencies)
+        {
+            var action = new LoadAction(dependency.Name, () => this.Factory.GetInstance(dependency));
+            this.Add(action);
+        }
+
+        this.Add(new LoadAction("Create " + gameLoopType.Name, () =>
+        {
+            var gameLoop = (IGameLoop)this.Factory.Create(gameLoopType);
+            this.SceneStack.ReplaceTop(gameLoop);
+        }));
+
+        this.SceneStack.Push(this);
     }
 
     public void Add(LoadAction action)
@@ -42,7 +78,6 @@ public sealed class LoadingGameLoop : IGameLoop
             this.Queue.Enqueue(action);
         }
     }
-
 
     public void Simulate() { }
     public void HandleInput(float elapsedRealWorldTime) { }
@@ -111,6 +146,9 @@ public sealed class LoadingGameLoop : IGameLoop
     {
         this.UserInterface.Resize(width, height);
     }
+
+    public void Enter() { }
+    public void Exit() { }
 
     public void Dispose() { }
 }

@@ -35,6 +35,8 @@ internal class TitanMainMenuLoop : IGameLoop
         this.UserInterface.Resize(width, height);
     }
 
+    public void Enter() { }
+    public void Exit() { }
 
     public void Dispose()
     {

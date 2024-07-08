@@ -12,11 +12,13 @@ public sealed class LifetimeManager : IDisposable
 
     private readonly ILogger Logger;
     private readonly VersionedPool Pool;
+    private readonly Stack<int> Frames;
 
     public LifetimeManager(ILogger logger)
     {
         this.Logger = logger.ForContext<LifetimeManager>();
         this.Pool = new VersionedPool();
+        this.Frames = new Stack<int>();
     }
 
     public ILifetime<T> Add<T>(T disposable)
@@ -43,15 +45,24 @@ public sealed class LifetimeManager : IDisposable
 
     public LifeTimeFrame PushFrame([CallerFilePath] string caller = "", [CallerLineNumber] int line = 0)
     {
-        this.Logger.Information("Pushing lifetime frame {@caller}:{@line}", caller, line);
-        this.id++;
+        var nextId = ++this.id;
+        this.Logger.Information("Pushing lifetime frame with id {@id} from {@caller}:{@line}", nextId, caller, line);
+
+        this.Frames.Push(nextId);
         return new LifeTimeFrame(this.id);
     }
 
     public void PopFrame(LifeTimeFrame frame, [CallerFilePath] string caller = "", [CallerLineNumber] int line = 0)
     {
-        this.Logger.Information("Disposing lifetime frame {@caller}:{@line}", caller, line);
-        this.Pool.DisposeAll(frame.Id);
+        this.Logger.Information("Disposing lifetime frame with id {@id} from {@caller}:{@line}", frame.Id, caller, line);
+
+        var topId = this.Frames.Pop();
+        if (topId != frame.Id)
+        {
+            throw new InvalidOperationException($"Expected frame {topId} but user tried to pop {frame.Id}");
+        }
+
+        this.Pool.DisposeAll(topId);
     }
 
     public void Dispose()

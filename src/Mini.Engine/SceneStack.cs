@@ -6,45 +6,43 @@ namespace Mini.Engine;
 public sealed class SceneStack
 {
     private readonly LinkedList<IGameLoop> Scenes;
-    private readonly LoadingGameLoop LoadingGameLoop;
 
-    public SceneStack(LoadingGameLoop loadingGameLoop)
+    public SceneStack()
     {
         this.Scenes = new LinkedList<IGameLoop>();
-        this.LoadingGameLoop = loadingGameLoop;
     }
 
     public void Push(IGameLoop scene)
     {
         this.Scenes.AddFirst(scene);
+        scene.Enter();
     }
 
     public IGameLoop Peek()
     {
-        if (this.Scenes.First == null)
-        {
-            throw new InvalidOperationException("Stack is empty");
-        }
-        return this.Scenes.First.Value;
+        return this.GetFirstOrThrow();
     }
 
     public void ReplaceTop(IGameLoop scene)
     {
-        if (this.Scenes.First == null)
-        {
-            throw new InvalidOperationException("Stack is empty");
-        }
-        this.Scenes.First.Value = scene;
+        this.Pop();
+        this.Push(scene);
     }
 
     public void Pop()
     {
-        if (this.Scenes.First == null)
-        {
-            throw new InvalidOperationException("Stack is empty");
-        }
-
+        var first = this.GetFirstOrThrow();
         this.Scenes.RemoveFirst();
+
+        first.Exit();
+    }
+
+    public void Clear()
+    {
+        while (this.Scenes.Count > 0)
+        {
+            this.Pop();
+        }
     }
 
     // Iterate while allowing modifications to be made
@@ -56,5 +54,15 @@ public sealed class SceneStack
             action(node.Value);
             node = node.Next;
         }
+    }
+
+    private IGameLoop GetFirstOrThrow()
+    {
+        if (this.Scenes.First == null)
+        {
+            throw new InvalidOperationException("Stack is empty");
+        }
+
+        return this.Scenes.First.Value;
     }
 }

@@ -24,4 +24,15 @@ public interface IGameLoop : IDisposable
     /// Resize the screen
     /// </summary>    
     void Resize(int width, int height);
+
+
+    /// <summary>
+    /// Called when the game loop is put on the scene stack
+    /// </summary>
+    void Enter();
+
+    /// <summary>
+    /// Called when the game loop is popped off the scene stack
+    /// </summary>
+    void Exit();
 }

@@ -58,4 +58,7 @@ internal sealed class SingleFrameLoop : IGameLoop
             this.RenderDoc.LaunchReplayUI(path);
         }
     }
+
+    public void Enter() { }
+    public void Exit() { }
 }
