@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mini.Engine.Configuration;
+﻿namespace Mini.Engine.Configuration;
 
 /// <summary>
 /// Marks the class as a service for the injector

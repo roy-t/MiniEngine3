@@ -27,7 +27,7 @@ public sealed class LoadingGameLoop : IGameLoop
 
     public LoadingGameLoop(ILogger logger, IServiceFactory factory, Device device, UICore ui, SceneStack sceneStack)
     {
-        this.Logger = logger;
+        this.Logger = logger.ForContext<LoadingGameLoop>();
         this.Factory = factory;
         this.Device = device;
         this.UserInterface = ui;
@@ -91,6 +91,7 @@ public sealed class LoadingGameLoop : IGameLoop
         {
             this.total = this.Queue.Count;
             this.Logger.Information("### Entered Loading Screen");
+            message = this.Queue.Peek().Description;
         }
         else
         {

@@ -9,7 +9,6 @@ namespace Mini.Engine.Scenes;
 internal sealed class SceneManager
 {
     private readonly LifetimeManager LifetimeManager;
-    private readonly SceneStack SceneStack;
     private readonly LoadingGameLoop LoadingScreen;
     private readonly ECSAdministrator Administrator;
     private readonly FrameService FrameService;
@@ -18,10 +17,9 @@ internal sealed class SceneManager
 
     private LifeTimeFrame? frame;
 
-    public SceneManager(LifetimeManager lifetimeManager, SceneStack sceneStack, LoadingGameLoop loadingScreen, ECSAdministrator administrator, FrameService frameService, IEnumerable<IScene> scenes)
+    public SceneManager(LifetimeManager lifetimeManager, LoadingGameLoop loadingScreen, ECSAdministrator administrator, FrameService frameService, IEnumerable<IScene> scenes)
     {
         this.LifetimeManager = lifetimeManager;
-        this.SceneStack = sceneStack;
         this.LoadingScreen = loadingScreen;
         this.Administrator = administrator;
         this.FrameService = frameService;
@@ -66,18 +64,10 @@ internal sealed class SceneManager
         this.FrameService.InitializePrimaryCamera();
 
         this.activeScene = index;
-        var title = this.Scenes[this.activeScene].Title;
 
         this.frame = this.LifetimeManager.PushFrame();
         var actions = this.Scenes[this.activeScene].Load();
 
-        this.LoadingScreen.AddRange(actions);
-        this.LoadingScreen.Add(new LoadAction("Return to GameLoop", () =>
-        {
-            this.SceneStack.Pop();
-        }));
-
-
-        this.SceneStack.Push(this.LoadingScreen);
+        this.LoadingScreen.PushLoadPop(actions);
     }
 }

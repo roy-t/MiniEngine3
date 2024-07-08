@@ -31,7 +31,6 @@ public sealed class Injector : IDisposable
             EnableOptionalArguments = true
         };
 
-
         this.Container = new ServiceContainer(options);
 
         this.Registry = new ServiceRegistryAdapter(this.Container);
