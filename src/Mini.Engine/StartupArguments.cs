@@ -1,4 +1,6 @@
-﻿namespace Mini.Engine;
+﻿using System.Drawing;
+
+namespace Mini.Engine;
 
 public static class StartupArguments
 {
@@ -11,6 +13,8 @@ public static class StartupArguments
     public static string GameLoopType => GetArgumentValueOrDefault("--gameloop", "Mini.Engine.GameLoop");
 
     public static bool EnableVSync => IsPresent("--vsync");
+
+    public static Rectangle? WindowPosition => GetRectangle("--position");
 
     private static bool IsPresent(string argument)
     {
@@ -46,6 +50,23 @@ public static class StartupArguments
         }
 
         return string.Empty;
+    }
+
+    private static Rectangle? GetRectangle(string argument)
+    {
+        var arg = GetArgumentValue(argument);
+        var elements = arg.Split(',');
+        if (elements.Length == 4)
+        {
+            var x = int.Parse(elements[0]);
+            var y = int.Parse(elements[0]);
+            var w = int.Parse(elements[0]);
+            var h = int.Parse(elements[0]);
+
+            return new Rectangle(x, y, w, h);
+        }
+
+        return null;
     }
 
     private static string Unquote(string value)

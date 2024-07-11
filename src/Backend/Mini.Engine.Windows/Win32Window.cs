@@ -47,15 +47,23 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
         this.Hwnd = hwnd;
     }
 
-    public void Show(bool restorePreviousPosition = true)
+    public void Show(bool restorePreviousPosition)
     {
         if (restorePreviousPosition)
         {
-            RestoreWindowPosition(this.Hwnd);
+            var bounds = LoadPreviousWindowPosition();
+            this.Show(bounds);
+        }
+    }
+
+    public void Show(Rectangle? bounds = null)
+    {
+        if (bounds != null)
+        {
+            SetWindowPosition(this.Hwnd, bounds.Value);
         }
 
         ShowWindow(this.Hwnd, SHOW_WINDOW_CMD.SW_NORMAL);
-
         this.isCursorDirty = true;
     }
 
@@ -143,26 +151,32 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
         }
     }
 
-    private static void RestoreWindowPosition(HWND hwnd)
+    private static Rectangle? LoadPreviousWindowPosition()
     {
         try
         {
             using var stream = File.OpenRead(WindowSettingsFile);
             var deserializer = new DataContractJsonSerializer(typeof(Rectangle));
-            var rectangle = (Rectangle?)deserializer.ReadObject(stream) ?? throw new IOException();
-            var pos = new WINDOWPLACEMENT()
-            {
-                length = (uint)Marshal.SizeOf<WINDOWPLACEMENT>(),
-                showCmd = SHOW_WINDOW_CMD.SW_NORMAL,
-                ptMinPosition = new Point(-1, -1),
-                ptMaxPosition = new Point(-1, -1),
-                rcNormalPosition = new RECT(rectangle)
-            };
-            SetWindowPlacement(hwnd, pos);
+            return (Rectangle?)deserializer.ReadObject(stream) ?? throw new IOException();
         }
         catch
         {
 
         }
+
+        return null;
+    }
+
+    private static void SetWindowPosition(HWND hwnd, Rectangle bounds)
+    {
+        var pos = new WINDOWPLACEMENT()
+        {
+            length = (uint)Marshal.SizeOf<WINDOWPLACEMENT>(),
+            showCmd = SHOW_WINDOW_CMD.SW_NORMAL,
+            ptMinPosition = new Point(-1, -1),
+            ptMaxPosition = new Point(-1, -1),
+            rcNormalPosition = new RECT(bounds)
+        };
+        SetWindowPlacement(hwnd, pos);
     }
 }
