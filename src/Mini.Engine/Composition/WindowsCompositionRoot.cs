@@ -6,7 +6,7 @@ public sealed class WindowsCompositionRoot : ICompositionRoot
 {
     public void Compose(IServiceRegistry registry)
     {
-        registry.Register<Win32Window>((factory) => Win32Application.Initialize("Mini.Engine"));
+        registry.Register<Win32Window>((factory) => Win32Application.Initialize("Mini.Engine", StartupArguments.WindowPosition));
         registry.Register<SimpleInputService>();
     }
 }

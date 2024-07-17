@@ -10,7 +10,7 @@ public static class StartupArguments
 
     public static string ContentRoot => GetArgumentValue("--content");
 
-    public static string GameLoopType => GetArgumentValueOrDefault("--gameloop", "Mini.Engine.GameLoop");
+    public static string GameLoopType => GetArgumentValueOrDefault("--gameloop", "Mini.Engine.GameLoop"); //  --position 3841,16,1270,1415
 
     public static bool EnableVSync => IsPresent("--vsync");
 
@@ -59,9 +59,9 @@ public static class StartupArguments
         if (elements.Length == 4)
         {
             var x = int.Parse(elements[0]);
-            var y = int.Parse(elements[0]);
-            var w = int.Parse(elements[0]);
-            var h = int.Parse(elements[0]);
+            var y = int.Parse(elements[1]);
+            var w = int.Parse(elements[2]);
+            var h = int.Parse(elements[3]);
 
             return new Rectangle(x, y, w, h);
         }

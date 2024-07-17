@@ -47,17 +47,13 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
         this.Hwnd = hwnd;
     }
 
-    public void Show(bool restorePreviousPosition)
-    {
-        if (restorePreviousPosition)
-        {
-            var bounds = LoadPreviousWindowPosition();
-            this.Show(bounds);
-        }
-    }
-
     public void Show(Rectangle? bounds = null)
     {
+        if (bounds == null)
+        {
+            bounds = LoadPreviousWindowPosition();
+        }
+
         if (bounds != null)
         {
             SetWindowPosition(this.Hwnd, bounds.Value);

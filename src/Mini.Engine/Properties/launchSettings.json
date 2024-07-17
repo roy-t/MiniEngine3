@@ -14,7 +14,7 @@
     },
     "Titan": {
       "commandName": "Project",
-      "commandLineArgs": "--gameloop \"Mini.Engine.Titan.TitanGameLoop\" --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
+      "commandLineArgs": "--gameloop \"Mini.Engine.Titan.TitanMainMenuLoop\" --content \"$(ProjectDir)../Mini.Engine.Content/Assets\""
     },
     "Titan - RenderDoc": {
       "commandName": "Project",

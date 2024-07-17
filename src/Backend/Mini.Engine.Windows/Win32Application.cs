@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Mini.Engine.Windows.Events;
 using Windows.Win32.Foundation;
@@ -11,7 +12,7 @@ public static class Win32Application
 {
     private static readonly EventProcessor EventProcessor = new EventProcessor();
 
-    public static unsafe Win32Window Initialize(string title)
+    public static unsafe Win32Window Initialize(string title, Rectangle? bounds)
     {
         var moduleHandle = GetModuleHandle(string.Empty);
         fixed (char* ptrClassName = "WndClass")
@@ -35,7 +36,8 @@ public static class Win32Application
 
         var window = new Win32Window(title);
         EventProcessor.Register(window, window);
-        window.Show();
+
+        window.Show(bounds);
 
         SetMouseCursor(Cursor.Arrow);
 
