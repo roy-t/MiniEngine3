@@ -8,6 +8,6 @@ namespace Mini.Engine.UI;
 [Service]
 internal sealed class EditorUserInterface : UserInterface
 {
-    public EditorUserInterface(MetricService metrics, UICore core, IEnumerable<IEditorPanel> panels, IEnumerable<IEditorMenu> menus)
+    public EditorUserInterface(UICore core, MetricService metrics, IEnumerable<IEditorPanel> panels, IEnumerable<IEditorMenu> menus)
         : base(core, metrics, panels, menus) { }
 }

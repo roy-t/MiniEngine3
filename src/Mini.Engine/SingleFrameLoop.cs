@@ -45,11 +45,6 @@ internal sealed class SingleFrameLoop : IGameLoop
         this.drawCalls++;
     }
 
-    public void Resize(int width, int height)
-    {
-        throw new NotSupportedException($"{nameof(SingleFrameLoop)} should not be resized during its short lifetime");
-    }
-
     public void Dispose()
     {
         if (this.RenderDoc != null)
@@ -58,7 +53,4 @@ internal sealed class SingleFrameLoop : IGameLoop
             this.RenderDoc.LaunchReplayUI(path);
         }
     }
-
-    public void Enter() { }
-    public void Exit() { }
 }

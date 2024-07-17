@@ -31,7 +31,6 @@ internal sealed class GameLoop : IGameLoop
     private readonly RenderPipeline RenderPipeline;
     private readonly UpdatePipeline UpdatePipeline;
 
-    private bool enableUI;
     private readonly Stopwatch Stopwatch;
 
     public GameLoop(Device device, EditorUserInterface userInterface, SimpleInputService inputService, LifetimeManager lifetimeManager, EditorState editorState, PresentationHelper presenter, Scenes.SceneManager sceneManager, FrameService frameService, ContentManager content, MetricService metricService, RenderPipeline renderPipelineV2, UpdatePipeline updatePipelineV2)
@@ -50,7 +49,6 @@ internal sealed class GameLoop : IGameLoop
         this.EditorState.Restore();
         this.SceneManager.Set(this.EditorState.PreferredScene);
 
-        this.enableUI = !StartupArguments.NoUi;
         this.MetricService = metricService;
 
         this.Stopwatch = new Stopwatch();
@@ -72,10 +70,7 @@ internal sealed class GameLoop : IGameLoop
 
     public void HandleInput(float elapsedRealWorldTime)
     {
-        if (this.Keyboard.Pressed(F1))
-        {
-            this.enableUI = !this.enableUI;
-        }
+
     }
 
     public void Frame(float alpha, float elapsedRealWorldTime)
@@ -93,18 +88,12 @@ internal sealed class GameLoop : IGameLoop
         this.RenderPipeline.Run(in output, in output, alpha);
         this.Presenter.ToneMapAndPresent(this.Device.ImmediateContext, this.FrameService.PBuffer.CurrentColor);
 
-        if (this.enableUI)
-        {
-            this.UserInterface.Render();
-        }
-
         this.MetricService.Update("GameLoop.Draw.Millis", (float)this.Stopwatch.Elapsed.TotalMilliseconds);
     }
 
     public void Resize(int width, int height)
     {
         this.FrameService.Resize(this.Device);
-        this.UserInterface.Resize(width, height);
     }
 
     public void Enter()

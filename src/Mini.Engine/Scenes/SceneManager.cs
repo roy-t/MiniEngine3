@@ -68,6 +68,6 @@ internal sealed class SceneManager
         this.frame = this.LifetimeManager.PushFrame();
         var actions = this.Scenes[this.activeScene].Load();
 
-        this.LoadingScreen.PushLoadPop(actions);
+        this.LoadingScreen.Load(actions);
     }
 }

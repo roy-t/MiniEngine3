@@ -1,12 +1,13 @@
 ﻿using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.Content;
+using Mini.Engine.Titan;
 using Vortice.Mathematics;
 
 namespace Mini.Engine.UI.Panels;
 
 [Service]
-internal class HotReloadPanel : IEditorPanel
+internal class HotReloadPanel : IEditorPanel, ITitanPanel
 {
     public string Title => "Hot Reload";
 

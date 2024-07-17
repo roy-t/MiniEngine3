@@ -33,7 +33,7 @@ public sealed class GameBootstrapper
         var gameLoopType = Type.GetType(StartupArguments.GameLoopType, true, true)
             ?? throw new Exception($"Unable to find game loop {StartupArguments.GameLoopType}");
 
-        this.LoadingGameLoop.PushLoadReplace(gameLoopType);
+        this.LoadingGameLoop.PushNewGameLoop(gameLoopType);
     }
 
     private void SetGraphicsSettings()

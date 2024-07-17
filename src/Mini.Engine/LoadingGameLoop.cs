@@ -35,27 +35,42 @@ public sealed class LoadingGameLoop : IGameLoop
         this.Queue = new Queue<LoadAction>();
     }
 
-    public void PushLoadPop(IEnumerable<LoadAction> actions)
+    public void Load(IEnumerable<LoadAction> actions)
     {
         this.AddRange(actions);
-        this.Add(new LoadAction(nameof(PushLoadPop), () => this.SceneStack.Pop()));
+        this.Add(new LoadAction(nameof(Load), () => this.SceneStack.Pop()));
 
         this.SceneStack.Push(this);
     }
 
-    public void PushLoadReplace<T>() where T : IGameLoop
+    public void ReplaceCurrentGameLoop<T>() where T : IGameLoop
     {
-        this.PushLoadReplace(typeof(T));
+        this.ReplaceCurrentGameLoop(typeof(T));
     }
 
-    public void PushLoadReplace(Type gameLoopType)
+    public void ReplaceCurrentGameLoop(Type gameLoopType)
     {
-        var dependencies = InjectableDependencies.CreateInitializationOrder(gameLoopType);
-        foreach (var dependency in dependencies)
+        this.CreateAndAddActionsFromDependencies(gameLoopType);
+
+        this.Add(new LoadAction("Create " + gameLoopType.Name, () =>
         {
-            var action = new LoadAction(dependency.Name, () => this.Factory.GetInstance(dependency));
-            this.Add(action);
-        }
+            var gameLoop = (IGameLoop)this.Factory.Create(gameLoopType);
+            this.SceneStack.Pop(); // Loading screen
+            this.SceneStack.Pop(); // Previous game loop
+            this.SceneStack.Push(gameLoop);
+        }));
+
+        this.SceneStack.Push(this);
+    }
+
+    public void PushNewGameLoop<T>() where T : IGameLoop
+    {
+        this.PushNewGameLoop(typeof(T));
+    }
+
+    public void PushNewGameLoop(Type gameLoopType)
+    {
+        this.CreateAndAddActionsFromDependencies(gameLoopType);
 
         this.Add(new LoadAction("Create " + gameLoopType.Name, () =>
         {
@@ -132,8 +147,6 @@ public sealed class LoadingGameLoop : IGameLoop
             ImGui.End();
         }
 
-        this.UserInterface.Render();
-
         if (this.Queue.Count == 0)
         {
             // Since the loading screen is kept in memory we need to reset total to zero so that we can properly detect
@@ -143,13 +156,15 @@ public sealed class LoadingGameLoop : IGameLoop
         }
     }
 
-    public void Resize(int width, int height)
-    {
-        this.UserInterface.Resize(width, height);
-    }
-
-    public void Enter() { }
-    public void Exit() { }
-
     public void Dispose() { }
+
+    private void CreateAndAddActionsFromDependencies(Type gameLoopType)
+    {
+        var dependencies = InjectableDependencies.CreateInitializationOrder(gameLoopType);
+        foreach (var dependency in dependencies)
+        {
+            var action = new LoadAction(dependency.Name, () => this.Factory.GetInstance(dependency));
+            this.Add(action);
+        }
+    }
 }

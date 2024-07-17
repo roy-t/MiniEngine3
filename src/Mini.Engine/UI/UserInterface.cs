@@ -144,9 +144,4 @@ internal abstract class UserInterface
         ImGui.SameLine(ImGui.GetWindowWidth() - width - 15);
         ImGui.TextColored(color, text);
     }
-
-    public void Render()
-    {
-        this.Core.Render();
-    }
 }

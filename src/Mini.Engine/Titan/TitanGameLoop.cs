@@ -5,7 +5,6 @@ using Mini.Engine.DirectX.Resources.Surfaces;
 using Mini.Engine.Graphics.PostProcessing;
 using Mini.Engine.Titan.Graphics;
 using Mini.Engine.Titan.Terrains;
-using Mini.Engine.UI;
 
 namespace Mini.Engine.Titan;
 
@@ -14,7 +13,7 @@ internal class TitanGameLoop : IGameLoop
 {
     private readonly Device Device;
     private readonly ContentManager Content;
-    private readonly EditorUserInterface UserInterface;
+    private readonly TitanUserInterface UserInterface;
     private readonly PresentationHelper Presenter;
     private readonly GBuffer GBuffer;
     private readonly StrategyCameraController CameraController;
@@ -22,7 +21,7 @@ internal class TitanGameLoop : IGameLoop
     private readonly TerrainEditor TerrainEditor;
     private readonly Terrain Terrain;
 
-    public TitanGameLoop(Device device, ContentManager content, EditorUserInterface userInterface, PresentationHelper presenter, StrategyCameraController cameraController, Terrain terrainRenderer, TerrainRenderer terrainPartRenderer, TerrainEditor terrainEditor)
+    public TitanGameLoop(Device device, ContentManager content, TitanUserInterface userInterface, PresentationHelper presenter, StrategyCameraController cameraController, Terrain terrainRenderer, TerrainRenderer terrainPartRenderer, TerrainEditor terrainEditor)
     {
         this.GBuffer = new GBuffer(device, MultiSamplingRequest.Eight);
 
@@ -39,7 +38,6 @@ internal class TitanGameLoop : IGameLoop
     public void Resize(int width, int height)
     {
         this.GBuffer.Resize(width, height);
-        this.UserInterface.Resize(width, height);
         this.CameraController.Resize(width, height);
     }
 
@@ -80,12 +78,7 @@ internal class TitanGameLoop : IGameLoop
         {
             this.Presenter.Present(this.Device.ImmediateContext, this.GBuffer.Albedo);
         }
-
-        this.UserInterface.Render();
     }
-
-    public void Enter() { }
-    public void Exit() { }
 
     public void Dispose()
     {

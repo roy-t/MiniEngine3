@@ -1,11 +1,12 @@
 ﻿using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.Debugging;
+using Mini.Engine.Titan;
 
 namespace Mini.Engine.UI.Panels;
 
 [Service]
-internal sealed class PerformancePanel : IEditorPanel
+internal sealed class PerformancePanel : IEditorPanel, ITitanPanel
 {
     public string Title => "Performance";
 
@@ -23,10 +24,10 @@ internal sealed class PerformancePanel : IEditorPanel
     }
 
     public void Update()
-    {        
+    {
         ImGui.InputText("Filter", ref this.filter, 100);
 
-        if (ImGui.BeginTable("Gauges", 4,  ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.Hideable))
+        if (ImGui.BeginTable("Gauges", 4, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.Hideable))
         {
             ImGui.TableSetupColumn("Tag", ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableSetupColumn("Min", ImGuiTableColumnFlags.WidthStretch);

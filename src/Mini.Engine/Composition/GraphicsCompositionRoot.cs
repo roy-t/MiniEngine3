@@ -15,7 +15,7 @@ public sealed class GraphicsCompositionRoot : ICompositionRoot
             var lifeTimeManager = factory.GetInstance<LifetimeManager>();
             return new Device(window.Handle, window.Width, window.Height, lifeTimeManager);
         });
-        registry.Initialize<Device>((factory, device) =>
+        registry.Initialize<Win32Window>((_, _) =>
         {
             if (StartupArguments.EnableRenderDoc)
             {

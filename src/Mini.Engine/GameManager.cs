@@ -97,11 +97,15 @@ public sealed class GameManager
     {
         this.UserInterfaceCore.NewFrame(elapsed);
         this.Scenes.ForEach(s => s.Frame(alpha, elapsed));
+
+        this.UserInterfaceCore.Render();
     }
 
     private void ResizeDeviceResources()
     {
         this.Device.Resize(this.Window.Width, this.Window.Height);
+        this.UserInterfaceCore.Resize(this.Window.Width, this.Window.Height);
+
         this.Scenes.ForEach(s => s.Resize(this.Window.Width, this.Window.Height));
     }
 }

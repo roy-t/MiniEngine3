@@ -6,8 +6,6 @@ public static class StartupArguments
 {
     public static bool EnableRenderDoc => IsPresent("--renderdoc");
 
-    public static bool NoUi => IsPresent("--no-ui");
-
     public static string ContentRoot => GetArgumentValue("--content");
 
     public static string GameLoopType => GetArgumentValueOrDefault("--gameloop", "Mini.Engine.GameLoop"); //  --position 3841,16,1270,1415
@@ -15,6 +13,8 @@ public static class StartupArguments
     public static bool EnableVSync => IsPresent("--vsync");
 
     public static Rectangle? WindowPosition => GetRectangle("--position");
+
+    public static string Executable => Environment.GetCommandLineArgs()[0];
 
     private static bool IsPresent(string argument)
     {
@@ -27,12 +27,12 @@ public static class StartupArguments
         return !IsPresent(argument);
     }
 
-    private static string GetArgumentValueOrDefault(string argument, string def)
+    private static string GetArgumentValueOrDefault(string argument, string @default)
     {
         var value = GetArgumentValue(argument);
         if (string.IsNullOrEmpty(value))
         {
-            return def;
+            return @default;
         }
 
         return value;
