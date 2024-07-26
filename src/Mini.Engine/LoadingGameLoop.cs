@@ -54,7 +54,7 @@ public sealed class LoadingGameLoop : IGameLoop
 
         this.Add(new LoadAction("Create " + gameLoopType.Name, () =>
         {
-            var gameLoop = (IGameLoop)this.Factory.Create(gameLoopType);
+            var gameLoop = (IGameLoop)this.Factory.GetInstance(gameLoopType);
             this.SceneStack.Pop(); // Loading screen
             this.SceneStack.Pop(); // Previous game loop
             this.SceneStack.Push(gameLoop);

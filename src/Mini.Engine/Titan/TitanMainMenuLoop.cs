@@ -2,6 +2,7 @@
 using ImGuiNET;
 using Mini.Engine.Configuration;
 using Mini.Engine.DirectX;
+using Mini.Engine.Titan.Multiplayer;
 using Mini.Engine.UI;
 
 namespace Mini.Engine.Titan;
@@ -9,7 +10,7 @@ namespace Mini.Engine.Titan;
 [Service]
 internal class TitanMainMenuLoop : IGameLoop
 {
-    private static readonly string IpAddressMax = "255.255.255.254:65536";
+
 
     private readonly Device Device;
     private readonly UICore UserInterface;
@@ -52,6 +53,7 @@ internal class TitanMainMenuLoop : IGameLoop
             if (ImGui.Button("Host Multiplayer"))
             {
 
+                this.LoadingScreen.ReplaceCurrentGameLoop<TitanHostGameLoop>();
                 // TODO: multiplayer
                 // - Start hosting, show server screen
                 // - Launch second instance, with connection string
@@ -60,44 +62,26 @@ internal class TitanMainMenuLoop : IGameLoop
                 // - PROFIT
             }
 
-            //255.255.255.255:65536
-
-            ImGui.InputTextWithHint("IP Address", "127.0.0.1:6948", ref this.endPointString, (uint)IpAddressMax.Length);
+            ImGui.InputTextWithHint("IP Address", "127.0.0.1:" + MultiplayerConstants.DefaultPort, ref this.endPointString, (uint)MultiplayerConstants.Ipv4AddressMax.Length);
             ImGui.SameLine();
 
+            this.endPoint = ParseHostAddress(this.endPointString);
+            if (this.endPoint == null)
+            {
+                ImGui.BeginDisabled();
+            }
 
+            if (ImGui.Button("Join"))
+            {
 
+            }
 
+            if (this.endPoint == null)
+            {
+                ImGui.EndDisabled();
+            }
 
-            //if (IPEndPoint.TryParse(this.endPointString, out var tentativeEndPoint))
-            //{
-            //    if (tentativeEndPoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork && tentativeEndPoint.Port > 1023)
-            //    {
-            //        this.endPoint = tentativeEndPoint;
-            //    }
-            //    else
-            //    {
-            //        this.endPoint = null;
-            //    }
-            //}
-
-            //if (this.endPoint == null)
-            //{
-            //    ImGui.BeginDisabled();
-            //}
-
-
-            //if (ImGui.Button("Join"))
-            //{
-
-            //}
-
-            //if (this.endPoint == null)
-            //{
-            //    ImGui.EndDisabled();
-            //}
-
-            //ImGui.End();
+            ImGui.End();
         }
     }
 
@@ -111,9 +95,7 @@ internal class TitanMainMenuLoop : IGameLoop
 
     }
 
-
-    // TODO: VERIFY
-    private static IPEndPoint? Parse(string ipEndpoint)
+    private static IPEndPoint? ParseHostAddress(string ipEndpoint)
     {
         if (string.IsNullOrWhiteSpace(ipEndpoint))
         {
