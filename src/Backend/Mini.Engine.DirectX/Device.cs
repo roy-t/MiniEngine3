@@ -26,6 +26,7 @@ public sealed class Device : IDisposable
     private readonly IDXGIFactory4 DXGIFactory;
     private readonly bool PresentAllowTearing;
     private IDXGISwapChain swapChain = null!;
+    private readonly FeatureLevel[] FeatureLevels = [FeatureLevel.Level_11_1];
 
 
 #if DEBUG
@@ -43,7 +44,7 @@ public sealed class Device : IDisposable
         this.Viewport = new Rectangle(0, 0, width, height);
 
 #nullable disable
-        _ = D3D11CreateDevice(null, DriverType.Hardware, Flags, null, out var device, out var context);
+        _ = D3D11CreateDevice(null, DriverType.Hardware, Flags, this.FeatureLevels, out var device, out ID3D11DeviceContext context);
 #nullable restore
         this.ID3D11Device = device;
         this.DXGIFactory = this.CreateDxgiFactory(out this.PresentAllowTearing);

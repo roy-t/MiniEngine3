@@ -2,7 +2,7 @@
 
 public enum VirtualKeyCode : byte
 {
-    K_0 = 48,
+    VK_0 = 48,
     VK_1 = 49,
     VK_2 = 50,
     VK_3 = 51,

@@ -1,4 +1,5 @@
-﻿using Mini.Engine.Configuration;
+﻿using LibGame.StateMachines;
+using Mini.Engine.Configuration;
 
 namespace Mini.Engine.Titan.Multiplayer;
 
@@ -9,11 +10,14 @@ public sealed class Session
 
     public Session()
     {
+        this.State = new StateMachine();
         this.PlayerList = new List<Player>();
     }
 
     public IReadOnlyList<Player> Players => this.PlayerList;
     public Player? Host { get; private set; }
+
+    public StateMachine State { get; }
 
     public void SetHost(Player host)
     {

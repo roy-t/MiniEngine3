@@ -66,7 +66,7 @@ internal abstract class UserInterface
     {
         this.Stopwatch.Restart();
 
-        ImGui.DockSpaceOverViewport(ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode);
+        ImGui.DockSpaceOverViewport(0, ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode);
 
         if (ImGui.BeginMainMenuBar())
         {
