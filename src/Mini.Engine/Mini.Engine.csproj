@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="ImGui.NET" Version="1.90.9.1" />
+    <PackageReference Include="LiteNetLib" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>

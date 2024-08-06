@@ -14,6 +14,7 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
     private const string WindowSettingsFile = "window.json";
 
     private bool isCursorDirty = true;
+    private bool storePositionOnExit = true;
     private Vector2 cursorPosition;
 
     internal unsafe Win32Window(string title)
@@ -52,11 +53,13 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
         if (bounds == null)
         {
             bounds = LoadPreviousWindowPosition();
+            this.storePositionOnExit = true;
         }
 
         if (bounds != null)
         {
             SetWindowPosition(this.Hwnd, bounds.Value);
+            this.storePositionOnExit = false;
         }
 
         ShowWindow(this.Hwnd, SHOW_WINDOW_CMD.SW_NORMAL);
@@ -86,7 +89,10 @@ public sealed class Win32Window : IWindowEventListener, IDisposable
 
     public void OnDestroyed()
     {
-        SerializeWindowPosition(this.Hwnd);
+        if (this.storePositionOnExit)
+        {
+            SerializeWindowPosition(this.Hwnd);
+        }
     }
 
     public void OnMouseMove()

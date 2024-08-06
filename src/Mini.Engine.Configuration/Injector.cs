@@ -19,7 +19,11 @@ public sealed class Injector : IDisposable
     {
         Log.Logger = new LoggerConfiguration()
          .Enrich.FromLogContext()
+#if DEBUG
+         .MinimumLevel.Debug()
+#else
          .MinimumLevel.Information()
+#endif
          .WriteTo.Debug(outputTemplate: DefaultOutputTemplate)
          .CreateLogger();
 

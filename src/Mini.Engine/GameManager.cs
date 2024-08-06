@@ -29,6 +29,14 @@ public sealed class GameManager
 
     public void Run()
     {
+        if (StartupArguments.LaunchDebugger)
+        {
+            if (!Debugger.IsAttached)
+            {
+                Debugger.Launch();
+            }
+        }
+
         var stopwatch = new Stopwatch();
         const double dt = 1.0 / 60.0; // constant tick rate of simulation
 

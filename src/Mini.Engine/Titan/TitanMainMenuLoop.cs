@@ -27,7 +27,7 @@ internal class TitanMainMenuLoop : IGameLoop
         this.UserInterface = ui;
         this.LoadingScreen = loadingScreen;
 
-        this.endPointString = string.Empty;
+        this.endPointString = "127.0.0.1:" + MultiplayerConstants.DefaultPort;
         this.endPoint = null;
     }
 
@@ -73,7 +73,7 @@ internal class TitanMainMenuLoop : IGameLoop
 
             if (ImGui.Button("Join"))
             {
-
+                this.LoadingScreen.ReplaceCurrentGameLoop<TitanClientGameLoop>();
             }
 
             if (this.endPoint == null)

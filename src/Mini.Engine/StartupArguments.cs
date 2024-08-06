@@ -14,6 +14,8 @@ public static class StartupArguments
 
     public static Rectangle? WindowPosition => GetRectangle("--position");
 
+    public static bool LaunchDebugger => IsPresent("--debugger");
+
     public static string Executable => Environment.GetCommandLineArgs()[0];
 
     private static bool IsPresent(string argument)

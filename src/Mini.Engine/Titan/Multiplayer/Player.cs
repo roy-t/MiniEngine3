@@ -1,4 +1,6 @@
-﻿namespace Mini.Engine.Titan.Multiplayer;
+﻿using LiteNetLib;
+
+namespace Mini.Engine.Titan.Multiplayer;
 public sealed class Player : IEquatable<Player?>
 {
     public static Player Generate()
@@ -9,11 +11,16 @@ public sealed class Player : IEquatable<Player?>
     }
 
     public Player(Guid id, string alias)
+        : this(null, id, alias) { }
+
+    public Player(NetPeer? peer, Guid id, string alias)
     {
+        this.Peer = peer;
         this.Id = id;
         this.Alias = alias;
     }
 
+    public NetPeer? Peer { get; }
     public Guid Id { get; }
     public string Alias { get; set; }
 
