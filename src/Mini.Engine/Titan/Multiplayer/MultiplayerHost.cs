@@ -1,18 +1,15 @@
-﻿using LiteNetLib;
-using Mini.Engine.Configuration;
+﻿using Mini.Engine.Configuration;
 using Serilog;
 
 namespace Mini.Engine.Titan.Multiplayer;
 [Service]
 public sealed class MultiplayerHost : MultiplayerService
 {
-    private readonly List<NetPeer> Clients;
-
     public MultiplayerHost(ILogger logger)
         : base(logger.ForContext<MultiplayerHost>(), new NullState())
     {
-        this.Clients = new List<NetPeer>();
     }
+
 
     public void Start(int port)
     {

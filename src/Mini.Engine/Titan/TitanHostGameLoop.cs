@@ -13,18 +13,24 @@ internal class TitanHostGameLoop : IGameLoop
     private readonly UICore UserInterface;
     private readonly LoadingGameLoop LoadingScreen;
     private readonly MultiplayerHost Host;
-    private Player? Selected;
+    private readonly LobbyHostState State;
+
+#if DEBUG
+    private bool withDebugger;
+#endif
 
     public TitanHostGameLoop(UICore ui, LoadingGameLoop loadingScreen, MultiplayerHost host)
     {
         this.UserInterface = ui;
         this.LoadingScreen = loadingScreen;
         this.Host = host;
+        this.State = new LobbyHostState();
     }
 
     public void Enter()
     {
         this.Host.Start(MultiplayerConstants.DefaultPort);
+        this.Host.SwitchState(this.State);
     }
 
     public void Exit()
@@ -51,6 +57,19 @@ internal class TitanHostGameLoop : IGameLoop
         {
             if (ImGui.BeginListBox("Players"))
             {
+                // TODO: figure out hosts public-ip and port, via Steam API
+                ImGui.Selectable($"You, address: :{MultiplayerConstants.DefaultPort}, latency: 0 ms", false);
+
+                foreach (var client in this.Host.ConnectedPeers)
+                {
+                    var latency = 999;
+                    if (this.State.Latency.TryGetValue(client.Id, out var l))
+                    {
+                        latency = l;
+                    }
+                    ImGui.Selectable($"Id: {client.Id}, address: {client.Address}:{client.Port}, latency: {l} ms", false);
+                }
+
                 //foreach (var player in this.Session.Players)
                 //{
                 //    var selected = this.Selected == player;
@@ -71,15 +90,21 @@ internal class TitanHostGameLoop : IGameLoop
                 exe = exe.Replace(".dll", ".exe"); // when starting from Visual Studio we start in the dll
                 var args = cla[1..];
 
-                // HACK: easy positioning on my machine
                 if (Environment.MachineName.Equals("Creature24", StringComparison.OrdinalIgnoreCase))
                 {
-                    args = [.. args, "--position", "3841,16,1270,1415", "--debugger"];
+                    // HACK: easy positioning on my machine
+                    args = [.. args, "--position", "3841,16,1270,1415"];
+                }
+
+                if (this.withDebugger)
+                {
+                    args = [.. args, "--debugger"];
                 }
 
                 var info = new ProcessStartInfo(exe, args);
                 Process.Start(info);
             }
+            ImGui.Checkbox("With Debugger", ref this.withDebugger);
 #endif
 
             ImGui.End();

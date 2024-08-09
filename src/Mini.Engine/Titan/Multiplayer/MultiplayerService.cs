@@ -18,6 +18,8 @@ public abstract class MultiplayerService : IDisposable
         };
     }
 
+    public IReadOnlyList<NetPeer> ConnectedPeers => this.NetManager.ConnectedPeerList;
+
     public void Update()
     {
         this.NetManager.PollEvents();
