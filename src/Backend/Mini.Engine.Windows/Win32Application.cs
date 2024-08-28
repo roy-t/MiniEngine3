@@ -12,7 +12,7 @@ public static class Win32Application
 {
     private static readonly EventProcessor EventProcessor = new EventProcessor();
 
-    public static unsafe Win32Window Initialize(string title, Rectangle? bounds)
+    public static unsafe Win32Window Initialize(string title, Rectangle? bounds = null)
     {
         var moduleHandle = GetModuleHandle(string.Empty);
         fixed (char* ptrClassName = "WndClass")

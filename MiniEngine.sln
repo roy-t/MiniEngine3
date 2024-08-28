@@ -67,7 +67,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibGame.Tests", "src\Extern
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Titan", "Titan", "{0B64581C-6B1C-4BF5-AE6D-AFF0BA865765}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Titan.Logic", "src\Titan\Titan.Logic\Titan.Logic.csproj", "{17F71E4B-05FF-44E8-B75B-F15A73FDC5EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Titan.Logic", "src\Titan\Titan.Logic\Titan.Logic.csproj", "{17F71E4B-05FF-44E8-B75B-F15A73FDC5EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiplayerDemo", "src\MultiplayerDemo\MultiplayerDemo.csproj", "{774051DE-36A1-4B68-9012-F97775666ABD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -269,6 +271,14 @@ Global
 		{17F71E4B-05FF-44E8-B75B-F15A73FDC5EB}.Release|Any CPU.Build.0 = Release|x64
 		{17F71E4B-05FF-44E8-B75B-F15A73FDC5EB}.Release|x64.ActiveCfg = Release|x64
 		{17F71E4B-05FF-44E8-B75B-F15A73FDC5EB}.Release|x64.Build.0 = Release|x64
+		{774051DE-36A1-4B68-9012-F97775666ABD}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{774051DE-36A1-4B68-9012-F97775666ABD}.Debug|Any CPU.Build.0 = Debug|x64
+		{774051DE-36A1-4B68-9012-F97775666ABD}.Debug|x64.ActiveCfg = Debug|x64
+		{774051DE-36A1-4B68-9012-F97775666ABD}.Debug|x64.Build.0 = Debug|x64
+		{774051DE-36A1-4B68-9012-F97775666ABD}.Release|Any CPU.ActiveCfg = Release|x64
+		{774051DE-36A1-4B68-9012-F97775666ABD}.Release|Any CPU.Build.0 = Release|x64
+		{774051DE-36A1-4B68-9012-F97775666ABD}.Release|x64.ActiveCfg = Release|x64
+		{774051DE-36A1-4B68-9012-F97775666ABD}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

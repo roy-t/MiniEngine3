@@ -13,7 +13,7 @@ using Shader = Mini.Engine.Content.Shaders.Generated.UserInterface;
 
 namespace Mini.Engine.UI;
 
-internal sealed class ImGuiRenderer : IDisposable
+public sealed class ImGuiRenderer : IDisposable
 {
     // Borrowed resources
     private readonly Device Device;

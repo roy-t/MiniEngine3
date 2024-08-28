@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+	<StartupObject>MultiplayerDemo.Program</StartupObject>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="ImGui.NET" Version="1.90.9.1" />
+		<PackageReference Include="LiteNetLib" Version="1.2.0" />
+		<PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Backend\Mini.Engine.DirectX\Mini.Engine.DirectX.csproj" />
+		<ProjectReference Include="..\Backend\Mini.Engine.Windows\Mini.Engine.Windows.csproj" />
+		<ProjectReference Include="..\Mini.Engine.Content\Mini.Engine.Content.csproj" />
+		<ProjectReference Include="..\Mini.Engine\Mini.Engine.csproj" />
+	</ItemGroup>
+</Project>

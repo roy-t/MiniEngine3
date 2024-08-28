@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MultiplayerDemo": {
+      "commandName": "Project",
+      "commandLineArgs": "\"$(ProjectDir)../Mini.Engine.Content/Assets\""
+    }
+  }
+}
