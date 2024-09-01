@@ -15,6 +15,13 @@ namespace MultiplayerDemo;
 
 public class Program
 {
+    private static int Instances = 0;
+    private class SimulationSlot(SimulationManager simulation, bool active)
+    {
+        public SimulationManager Simulation { get; } = simulation;
+        public bool Active { get; set; } = active;
+    }
+
     [STAThread]
     static void Main(string[] arguments)
     {
@@ -48,31 +55,54 @@ public class Program
         Win32Application.RegisterInputEventListener(window, uiInputListener);
 
         var stopwatch = new Stopwatch();
-        const double dt = 1.0 / 60.0; // main loop tick rate
 
-        // update immediately
-        var elapsed = dt;
-        var accumulator = dt;
+        var simulations = new List<SimulationSlot>();
 
         while (Win32Application.PumpMessages())
         {
-            while (accumulator > dt)
-            {
-                accumulator -= dt;
-                // Simulate
-            }
-
             device.ImmediateContext.ClearBackBuffer();
 
             input.NextFrame();
             uiInputListener.Update();
             ImGui.NewFrame();
 
-            // DO stuff
-            ImGui.ShowDemoWindow();
+            ImGui.DockSpaceOverViewport(0, ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode);
+            if (ImGui.BeginMainMenuBar())
+            {
+                if (ImGui.BeginMenu("Simulations"))
+                {
+                    if (ImGui.MenuItem("Spawn"))
+                    {
+                        var simulation = new SimulationManager($"{Instances++}");
+                        simulations.Add(new SimulationSlot(simulation, true));
+                    }
 
+                    ImGui.Separator();
 
-            uiIO.DeltaTime = (float)elapsed;
+                    foreach (var slot in simulations)
+                    {
+                        var active = slot.Active;
+                        if (ImGui.Checkbox($"{slot.Simulation.Id}", ref active))
+                        {
+                            slot.Active = active;
+                        }
+                    }
+
+                    ImGui.EndMenu();
+                }
+                ImGui.EndMainMenuBar();
+            }
+
+            foreach (var slot in simulations)
+            {
+                if (slot.Active)
+                {
+                    ImGui.SetNextWindowSize(new Vector2(480, 640), ImGuiCond.FirstUseEver);
+                    slot.Simulation.UpdateUserInterface();
+                }
+            }
+
+            uiIO.DeltaTime = stopwatch.ElapsedMilliseconds;
             ImGui.Render();
             uiRenderer.Render(ImGui.GetDrawData());
 
@@ -84,9 +114,7 @@ public class Program
                 uiIO.DisplaySize = new Vector2(window.Width, window.Height);
             }
 
-            elapsed = stopwatch.Elapsed.TotalSeconds;
             stopwatch.Restart();
-            accumulator += Math.Min(elapsed, 0.1); // cap elapsed on some worst case value to not explode anything
 
             if (input.Keyboard.Pressed(VirtualKeyCode.VK_ESCAPE))
             {
