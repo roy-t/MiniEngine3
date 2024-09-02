@@ -35,7 +35,8 @@ public sealed class SinglePlayerController : ISimulationController
         {
             this.accumulator += this.Stopwatch.Elapsed.TotalMilliseconds;
 
-            // TODO: signal is running slowly?
+            // TODO: in single player we want to go as fast as the computer can,
+            // but not faster than the desired delta
             this.accumulator = Math.Clamp(this.accumulator, 0.0, dt * 10.0);
             this.Stopwatch.Restart();
 
@@ -54,6 +55,12 @@ public sealed class SinglePlayerController : ISimulationController
 
     private void Tick(float alpha)
     {
+        // Simulate some inputs
+        var c = Random.Shared.Next(10);
+        if (c < 3)
+        {
+            this.Simulation.Action(c);
+        }
         this.Simulation.Forward(alpha);
     }
 }

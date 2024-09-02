@@ -58,7 +58,10 @@ public sealed class SimulationManager
         {
             this.UpdateControls();
 
-            ImGui.TextColored(new Vector4(0.0f, 1.0f, 0.0f, 1.0f), $"Simulation Step: {this.Simulation.Step} + {this.Simulation.Alpha}");
+            ImGui.TextColored(new Vector4(0.0f, 1.0f, 0.0f, 1.0f), $"Step {this.Simulation.Step}");
+            ImGui.SameLine();
+            ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $"Alpha {this.Simulation.Alpha}");
+            ImGui.TextColored(new Vector4(0.0f, 1.0f, 0.0f, 1.0f), $"State {this.Simulation.State}");
 
             ImGui.End();
         }
