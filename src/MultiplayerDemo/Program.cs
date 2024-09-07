@@ -58,6 +58,8 @@ public class Program
 
         var simulations = new List<SimulationSlot>();
 
+        var server = new MultiPlayerServer();
+
         while (Win32Application.PumpMessages())
         {
             device.ImmediateContext.ClearBackBuffer();
@@ -71,9 +73,21 @@ public class Program
             {
                 if (ImGui.BeginMenu("Simulations"))
                 {
-                    if (ImGui.MenuItem("Spawn"))
+                    if (ImGui.MenuItem("Spawn SinglePlayer"))
                     {
-                        var simulation = new SimulationManager($"{Instances++}");
+                        var simulation = SimulationManager.CreateSinglePlayer($"SP {Instances++}");
+                        simulations.Add(new SimulationSlot(simulation, true));
+                    }
+
+                    if (ImGui.MenuItem("Spawn Host"))
+                    {
+                        var simulation = SimulationManager.CreateHost(server, $"Host {Instances++}");
+                        simulations.Add(new SimulationSlot(simulation, true));
+                    }
+
+                    if (ImGui.MenuItem("Spawn Client"))
+                    {
+                        var simulation = SimulationManager.CreateClient(server, $"Client {Instances++}");
                         simulations.Add(new SimulationSlot(simulation, true));
                     }
 

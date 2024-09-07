@@ -11,13 +11,34 @@ public sealed class SimulationManager
     private readonly Thread ControlThread;
     private bool isRunning;
 
-    public SimulationManager(string id)
+    public static SimulationManager CreateSinglePlayer(string id)
+    {
+        var simulation = new Simulation();
+        var controller = new SinglePlayerController(simulation);
+        return new SimulationManager(id, simulation, controller);
+    }
+
+    public static SimulationManager CreateHost(MultiPlayerServer server, string id)
+    {
+        var simulation = new Simulation();
+        var controller = new MultiPlayerHostController(server, simulation);
+        return new SimulationManager(id, simulation, controller);
+    }
+
+    public static SimulationManager CreateClient(MultiPlayerServer server, string id)
+    {
+        var simulation = new Simulation();
+        var controller = new MultiPlayerClientController(server, simulation);
+        return new SimulationManager(id, simulation, controller);
+    }
+
+    private SimulationManager(string id, Simulation simulation, ISimulationController controller)
     {
         this.ResetEvent = new ManualResetEventSlim(false);
         this.Id = id;
 
-        this.Simulation = new Simulation();
-        this.Controller = new SinglePlayerController(this.Simulation);
+        this.Simulation = simulation;
+        this.Controller = controller;
 
         this.ControlThread = new Thread(this.Loop)
         {
@@ -61,7 +82,13 @@ public sealed class SimulationManager
             ImGui.TextColored(new Vector4(0.0f, 1.0f, 0.0f, 1.0f), $"Step {this.Simulation.Step}");
             ImGui.SameLine();
             ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $"Alpha {this.Simulation.Alpha}");
+
+            ImGui.TextColored(new Vector4(0.0f, 1.0f, 0.0f, 1.0f), $"SimTime {this.Controller.lastUpdateDurationMs:F2} ms");
+
             ImGui.TextColored(new Vector4(0.0f, 1.0f, 0.0f, 1.0f), $"State {this.Simulation.State}");
+
+            var selected = 0;
+            ImGui.ListBox("Log", ref selected, [.. this.Controller.Log.Reverse()], this.Controller.Log.Count);
 
             ImGui.End();
         }

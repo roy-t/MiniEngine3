@@ -3,19 +3,23 @@
 namespace MultiplayerDemo;
 public sealed class SinglePlayerController : ISimulationController
 {
-    const double dt = 1.0 * 1000.0; // 1.0 / 60.0;
+    private const double dt = 1.0 * 1000.0; // 1.0 / 60.0;
     private readonly Stopwatch Stopwatch;
     private double accumulator;
     private readonly Simulation Simulation;
+    private readonly List<string> LogList;
 
     public SinglePlayerController(Simulation simulation)
     {
         this.Simulation = simulation;
         this.Stopwatch = new Stopwatch();
+        this.LogList = new List<string>();
     }
 
+    public double lastUpdateDurationMs { get; private set; }
     public bool IsRunning { get; private set; }
     public string Name => nameof(SinglePlayerController);
+    public IReadOnlyList<string> Log => this.LogList;
 
     public void Start()
     {
@@ -33,10 +37,9 @@ public sealed class SinglePlayerController : ISimulationController
     {
         if (this.IsRunning)
         {
-            this.accumulator += this.Stopwatch.Elapsed.TotalMilliseconds;
+            this.lastUpdateDurationMs = this.Stopwatch.Elapsed.TotalMilliseconds;
+            this.accumulator += this.lastUpdateDurationMs;
 
-            // TODO: in single player we want to go as fast as the computer can,
-            // but not faster than the desired delta
             this.accumulator = Math.Clamp(this.accumulator, 0.0, dt * 10.0);
             this.Stopwatch.Restart();
 
@@ -50,6 +53,8 @@ public sealed class SinglePlayerController : ISimulationController
                 }
                 this.Tick(alpha);
             }
+
+            Thread.Sleep(1); // Simulate expensive computations
         }
     }
 
@@ -59,6 +64,7 @@ public sealed class SinglePlayerController : ISimulationController
         var c = Random.Shared.Next(10);
         if (c < 3)
         {
+            this.LogList.Add($"Step:{this.Simulation.Step}->{this.Simulation.Step + 1}, Action: {c}, State: {this.Simulation.State}->{this.Simulation.State + c}");
             this.Simulation.Action(c);
         }
         this.Simulation.Forward(alpha);
