@@ -10,8 +10,9 @@ public sealed class SimpleMouse : SimpleInputDevice
     private int nextScrollState;
     private int hScrollState;
     private int nextHScrollState;
+    private Vector2 position;
+    private Vector2 nextPostion;
     private Vector2 movement;
-    private Vector2 nextMovement;
 
     internal SimpleMouse() : base(Enum.GetValues<MouseButton>().Length) { }
 
@@ -23,7 +24,7 @@ public sealed class SimpleMouse : SimpleInputDevice
     /// <summary>
     /// The position of the mouse cursor relative to the upper left corner of the main window, in pixels
     /// </summary>
-    public Vector2 Position { get; private set; }
+    public Vector2 Position => this.position;
 
     /// <summary>
     /// The increments the scroll wheel scrolled vertically in this frame.
@@ -71,8 +72,8 @@ public sealed class SimpleMouse : SimpleInputDevice
         this.hScrollState = this.nextHScrollState;
         this.nextHScrollState = 0;
 
-        this.movement = this.nextMovement;
-        this.nextMovement = Vector2.Zero;
+        this.movement = this.nextPostion - this.position;
+        this.position = this.nextPostion;
 
         base.NextFrame();
     }
@@ -99,6 +100,6 @@ public sealed class SimpleMouse : SimpleInputDevice
 
     internal void UpdatePosition(Vector2 position)
     {
-        this.Position = position;
+        this.nextPostion = position;
     }
 }
